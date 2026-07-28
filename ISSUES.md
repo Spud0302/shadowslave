@@ -70,6 +70,8 @@ These work as built. Whether they're _right_ is your call.
 
 ---
 
+- **Nightmare mob spawn rate is unsettled.** Judged "alright, could go either way" on one playtest — not enough to move it. The dial is the `spawners.monster` weights in `worldgen/biome/nightmare.json`: zombie 40, skeleton 30, spider 20, phantom 10, with `minCount`/`maxCount` per entry. Revisit when more than one person has played it.
+
 ## 4. Deliberate limitations — not bugs
 
 Recorded so nobody "fixes" them by accident.
