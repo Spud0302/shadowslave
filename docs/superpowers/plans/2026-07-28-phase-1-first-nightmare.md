@@ -17,7 +17,7 @@
 - **Namespace everything `shadowslave`** — functions, tags, scoreboards, bossbars, attribute modifier ids.
 - **Naming: `lower_snake_case`** for all files and folders.
 - **No Java, no mod loader, no external dependencies.** If a task seems to need one, stop and raise it.
-- **Versioning: Pride Versioning** (`PROUD.DEFAULT.SHAME`). Phase 1 ships as `1.0.0`.
+- **Versioning: Pride Versioning** (`PROUD.DEFAULT.SHAME`). Phase 1 ships as `1.0.0`. **Tag first, then bump SHAME for every round of fixes** — do not hold a release back until everything is fixed, that erases the record of what it took. Everything in `ISSUES.md` is SHAME work.
 - **Minecraft cannot run on this machine.** Automated verification is limited to the structure validator. Every task also carries an **In-game check** the user runs manually; do not claim a task works because the validator passed.
 
 ---
