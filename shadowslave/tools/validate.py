@@ -22,6 +22,7 @@ Checks:
   - every tag tested in a selector is applied somewhere
   - every `attribute ... modifier add <id>` has a paired `remove` in the same file
   - every dimension_type covers the vertical range its noise settings generate
+  - every dimension_type has its required fields, with the shapes 1.21.1 parses
   - every biome has the required fields, with the types 1.21.1 expects
 """
 import json
@@ -286,11 +287,57 @@ BIOME_FIELD_TYPES = {
     "temperature": (int, float),
     "downfall": (int, float),
     "effects": dict,
-    # 1.21 removed carver types: `carvers` is now a flat list, not an {air:…, liquid:…} object.
-    "carvers": list,
+    # `carvers` is an {air: […]} object in 1.21.1 and a flat list in later 1.21.x, so accept
+    # either — pinning it to one wrongly broke a working biome once already.
+    "carvers": (dict, list),
     # A list of generation steps, each itself a list. May be empty, must not be an object.
     "features": list,
 }
+
+
+def check_dimension_type_fields():
+    """Field shapes in dimension_type that Minecraft parses strictly.
+
+    A parse failure here rejects the world at creation with a dialog and no error
+    text — the reason only appears in logs/latest.log.
+    """
+    required = {
+        "ultrawarm", "natural", "piglin_safe", "respawn_anchor_works", "bed_works",
+        "has_raids", "has_skylight", "has_ceiling", "coordinate_scale", "ambient_light",
+        "min_y", "height", "logical_height", "infiniburn", "effects",
+        "monster_spawn_block_light_limit", "monster_spawn_light_level",
+    }
+    for f in sorted((DATA / NAMESPACE / "dimension_type").glob("*.json")):
+        try:
+            dt = json.loads(f.read_text())
+        except json.JSONDecodeError:
+            continue
+        for field in sorted(required - dt.keys()):
+            errors.append(f"{f.relative_to(PACK)}: missing required field {field!r}")
+
+        # Int providers put min_inclusive/max_inclusive at the TOP level of the object.
+        # Wrapping them in a "value" key is a parse failure, not a silent no-op.
+        level = dt.get("monster_spawn_light_level")
+        if isinstance(level, dict):
+            if "value" in level:
+                errors.append(
+                    f"{f.relative_to(PACK)}: monster_spawn_light_level wraps its bounds in "
+                    f"'value' — min_inclusive/max_inclusive belong at the top level of the object"
+                )
+            elif level.get("type", "").endswith("uniform"):
+                for key in ("min_inclusive", "max_inclusive"):
+                    if key not in level:
+                        errors.append(f"{f.relative_to(PACK)}: monster_spawn_light_level missing {key!r}")
+
+        for field in ("min_y", "height"):
+            val = dt.get(field)
+            if isinstance(val, int) and val % 16 != 0:
+                errors.append(f"{f.relative_to(PACK)}: {field} {val} must be a multiple of 16")
+        if dt.get("effects") not in (None, "minecraft:overworld", "minecraft:the_nether", "minecraft:the_end"):
+            errors.append(f"{f.relative_to(PACK)}: effects {dt['effects']!r} is not a valid preset")
+        burn = dt.get("infiniburn")
+        if isinstance(burn, str) and not burn.startswith("#"):
+            errors.append(f"{f.relative_to(PACK)}: infiniburn {burn!r} must be a block tag, starting with '#'")
 
 
 def check_biomes():
@@ -329,6 +376,7 @@ def main():
     check_tags()
     check_attribute_modifiers()
     check_dimension_height()
+    check_dimension_type_fields()
     check_biomes()
     if errors:
         for e in errors:
