@@ -21,6 +21,7 @@ Checks:
   - every bossbar id used is declared
   - every tag tested in a selector is applied somewhere
   - every `attribute ... modifier add <id>` has a paired `remove` in the same file
+  - every dimension_type covers the vertical range its noise settings generate
 """
 import json
 import re
@@ -224,6 +225,58 @@ def check_attribute_modifiers():
             )
 
 
+# Vertical range each vanilla noise settings preset generates across.
+# A dimension_type must cover its generator's range or the pack is rejected at WORLD LOAD —
+# not at /reload — with "Data pack validation failed!", which is a much worse failure than
+# anything the reference checks above catch.
+NOISE_RANGES = {
+    "minecraft:overworld": (-64, 384),
+    "minecraft:large_biomes": (-64, 384),
+    "minecraft:amplified": (-64, 384),
+    "minecraft:nether": (0, 128),
+    "minecraft:end": (0, 128),
+    "minecraft:caves": (-64, 192),
+    "minecraft:floating_islands": (0, 256),
+}
+
+
+def check_dimension_height():
+    """A dimension_type must cover the vertical range its noise settings generate."""
+    for f in sorted((DATA / NAMESPACE / "dimension").glob("*.json")):
+        try:
+            dim = json.loads(f.read_text())
+        except json.JSONDecodeError:
+            continue
+        settings = dim.get("generator", {}).get("settings")
+        if settings not in NOISE_RANGES:
+            continue  # custom or unknown noise settings — nothing to compare against
+        want_min, want_height = NOISE_RANGES[settings]
+
+        type_ref = dim.get("type", "")
+        namespace, _, name = type_ref.partition(":")
+        type_file = DATA / namespace / "dimension_type" / f"{name}.json"
+        if not type_file.is_file():
+            errors.append(f"{f.relative_to(PACK)}: dimension_type {type_ref} does not exist")
+            continue
+        try:
+            dtype = json.loads(type_file.read_text())
+        except json.JSONDecodeError:
+            continue
+
+        got_min, got_height = dtype.get("min_y"), dtype.get("height")
+        if (got_min, got_height) != (want_min, want_height):
+            errors.append(
+                f"{type_file.relative_to(PACK)}: min_y/height is {got_min}/{got_height}, but "
+                f"generator settings {settings} need {want_min}/{want_height} — Minecraft will "
+                f"reject the pack at world load, not at /reload"
+            )
+        logical = dtype.get("logical_height")
+        if isinstance(logical, int) and isinstance(got_height, int) and logical > got_height:
+            errors.append(
+                f"{type_file.relative_to(PACK)}: logical_height {logical} exceeds height {got_height}"
+            )
+
+
 def main():
     check_pack_mcmeta()
     check_no_plural_dirs()
@@ -235,6 +288,7 @@ def main():
     check_bossbars()
     check_tags()
     check_attribute_modifiers()
+    check_dimension_height()
     if errors:
         for e in errors:
             print(f"FAIL: {e}")
