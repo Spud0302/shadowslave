@@ -4,14 +4,17 @@ tag @s remove ss_in_nightmare
 tag @s remove ss_creature_spawned
 scoreboard players set @s ss_timer 0
 
-# Clear the trial of anything left behind.
-kill @e[tag=ss_creature]
+# Clear the trial of anything left behind. Distance-limited: selectors are
+# dimension-scoped, so without this one player leaving kills another's boss.
+kill @e[tag=ss_creature,distance=..128]
 
 bossbar set shadowslave:trial visible false
 bossbar set shadowslave:trial players
 
 # Put them back where they slept.
-execute in minecraft:overworld run tp @s 0 0 0
-execute store result entity @s Pos[0] double 1 run scoreboard players get @s ss_ret_x
-execute store result entity @s Pos[1] double 1 run scoreboard players get @s ss_ret_y
-execute store result entity @s Pos[2] double 1 run scoreboard players get @s ss_ret_z
+# Players cannot have their NBT written, so the return position goes through storage
+# and a macro function — the only way to feed dynamic coordinates to /tp.
+execute store result storage shadowslave:ret x int 1 run scoreboard players get @s ss_ret_x
+execute store result storage shadowslave:ret y int 1 run scoreboard players get @s ss_ret_y
+execute store result storage shadowslave:ret z int 1 run scoreboard players get @s ss_ret_z
+execute in minecraft:overworld run function shadowslave:nightmare/return with storage shadowslave:ret

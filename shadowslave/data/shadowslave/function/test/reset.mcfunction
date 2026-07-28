@@ -1,4 +1,4 @@
-# Wipe verification state for a clean test run. Does not touch Aspect or Flaw tags.
+# Wipes verification state, Aspect/Flaw tags and modifiers for a clean test run.
 
 advancement revoke @s from shadowslave:test/root
 advancement revoke @s only shadowslave:enter_nightmare

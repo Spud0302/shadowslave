@@ -25,6 +25,8 @@ scoreboard objectives add soul trigger "Soul"
 bossbar add shadowslave:trial {"text":"The Nightmare Spell","color":"dark_purple"}
 bossbar set shadowslave:trial color purple
 bossbar set shadowslave:trial style notched_10
-bossbar set shadowslave:trial visible false
+# Bossbars survive /reload, but only enter.mcfunction shows this one again —
+# don't hide it out from under a player already mid-trial.
+execute unless entity @a[tag=ss_in_nightmare] run bossbar set shadowslave:trial visible false
 
 tellraw @a {"text":"[Shadow Slave] The Spell stirs.","color":"dark_gray","italic":true}

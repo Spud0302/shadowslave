@@ -20,7 +20,6 @@ scoreboard players set @s ss_timer 6000
 # Pull them in. Teleporting wakes the player out of the bed.
 execute in shadowslave:nightmare run tp @s 0 120 0
 execute in shadowslave:nightmare run spreadplayers 0 0 200 400 false @s
-execute in shadowslave:nightmare at @s run tp @s ~ 150 ~
 
 bossbar set shadowslave:trial max 6000
 bossbar set shadowslave:trial value 6000
@@ -34,4 +33,5 @@ title @s times 20 60 20
 title @s subtitle {"text":"Survive.","color":"gray"}
 title @s title {"text":"The Nightmare Spell","color":"dark_purple","bold":true}
 
+advancement grant @s only shadowslave:test/root
 advancement grant @s only shadowslave:test/chosen
