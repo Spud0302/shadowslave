@@ -50,6 +50,8 @@ warn you.
 
 | 2.7 | ~~**Creature could spawn in your face.**~~ **FIXED v1.1.1.** `spreadplayers`' distance argument is the minimum gap *between targets*, so with one creature it did nothing and the range was uniform 0-14 blocks. The spread is now centred 12 blocks ahead of the player, giving a consistent 8-16. |
 
+| 2.8 | **First sleep both infects you and pulls you in.** `sleep.mcfunction` runs `infect` (which adds the `ss_carrier` tag) and then guards the early return on `unless entity @s[tag=ss_carrier]` — already false, so execution falls through into the nightmare. A self-invalidating guard. Found in-game v1.2.0. | `execute unless entity @s[tag=ss_carrier] run return run function shadowslave:infect`, so the branch returns in the same command that changes the state. |
+
 ## 3. Design problems worth a decision
 
 These work as built. Whether they're _right_ is your call.
