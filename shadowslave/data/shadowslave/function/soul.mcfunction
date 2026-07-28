@@ -4,7 +4,7 @@ scoreboard players set @s soul 0
 
 tellraw @s [{"text":"\n"},{"text":"— Soul —","color":"light_purple","bold":true}]
 
-execute if score @s ss_rank matches 0 run tellraw @s [{"text":"Rank: ","color":"gray"},{"text":"Sleeper","color":"dark_gray"}]
+execute unless score @s ss_rank matches 1.. run tellraw @s [{"text":"Rank: ","color":"gray"},{"text":"Sleeper","color":"dark_gray"}]
 execute if score @s ss_rank matches 1 run tellraw @s [{"text":"Rank: ","color":"gray"},{"text":"Awakened","color":"aqua"}]
 
 execute if entity @s[tag=ss_aspect_shadow] run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Shadow","color":"dark_purple"},{"text":" — sight in darkness, speed within it","color":"dark_gray","italic":true}]
@@ -17,5 +17,5 @@ execute if entity @s[tag=ss_flaw_fragile] run tellraw @s [{"text":"Flaw: ","colo
 execute if entity @s[tag=ss_flaw_ravenous] run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Ravenous","color":"red"},{"text":" — the soul burns through the body","color":"dark_gray","italic":true}]
 execute if entity @s[tag=ss_flaw_weightless] run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Weightless","color":"red"},{"text":" — the ground is unkind","color":"dark_gray","italic":true}]
 
-execute if score @s ss_rank matches 0 run tellraw @s {"text":"The Spell has not yet tested you. Sleep.","color":"dark_gray","italic":true}
+execute unless score @s ss_rank matches 1.. run tellraw @s {"text":"The Spell has not yet tested you. Sleep.","color":"dark_gray","italic":true}
 tellraw @s {"text":""}

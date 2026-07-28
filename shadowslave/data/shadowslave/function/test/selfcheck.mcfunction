@@ -18,8 +18,12 @@ execute if score $check ss_roll matches 1 run tellraw @s {"text":"PASS trial bos
 execute if score $check ss_roll matches 0 run tellraw @s {"text":"FAIL trial bossbar missing","color":"red"}
 
 # Every Aspect and Flaw function resolves.
+# Snapshot health — the fragile probe lowers max health and clamps current health down.
+execute store result score $selfcheck ss_health run data get entity @s Health
 execute store success score $check ss_roll run function shadowslave:aspect/shadow
 execute if score $check ss_roll matches 0 run tellraw @s {"text":"FAIL aspect/shadow missing","color":"red"}
+# Must stay ahead of the flaw/shadow_slave probe: its fire_resistance is what stops that
+# probe's `damage @s 1 minecraft:on_fire` from actually hurting whoever runs the self-check.
 execute store success score $check ss_roll run function shadowslave:aspect/flame
 execute if score $check ss_roll matches 0 run tellraw @s {"text":"FAIL aspect/flame missing","color":"red"}
 execute store success score $check ss_roll run function shadowslave:aspect/bone
@@ -40,6 +44,12 @@ attribute @s minecraft:generic.armor modifier remove shadowslave:aspect_bone_arm
 attribute @s minecraft:generic.movement_speed modifier remove shadowslave:aspect_wind_speed
 attribute @s minecraft:generic.max_health modifier remove shadowslave:flaw_fragile_health
 attribute @s minecraft:generic.safe_fall_distance modifier remove shadowslave:flaw_weightless_fall
+# Restore the health the fragile probe may have clamped away.
+execute store result entity @s Health float 1 run scoreboard players get $selfcheck ss_health
 effect clear @s
+
+scoreboard players reset $probe ss_rank
+scoreboard players reset $check ss_roll
+scoreboard players reset $selfcheck ss_health
 
 tellraw @s {"text":"— self-check complete —","color":"light_purple"}
