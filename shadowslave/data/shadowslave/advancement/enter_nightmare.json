@@ -4,8 +4,12 @@
       "trigger": "minecraft:slept_in_bed"
     }
   },
-  "requirements": [["slept"]],
+  "requirements": [
+    [
+      "slept"
+    ]
+  ],
   "rewards": {
-    "function": "shadowslave:nightmare/enter"
+    "function": "shadowslave:sleep"
   }
 }

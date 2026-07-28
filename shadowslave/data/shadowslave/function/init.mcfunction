@@ -34,4 +34,4 @@ bossbar set shadowslave:trial style notched_10
 # still mid-trial, since a server restart fires this before any player joins.
 bossbar set shadowslave:trial visible false
 
-tellraw @a {"text":"[Shadow Slave] The Spell stirs.","color":"dark_gray","italic":true}
+tellraw @a [{"text":"[Shadow Slave] The Spell stirs.","color":"dark_gray","italic":true},{"text":"  (testing commands: ","color":"dark_gray"},{"text":"shadowslave:test/help","color":"aqua"},{"text":")","color":"dark_gray"}]

@@ -21,7 +21,7 @@ execute if score $ss_clock ss_clock matches 0 as @a[scores={ss_rank=1..}] at @s 
 # works at any hour. The vanilla slept_in_bed advancement still works as a second path.
 # NOTE: `unless ... matches 1..`, not `matches 0` — a Sleeper has no ss_rank entry at all,
 # and `matches` fails outright on an absent score.
-execute if score $ss_clock ss_clock matches 0 as @a at @s unless score @s ss_rank matches 1.. if predicate shadowslave:is_sneaking if block ~ ~ ~ #minecraft:beds run function shadowslave:nightmare/enter
+execute if score $ss_clock ss_clock matches 0 as @a[tag=ss_carrier] at @s unless score @s ss_rank matches 1.. if predicate shadowslave:is_sneaking if block ~ ~ ~ #minecraft:beds run function shadowslave:nightmare/enter
 
 # The Spell calls its Carriers every 30 seconds until they answer it.
 execute if score $ss_clock ss_clock matches 0 run scoreboard players add $ss_call ss_call 1

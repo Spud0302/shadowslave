@@ -14,6 +14,7 @@ scoreboard players set @s ss_flaw 0
 scoreboard players reset @s ss_gone
 
 tag @s remove ss_in_nightmare
+tag @s remove ss_carrier
 tag @s remove ss_creature_spawned
 tag @s remove ss_aspect_shadow
 tag @s remove ss_aspect_flame
