@@ -1,0 +1,11 @@
+{
+  "criteria": {
+    "slept": {
+      "trigger": "minecraft:slept_in_bed"
+    }
+  },
+  "requirements": [["slept"]],
+  "rewards": {
+    "function": "shadowslave:nightmare/enter"
+  }
+}
