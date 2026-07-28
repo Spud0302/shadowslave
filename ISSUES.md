@@ -46,6 +46,8 @@ warn you.
 
 | 2.5 | ~~**Returning from a nightmare can trap you in the bed.**~~ **FIXED v1.0.9.** Vanilla's own bed-exit search is not exposed to commands, so `nightmare/unstick` is the manual equivalent: check the eight neighbours for two blocks of headroom and step into the first one. |
 
+| 2.6 | **`is_sneaking` entity flag is unverified.** The new sneak-on-a-bed entry depends on it. If the flag name is wrong the predicate silently evaluates false and that entry path just never fires — no error. | Sneak on a bed in daylight as a Sleeper. If nothing happens, the fallback is the vanilla night-time sleep path, which still works. |
+
 ## 3. Design problems worth a decision
 
 These work as built. Whether they're _right_ is your call.

@@ -25,5 +25,5 @@ execute store result score @s ss_roll run attribute @s minecraft:generic.max_hea
 execute store result score @s ss_health run attribute @s minecraft:generic.armor get
 execute if score @s ss_rank matches 1 run tellraw @s [{"text":"Vitality: ","color":"gray"},{"score":{"name":"@s","objective":"ss_roll"}},{"text":"   Endurance: ","color":"gray"},{"score":{"name":"@s","objective":"ss_health"}}]
 
-execute unless score @s ss_rank matches 1.. run tellraw @s {"text":"The Spell has not yet tested you. Sleep.","color":"dark_gray","italic":true}
+execute unless score @s ss_rank matches 1.. run tellraw @s {"text":"The Spell has not yet tested you. Sneak on a bed, at any hour, and it will take you.","color":"dark_gray","italic":true}
 tellraw @s {"text":""}

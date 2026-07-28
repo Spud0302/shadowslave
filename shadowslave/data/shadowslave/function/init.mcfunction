@@ -11,6 +11,8 @@ scoreboard objectives add ss_flaw dummy "Flaw"
 scoreboard objectives add ss_roll dummy "Roll"
 # Global once-a-second counter, held on the fake player $ss_clock
 scoreboard objectives add ss_clock dummy "Clock"
+# Counts seconds between the Spell's calls to its Carriers
+scoreboard objectives add ss_call dummy "Spell Call"
 # Health sampled each tick while in the nightmare
 scoreboard objectives add ss_health dummy "Health"
 # Consecutive ticks the creature has been absent — guards against a rejoin, where the

@@ -16,6 +16,18 @@ scoreboard players add $ss_clock ss_clock 1
 execute if score $ss_clock ss_clock matches 20.. run scoreboard players set $ss_clock ss_clock 0
 execute if score $ss_clock ss_clock matches 0 as @a[scores={ss_rank=1..}] at @s run function shadowslave:upkeep
 
+# Succumbing to the Spell. Vanilla only lets you sleep at night, but the novel's Carriers
+# fall under whenever the Spell takes them — so sneaking on a bed is the real entry, and it
+# works at any hour. The vanilla slept_in_bed advancement still works as a second path.
+# NOTE: `unless ... matches 1..`, not `matches 0` — a Sleeper has no ss_rank entry at all,
+# and `matches` fails outright on an absent score.
+execute if score $ss_clock ss_clock matches 0 as @a at @s unless score @s ss_rank matches 1.. if predicate shadowslave:is_sneaking if block ~ ~ ~ #minecraft:beds run function shadowslave:nightmare/enter
+
+# The Spell calls its Carriers every 30 seconds until they answer it.
+execute if score $ss_clock ss_clock matches 0 run scoreboard players add $ss_call ss_call 1
+execute if score $ss_call ss_call matches 30.. run scoreboard players set $ss_call ss_call 0
+execute if score $ss_call ss_call matches 0 if score $ss_clock ss_clock matches 0 as @a run function shadowslave:carrier
+
 # Grant the verification tree's root so the tab renders before anything has been earned.
 # Minecraft draws nothing for a tree with no completed advancement, so without this the tab
 # looks broken on a fresh world. The selector only matches players who lack it.
