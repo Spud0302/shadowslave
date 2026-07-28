@@ -14,5 +14,8 @@ execute store result bossbar shadowslave:trial value run scoreboard players get 
 # Timer expired and no creature yet: summon it.
 execute if score @s ss_timer matches ..0 unless entity @s[tag=ss_creature_spawned] run function shadowslave:nightmare/spawn_creature
 
+# Once the creature exists, the bar tracks its health instead of the timer.
+execute if entity @s[tag=ss_creature_spawned] store result bossbar shadowslave:trial value run data get entity @e[tag=ss_creature,limit=1] Health
+
 # Creature was summoned and is now gone: the trial is won.
 execute if entity @s[tag=ss_creature_spawned] unless entity @e[tag=ss_creature,limit=1] run function shadowslave:nightmare/survive
