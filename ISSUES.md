@@ -42,6 +42,8 @@ warn you.
 
 ---
 
+| 2.4 | **The nightmare may still be too dark, or not dark enough.** `ambient_light` went 0.0 → 0.1 in v1.0.7 (matching the Nether) after 0.0 proved unplayable — pitch black, not atmospheric. This is the one dial for it. | Raise toward 0.15 if still unreadable; drop toward 0.05 if it feels too safe. Changing it needs a fresh world, since dimension types are baked in at world creation. |
+
 ## 3. Design problems worth a decision
 
 These work as built. Whether they're _right_ is your call.
