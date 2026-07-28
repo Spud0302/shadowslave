@@ -20,6 +20,8 @@ scoreboard players set @s ss_timer 6000
 # Pull them in. Teleporting wakes the player out of the bed.
 execute in shadowslave:nightmare run tp @s 0 120 0
 execute in shadowslave:nightmare run spreadplayers 0 0 200 400 false @s
+# The Spell takes you whole. Also prevents an entry loop for players who slept while hurt.
+effect give @s minecraft:instant_health 1 5 true
 
 bossbar set shadowslave:trial max 6000
 bossbar set shadowslave:trial value 6000

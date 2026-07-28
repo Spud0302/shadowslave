@@ -57,6 +57,7 @@ shadowslave/
           survive.mcfunction                   # creature dead -> awaken and return
           eject.mcfunction                     # near-death -> return, no Awakening
           leave.mcfunction                     # shared teardown + return teleport
+          return.mcfunction                    # macro: $tp @s $(x) $(y) $(z) — player NBT can't be written directly
         awaken/
           roll.mcfunction                      # roll aspect + flaw, set rank
         aspect/
@@ -509,7 +510,8 @@ scoreboard players set @s ss_timer 6000
 # post-spread position rather than the bed they left.
 execute in shadowslave:nightmare run tp @s 0 120 0
 execute in shadowslave:nightmare run spreadplayers 0 0 200 400 false @s
-execute in shadowslave:nightmare at @s run tp @s ~ 150 ~
+# The Spell takes you whole. Also prevents an entry loop for players who slept while hurt.
+effect give @s minecraft:instant_health 1 5 true
 
 bossbar set shadowslave:trial max 6000
 bossbar set shadowslave:trial value 6000
@@ -523,8 +525,6 @@ title @s times 20 60 20
 title @s subtitle {"text":"Survive.","color":"gray"}
 title @s title {"text":"The Nightmare Spell","color":"dark_purple","bold":true}
 ```
-
-The `tp @s ~ 150 ~` after `spreadplayers` drops them from a safe height rather than inside terrain; they fall to the surface.
 
 > **In-game verification needed:** teleporting a player mid-sleep is the one behaviour here I could not confirm from documentation. If the player stays stuck in the bed, the fallback is to wrap the teleport in `schedule function shadowslave:nightmare/enter_delayed 1t` so it runs the tick after the bed animation starts.
 
@@ -584,7 +584,7 @@ git commit -m "feat: pull sleeping Sleepers into the nightmare via slept_in_bed 
 # ponytail: NBT reads on players are expensive, but this only runs for players
 # ponytail: actually inside a nightmare — a handful at most
 execute store result score @s ss_health run data get entity @s Health
-execute if score @s ss_health matches ..4 run function shadowslave:nightmare/eject
+execute if score @s ss_health matches ..6 run function shadowslave:nightmare/eject
 execute if entity @s[tag=!ss_in_nightmare] run return 0
 
 # Count down.
@@ -593,6 +593,10 @@ execute store result bossbar shadowslave:trial value run scoreboard players get 
 
 # Timer expired and no creature yet: summon it.
 execute if score @s ss_timer matches ..0 unless entity @s[tag=ss_creature_spawned] run function shadowslave:nightmare/spawn_creature
+
+# You cannot outrun the Nightmare. Leashing the creature also makes the absence test below
+# a genuine "it died" signal rather than "I walked away".
+execute if entity @s[tag=ss_creature_spawned] run tp @e[tag=ss_creature,distance=48..] ~ ~ ~
 
 # Creature was summoned and is now gone: the trial is won.
 execute if entity @s[tag=ss_creature_spawned] unless entity @e[tag=ss_creature,limit=1] run function shadowslave:nightmare/survive
@@ -616,10 +620,18 @@ bossbar set shadowslave:trial visible false
 bossbar set shadowslave:trial players
 
 # Put them back where they slept.
-execute in minecraft:overworld run tp @s 0 0 0
-execute store result entity @s Pos[0] double 1 run scoreboard players get @s ss_ret_x
-execute store result entity @s Pos[1] double 1 run scoreboard players get @s ss_ret_y
-execute store result entity @s Pos[2] double 1 run scoreboard players get @s ss_ret_z
+# Players cannot have their NBT written, so the return position goes through storage
+# and a macro function — the only way to feed dynamic coordinates to /tp.
+execute store result storage shadowslave:ret x int 1 run scoreboard players get @s ss_ret_x
+execute store result storage shadowslave:ret y int 1 run scoreboard players get @s ss_ret_y
+execute store result storage shadowslave:ret z int 1 run scoreboard players get @s ss_ret_z
+execute in minecraft:overworld run function shadowslave:nightmare/return with storage shadowslave:ret
+```
+
+`shadowslave/data/shadowslave/function/nightmare/return.mcfunction`:
+
+```mcfunction
+$tp @s $(x) $(y) $(z)
 ```
 
 - [ ] **Step 3: Write the ejection path**
@@ -631,12 +643,14 @@ execute store result entity @s Pos[2] double 1 run scoreboard players get @s ss_
 
 function shadowslave:nightmare/leave
 
-# Half a heart, and shaken.
-execute store result entity @s Health float 1 run scoreboard players set @s ss_health 1
+# Shaken.
 effect give @s minecraft:blindness 5 0 true
 effect give @s minecraft:nausea 8 0 true
 
-playsound minecraft:entity_wither_spawn master @s ~ ~ ~ 0.4 0.5
+# `leave` already teleported the player, but the ambient context here is still the stale
+# nightmare position — a function call does not re-derive it. `at @s` re-reads the player's
+# current position and dimension, without which the sound plays at coordinates they left.
+execute at @s run playsound minecraft:entity.wither.spawn master @s ~ ~ ~ 0.4 0.5
 title @s times 10 50 20
 title @s subtitle {"text":"You were not ready.","color":"dark_gray"}
 title @s title {"text":"Cast Out","color":"dark_red","bold":true}
@@ -696,7 +710,7 @@ Lore-accurate: a First Nightmare is tailored to one Aspirant, so exactly one cre
 tag @s add ss_creature_spawned
 
 # Attribute format is 1.20.5+: lowercase `attributes`, with `id` and `base`.
-summon minecraft:ravager ^ ^1 ^12 {Tags:["ss_creature"],CustomName:'{"text":"Nightmare Creature","color":"dark_purple","bold":true}',CustomNameVisible:1b,PersistenceRequired:1b,attributes:[{id:"minecraft:generic.max_health",base:160},{id:"minecraft:generic.attack_damage",base:9},{id:"minecraft:generic.movement_speed",base:0.32},{id:"minecraft:generic.knockback_resistance",base:0.8},{id:"minecraft:generic.follow_range",base:64}],Health:160f,ActiveEffects:[{id:"minecraft:fire_resistance",amplifier:0b,duration:-1,show_particles:0b}]}
+summon minecraft:ravager ^ ^1 ^12 {Tags:["ss_creature"],CustomName:'{"text":"Nightmare Creature","color":"dark_purple","bold":true}',CustomNameVisible:1b,PersistenceRequired:1b,attributes:[{id:"minecraft:generic.max_health",base:160},{id:"minecraft:generic.attack_damage",base:4},{id:"minecraft:generic.movement_speed",base:0.32},{id:"minecraft:generic.knockback_resistance",base:0.8},{id:"minecraft:generic.follow_range",base:64}],Health:160f,ActiveEffects:[{id:"minecraft:fire_resistance",amplifier:0b,duration:-1,show_particles:0b}]}
 
 bossbar set shadowslave:trial name {"text":"Nightmare Creature","color":"dark_red"}
 bossbar set shadowslave:trial color red
@@ -772,7 +786,8 @@ git commit -m "feat: summon the Nightmare Creature and track it on the trial bos
 function shadowslave:nightmare/leave
 function shadowslave:awaken/roll
 
-playsound minecraft:ui.toast.challenge_complete master @s ~ ~ ~ 1 1
+# Same stale-context trap as eject: `leave` teleported the player, so `at @s` is required.
+execute at @s run playsound minecraft:ui.toast.challenge_complete master @s ~ ~ ~ 1 1
 title @s times 20 80 30
 title @s subtitle {"text":"You are Awakened.","color":"gray"}
 title @s title {"text":"The Nightmare Ends","color":"light_purple","bold":true}
@@ -1117,7 +1132,9 @@ scoreboard players set @s soul 0
 
 tellraw @s [{"text":"\n"},{"text":"— Soul —","color":"light_purple","bold":true}]
 
-execute if score @s ss_rank matches 0 run tellraw @s [{"text":"Rank: ","color":"gray"},{"text":"Sleeper","color":"dark_gray"}]
+# `matches 0` would fail for a player with NO score entry, and nothing ever writes 0 —
+# a fresh player simply has no row. `unless ... matches 1..` covers both absent and zero.
+execute unless score @s ss_rank matches 1.. run tellraw @s [{"text":"Rank: ","color":"gray"},{"text":"Sleeper","color":"dark_gray"}]
 execute if score @s ss_rank matches 1 run tellraw @s [{"text":"Rank: ","color":"gray"},{"text":"Awakened","color":"aqua"}]
 
 execute if entity @s[tag=ss_aspect_shadow] run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Shadow","color":"dark_purple"},{"text":" — sight in darkness, speed within it","color":"dark_gray","italic":true}]
@@ -1130,7 +1147,7 @@ execute if entity @s[tag=ss_flaw_fragile] run tellraw @s [{"text":"Flaw: ","colo
 execute if entity @s[tag=ss_flaw_ravenous] run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Ravenous","color":"red"},{"text":" — the soul burns through the body","color":"dark_gray","italic":true}]
 execute if entity @s[tag=ss_flaw_weightless] run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Weightless","color":"red"},{"text":" — the ground is unkind","color":"dark_gray","italic":true}]
 
-execute if score @s ss_rank matches 0 run tellraw @s {"text":"The Spell has not yet tested you. Sleep.","color":"dark_gray","italic":true}
+execute unless score @s ss_rank matches 1.. run tellraw @s {"text":"The Spell has not yet tested you. Sleep.","color":"dark_gray","italic":true}
 tellraw @s {"text":""}
 ```
 
@@ -1632,6 +1649,10 @@ Deliberate, and recorded so they are not mistaken for bugs:
 - **Terrain is Overworld noise.** Only the lighting, sky and spawns are nightmarish. Bespoke worldgen is deferred.
 - **Health is polled via NBT each tick** for players inside a nightmare. Expensive per best practice, but bounded to players actually in the trial.
 - **The verification tab ships with the pack.** Anyone installing `1.0.0` sees a "Shadow Slave — Verification" advancement tab. Removing `advancement/test/` and the `advancement grant` lines strips it, but that is a release chore every version. The cheaper long-term move is converting the tree into real player-facing advancements in Phase 2 — the trigger points are already in exactly the right places.
+
+### Player NBT cannot be written directly
+
+Minecraft refuses all player NBT writes (`data merge/modify entity <player>`, `execute store … entity <player>`) — reads are fine. Any dynamic player teleport must go through command storage and a macro function (see `nightmare/return.mcfunction`). This caused three separate defects in Phase 1.
 
 ## Verify in-game before trusting
 

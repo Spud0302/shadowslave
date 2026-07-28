@@ -42,6 +42,8 @@ attribute @s minecraft:generic.armor modifier remove shadowslave:aspect_bone_arm
 attribute @s minecraft:generic.movement_speed modifier remove shadowslave:aspect_wind_speed
 attribute @s minecraft:generic.max_health modifier remove shadowslave:flaw_fragile_health
 attribute @s minecraft:generic.safe_fall_distance modifier remove shadowslave:flaw_weightless_fall
+# The fragile probe clamped current health when it lowered the max; give it back.
+effect give @s minecraft:instant_health 1 4 true
 effect clear @s
 
 scoreboard players reset $probe ss_rank

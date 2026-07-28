@@ -6,7 +6,7 @@ scoreboard players set @s ss_timer 0
 
 # Clear the trial of anything left behind. Distance-limited: selectors are
 # dimension-scoped, so without this one player leaving kills another's boss.
-kill @e[tag=ss_creature,distance=..128]
+execute in shadowslave:nightmare run kill @e[tag=ss_creature]
 
 bossbar set shadowslave:trial visible false
 bossbar set shadowslave:trial players
