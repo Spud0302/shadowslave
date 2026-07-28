@@ -15,3 +15,8 @@ execute as @a[tag=ss_in_nightmare] at @s run function shadowslave:nightmare/tick
 scoreboard players add $ss_clock ss_clock 1
 execute if score $ss_clock ss_clock matches 20.. run scoreboard players set $ss_clock ss_clock 0
 execute if score $ss_clock ss_clock matches 0 as @a[scores={ss_rank=1..}] at @s run function shadowslave:upkeep
+
+# Grant the verification tree's root so the tab renders before anything has been earned.
+# Minecraft draws nothing for a tree with no completed advancement, so without this the tab
+# looks broken on a fresh world. The selector only matches players who lack it.
+execute if score $ss_clock ss_clock matches 0 run advancement grant @a[advancements={shadowslave:test/root=false}] only shadowslave:test/root
