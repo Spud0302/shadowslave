@@ -58,6 +58,8 @@ warn you.
 
 | 2.10 | **The Spell keeps calling you while you are inside the nightmare.** `carrier.mcfunction` guards on Carrier and not-Awakened, but never on `ss_in_nightmare` — so a player mid-trial gets a nausea pulse and the actionbar line every 30 seconds. Nausea during the boss fight is a real handicap, and thematically you have already answered the call. Confirmed in-game v1.2.0. | Add `execute if entity @s[tag=ss_in_nightmare] run return 0` to the guards at the top of `carrier.mcfunction`. |
 
+| 2.11 | **Dying in the trial teleports your corpse home behind the death screen.** The per-tick health check sees 0 HP on a dead-but-not-yet-respawned player, fires the ejection, and `leave` runs its cross-dimension teleport — so the player watches the portal warp effect and their bed appear while the death screen is up. Then vanilla respawn sends them to the same place anyway. Confirmed in-game v1.2.0. | The state cleanup must still run on death; only the teleport is redundant. Add an early `return 0` in `leave.mcfunction` after the tag/bossbar/creature cleanup but before the return teleport, when `@s[nbt={Health:0.0f}]` — reading player NBT is allowed, only writing is refused. |
+
 ## 3. Design problems worth a decision
 
 These work as built. Whether they're _right_ is your call.
