@@ -54,6 +54,8 @@ warn you.
 
 | 2.9 | **Setting `movement_speed` on the creature does nothing.** An in-game dump showed `base: 0.0` where the file sets `0.32`, and `0.3499` on an earlier read — vanilla ravagers zero their own movement speed during their stun/attack state and restore it to the ravager default, overwriting whatever we set. | If the creature's speed needs tuning, apply it as a `minecraft:speed` entry in `active_effects` instead: effects stack on top of the base and the ravager's own logic does not touch them. |
 
+| 3.4 | **Sneak-to-enter needs a short hold, and does not say so.** The check polls once per second on the shared clock, so a quick tap falls between polls. A deliberate hold is arguably the *right* interaction — an accidental sneak near a bed should not drop you into a lethal trial — but it currently reads as unresponsive rather than intentional. Confirmed working in-game v1.2.0. | Either poll every 5 ticks so a tap registers, or keep the hold and telegraph it: an actionbar line like *"The Spell reaches for you..."* while sneaking on a bed. The second is better design and about as cheap. |
+
 ## 3. Design problems worth a decision
 
 These work as built. Whether they're _right_ is your call.
