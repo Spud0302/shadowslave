@@ -64,6 +64,8 @@ warn you.
 
 | 2.12 | **Every attribute modifier orphans when its Aspect/Flaw tag is removed.** CONFIRMED in-game v1.2.0 for both: after cycling Bone→Wind→Flame and dropping Fragile, the soul readout showed `Vitality: 14  Endurance: 6` — Fragile's max-health penalty and Bone's armour bonus both still applied, with neither tag present. The upkeep stops *reapplying* a modifier but nothing removes the one already on the player. `awaken/roll` also never clears previous tags, compounding it. Latent in normal play (you Awaken once); any re-roll leaves you carrying powers and penalties you no longer have. | Clear all eight `ss_aspect_*` / `ss_flaw_*` tags **and** strip all four attribute modifiers at the top of `roll.mcfunction` before applying the new roll. |
 
+| 2.13 | **`Sleep Undisturbed` is unreachable — regression from the v1.2.0 entry refactor.** The grant sits at `nightmare/enter.mcfunction:7` gated on `ss_rank matches 1..`, but `sleep.mcfunction:16` now returns early for Awakened players, so `enter` is never called for them. Adding `sleep.mcfunction` moved the Awakened check upstream and orphaned the grant behind a branch that can no longer reach it. Confirmed in-game v1.2.0 — the behaviour is right, only the advancement never fires. | Move the grant into `sleep.mcfunction`, onto the same line as the Awakened early return: `execute if score @s ss_rank matches 1.. run advancement grant @s only shadowslave:test/bypass`, immediately before the `return 0`. |
+
 ## 3. Design problems worth a decision
 
 These work as built. Whether they're _right_ is your call.
