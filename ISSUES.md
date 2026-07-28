@@ -44,7 +44,7 @@ warn you.
 
 | 2.4 | **The nightmare may still be too dark, or not dark enough.** `ambient_light` went 0.0 → 0.1 in v1.0.7 (matching the Nether) after 0.0 proved unplayable — pitch black, not atmospheric. This is the one dial for it. | Raise toward 0.15 if still unreadable; drop toward 0.05 if it feels too safe. Changing it needs a fresh world, since dimension types are baked in at world creation. |
 
-| 2.5 | **Returning from a nightmare can trap you in the bed.** The return position is captured while the player is *in* the bed, and integer scoreboards truncate it, so you rematerialise inside the bed block. Confirmed in-game v1.0.8 — with a 2-block ceiling there was no room to jump out. | Needs safe placement on return: nudge to an adjacent free block, or fall back to `spreadplayers` around the bed. Workaround for now is `/tp @s ~ ~ ~5`. |
+| 2.5 | ~~**Returning from a nightmare can trap you in the bed.**~~ **FIXED v1.0.9.** Vanilla's own bed-exit search is not exposed to commands, so `nightmare/unstick` is the manual equivalent: check the eight neighbours for two blocks of headroom and step into the first one. |
 
 ## 3. Design problems worth a decision
 
