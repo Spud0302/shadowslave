@@ -28,7 +28,7 @@ warn you.
 | 1.2 | ~~**Advancement `icon` format.**~~ **CONFIRMED WORKING v1.0.4.** `{"id": ...}` is correct for 1.21.1 — the tree renders and the icons draw. | — | — |
 | 1.3 | ~~**The dimension registers.**~~ **CONFIRMED WORKING v1.0.4**, after four rounds: `height` had to match the noise settings' range, and `monster_spawn_light_level` needed its bounds at the top level rather than nested under `value`. | — | — |
 | 1.4 | **`generic.` attribute prefix.** Correct for 1.21.1; the prefix was dropped in 1.21.2.                                                             | `/attribute @s minecraft:generic.armor get`                                                                            | On 1.21.2+ every Aspect and Flaw attribute silently does nothing. Drop `generic.` throughout.                                       |
-| 1.5 | **`minecraft:generic.safe_fall_distance` exists in 1.21.1.**                                                                                       | Roll the Weightless flaw, jump off something.                                                                          | Swap the Weightless flaw to a different mechanism.                                                                                  |
+| 1.5 | ~~**`minecraft:generic.safe_fall_distance` exists in 1.21.1.**~~ **CONFIRMED WORKING v1.0.8.** It exists and applies. Retuned in v1.1.2: -2 left a safe distance of 1, and a standing jump is 1.25 blocks, so jumping on the spot cost half a heart. | — | — |
 
 ---
 
