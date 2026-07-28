@@ -3,9 +3,11 @@
 tag @s remove ss_in_nightmare
 tag @s remove ss_creature_spawned
 scoreboard players set @s ss_timer 0
+scoreboard players set @s ss_gone 0
 
-# Clear the trial of anything left behind. Distance-limited: selectors are
-# dimension-scoped, so without this one player leaving kills another's boss.
+# Kills every creature in the nightmare, not just this player's. Phase 1 is single-player
+# at a time — same limitation as the shared bossbar. Per-player creature ownership would
+# need owner tags; deferred with it.
 execute in shadowslave:nightmare run kill @e[tag=ss_creature]
 
 bossbar set shadowslave:trial visible false

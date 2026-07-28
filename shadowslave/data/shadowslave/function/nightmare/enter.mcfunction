@@ -16,6 +16,7 @@ execute store result score @s ss_ret_z run data get entity @s Pos[2]
 
 tag @s add ss_in_nightmare
 scoreboard players set @s ss_timer 6000
+scoreboard players set @s ss_gone 0
 
 # Pull them in. Teleporting wakes the player out of the bed.
 execute in shadowslave:nightmare run tp @s 0 120 0

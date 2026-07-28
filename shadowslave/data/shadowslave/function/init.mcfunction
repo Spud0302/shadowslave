@@ -13,6 +13,9 @@ scoreboard objectives add ss_roll dummy "Roll"
 scoreboard objectives add ss_clock dummy "Clock"
 # Health sampled each tick while in the nightmare
 scoreboard objectives add ss_health dummy "Health"
+# Consecutive ticks the creature has been absent — guards against a rejoin, where the
+# entity's chunk has not deserialized yet, being misread as "the creature died".
+scoreboard objectives add ss_gone dummy "Creature Absent"
 # Overworld return position
 scoreboard objectives add ss_ret_x dummy "Return X"
 scoreboard objectives add ss_ret_y dummy "Return Y"

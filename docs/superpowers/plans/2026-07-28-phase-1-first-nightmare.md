@@ -231,6 +231,9 @@ scoreboard objectives add ss_roll dummy "Roll"
 scoreboard objectives add ss_clock dummy "Clock"
 # Health sampled each tick while in the nightmare
 scoreboard objectives add ss_health dummy "Health"
+# Consecutive ticks the creature has been absent — guards against a rejoin, where the
+# entity's chunk has not deserialized yet, being misread as "the creature died".
+scoreboard objectives add ss_gone dummy "Creature Absent"
 # Overworld return position
 scoreboard objectives add ss_ret_x dummy "Return X"
 scoreboard objectives add ss_ret_y dummy "Return Y"
@@ -243,6 +246,8 @@ scoreboard objectives add soul trigger "Soul"
 bossbar add shadowslave:trial {"text":"The Nightmare Spell","color":"dark_purple"}
 bossbar set shadowslave:trial color purple
 bossbar set shadowslave:trial style notched_10
+# Bossbars survive /reload. tick_player.mcfunction re-shows this for anyone
+# still mid-trial, since a server restart fires this before any player joins.
 bossbar set shadowslave:trial visible false
 
 tellraw @a {"text":"[Shadow Slave] The Spell stirs.","color":"dark_gray","italic":true}
@@ -502,6 +507,7 @@ execute store result score @s ss_ret_z run data get entity @s Pos[2]
 
 tag @s add ss_in_nightmare
 scoreboard players set @s ss_timer 6000
+scoreboard players set @s ss_gone 0
 
 # Pull them in. Teleporting wakes the player out of the bed.
 # `execute in <dimension>` scopes ONLY the command chained to its `run` — it does not
@@ -584,12 +590,14 @@ git commit -m "feat: pull sleeping Sleepers into the nightmare via slept_in_bed 
 # ponytail: NBT reads on players are expensive, but this only runs for players
 # ponytail: actually inside a nightmare — a handful at most
 execute store result score @s ss_health run data get entity @s Health
-execute if score @s ss_health matches ..6 run function shadowslave:nightmare/eject
+execute if score @s ss_health matches ..8 run function shadowslave:nightmare/eject
 execute if entity @s[tag=!ss_in_nightmare] run return 0
 
 # Count down.
 scoreboard players remove @s ss_timer 1
 execute store result bossbar shadowslave:trial value run scoreboard players get @s ss_timer
+# Self-healing after a /reload or restart, which hides the bar via init.
+bossbar set shadowslave:trial visible true
 
 # Timer expired and no creature yet: summon it.
 execute if score @s ss_timer matches ..0 unless entity @s[tag=ss_creature_spawned] run function shadowslave:nightmare/spawn_creature
@@ -598,8 +606,12 @@ execute if score @s ss_timer matches ..0 unless entity @s[tag=ss_creature_spawne
 # a genuine "it died" signal rather than "I walked away".
 execute if entity @s[tag=ss_creature_spawned] run tp @e[tag=ss_creature,distance=48..] ~ ~ ~
 
-# Creature was summoned and is now gone: the trial is won.
-execute if entity @s[tag=ss_creature_spawned] unless entity @e[tag=ss_creature,limit=1] run function shadowslave:nightmare/survive
+# Creature was summoned and is now gone: the trial is won. Require the absence to
+# hold for two seconds so a rejoin (chunk not yet deserialized) can't be misread
+# as a kill.
+execute if entity @e[tag=ss_creature] run scoreboard players set @s ss_gone 0
+execute if entity @s[tag=ss_creature_spawned] unless entity @e[tag=ss_creature] run scoreboard players add @s ss_gone 1
+execute if score @s ss_gone matches 40.. run function shadowslave:nightmare/survive
 ```
 
 - [ ] **Step 2: Write the shared teardown**
@@ -612,9 +624,12 @@ execute if entity @s[tag=ss_creature_spawned] unless entity @e[tag=ss_creature,l
 tag @s remove ss_in_nightmare
 tag @s remove ss_creature_spawned
 scoreboard players set @s ss_timer 0
+scoreboard players set @s ss_gone 0
 
-# Clear the trial of anything left behind.
-kill @e[tag=ss_creature]
+# Kills every creature in the nightmare, not just this player's. Phase 1 is single-player
+# at a time — same limitation as the shared bossbar. Per-player creature ownership would
+# need owner tags; deferred with it.
+execute in shadowslave:nightmare run kill @e[tag=ss_creature]
 
 bossbar set shadowslave:trial visible false
 bossbar set shadowslave:trial players
@@ -707,10 +722,10 @@ Lore-accurate: a First Nightmare is tailored to one Aspirant, so exactly one cre
 ```mcfunction
 # Runs as and at the player. The timer has expired; the Nightmare shows its face.
 
-tag @s add ss_creature_spawned
-
 # Attribute format is 1.20.5+: lowercase `attributes`, with `id` and `base`.
 summon minecraft:ravager ^ ^1 ^12 {Tags:["ss_creature"],CustomName:'{"text":"Nightmare Creature","color":"dark_purple","bold":true}',CustomNameVisible:1b,PersistenceRequired:1b,attributes:[{id:"minecraft:generic.max_health",base:160},{id:"minecraft:generic.attack_damage",base:4},{id:"minecraft:generic.movement_speed",base:0.32},{id:"minecraft:generic.knockback_resistance",base:0.8},{id:"minecraft:generic.follow_range",base:64}],Health:160f,ActiveEffects:[{id:"minecraft:fire_resistance",amplifier:0b,duration:-1,show_particles:0b}]}
+
+tag @s add ss_creature_spawned
 
 bossbar set shadowslave:trial name {"text":"Nightmare Creature","color":"dark_red"}
 bossbar set shadowslave:trial color red
@@ -1525,6 +1540,7 @@ scoreboard players set @s ss_rank 0
 scoreboard players set @s ss_timer 0
 scoreboard players set @s ss_aspect 0
 scoreboard players set @s ss_flaw 0
+scoreboard players reset @s ss_gone
 
 tag @s remove ss_in_nightmare
 tag @s remove ss_creature_spawned
@@ -1542,8 +1558,9 @@ attribute @s minecraft:generic.movement_speed modifier remove shadowslave:aspect
 attribute @s minecraft:generic.max_health modifier remove shadowslave:flaw_fragile_health
 attribute @s minecraft:generic.safe_fall_distance modifier remove shadowslave:flaw_weightless_fall
 
-kill @e[tag=ss_creature]
+execute in shadowslave:nightmare run kill @e[tag=ss_creature]
 bossbar set shadowslave:trial visible false
+bossbar set shadowslave:trial players
 
 tellraw @s {"text":"[Shadow Slave] Verification state reset. You are a Sleeper again.","color":"gray","italic":true}
 ```
@@ -1649,6 +1666,7 @@ Deliberate, and recorded so they are not mistaken for bugs:
 - **Terrain is Overworld noise.** Only the lighting, sky and spawns are nightmarish. Bespoke worldgen is deferred.
 - **Health is polled via NBT each tick** for players inside a nightmare. Expensive per best practice, but bounded to players actually in the trial.
 - **The verification tab ships with the pack.** Anyone installing `1.0.0` sees a "Shadow Slave — Verification" advancement tab. Removing `advancement/test/` and the `advancement grant` lines strips it, but that is a release chore every version. The cheaper long-term move is converting the tree into real player-facing advancements in Phase 2 — the trigger points are already in exactly the right places.
+- **Phase 1 is single-player at a time.** One player leaving the nightmare kills every creature in it, so a second player mid-trial gets a free Awakening. Same root cause as the shared bossbar; per-player creature ownership is deferred with it.
 
 ### Player NBT cannot be written directly
 
@@ -1661,3 +1679,5 @@ Minecraft refuses all player NBT writes (`data merge/modify entity <player>`, `e
 3. **`summon` NBT for attributes.** The `attributes`/`id`/`base` casing is 1.20.5+; confirm the ravager spawns at 160 health rather than default.
 4. **`minecraft:generic.safe_fall_distance`** exists as an attribute in 1.21.1 — confirm before relying on the Weightless flaw.
 5. **`damage @s 1 minecraft:on_fire`** — confirm the damage type id resolves; the fallback is `minecraft:magic`.
+6. **The ravager's roar damage figure.** Assumed ~6 when setting the ejection threshold to `..8` — confirm the actual figure in-game and adjust the threshold if it's higher.
+7. **`minecraft:generic.max_health` and the other `generic.`-prefixed attribute ids** are correct for **1.21.1 specifically** — they were renamed (the `generic.` prefix dropped) in 1.21.2. Confirm before bumping the target version.

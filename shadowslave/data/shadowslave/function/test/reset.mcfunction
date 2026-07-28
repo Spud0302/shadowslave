@@ -7,6 +7,7 @@ scoreboard players set @s ss_rank 0
 scoreboard players set @s ss_timer 0
 scoreboard players set @s ss_aspect 0
 scoreboard players set @s ss_flaw 0
+scoreboard players reset @s ss_gone
 
 tag @s remove ss_in_nightmare
 tag @s remove ss_creature_spawned
@@ -24,7 +25,8 @@ attribute @s minecraft:generic.movement_speed modifier remove shadowslave:aspect
 attribute @s minecraft:generic.max_health modifier remove shadowslave:flaw_fragile_health
 attribute @s minecraft:generic.safe_fall_distance modifier remove shadowslave:flaw_weightless_fall
 
-kill @e[tag=ss_creature]
+execute in shadowslave:nightmare run kill @e[tag=ss_creature]
 bossbar set shadowslave:trial visible false
+bossbar set shadowslave:trial players
 
 tellraw @s {"text":"[Shadow Slave] Verification state reset. You are a Sleeper again.","color":"gray","italic":true}
