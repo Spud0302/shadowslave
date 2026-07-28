@@ -22,6 +22,7 @@ Checks:
   - every tag tested in a selector is applied somewhere
   - every `attribute ... modifier add <id>` has a paired `remove` in the same file
   - every dimension_type covers the vertical range its noise settings generate
+  - every biome has the required fields, with the types 1.21.1 expects
 """
 import json
 import re
@@ -277,6 +278,45 @@ def check_dimension_height():
             )
 
 
+# Biome fields that must be present and must be of a specific JSON type. Getting one of
+# these wrong fails the world at CREATION time with "Data pack validation failed!", which
+# gives you a dialog box and no error text — the reason is only in logs/latest.log.
+BIOME_FIELD_TYPES = {
+    "has_precipitation": bool,
+    "temperature": (int, float),
+    "downfall": (int, float),
+    "effects": dict,
+    # 1.21 removed carver types: `carvers` is now a flat list, not an {air:…, liquid:…} object.
+    "carvers": list,
+    # A list of generation steps, each itself a list. May be empty, must not be an object.
+    "features": list,
+}
+
+
+def check_biomes():
+    """Required biome fields, with the types 1.21.1 actually expects."""
+    for f in sorted((DATA / NAMESPACE / "worldgen" / "biome").glob("*.json")):
+        try:
+            biome = json.loads(f.read_text())
+        except json.JSONDecodeError:
+            continue
+        for field, want in BIOME_FIELD_TYPES.items():
+            if field not in biome:
+                errors.append(f"{f.relative_to(PACK)}: missing required biome field {field!r}")
+                continue
+            if not isinstance(biome[field], want):
+                names = want.__name__ if isinstance(want, type) else "/".join(t.__name__ for t in want)
+                errors.append(
+                    f"{f.relative_to(PACK)}: biome field {field!r} is "
+                    f"{type(biome[field]).__name__}, expected {names}"
+                )
+        effects = biome.get("effects")
+        if isinstance(effects, dict):
+            for key in ("sky_color", "fog_color", "water_color", "water_fog_color"):
+                if key not in effects:
+                    errors.append(f"{f.relative_to(PACK)}: biome effects missing required {key!r}")
+
+
 def main():
     check_pack_mcmeta()
     check_no_plural_dirs()
@@ -289,6 +329,7 @@ def main():
     check_tags()
     check_attribute_modifiers()
     check_dimension_height()
+    check_biomes()
     if errors:
         for e in errors:
             print(f"FAIL: {e}")
