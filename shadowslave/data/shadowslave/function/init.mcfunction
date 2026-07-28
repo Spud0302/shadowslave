@@ -13,6 +13,10 @@ scoreboard objectives add ss_roll dummy "Roll"
 scoreboard objectives add ss_clock dummy "Clock"
 # Counts seconds between the Spell's calls to its Carriers
 scoreboard objectives add ss_call dummy "Spell Call"
+# Scratch for the soul readout. Deliberately separate from ss_health, which the ejection
+# check reads — sharing them once made reading your soul lock you out of the mod.
+scoreboard objectives add ss_scratch_a dummy "Scratch A"
+scoreboard objectives add ss_scratch_b dummy "Scratch B"
 # Health sampled each tick while in the nightmare
 scoreboard objectives add ss_health dummy "Health"
 # Consecutive ticks the creature has been absent — guards against a rejoin, where the

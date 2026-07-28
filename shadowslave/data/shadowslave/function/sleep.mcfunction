@@ -13,11 +13,16 @@
 advancement revoke @s only shadowslave:enter_nightmare
 
 # The Awakened sleep like anyone else.
+execute if score @s ss_rank matches 1.. run advancement grant @s only shadowslave:test/bypass
 execute if score @s ss_rank matches 1.. run return 0
 
 # First sleep: the Spell notices. Let them wake normally this once.
-execute unless entity @s[tag=ss_carrier] run function shadowslave:infect
-execute unless entity @s[tag=ss_carrier] run return 0
+#
+# `return run` matters. `infect` adds the ss_carrier tag, so a separate
+# `execute unless entity @s[tag=ss_carrier] run return 0` on the next line would
+# already be false and fall straight through into the nightmare. Running the call
+# and the return as one command is what makes the branch actually branch.
+execute unless entity @s[tag=ss_carrier] run return run function shadowslave:infect
 
 # Already a Carrier — this is the night it takes them.
 function shadowslave:nightmare/enter

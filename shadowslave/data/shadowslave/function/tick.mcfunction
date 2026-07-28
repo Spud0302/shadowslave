@@ -23,6 +23,13 @@ execute if score $ss_clock ss_clock matches 0 as @a[scores={ss_rank=1..}] at @s 
 # and `matches` fails outright on an absent score.
 execute if score $ss_clock ss_clock matches 0 as @a[tag=ss_carrier] at @s unless score @s ss_rank matches 1.. if predicate shadowslave:is_sneaking if block ~ ~ ~ #minecraft:beds run function shadowslave:nightmare/enter
 
+# Telegraph the hold. The check above polls once a second, so a quick tap falls between
+# polls and reads as unresponsive — but a deliberate hold is the RIGHT interaction here:
+# an accidental sneak near a bed should not drop you into a trial that can end your run.
+# So keep the hold and say so. Polled every tick, unlike the entry itself, so the message
+# appears the instant they crouch.
+execute as @a[tag=ss_carrier] at @s unless score @s ss_rank matches 1.. unless entity @s[tag=ss_in_nightmare] if predicate shadowslave:is_sneaking if block ~ ~ ~ #minecraft:beds run title @s actionbar {"text":"The Spell reaches for you...","color":"dark_purple","italic":true}
+
 # The Spell calls its Carriers every 30 seconds until they answer it.
 execute if score $ss_clock ss_clock matches 0 run scoreboard players add $ss_call ss_call 1
 execute if score $ss_call ss_call matches 30.. run scoreboard players set $ss_call ss_call 0

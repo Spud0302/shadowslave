@@ -7,6 +7,9 @@
 # Only Carriers hear it. The untouched are left alone, and the Awakened have answered.
 execute unless entity @s[tag=ss_carrier] run return 0
 execute if score @s ss_rank matches 1.. run return 0
+# Already inside a trial — they have answered the call. Nausea during the boss fight
+# is a real handicap, and being summoned while already there makes no sense.
+execute if entity @s[tag=ss_in_nightmare] run return 0
 
 effect give @s minecraft:nausea 4 0 true
 title @s actionbar {"text":"Your eyelids are heavy. Something is calling.","color":"dark_gray","italic":true}

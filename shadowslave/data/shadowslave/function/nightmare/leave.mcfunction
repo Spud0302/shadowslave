@@ -16,6 +16,15 @@ bossbar set shadowslave:trial players
 # Put them back where they slept.
 # Players cannot have their NBT written, so the return position goes through storage
 # and a macro function — the only way to feed dynamic coordinates to /tp.
+# 1.6 — bring their dropped items with them.
+#
+# If they died in here, the drops are at the death position INSIDE the nightmare, and
+# they respawn in the Overworld with no route back — sleeping starts a fresh trial
+# somewhere else entirely, and the items despawn in five minutes. That is a harsher
+# punishment than an ordinary death and it contradicts the whole point of the trial
+# protecting your gear. The Spell casts you out, and what you carried falls with you.
+execute at @s run tag @e[type=item,distance=..8] add ss_drop
+
 execute store result storage shadowslave:ret x int 1 run scoreboard players get @s ss_ret_x
 execute store result storage shadowslave:ret y int 1 run scoreboard players get @s ss_ret_y
 execute store result storage shadowslave:ret z int 1 run scoreboard players get @s ss_ret_z

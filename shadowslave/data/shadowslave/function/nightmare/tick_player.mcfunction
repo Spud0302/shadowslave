@@ -4,7 +4,9 @@
 # ponytail: NBT reads on players are expensive, but this only runs for players
 # ponytail: actually inside a nightmare — a handful at most
 execute store result score @s ss_health run data get entity @s Health
-execute if score @s ss_health matches ..8 run function shadowslave:nightmare/eject
+# `1..8`, not `..8`. If the read above ever fails, the score keeps its previous value —
+# a stale or zero reading must never be able to eject someone at full health.
+execute if score @s ss_health matches 1..8 run function shadowslave:nightmare/eject
 execute if entity @s[tag=!ss_in_nightmare] run return 0
 
 # Count down. Stops once the creature is up — otherwise the score runs unboundedly

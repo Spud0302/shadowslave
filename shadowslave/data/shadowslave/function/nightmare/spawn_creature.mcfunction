@@ -12,7 +12,17 @@
 # surface via the heightmap, which is exactly the safe-placement guarantee we need. It ends
 # up on solid ground, at a distance, in view.
 # Attribute format is 1.20.5+: lowercase `attributes`, with `id` and `base`.
-summon minecraft:ravager ~ ~10 ~ {Tags:["ss_creature"],CustomName:'{"text":"Nightmare Creature","color":"dark_purple","bold":true}',CustomNameVisible:1b,PersistenceRequired:1b,attributes:[{id:"minecraft:generic.max_health",base:160},{id:"minecraft:generic.attack_damage",base:4},{id:"minecraft:generic.movement_speed",base:0.32},{id:"minecraft:generic.knockback_resistance",base:0.8},{id:"minecraft:generic.follow_range",base:64}],Health:160f,active_effects:[{id:"minecraft:fire_resistance",amplifier:0b,duration:-1,show_particles:0b}]}
+#
+# 60 health, not 160. Measured in-game at the tier this actually happens — wooden sword,
+# no armour: 3 hits landed (12 damage) before ejection at 3 hits taken. Winning needed
+# thirteen ejection-free runs' worth of damage in one attempt, so it was not hard, it was
+# impossible. 60 is 15 wooden-sword hits. attack_damage stays at 4 — three hits should
+# still end you.
+#
+# Speed comes from an effect, not an attribute: a ravager zeroes and restores its own
+# movement_speed base during its stun state, overwriting whatever we set. An in-game dump
+# showed base 0.0 where the file said 0.32. Effects survive that.
+summon minecraft:ravager ~ ~10 ~ {Tags:["ss_creature"],CustomName:'{"text":"Nightmare Creature","color":"dark_purple","bold":true}',CustomNameVisible:1b,PersistenceRequired:1b,attributes:[{id:"minecraft:generic.max_health",base:60},{id:"minecraft:generic.attack_damage",base:4},{id:"minecraft:generic.knockback_resistance",base:0.8},{id:"minecraft:generic.follow_range",base:64}],Health:60f,active_effects:[{id:"minecraft:fire_resistance",amplifier:0b,duration:-1,show_particles:0b},{id:"minecraft:speed",amplifier:0b,duration:-1,show_particles:0b}]}
 
 # Put it on the surface at a distance, rather than on top of the player.
 #
@@ -33,8 +43,8 @@ execute if entity @e[tag=ss_creature] run tag @s add ss_creature_spawned
 # summon does not roar and flash a title every tick while it keeps failing.
 execute if entity @s[tag=ss_creature_spawned] run bossbar set shadowslave:trial name {"text":"Nightmare Creature","color":"dark_red"}
 execute if entity @s[tag=ss_creature_spawned] run bossbar set shadowslave:trial color red
-execute if entity @s[tag=ss_creature_spawned] run bossbar set shadowslave:trial max 160
-execute if entity @s[tag=ss_creature_spawned] run bossbar set shadowslave:trial value 160
+execute if entity @s[tag=ss_creature_spawned] run bossbar set shadowslave:trial max 60
+execute if entity @s[tag=ss_creature_spawned] run bossbar set shadowslave:trial value 60
 
 execute if entity @s[tag=ss_creature_spawned] run playsound minecraft:entity.ravager.roar hostile @s ~ ~ ~ 2 0.6
 execute if entity @s[tag=ss_creature_spawned] run title @s times 10 50 20

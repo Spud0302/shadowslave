@@ -21,10 +21,12 @@ execute if entity @s[tag=ss_flaw_weightless] run tellraw @s [{"text":"Flaw: ","c
 # Attributes — the spec promised these and Phase 1 shipped without them. Aspects and Flaws
 # express themselves as attribute modifiers, so this is where a player sees their Flaw
 # actually costing them something.
-# ponytail: ss_roll and ss_health are both scratch and are overwritten before any real read
-execute store result score @s ss_roll run attribute @s minecraft:generic.max_health get
-execute store result score @s ss_health run attribute @s minecraft:generic.armor get
-execute if score @s ss_rank matches 1 run tellraw @s [{"text":"Vitality: ","color":"gray"},{"score":{"name":"@s","objective":"ss_roll"}},{"text":"   Endurance: ","color":"gray"},{"score":{"name":"@s","objective":"ss_health"}}]
+# Dedicated scratch objectives. This readout used to borrow ss_health, which the ejection
+# check compares against its threshold — so reading your soul with low armour could poison
+# that score and eject you the moment you entered a nightmare. Two objectives cost nothing.
+execute store result score @s ss_scratch_a run attribute @s minecraft:generic.max_health get
+execute store result score @s ss_scratch_b run attribute @s minecraft:generic.armor get
+execute if score @s ss_rank matches 1 run tellraw @s [{"text":"Vitality: ","color":"gray"},{"score":{"name":"@s","objective":"ss_scratch_a"}},{"text":"   Endurance: ","color":"gray"},{"score":{"name":"@s","objective":"ss_scratch_b"}}]
 
 execute unless score @s ss_rank matches 1.. unless entity @s[tag=ss_carrier] run tellraw @s {"text":"The Spell has not noticed you yet. Sleep, and it may.","color":"dark_gray","italic":true}
 execute unless score @s ss_rank matches 1.. if entity @s[tag=ss_carrier] run tellraw @s {"text":"The Spell has marked you. Sneak on a bed, at any hour, and it will take you.","color":"dark_gray","italic":true}
