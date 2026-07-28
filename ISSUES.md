@@ -74,6 +74,7 @@ These work as built. Whether they're _right_ is your call.
 
 ## 4. Deliberate limitations — not bugs
 
+- **Instant-kill damage bypasses ejection entirely.** The threshold catches you at 9 HP, so anything that takes you from above that straight to 0 — a long fall, lava, the void, `/kill` — kills you outright and drops your gear. Confirmed in-game v1.2.0 via `/kill`. The teardown still runs correctly (tag cleared, bossbar hidden, creature removed), so this is a limit of the gear-retention promise, not a state bug.
 - **The leash teleports the creature onto you, and it gets a free hit.** Confirmed in-game v1.2.0 at ~234 blocks. Judged fair by the playtester: fleeing should cost something, and you cannot outrun the Nightmare. If it ever needs softening, teleport it a few blocks away rather than to the player's exact position.
 Recorded so nobody "fixes" them by accident.
 
