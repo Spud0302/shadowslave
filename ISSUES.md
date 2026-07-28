@@ -56,6 +56,8 @@ warn you.
 
 | 3.4 | **Sneak-to-enter needs a short hold, and does not say so.** The check polls once per second on the shared clock, so a quick tap falls between polls. A deliberate hold is arguably the *right* interaction — an accidental sneak near a bed should not drop you into a lethal trial — but it currently reads as unresponsive rather than intentional. Confirmed working in-game v1.2.0. | Either poll every 5 ticks so a tap registers, or keep the hold and telegraph it: an actionbar line like *"The Spell reaches for you..."* while sneaking on a bed. The second is better design and about as cheap. |
 
+| 2.10 | **The Spell keeps calling you while you are inside the nightmare.** `carrier.mcfunction` guards on Carrier and not-Awakened, but never on `ss_in_nightmare` — so a player mid-trial gets a nausea pulse and the actionbar line every 30 seconds. Nausea during the boss fight is a real handicap, and thematically you have already answered the call. Confirmed in-game v1.2.0. | Add `execute if entity @s[tag=ss_in_nightmare] run return 0` to the guards at the top of `carrier.mcfunction`. |
+
 ## 3. Design problems worth a decision
 
 These work as built. Whether they're _right_ is your call.
