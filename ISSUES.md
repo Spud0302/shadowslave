@@ -74,6 +74,7 @@ These work as built. Whether they're _right_ is your call.
 
 ## 4. Deliberate limitations — not bugs
 
+- **The leash teleports the creature onto you, and it gets a free hit.** Confirmed in-game v1.2.0 at ~234 blocks. Judged fair by the playtester: fleeing should cost something, and you cannot outrun the Nightmare. If it ever needs softening, teleport it a few blocks away rather than to the player's exact position.
 Recorded so nobody "fixes" them by accident.
 
 - **Single player at a time.** One global bossbar, and one player leaving the nightmare kills every creature in it — so a second player mid-trial gets a free Awakening. Per-player bossbars need macro-generated ids; per-player creatures need owner tags. Both deferred to Phase 6.
