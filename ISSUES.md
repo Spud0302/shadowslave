@@ -36,13 +36,15 @@ warn you.
 
 | #   | Issue                                         | Detail                                                                                                                                                                                                             |
 | --- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2.1 | **Creature's fire resistance may not apply.** | `spawn_creature.mcfunction` uses `ActiveEffects:` — the 1.20.5 rename made it `active_effects`. Check with `/data get entity @e[tag=ss_creature,limit=1]`. Minor gameplay impact.                                  |
+| 2.1 | ~~**Creature's fire resistance may not apply.**~~ **CONFIRMED BROKEN, FIXED v1.0.8.** An in-game `/data get` showed no effects on the creature at all — 1.20.5 renamed the key to `active_effects` and the pack used the old `ActiveEffects`, so it was silently dropped. |
 | 2.2 | **Ravager roar damage is assumed ~6.**        | The ejection threshold (9 HP) was set against that figure. The roar fires when you block with a shield and is not governed by `attack_damage`. If it hits harder, raise the threshold in `tick_player.mcfunction`. |
 | 2.3 | **Return position truncates toward zero.**    | Coordinates go through integer scoreboards, so sleeping at x = −10.7 returns you to −10. Up to one block off, and only on negative coordinates.                                                                    |
 
 ---
 
 | 2.4 | **The nightmare may still be too dark, or not dark enough.** `ambient_light` went 0.0 → 0.1 in v1.0.7 (matching the Nether) after 0.0 proved unplayable — pitch black, not atmospheric. This is the one dial for it. | Raise toward 0.15 if still unreadable; drop toward 0.05 if it feels too safe. Changing it needs a fresh world, since dimension types are baked in at world creation. |
+
+| 2.5 | **Returning from a nightmare can trap you in the bed.** The return position is captured while the player is *in* the bed, and integer scoreboards truncate it, so you rematerialise inside the bed block. Confirmed in-game v1.0.8 — with a 2-block ceiling there was no room to jump out. | Needs safe placement on return: nudge to an adjacent free block, or fall back to `spreadplayers` around the bed. Workaround for now is `/tp @s ~ ~ ~5`. |
 
 ## 3. Design problems worth a decision
 
