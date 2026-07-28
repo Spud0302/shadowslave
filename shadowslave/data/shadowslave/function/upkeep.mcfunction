@@ -4,3 +4,8 @@ execute if entity @s[tag=ss_aspect_shadow] run function shadowslave:aspect/shado
 execute if entity @s[tag=ss_aspect_flame] run function shadowslave:aspect/flame
 execute if entity @s[tag=ss_aspect_bone] run function shadowslave:aspect/bone
 execute if entity @s[tag=ss_aspect_wind] run function shadowslave:aspect/wind
+
+execute if entity @s[tag=ss_flaw_shadow_slave] run function shadowslave:flaw/shadow_slave
+execute if entity @s[tag=ss_flaw_fragile] run function shadowslave:flaw/fragile
+execute if entity @s[tag=ss_flaw_ravenous] run function shadowslave:flaw/ravenous
+execute if entity @s[tag=ss_flaw_weightless] run function shadowslave:flaw/weightless
