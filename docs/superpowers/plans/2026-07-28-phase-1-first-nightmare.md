@@ -86,7 +86,7 @@ shadowslave/
 **Interfaces:**
 
 - Consumes: nothing.
-- Produces: scoreboard objectives `ss_rank`, `ss_timer`, `ss_aspect`, `ss_flaw`, `ss_roll`, `ss_health`, `ss_ret_x`, `ss_ret_y`, `ss_ret_z` (all `dummy`) and `soul` (`trigger`); bossbar `shadowslave:trial`; tags `ss_in_nightmare`, `ss_creature_spawned`; entry points `shadowslave:init` and `shadowslave:tick`.
+- Produces: scoreboard objectives `ss_rank`, `ss_timer`, `ss_aspect`, `ss_flaw`, `ss_roll`, `ss_clock`, `ss_health`, `ss_ret_x`, `ss_ret_y`, `ss_ret_z` (all `dummy`) and `soul` (`trigger`) — eleven in total; bossbar `shadowslave:trial`; tags `ss_in_nightmare`, `ss_creature_spawned`; entry points `shadowslave:init` and `shadowslave:tick`.
 
 - [ ] **Step 1: Write the failing validator**
 
@@ -276,7 +276,7 @@ Copy `shadowslave/` into a test world's `datapacks/` folder, then:
 /scoreboard objectives list
 ```
 
-Expected: the chat line "The Spell stirs." appears, and all ten objectives are listed.
+Expected: the chat line "The Spell stirs." appears, and all eleven objectives are listed (ten `dummy` plus `soul`).
 
 - [ ] **Step 8: Commit**
 
@@ -503,9 +503,13 @@ tag @s add ss_in_nightmare
 scoreboard players set @s ss_timer 6000
 
 # Pull them in. Teleporting wakes the player out of the bed.
+# `execute in <dimension>` scopes ONLY the command chained to its `run` — it does not
+# persist to the next line. Every line that must act inside the nightmare needs its own
+# `execute in`, and the final offset needs `at @s` so `~` resolves against the player's
+# post-spread position rather than the bed they left.
 execute in shadowslave:nightmare run tp @s 0 120 0
-spreadplayers 0 0 200 400 false @s
-tp @s ~ 150 ~
+execute in shadowslave:nightmare run spreadplayers 0 0 200 400 false @s
+execute in shadowslave:nightmare at @s run tp @s ~ 150 ~
 
 bossbar set shadowslave:trial max 6000
 bossbar set shadowslave:trial value 6000
@@ -514,7 +518,7 @@ bossbar set shadowslave:trial color purple
 bossbar set shadowslave:trial visible true
 bossbar set shadowslave:trial players @s
 
-playsound minecraft:ambient.cave ambient @s ~ ~ ~ 1 0.5
+execute at @s run playsound minecraft:ambient.cave ambient @s ~ ~ ~ 1 0.5
 title @s times 20 60 20
 title @s subtitle {"text":"Survive.","color":"gray"}
 title @s title {"text":"The Nightmare Spell","color":"dark_purple","bold":true}
