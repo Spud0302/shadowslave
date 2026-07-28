@@ -136,7 +136,7 @@ All player state lives in scoreboard objectives and tags — no custom NBT, no m
 | ----------------------- | -------------------------------------------------------- |
 | `ss_rank`               | 0 = Sleeper, 1 = Awakened                                |
 | `ss_timer`              | Nightmare countdown, in ticks                            |
-| `ss_return_{x,y,z}`     | Overworld return coordinates                             |
+| `ss_ret_{x,y,z}`        | Overworld return coordinates                             |
 | `ss_aspect` / `ss_flaw` | Rolled values, mirrored as tags for selector performance |
 | `soul`                  | `/trigger` objective for the readout command             |
 
@@ -160,7 +160,7 @@ data/shadowslave/
     soul.mcfunction
     test/selfcheck.mcfunction
   tags/function/{load,tick}.json
-  loot_table/nightmare_creature.json
+  (no loot_table — the creature drops vanilla ravager loot; Memories are Phase 2)
   predicate/is_sleeping.json
 ```
 

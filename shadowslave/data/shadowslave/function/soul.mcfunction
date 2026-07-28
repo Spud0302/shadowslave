@@ -17,5 +17,13 @@ execute if entity @s[tag=ss_flaw_fragile] run tellraw @s [{"text":"Flaw: ","colo
 execute if entity @s[tag=ss_flaw_ravenous] run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Ravenous","color":"red"},{"text":" — the soul burns through the body","color":"dark_gray","italic":true}]
 execute if entity @s[tag=ss_flaw_weightless] run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Weightless","color":"red"},{"text":" — the ground is unkind","color":"dark_gray","italic":true}]
 
+# Attributes — the spec promised these and Phase 1 shipped without them. Aspects and Flaws
+# express themselves as attribute modifiers, so this is where a player sees their Flaw
+# actually costing them something.
+# ponytail: ss_roll and ss_health are both scratch and are overwritten before any real read
+execute store result score @s ss_roll run attribute @s minecraft:generic.max_health get
+execute store result score @s ss_health run attribute @s minecraft:generic.armor get
+execute if score @s ss_rank matches 1 run tellraw @s [{"text":"Vitality: ","color":"gray"},{"score":{"name":"@s","objective":"ss_roll"}},{"text":"   Endurance: ","color":"gray"},{"score":{"name":"@s","objective":"ss_health"}}]
+
 execute unless score @s ss_rank matches 1.. run tellraw @s {"text":"The Spell has not yet tested you. Sleep.","color":"dark_gray","italic":true}
 tellraw @s {"text":""}

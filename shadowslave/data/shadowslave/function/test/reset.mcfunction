@@ -1,5 +1,9 @@
 # Wipes verification state, Aspect/Flaw tags and modifiers for a clean test run.
 
+# Get out of the nightmare first if we are in it. This function clears ss_in_nightmare, and
+# beds do not work in that dimension — without this, running reset from inside strands you.
+execute if entity @s[tag=ss_in_nightmare] run function shadowslave:nightmare/leave
+
 advancement revoke @s from shadowslave:test/root
 advancement revoke @s only shadowslave:enter_nightmare
 

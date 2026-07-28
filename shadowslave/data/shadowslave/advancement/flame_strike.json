@@ -1,0 +1,11 @@
+{
+  "criteria": {
+    "hurt": {
+      "trigger": "minecraft:player_hurt_entity"
+    }
+  },
+  "requirements": [["hurt"]],
+  "rewards": {
+    "function": "shadowslave:aspect/flame_strike"
+  }
+}

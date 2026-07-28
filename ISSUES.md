@@ -1,5 +1,14 @@
 # Shadow Slave — Known Issues
 
+> **Fixed in `v1.0.1`** (while you were testing `v1.0.0`): §3.1 Flame no longer cancels the
+> Shadow Slave flaw; §4 `test/reset` no longer strands you in the nightmare; §5 burning
+> strikes and the attributes readout are implemented, and the two spec-drift entries are
+> amended; §6 the validator now checks function, predicate, dimension, objective, bossbar
+> and tag references plus unpaired attribute modifiers, the comment-guard is in, and the
+> countdown stops once the creature spawns.
+>
+> Everything in §1 and §2 still needs your in-game observations — those are untouched.
+
 Status at `v1.0.0` (Phase 1, "The First Nightmare"). Nothing here has ever run in
 Minecraft — the build box has no game client, so every behavioural claim below is
 reasoning, not observation.
