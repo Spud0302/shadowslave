@@ -62,6 +62,8 @@ warn you.
 
 | 2.11 | **Dying in the trial teleports your corpse home behind the death screen.** The per-tick health check sees 0 HP on a dead-but-not-yet-respawned player, fires the ejection, and `leave` runs its cross-dimension teleport — so the player watches the portal warp effect and their bed appear while the death screen is up. Then vanilla respawn sends them to the same place anyway. Confirmed in-game v1.2.0. | The state cleanup must still run on death; only the teleport is redundant. Add an early `return 0` in `leave.mcfunction` after the tag/bossbar/creature cleanup but before the return teleport, when `@s[nbt={Health:0.0f}]` — reading player NBT is allowed, only writing is refused. |
 
+| 2.12 | **`awaken/roll` never clears previous Aspect/Flaw tags.** It adds the rolled tag but leaves any earlier one in place, so a second Awakening (via `test/awaken`) can leave two Aspect tags set. The soul readout prints whichever it checks first — Shadow — so the displayed Aspect can disagree with the `ss_aspect` score, and the upkeep loop would apply both. Suspected after four consecutive Shadow rolls (1-in-256). | Clear all eight `ss_aspect_*` / `ss_flaw_*` tags at the top of `roll.mcfunction` before applying the new ones, and strip the four attribute modifiers too — otherwise a stale Bone modifier outlives the Aspect that granted it. |
+
 ## 3. Design problems worth a decision
 
 These work as built. Whether they're _right_ is your call.
