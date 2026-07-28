@@ -14,8 +14,14 @@
 # Attribute format is 1.20.5+: lowercase `attributes`, with `id` and `base`.
 summon minecraft:ravager ~ ~10 ~ {Tags:["ss_creature"],CustomName:'{"text":"Nightmare Creature","color":"dark_purple","bold":true}',CustomNameVisible:1b,PersistenceRequired:1b,attributes:[{id:"minecraft:generic.max_health",base:160},{id:"minecraft:generic.attack_damage",base:4},{id:"minecraft:generic.movement_speed",base:0.32},{id:"minecraft:generic.knockback_resistance",base:0.8},{id:"minecraft:generic.follow_range",base:64}],Health:160f,active_effects:[{id:"minecraft:fire_resistance",amplifier:0b,duration:-1,show_particles:0b}]}
 
-# Put it on the surface, up to 14 blocks away, rather than on top of the player.
-execute at @s run spreadplayers ~ ~ 0 14 false @e[tag=ss_creature]
+# Put it on the surface at a distance, rather than on top of the player.
+#
+# spreadplayers' distance argument is the minimum gap BETWEEN targets, so with a single
+# creature it does nothing and the range was uniform 0-14 blocks — sometimes in your face.
+# Centring the spread 12 blocks ahead instead puts it 8-16 blocks out, every time.
+# `rotated ~ 0` keeps the player's yaw but zeroes pitch, so looking up or down cannot
+# throw the centre point into the sky or the ground.
+execute at @s rotated ~ 0 positioned ^ ^ ^12 run spreadplayers ~ ~ 0 4 false @e[tag=ss_creature]
 
 # Only claim the creature spawned if it actually did. A summon can still fail — a version
 # bump renaming the attribute ids would do it — and tagging unconditionally would leave the

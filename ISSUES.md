@@ -48,6 +48,8 @@ warn you.
 
 | 2.6 | **`is_sneaking` entity flag is unverified.** The new sneak-on-a-bed entry depends on it. If the flag name is wrong the predicate silently evaluates false and that entry path just never fires — no error. | Sneak on a bed in daylight as a Sleeper. If nothing happens, the fallback is the vanilla night-time sleep path, which still works. |
 
+| 2.7 | ~~**Creature could spawn in your face.**~~ **FIXED v1.1.1.** `spreadplayers`' distance argument is the minimum gap *between targets*, so with one creature it did nothing and the range was uniform 0-14 blocks. The spread is now centred 12 blocks ahead of the player, giving a consistent 8-16. |
+
 ## 3. Design problems worth a decision
 
 These work as built. Whether they're _right_ is your call.
