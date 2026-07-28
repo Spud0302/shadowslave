@@ -32,6 +32,8 @@ warn you.
 
 ---
 
+| 1.6 | **Dying in the nightmare loses your items permanently.** They drop at the death position *inside the nightmare dimension*; you respawn in the Overworld with no route back — sleeping starts a fresh trial at a random location — and they despawn in five minutes. Strictly harsher than a normal Minecraft death, and it contradicts the stated design that the trial protects your gear. Confirmed in-game v1.2.0. | The teardown runs on the same tick the items drop, so it can bring them: before the return teleport, `execute at @s run tag @e[type=item,distance=..8] add ss_drop`, then after the player is moved, teleport anything tagged `ss_drop` to the same return position and clear the tag. "The Spell casts you out, and what you carried falls with you." |
+
 ## 2. Probably wrong, low blast radius
 
 | #   | Issue                                         | Detail                                                                                                                                                                                                             |
