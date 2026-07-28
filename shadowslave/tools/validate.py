@@ -27,8 +27,16 @@ def check_pack_mcmeta():
     if not path.is_file():
         errors.append("pack.mcmeta is missing")
         return
-    meta = json.loads(path.read_text())
-    fmt = meta.get("pack", {}).get("pack_format")
+    try:
+        meta = json.loads(path.read_text())
+    except json.JSONDecodeError as exc:
+        errors.append(f"{path.relative_to(PACK)}: invalid JSON — {exc}")
+        return
+    pack = meta.get("pack")
+    if not isinstance(pack, dict):
+        errors.append(f"pack.mcmeta: pack field must be a JSON object, got {type(pack).__name__}")
+        return
+    fmt = pack.get("pack_format")
     if fmt != REQUIRED_PACK_FORMAT:
         errors.append(f"pack_format is {fmt!r}, expected {REQUIRED_PACK_FORMAT} (1.21.1)")
 
