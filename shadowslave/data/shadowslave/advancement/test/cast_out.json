@@ -1,0 +1,14 @@
+{
+  "parent": "shadowslave:test/chosen",
+  "display": {
+    "icon": { "id": "minecraft:wither_rose" },
+    "title": { "text": "Cast Out", "color": "dark_red" },
+    "description": {
+      "text": "Near-death ejection returned you with gear intact and no Awakening."
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false
+  },
+  "criteria": { "granted": { "trigger": "minecraft:impossible" } }
+}

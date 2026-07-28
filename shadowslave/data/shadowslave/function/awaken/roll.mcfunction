@@ -17,3 +17,5 @@ execute if score @s ss_flaw matches 3 run tag @s add ss_flaw_ravenous
 execute if score @s ss_flaw matches 4 run tag @s add ss_flaw_weightless
 
 tellraw @s [{"text":"\n","color":"white"},{"text":"You have Awakened.","color":"light_purple","bold":true},{"text":"\nRun ","color":"gray"},{"text":"/trigger soul","color":"aqua"},{"text":" to read your soul.\n","color":"gray"}]
+
+advancement grant @s only shadowslave:test/awakened

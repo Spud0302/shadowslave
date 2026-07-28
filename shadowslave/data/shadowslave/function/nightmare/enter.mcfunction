@@ -4,6 +4,7 @@
 advancement revoke @s only shadowslave:enter_nightmare
 
 # Only Sleepers are Chosen. Awakened players sleep normally.
+execute if score @s ss_rank matches 1.. run advancement grant @s only shadowslave:test/bypass
 execute if score @s ss_rank matches 1.. run return 0
 # Guard against re-entry if something fires twice.
 execute if entity @s[tag=ss_in_nightmare] run return 0
@@ -32,3 +33,5 @@ execute at @s run playsound minecraft:ambient.cave ambient @s ~ ~ ~ 1 0.5
 title @s times 20 60 20
 title @s subtitle {"text":"Survive.","color":"gray"}
 title @s title {"text":"The Nightmare Spell","color":"dark_purple","bold":true}
+
+advancement grant @s only shadowslave:test/chosen

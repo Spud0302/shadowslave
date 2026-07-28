@@ -1,0 +1,14 @@
+{
+  "parent": "shadowslave:test/endured",
+  "display": {
+    "icon": { "id": "minecraft:iron_sword" },
+    "title": { "text": "Slayer", "color": "dark_purple" },
+    "description": {
+      "text": "The creature died and the trial resolved as a win."
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false
+  },
+  "criteria": { "granted": { "trigger": "minecraft:impossible" } }
+}

@@ -12,3 +12,5 @@ title @s times 10 50 20
 title @s subtitle {"text":"You were not ready.","color":"dark_gray"}
 title @s title {"text":"Cast Out","color":"dark_red","bold":true}
 tellraw @s {"text":"The Nightmare rejected you. Sleep again to face it.","color":"gray","italic":true}
+
+advancement grant @s only shadowslave:test/cast_out

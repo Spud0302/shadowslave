@@ -72,11 +72,43 @@ def check_tagged_functions_exist():
                 errors.append(f"{tag.name} references missing function {ref}")
 
 
+def check_advancement_parents():
+    """Every `parent` must point at an advancement file that exists."""
+    root = DATA / "shadowslave" / "advancement"
+    for f in root.rglob("*.json"):
+        try:
+            data = json.loads(f.read_text())
+        except json.JSONDecodeError:
+            continue  # already reported
+        parent = data.get("parent")
+        if parent is None:
+            continue
+        namespace, _, name = parent.partition(":")
+        target = DATA / namespace / "advancement" / f"{name}.json"
+        if not target.is_file():
+            errors.append(f"{f.relative_to(PACK)}: parent {parent} does not exist")
+
+
+def check_granted_advancements_exist():
+    """Every `advancement grant ... only <id>` must name a real advancement."""
+    import re
+    pattern = re.compile(r"advancement (?:grant|revoke) \S+ (?:only|from) (\S+)")
+    for f in DATA.rglob("*.mcfunction"):
+        for line in f.read_text().splitlines():
+            for ref in pattern.findall(line):
+                namespace, _, name = ref.partition(":")
+                target = DATA / namespace / "advancement" / f"{name}.json"
+                if not target.is_file():
+                    errors.append(f"{f.relative_to(PACK)}: grants missing advancement {ref}")
+
+
 def main():
     check_pack_mcmeta()
     check_no_plural_dirs()
     check_json_parses()
     check_tagged_functions_exist()
+    check_advancement_parents()
+    check_granted_advancements_exist()
     if errors:
         for e in errors:
             print(f"FAIL: {e}")

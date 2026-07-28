@@ -1,0 +1,14 @@
+{
+  "parent": "shadowslave:test/slayer",
+  "display": {
+    "icon": { "id": "minecraft:nether_star" },
+    "title": { "text": "Awakened", "color": "aqua" },
+    "description": {
+      "text": "Rank set to Awakened with one Aspect and one Flaw rolled."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": false
+  },
+  "criteria": { "granted": { "trigger": "minecraft:impossible" } }
+}

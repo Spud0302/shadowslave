@@ -14,3 +14,5 @@ playsound minecraft:entity.ravager.roar hostile @s ~ ~ ~ 2 0.6
 title @s times 10 50 20
 title @s subtitle {"text":"Kill it, or be killed.","color":"dark_gray"}
 title @s title {"text":"It Has Found You","color":"dark_red","bold":true}
+
+advancement grant @s only shadowslave:test/endured

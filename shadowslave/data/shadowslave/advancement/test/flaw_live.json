@@ -1,0 +1,12 @@
+{
+  "parent": "shadowslave:test/awakened",
+  "display": {
+    "icon": { "id": "minecraft:cracked_stone_bricks" },
+    "title": { "text": "Flaw Bites", "color": "red" },
+    "description": { "text": "Flaw upkeep ran on a live Awakened player." },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false
+  },
+  "criteria": { "granted": { "trigger": "minecraft:impossible" } }
+}
