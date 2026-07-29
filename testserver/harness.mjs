@@ -190,6 +190,13 @@ async function run(bot) {
     'not machine-checkable: nightmare chunks unload before the query runs'
   )
 
+  // The win path is the one branch nothing here exercises. Killing the creature needs a real
+  // fight, so every automated check above ends in a failure state — ejection, death, refusal.
+  needsHuman(
+    'the whole loop, won',
+    'infect -> sleep -> survive -> kill the creature -> Awakened. Nothing has confirmed the WIN path since v1.2.1'
+  )
+
   // --- T5: an untouched player is Mundane, not a Sleeper ------------------
   await cmd(bot, '/function shadowslave:test/reset')
   // Wait for `Rank:` specifically. /Soul/ also matches the "Triggered [Soul]" receipt,
@@ -286,11 +293,11 @@ async function run(bot) {
   // already ruled on gets deleted, not left here. A list that re-asks answered questions wastes
   // the one resource this harness cannot replace.
   //
-  // Settled, do not re-add: ejection at 2 hearts (1.4.5, "health drop out is good"), the fight (too hard at wood/no-armour -> drove the cooldown and the
+  // Settled, do not re-add: the recovery sleep (1.4.6), the creature's chase speed (1.4.6),
+  // ejection at 2 hearts (1.4.5, "health drop out is good"), the fight (too hard at wood/no-armour -> drove the cooldown and the
   // 1.4.5 threshold drop), the dark (ambient_light 0.1 fine), the bossbar (switches to the
   // creature and tracks its health), spawn rates ("could go either way"), sneak-to-enter feel
   // (tap does nothing, hold takes you, telegraph is immediate).
-  needsHuman('the recovery sleep', '1.4.5: sleeping ends the cooldown. Does one night feel like the right price for losing?')
 
   console.log('\n=== summary ===')
   console.log(`${pass.length} passed, ${fail.length} failed`)
