@@ -161,6 +161,19 @@ async function run(bot) {
   assert('death clears the in-nightmare tag', !(await hasTag(bot, 'ss_in_nightmare')))
   assert('death does not strand you in the nightmare', dimAfterDeath !== 'shadowslave:nightmare', `dimension=${dimAfterDeath}`)
 
+  // 1.4.6: dying is not being cast out. A death (0 HP) also satisfies the <=4 ejection check,
+  // so it used to run the whole cast-out ceremony and grant its advancement.
+  const castOutOnDeath = await cmd(
+    bot,
+    '/execute if entity @s[advancements={shadowslave:test/cast_out=true}] run say GRANTED',
+    /GRANTED|Test failed|passed/i
+  )
+  assert(
+    'death does not grant the Cast Out advancement',
+    !/GRANTED/.test(castOutOnDeath),
+    'Cast Out records ejections only'
+  )
+
   // Item recovery on death is NOT asserted here, deliberately.
   //
   // Three different assertions "failed" this feature while it worked, and the probes finally
@@ -173,8 +186,8 @@ async function run(bot) {
   // Confirmed in-game instead, twice, by the playtester: after dying in the trial the drops
   // land around the bed, most within pickup range, a few a couple of blocks out.
   needsHuman(
-    'item recovery on death',
-    'not machine-checkable — nightmare chunks unload before the query runs; re-confirm by hand'
+    'item recovery on death (CONFIRMED v1.4.5 — re-check only if the sweep changes)',
+    'not machine-checkable: nightmare chunks unload before the query runs'
   )
 
   // --- T5: an untouched player is Mundane, not a Sleeper ------------------
@@ -273,11 +286,10 @@ async function run(bot) {
   // already ruled on gets deleted, not left here. A list that re-asks answered questions wastes
   // the one resource this harness cannot replace.
   //
-  // Settled, do not re-add: the fight (too hard at wood/no-armour -> drove the cooldown and the
+  // Settled, do not re-add: ejection at 2 hearts (1.4.5, "health drop out is good"), the fight (too hard at wood/no-armour -> drove the cooldown and the
   // 1.4.5 threshold drop), the dark (ambient_light 0.1 fine), the bossbar (switches to the
   // creature and tracks its health), spawn rates ("could go either way"), sneak-to-enter feel
   // (tap does nothing, hold takes you, telegraph is immediate).
-  needsHuman('the fight at 2 hearts', '1.4.5 dropped ejection to 4 HP — does it now kill you outright too often?')
   needsHuman('the recovery sleep', '1.4.5: sleeping ends the cooldown. Does one night feel like the right price for losing?')
 
   console.log('\n=== summary ===')

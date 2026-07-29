@@ -10,6 +10,22 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 
 ---
 
+## `1.4.6` — dying is not being cast out
+
+Spotted in a playtest screenshot: the death screen had *"You were not ready"* and *"The Nightmare
+rejected you"* behind it. `tick_player` ejects at `Health <= 4` and a real death is `0`, which is
+also `<= 4` — so dying ran the entire ejection ceremony, title, blindness, nausea and the **Cast
+Out** advancement included. Being cast out is surviving; dying is not, and the verification tree
+was recording deaths as ejections.
+
+Death now gets its own line, and no advancement. A `tellraw` rather than a title, because a title
+shown to a dead player is drawn behind the death screen and gone by the time they respawn — chat
+survives, and doubles as the hint that their belongings are waiting at the bed. The teardown and
+the item sweep are untouched and still run on both paths.
+
+Confirmed in-game and closed: item recovery on death re-checked against `1.4.5`'s death-only
+sweep, and ejection at 2 hearts ("health drop out is good as well"). **25/25 assertions pass.**
+
 ## `1.4.5` — sneak-to-enter had been dead for five releases
 
 - **Sneaking on a bed did nothing but show the telegraph.** The per-tick selector filtered on
