@@ -267,5 +267,21 @@ Pure scoreboards, so it is cheap. It also makes the Flaw *legible* — the playe
 it and understand why it is theirs, which is precisely the novel's claim that a Flaw can be
 deduced from the person.
 
+**Behaviour weights the roll; it does not decide it.** Andrew's correction, and it matters: a
+deterministic mapping means two players who fight the same way get the same Flaw, which breaks
+"each one is personal" exactly as badly as pure random did. Instead each behaviour counter
+contributes entries to a weighted pool, and the Flaw is drawn from that pool:
+
+    fled 300+ blocks        -> +3 retreat entries
+    finished below 4 hearts -> +3 fragile entries
+    spent most of it unlit  -> +2 sunlight entries
+    killed it in under 20s  -> +2 hunger entries
+    baseline                -> +1 of everything
+
+A cautious player might hold 5 retreat entries out of 13 — likely, not certain. Same play,
+different outcomes, and the Flaw still reads as connected to the person who earned it. In
+practice: `scoreboard players operation` to build the totals, then `random value 1..<total>`
+and walk the ranges.
+
 **Phase for this:** not Phase 1. It replaces the placeholder four-and-four when Phase 2 or 3
 opens, and the roll logic in `awaken/roll.mcfunction` is the only thing that has to change.
