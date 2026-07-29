@@ -224,3 +224,48 @@ Confirmed from the wiki after the design was agreed — all three support choice
 | Aspect framework | Vanilla effects          | Hard-depend on Apoli/Origins | Apoli would make Aspects pure JSON, but its 1.21.1 build is pre-release (1.13.0-pre.1); inheriting its breakage and release schedule is not worth it yet. Reconsider at the Java port.            |
 | Loader           | Deferred                 | Fabric or NeoForge now       | A datapack needs no loader. Deciding after Phase 1 means deciding with evidence about which systems forced Java.                                                                                  |
 | Versioning       | Pride Versioning         | SemVer                       | Nothing consumes this mod programmatically, so SemVer's compatibility contract is ceremony. Pride Versioning is still three dot-separated integers, so loaders parse and sort it fine.            |
+
+
+## Design direction: Aspects generated, Flaws earned
+
+Andrew's call, 2026-07-29, and it supersedes the fixed four-Aspect list Phase 1 shipped with.
+The wiki backs it on both halves:
+
+> *Each Awakened had a unique Aspect.*
+
+> *Flaws are never random; they are deeply connected to the individuals cursed by them... it
+> is possible to deduce a Flaw if one knows the person well enough.*
+
+A fixed catalogue is wrong twice: Aspects should not repeat, and Flaws should not be rolled.
+Copying named Aspects out of the novel would be the same mistake wearing better names.
+
+### Aspects — composed at roll time
+
+Macros (1.20.2+) can build strings from command storage, so the NAME can be generated even
+though the BEHAVIOUR cannot. Roll a theme and an expression independently and concatenate:
+
+    theme       Shadow, Flame, Frost, Iron, Thorn, Hollow, Ash, Tide, ...
+    expression  Dance, Weave, Grasp, Song, Hunger, Vigil, ...
+
+Twelve themes x eight expressions is 96 distinct Aspects from twelve behaviour
+implementations; a third axis (intensity) multiplies it again. The effect set stays small and
+maintainable while the surface looks unbounded, which is the right trade for a datapack.
+
+### Flaws — derived from the trial
+
+Not rolled. Track a few scoreboards during the First Nightmare and award the Flaw matching
+what the player actually did:
+
+| The trial observed | Flaw |
+| --- | --- |
+| Fled far, fought little | punishes retreat |
+| Took heavy damage, barely survived | Fragile |
+| Spent the trial in darkness | the sun burns you |
+| Killed fast and recklessly | a hunger that cannot be sated |
+
+Pure scoreboards, so it is cheap. It also makes the Flaw *legible* — the player can look at
+it and understand why it is theirs, which is precisely the novel's claim that a Flaw can be
+deduced from the person.
+
+**Phase for this:** not Phase 1. It replaces the placeholder four-and-four when Phase 2 or 3
+opens, and the roll logic in `awaken/roll.mcfunction` is the only thing that has to change.
