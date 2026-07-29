@@ -133,3 +133,40 @@ taken, against something faster than you that you are not allowed to run from.
 If that turns out to be as bad as it looks, the honest fix is dropping `max_health` well
 below 160 rather than nerfing its damage — the creature should feel dangerous, just not
 take a minute of swinging. Report how it actually plays; the table is theory.
+
+---
+
+# `v1.3.0` regression list
+
+Only what changed since the 39/39 sweep. Ordered by how likely each is to be wrong, not by
+importance. Start with a clean state: `/function shadowslave:test/reset`.
+
+## Highest risk — new mechanisms, never run
+
+| # | Do this | Expect |
+| --- | --- | --- |
+| R1 | **Die in the trial with a full inventory.** `test/nightmare`, fill your hotbar, then `/kill @s`. | **Your items are at your bed**, not stranded in the nightmare. This is the most speculative code in the batch: it drags item entities across a dimension boundary using a temporary marker as the teleport destination, because selectors cannot cross dimensions with coordinates. If the items are missing, say so — the fallback is a different approach entirely. |
+| R2 | **Read your soul, then enter.** `/trigger soul`, then immediately `test/nightmare`. | You enter and **stay in**. This was the lockout: the readout was writing your armour into the score the ejection check reads. Try it a few times — it used to fire on every attempt. |
+| R3 | **Fight it at wooden sword, no armour.** | 60 health = 15 hits. Should be a real fight you can actually win, rather than 40 hits you never survive. Tell me if it is now trivial — that is a one-number change either way. |
+
+## Fixes to specific reported bugs
+
+| # | Do this | Expect |
+| --- | --- | --- |
+| R4 | `test/cure`, then sleep at night as an **untouched** player | *"Something noticed you while you slept"* and you **wake up normally**. You should NOT be pulled in on that first sleep. |
+| R5 | Sleep again as a **Carrier** | Now you are pulled in. |
+| R6 | Inside the trial, wait 30+ seconds | **No** nausea, **no** *"Your eyelids are heavy"*. The Spell should not call someone already in its trial. |
+| R7 | Die in the trial, watch the death screen | **No** portal warp, no view of your bed behind it. Just a normal death screen. |
+| R8 | `test/awaken`, note the Aspect, then `test/reset` and `test/awaken` again | Old Aspect and Flaw fully gone. Check `/trigger soul` — Vitality should read 20 unless the NEW roll is Fragile, and Endurance 0 unless it is Bone. Previously modifiers outlived their Aspect. |
+| R9 | Sleep at night as an **Awakened** player | Sleeps normally, and grants **Sleep Undisturbed** — the advancement was unreachable before. |
+| R10 | `test/cure` while Awakened | Refuses, and points you at `test/reset`. It used to claim the Spell had lost interest, which was untrue. |
+| R11 | As a Carrier, sneak on a bed | *"The Spell reaches for you..."* appears **immediately** on the actionbar, before the hold completes. |
+| R12 | Watch the creature chase you | Should move noticeably faster than before — its speed now comes from an effect, since a ravager overwrites its own speed attribute. |
+
+## Regression
+
+| # | Do this | Expect |
+| --- | --- | --- |
+| R13 | The full loop once, clean | infect → sleep → survive → kill → Awakened, with the right Aspect and Flaw. Eleven things changed; this confirms none of them broke the loop. |
+
+**R1 and R2 are the two I would test first.** Both are new code paths, and R2 is the one that could otherwise make the mod look completely broken.
