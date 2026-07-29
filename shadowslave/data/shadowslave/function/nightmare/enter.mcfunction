@@ -9,6 +9,21 @@ execute if score @s ss_rank matches 1.. run return 0
 # Guard against re-entry if something fires twice.
 execute if entity @s[tag=ss_in_nightmare] run return 0
 
+# Too weak to be taken.
+#
+# This replaces the free instant_health that used to fire on arrival. That heal existed to
+# stop an entry loop — walk in at 2 hearts, get ejected on the first tick, repeat — but it
+# also meant ejection cost nothing at all: thrown out at 2 hearts, straight back in at full.
+# Refusing entry instead makes failure expensive. You have to actually recover.
+#
+# 14 (7 hearts) leaves a couple of hits of margin above the ejection threshold of 8, so you
+# cannot enter and be ejected again immediately.
+# ponytail: own scratch objective, NOT ss_health — the ejection check reads that one
+scoreboard players reset @s ss_scratch_a
+execute store result score @s ss_scratch_a run data get entity @s Health
+execute if score @s ss_scratch_a matches ..13 run tellraw @s {"text":"You are too weak. The Spell has no use for you yet — recover, and it will come.","color":"dark_gray","italic":true}
+execute if score @s ss_scratch_a matches ..13 run return 0
+
 # Remember where to put them back.
 execute store result score @s ss_ret_x run data get entity @s Pos[0]
 execute store result score @s ss_ret_y run data get entity @s Pos[1]
@@ -21,8 +36,7 @@ scoreboard players set @s ss_gone 0
 # Pull them in. Teleporting wakes the player out of the bed.
 execute in shadowslave:nightmare run tp @s 0 120 0
 execute in shadowslave:nightmare run spreadplayers 0 0 200 400 false @s
-# The Spell takes you whole. Also prevents an entry loop for players who slept while hurt.
-effect give @s minecraft:instant_health 1 5 true
+
 
 bossbar set shadowslave:trial max 6000
 bossbar set shadowslave:trial value 6000

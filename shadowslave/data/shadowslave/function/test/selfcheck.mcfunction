@@ -1,6 +1,6 @@
 # Run with /function shadowslave:test/selfcheck — asserts the pack loaded correctly.
 
-tellraw @s [{"text":"— Shadow Slave self-check —","color":"light_purple","bold":true},{"text":"  v1.4.0","color":"dark_gray"}]
+tellraw @s [{"text":"— Shadow Slave self-check —","color":"light_purple","bold":true},{"text":"  v1.4.1","color":"dark_gray"}]
 
 # Objectives exist: setting a value on a missing objective fails the command.
 execute store success score $check ss_roll run scoreboard players set $probe ss_rank 0
