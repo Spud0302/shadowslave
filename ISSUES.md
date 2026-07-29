@@ -64,6 +64,8 @@ warn you.
 
 | 1.9 | ~~FIXED v1.4.1~~ — **Re-entering after ejection healed you to full, so failure cost nothing.** The `instant_health` on arrival was added in v1.1.1 to stop an entry loop (walk in at 2 hearts, ejected on the first tick, repeat) — but it also meant being cast out at 2 hearts and walking straight back in at full. Confirmed in-game v1.4.0. | Removed the heal; refuse entry below 14 health instead, with *"You are too weak. The Spell has no use for you yet."* Failure now costs you the time to recover, and the loop is still impossible because you cannot enter weak enough to be ejected immediately. |
 
+| 1.10 | ~~FIXED v1.4.3~~ — **The cooldown was enforced in the callers, and never set on death.** Two faults of the same shape, both found by the harness. The guard lived in `sleep.mcfunction` and the sneak check rather than in `enter.mcfunction`, so any other route in bypassed it; and it was set in `eject.mcfunction`, which death never reaches — dying goes through the dimension-mismatch cleanup straight to `leave`, so a death set no cooldown at all. | Guard moved into `enter.mcfunction`, the choke point every entry passes through. Set in `leave.mcfunction`, the shared teardown every exit passes through. `test/nightmare` now clears the cooldown deliberately rather than slipping past it. |
+
 ## 2. Probably wrong, low blast radius
 
 | #   | Issue                                         | Detail                                                                                                                                                                                                             |

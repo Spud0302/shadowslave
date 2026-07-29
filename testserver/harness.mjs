@@ -160,9 +160,67 @@ async function run(bot) {
     drops.includes('No entity') ? 'no diamond found in the Overworld' : drops.slice(0, 90)
   )
 
+  // --- T5: an untouched player is Mundane, not a Sleeper ------------------
+  await cmd(bot, '/function shadowslave:test/reset')
+  // Wait for `Rank:` specifically. /Soul/ also matches the "Triggered [Soul]" receipt,
+  // which arrives a tick before the readout itself.
+  const soulUntouched = await cmd(bot, '/trigger soul', /Rank:/)
+  assert('untouched reads as Mundane', /Mundane/i.test(soulUntouched), soulUntouched.match(/Rank:[^\n]*/)?.[0] || '')
+
+  // --- T9: cure refuses on an Awakened ------------------------------------
+  await cmd(bot, '/function shadowslave:test/awaken', /Awakened/i)
+  const cureAwakened = await cmd(bot, '/function shadowslave:test/cure', /Awakened|lost interest/i)
+  assert('cure refuses on an Awakened', /cannot lose interest|test\/reset/i.test(cureAwakened), cureAwakened.slice(0, 80))
+
+  // --- T7: re-rolling clears the previous Aspect's modifiers --------------
+  // Force Bone so there is definitely an armour modifier to leave behind.
+  await cmd(bot, '/tag @s remove ss_aspect_shadow')
+  await cmd(bot, '/tag @s remove ss_aspect_flame')
+  await cmd(bot, '/tag @s remove ss_aspect_wind')
+  await cmd(bot, '/tag @s add ss_aspect_bone')
+  await sleep(1400)  // upkeep runs once a second
+  const armourWithBone = await cmd(bot, '/attribute @s minecraft:generic.armor get', /Value of|attribute/i)
+  await cmd(bot, '/function shadowslave:test/reset')
+  await cmd(bot, '/function shadowslave:test/awaken', /Awakened/i)
+  await sleep(1400)
+  const armourAfterReroll = await cmd(bot, '/attribute @s minecraft:generic.armor get', /Value of|attribute/i)
+  const boneVal = parseFloat(armourWithBone.match(/is ([\d.]+)/)?.[1] ?? '0')
+  const afterVal = parseFloat(armourAfterReroll.match(/is ([\d.]+)/)?.[1] ?? '-1')
+  const rerolledBone = /ss_aspect_bone/.test(await cmd(bot, `/tag ${USER} list`, /has \d+ tags?|has no tags/i))
+  assert(
+    'a re-roll does not leave the old Aspect modifier behind',
+    rerolledBone ? afterVal === boneVal : afterVal < boneVal,
+    `bone=${boneVal} after=${afterVal}${rerolledBone ? ' (rerolled Bone again)' : ''}`
+  )
+
+  // --- T2/T3: a real ejection sets the cooldown and locks you out ---------
+  await cmd(bot, '/function shadowslave:test/reset')
+  await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')
+  await cmd(bot, '/function shadowslave:test/infect')
+  await cmd(bot, '/function shadowslave:test/nightmare')
+  await sleep(600)
+  // drop below the ejection threshold without dying
+  await cmd(bot, '/effect give @s minecraft:instant_damage 1 2 true')
+  await sleep(2500)
+  const dimAfterEject = await dimension(bot)
+  assert('low health ejects you from the trial', dimAfterEject !== 'shadowslave:nightmare', `dimension=${dimAfterEject}`)
+
+  const cooldown = await score(bot, 'ss_cooldown')
+  assert('ejection starts the cooldown', cooldown !== null && cooldown > 0, `ss_cooldown=${cooldown}`)
+
+  await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')
+  await sleep(400)
+  // Call the real entry function, not the test wrapper — the wrapper clears the cooldown on
+  // purpose, so it would prove nothing.
+  const entryDuringCooldown = await cmd(bot, '/execute as @s at @s run function shadowslave:nightmare/enter')
+  const dimDuringCooldown = await dimension(bot)
+  assert(
+    'you cannot re-enter during the cooldown',
+    dimDuringCooldown !== 'shadowslave:nightmare',
+    `dimension=${dimDuringCooldown}`
+  )
+
   // --- cooldown (1.4.0) ---------------------------------------------------
-  const cd = await score(bot, 'ss_cooldown')
-  needsHuman('cooldown after ejection', 'harness kills rather than being ejected, so cooldown was not exercised')
 
   // --- things only a person can judge -------------------------------------
   needsHuman('the fight', 'creature damage, pacing, whether 60 health is right at wood/no-armour')

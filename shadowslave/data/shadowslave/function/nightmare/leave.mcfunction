@@ -5,6 +5,14 @@ tag @s remove ss_creature_spawned
 scoreboard players set @s ss_timer 0
 scoreboard players set @s ss_gone 0
 
+# The Spell is spent for a while, however you left.
+#
+# This lived in eject.mcfunction, which meant DEATH set no cooldown at all: dying reaches the
+# teardown by a different route — the dimension-mismatch cleanup calls this function directly,
+# never touching eject. Every exit passes through here, so this is where it belongs. Harmless
+# on the survive path, since the Awakened cannot re-enter anyway.
+scoreboard players set @s ss_cooldown 600
+
 # Kills every creature in the nightmare, not just this player's. Phase 1 is single-player
 # at a time — same limitation as the shared bossbar. Per-player creature ownership would
 # need owner tags; deferred with it.

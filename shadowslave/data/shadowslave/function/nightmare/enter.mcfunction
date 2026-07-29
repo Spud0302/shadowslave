@@ -9,6 +9,15 @@ execute if score @s ss_rank matches 1.. run return 0
 # Guard against re-entry if something fires twice.
 execute if entity @s[tag=ss_in_nightmare] run return 0
 
+# The Spell is still spent.
+#
+# This guard used to live only in the callers — sleep.mcfunction and the sneak check — which
+# meant any other path in bypassed it entirely. Both player routes were covered, so it was
+# invisible in play, but it is the same fragility as guarding in callers instead of at the
+# choke point. Every entry passes through here.
+execute if score @s ss_cooldown matches 1.. run tellraw @s {"text":"The Spell is spent. It will come for you again.","color":"dark_gray","italic":true}
+execute if score @s ss_cooldown matches 1.. run return 0
+
 # Too weak to be taken.
 #
 # This replaces the free instant_health that used to fire on arrival. That heal existed to
