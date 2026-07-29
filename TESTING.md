@@ -186,7 +186,7 @@ What is left is what a bot cannot judge, plus what it has never exercised.
 
 | # | Do this | Expect |
 | --- | --- | --- |
-| ~~T1~~ | ~~Fill your hotbar, `test/nightmare`, `/kill @s`, then look around your bed~~ | **CONFIRMED WORKING v1.4.4.** Drops land around the bed, most inside pickup range. **Re-check on v1.4.5** — that release changed the sweep to run only on death, so this exact path was touched. |
+| ~~T1~~ | ~~Fill your hotbar, `test/nightmare`, `/kill @s`, then look around your bed~~ | **CONFIRMED WORKING v1.4.4.** Drops land around the bed, most inside pickup range. **Re-confirmed v1.4.5** after the sweep was changed to run only on death. Drops land around the bed. |
 
 ## 2. New since you last tested — never seen in-game
 
@@ -226,7 +226,7 @@ already-answered questions still on it, which wastes a playtest.
 | # | Question |
 | --- | --- |
 | J3 | **The cooldown, reworked in v1.4.5.** It now ends when you wake rather than after 600 seconds. Is one night the right price for losing? |
-| J7 | **The fight at 2 hearts (v1.4.5).** Ejection moved from 4 hearts to 2. Longer fight — but does the creature now just kill you outright most of the time? |
+| ~~J7~~ | **ANSWERED v1.4.5.** 2 hearts reads right — "health drop out is good as well". |
 | ~~J4~~ | **CONFIRMED WORKING v1.4.4.** Switches to the creature and tracks its health. |
 
 ---
