@@ -52,7 +52,11 @@ execute store result score @s ss_ret_y run data get entity @s Pos[1]
 execute store result score @s ss_ret_z run data get entity @s Pos[2]
 
 tag @s add ss_in_nightmare
-scoreboard players set @s ss_timer 6000
+# 1800 ticks = 90 seconds. Was 6000 (five real minutes), which read as waiting rather than
+# dread — the dark has said everything it has to say well before then, and the trial does not
+# actually begin until the creature lands. Ticked down once per tick at 20 tps, so this value
+# and the bossbar max below must stay in step or the bar drains at the wrong rate.
+scoreboard players set @s ss_timer 1800
 scoreboard players set @s ss_gone 0
 
 # Pull them in. Teleporting wakes the player out of the bed.
@@ -60,8 +64,8 @@ execute in shadowslave:nightmare run tp @s 0 120 0
 execute in shadowslave:nightmare run spreadplayers 0 0 200 400 false @s
 
 
-bossbar set shadowslave:trial max 6000
-bossbar set shadowslave:trial value 6000
+bossbar set shadowslave:trial max 1800
+bossbar set shadowslave:trial value 1800
 bossbar set shadowslave:trial name {"text":"The Nightmare Spell","color":"light_purple"}
 bossbar set shadowslave:trial color purple
 bossbar set shadowslave:trial visible true

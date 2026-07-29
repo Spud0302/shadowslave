@@ -207,7 +207,7 @@ What is left is what a bot cannot judge, plus what it has never exercised.
 | T9 | `test/cure` while Awakened | Refuses and points you at `test/reset`. It used to claim the Spell had lost interest, which was untrue. |
 | ~~T10~~ | ~~As a Carrier, crouch on a bed~~ | **CONFIRMED WORKING v1.4.4.** The telegraph appears immediately, before the hold completes. The hold itself was already confirmed in v1.2.0 (B1); this closes the v1.2.1 telegraph added on top of it. |
 | ~~T11~~ | ~~Let the creature chase you~~ | **CONFIRMED WORKING v1.4.6.** The chase reads right. Its speed comes from an effect — the attribute had never applied, being overwritten by the ravager itself. |
-| T12 | The whole loop once, cleanly | infect → sleep → survive → kill → Awakened. Confirms none of the last eight releases broke it. |
+| ~~T12~~ | ~~The whole loop once, cleanly~~ | **CONFIRMED WORKING v1.4.6.** infect → sleep → survive → kill → Awakened, with the Aspect, the Flaw and the verification tree all filled in. The last untested branch, and the only one nothing automated can reach — killing the creature needs a real fight. |
 
 ## 4. Judgement — only you can settle these
 

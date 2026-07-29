@@ -140,7 +140,16 @@ async function run(bot) {
   assert('test/nightmare enters the dimension', dimIn === 'shadowslave:nightmare', `dimension=${dimIn}`)
   assert('entry sets the in-nightmare tag', await hasTag(bot, 'ss_in_nightmare'))
   const timer = await score(bot, 'ss_timer')
-  assert('entry starts the countdown', timer !== null && timer > 0 && timer <= 6000, `ss_timer=${timer}`)
+  // 1800 ticks = the 90s countdown set in enter.mcfunction. Pinned near the exact value rather
+  // than a loose upper bound: the old `<= 6000` would have passed for any countdown from 1 tick
+  // to five minutes, so it could never have caught this being retuned wrongly. A few ticks of
+  // slack for the polling round-trip.
+  const COUNTDOWN = 1800
+  assert(
+    'entry starts the countdown',
+    timer !== null && timer > COUNTDOWN - 60 && timer <= COUNTDOWN,
+    `ss_timer=${timer}, expected ~${COUNTDOWN}`
+  )
 
   const reEnter = await cmd(bot, '/function shadowslave:test/nightmare')
   assert('re-entry refused while inside', /already in a nightmare/i.test(reEnter))
@@ -190,11 +199,12 @@ async function run(bot) {
     'not machine-checkable: nightmare chunks unload before the query runs'
   )
 
-  // The win path is the one branch nothing here exercises. Killing the creature needs a real
-  // fight, so every automated check above ends in a failure state — ejection, death, refusal.
+  // The win path stays a human check by nature — killing the creature needs a real fight, so
+  // every automated assertion above ends in a failure state (ejection, death, refusal).
+  // Confirmed by hand on v1.4.6: Awakened with an Aspect, a Flaw and the tree filled in.
   needsHuman(
-    'the whole loop, won',
-    'infect -> sleep -> survive -> kill the creature -> Awakened. Nothing has confirmed the WIN path since v1.2.1'
+    'the whole loop, won (CONFIRMED v1.4.6)',
+    're-run after any change to survive/ or awaken/ — no bot can fight the creature'
   )
 
   // --- T5: an untouched player is Mundane, not a Sleeper ------------------
