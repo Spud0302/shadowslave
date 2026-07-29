@@ -205,20 +205,28 @@ What is left is what a bot cannot judge, plus what it has never exercised.
 | T7 | `test/awaken`, note the Aspect, then `test/reset` and `test/awaken` again | The old Aspect and Flaw are fully gone. Check `/trigger soul`: Vitality 20 unless the **new** roll is Fragile, Endurance 0 unless it is Bone. Modifiers used to outlive the Aspect that granted them. |
 | T8 | As an **Awakened** player, sleep at night | Sleeps normally and grants **Sleep Undisturbed**. That advancement was unreachable until v1.2.1. |
 | T9 | `test/cure` while Awakened | Refuses and points you at `test/reset`. It used to claim the Spell had lost interest, which was untrue. |
-| T10 | As a Carrier, crouch on a bed | *"The Spell reaches for you..."* appears **immediately**, before the hold completes. |
+| ~~T10~~ | ~~As a Carrier, crouch on a bed~~ | **CONFIRMED WORKING v1.4.4.** The telegraph appears immediately, before the hold completes. The hold itself was already confirmed in v1.2.0 (B1); this closes the v1.2.1 telegraph added on top of it. |
 | T11 | Let the creature chase you | Noticeably faster than it used to be. Its speed comes from an effect now — the attribute was being overwritten by the ravager itself and had never applied. |
 | T12 | The whole loop once, cleanly | infect → sleep → survive → kill → Awakened. Confirms none of the last eight releases broke it. |
 
 ## 4. Judgement — only you can settle these
 
+**Settled — do not ask again.** Recorded here because this list was handed back with
+already-answered questions still on it, which wastes a playtest.
+
+| # | Verdict |
+| --- | --- |
+| J1 | **The fight — answered v1.4.0.** "Still a bit hard": on Normal, wooden sword, no armour, 4-6 hits land per attempt and about three taken ejects you. This is what drove the 600s cooldown. Coming back better equipped is the intended answer; revisit only if it still walls at stone/iron. |
+| J2 | **The dark — closed v1.4.4.** `ambient_light` 0.1 has been live in every test since the fresh world was made after v1.0.7, and the original "way too dark to see anything" was never re-reported. Inferred from the absence of a complaint across the whole fight sweep, not an explicit verdict — say so if it still reads wrong. |
+| J5 | **Spawn rates — answered.** "Alright, could go either way." Left as-is; no change without a stronger signal. |
+| J6 | **The sneak hold — confirmed working.** A tap does nothing, a short hold takes you, and you judged it deliberate. See also §2.6 and §3.4. |
+
+**Still open**
+
 | # | Question |
 | --- | --- |
-| J1 | **The fight.** 60 health, 15 wooden-sword hits, ejection after about three hits taken. You measured 4-6 hits landed per attempt. Right, or still a wall? |
-| J2 | **The dark.** `ambient_light` 0.1 — oppressive, or still unreadable? |
-| J3 | **The cooldown.** 600 seconds. Long enough to gear up, short enough not to feel like the mod switched off? |
+| J3 | **The cooldown.** 600 seconds. Long enough to gear up, short enough not to feel like the mod switched off? Never played against — it shipped in v1.4.0 after your last sweep. |
 | J4 | **The bossbar.** Renders, switches to the creature, tracks its health down. |
-| J5 | **Spawn rates.** The nightmare biome weights — you called them "alright, could go either way". |
-| J6 | **The sneak hold.** Deliberate, or unresponsive? |
 
 ---
 
