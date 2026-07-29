@@ -100,17 +100,32 @@ async function run(bot) {
   assert('cure on a Carrier does not refuse', !/Awakened/i.test(cureAsCarrier))
 
   // --- the weakness gate (v1.4.1) -----------------------------------------
+  // Call the real entry function, not test/nightmare — as of 1.4.4 the wrapper carries
+  // ss_test_bypass and is meant to walk straight through this gate. Asserting on the wrapper
+  // would test the bypass while claiming to test the gate.
   await cmd(bot, '/function shadowslave:test/infect')
   await cmd(bot, '/effect give @s minecraft:instant_damage 1 1 true')
   await sleep(400)
   const hurtHealth = await score(bot, 'ss_scratch_a')
-  const weakEntry = await cmd(bot, '/function shadowslave:test/nightmare')
+  const weakEntry = await cmd(bot, '/function shadowslave:nightmare/enter')
   const dimAfterWeak = await dimension(bot)
   assert(
     'entry refused while too weak',
     /too weak/i.test(weakEntry) || dimAfterWeak !== 'shadowslave:nightmare',
     `dimension=${dimAfterWeak}`
   )
+
+  // ...and the bypass gets the tester in at the same health that just refused everyone else.
+  await cmd(bot, '/function shadowslave:test/nightmare')
+  const dimAfterBypass = await dimension(bot)
+  assert(
+    'test/nightmare bypasses the weakness gate',
+    dimAfterBypass === 'shadowslave:nightmare',
+    `hurt to ${hurtHealth}, dimension=${dimAfterBypass}`
+  )
+  assert('the bypass tag is consumed by entry', !(await hasTag(bot, 'ss_test_bypass')))
+  await cmd(bot, '/function shadowslave:nightmare/leave')
+  await cmd(bot, '/scoreboard players reset @s ss_cooldown')
 
   // --- entry ---------------------------------------------------------------
   await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')

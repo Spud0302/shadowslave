@@ -76,6 +76,12 @@ Rolled independently, so Shadow + Shadow Slave is possible — and thematically 
 
 Skip the countdown mid-trial with `/scoreboard players set @s ss_timer 1`.
 
+**Testing commands bypass the systems they test.** `test/nightmare` walks past the ejection
+cooldown and the weakness gate via a single-use `ss_test_bypass` tag that entry consumes —
+otherwise the command for entering the trial refuses to enter the trial. The rank gate has no
+bypass on purpose: an Awakened in a First Nightmare is a state nothing handles. Use
+`test/reset`.
+
 There is also a **Shadow Slave — Verification** advancement tab. Each entry is granted at the
 exact line a mechanic executes, so it records what actually ran rather than what you think
 ran. An incomplete branch tells you where the loop stopped.
@@ -105,7 +111,7 @@ docs/superpowers/       design spec and implementation plan
 
 ```bash
 python3 shadowslave/tools/validate.py      # static: structure, references, schema
-cd testserver && node harness.mjs          # live: 14 assertions against a real server
+cd testserver && node harness.mjs          # live: 22 assertions against a real server
 ```
 
 **`validate.py`** catches what fails _silently_ in Minecraft — plural directory names, a

@@ -10,6 +10,25 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 
 ---
 
+## `1.4.4` — testing commands stop fighting the systems they test
+
+- `test/nightmare` now carries an explicit **`ss_test_bypass`** tag that `enter.mcfunction`
+  honours for the cooldown and the weakness gate, then consumes. `1.4.3` had it reaching around
+  the cooldown with a bare `scoreboard players reset`, and the weakness gate still refused it
+  outright — so the command for entering the trial could not enter the trial below 7 hearts.
+  Andrew's call: testing commands are allowed to bypass the systems.
+
+  The exemption is single-use and lives at the choke point, so a stray tag cannot quietly
+  disable the gates for a session, and `test/` still does not carry its own copy of the entry
+  logic. The **rank** gate deliberately keeps no bypass: an Awakened inside a First Nightmare is
+  a state nothing downstream handles, and `test/reset` is one command away.
+- `test/reset` announced "You are a Sleeper again" while clearing `ss_carrier`. Sleeper is the
+  rank you hold once the Spell has marked you — it now says **Mundane**, matching
+  `soul.mcfunction` and the same correction made there.
+- The harness asserted the weakness gate through `test/nightmare`, which would have tested the
+  new bypass while claiming to test the gate. It calls the real entry function now, and checks
+  the bypass separately.
+
 ## `1.4.2` — item recovery works, and a bot now checks the work
 
 Added a **mineflayer test harness**: a bot joins a local 1.21.1 server, runs commands and

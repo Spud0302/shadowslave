@@ -11,12 +11,17 @@ execute if entity @s[tag=ss_in_nightmare] run return 0
 
 # The Spell is still spent.
 #
+# Both this and the weakness gate below are skipped for ss_test_bypass. A testing command
+# that gets refused by the system it exists to test is useless, and duplicating the entry
+# logic in test/ to dodge the guards would be worse — the guards stay here, the override is
+# explicit and single-use.
+#
 # This guard used to live only in the callers — sleep.mcfunction and the sneak check — which
 # meant any other path in bypassed it entirely. Both player routes were covered, so it was
 # invisible in play, but it is the same fragility as guarding in callers instead of at the
 # choke point. Every entry passes through here.
-execute if score @s ss_cooldown matches 1.. run tellraw @s {"text":"The Spell is spent. It will come for you again.","color":"dark_gray","italic":true}
-execute if score @s ss_cooldown matches 1.. run return 0
+execute unless entity @s[tag=ss_test_bypass] if score @s ss_cooldown matches 1.. run tellraw @s {"text":"The Spell is spent. It will come for you again.","color":"dark_gray","italic":true}
+execute unless entity @s[tag=ss_test_bypass] if score @s ss_cooldown matches 1.. run return 0
 
 # Too weak to be taken.
 #
@@ -30,8 +35,13 @@ execute if score @s ss_cooldown matches 1.. run return 0
 # ponytail: own scratch objective, NOT ss_health — the ejection check reads that one
 scoreboard players reset @s ss_scratch_a
 execute store result score @s ss_scratch_a run data get entity @s Health
-execute if score @s ss_scratch_a matches ..13 run tellraw @s {"text":"You are too weak. The Spell has no use for you yet — recover, and it will come.","color":"dark_gray","italic":true}
-execute if score @s ss_scratch_a matches ..13 run return 0
+execute unless entity @s[tag=ss_test_bypass] if score @s ss_scratch_a matches ..13 run tellraw @s {"text":"You are too weak. The Spell has no use for you yet — recover, and it will come.","color":"dark_gray","italic":true}
+execute unless entity @s[tag=ss_test_bypass] if score @s ss_scratch_a matches ..13 run return 0
+
+# Bypass consumed. It only ever survives one entry, so a stray tag cannot silently disable
+# the gates for the rest of a session — which is exactly the kind of thing that has bitten
+# this pack before.
+tag @s remove ss_test_bypass
 
 # Remember where to put them back.
 execute store result score @s ss_ret_x run data get entity @s Pos[0]

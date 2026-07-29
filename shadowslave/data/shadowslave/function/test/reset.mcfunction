@@ -16,6 +16,7 @@ scoreboard players reset @s ss_gone
 tag @s remove ss_in_nightmare
 tag @s remove ss_carrier
 tag @s remove ss_creature_spawned
+tag @s remove ss_test_bypass
 tag @s remove ss_aspect_shadow
 tag @s remove ss_aspect_flame
 tag @s remove ss_aspect_bone
@@ -34,4 +35,6 @@ execute in shadowslave:nightmare run kill @e[tag=ss_creature]
 bossbar set shadowslave:trial visible false
 bossbar set shadowslave:trial players
 
-tellraw @s {"text":"[Shadow Slave] Verification state reset. You are a Sleeper again.","color":"gray","italic":true}
+# Untouched, not a Sleeper: this clears ss_carrier, and Sleeper is the rank you hold once
+# the Spell has marked you. soul.mcfunction makes the same distinction.
+tellraw @s {"text":"[Shadow Slave] Verification state reset. You are Mundane again.","color":"gray","italic":true}
