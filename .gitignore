@@ -1,9 +1,20 @@
+# Local test server — Mojang's server jar and everything it unpacks.
+# Never publish these: they are Mojang's code, not ours. The harness downloads
+# what it needs; see README.
+testserver/server.jar
+testserver/libraries/
+testserver/versions/
+testserver/world/
+testserver/logs/
+testserver/crash-reports/
+testserver/*.log
+testserver/*.json
+testserver/*.properties
+testserver/*.txt
+testserver/node_modules/
+testserver/probe*.mjs
+
+# Scratch
 .superpowers/
 __pycache__/
 *.pyc
-testserver/server.jar
-testserver/world/
-testserver/logs/
-testserver/node_modules/
-testserver/*.log
-testserver/probe*.mjs
