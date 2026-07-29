@@ -28,4 +28,12 @@ execute at @s run tag @e[type=item,distance=..8] add ss_drop
 execute store result storage shadowslave:ret x int 1 run scoreboard players get @s ss_ret_x
 execute store result storage shadowslave:ret y int 1 run scoreboard players get @s ss_ret_y
 execute store result storage shadowslave:ret z int 1 run scoreboard players get @s ss_ret_z
+
+# Drops land one block higher than the player does. The stored position is the bed itself, and
+# items teleported into it can end up buried — Andrew respawned wedged between a block and the
+# bed, which is the same geometry. A block of clearance lets them fall to the floor instead.
+scoreboard players operation $drop_y ss_scratch_a = @s ss_ret_y
+scoreboard players add $drop_y ss_scratch_a 1
+execute store result storage shadowslave:ret dy int 1 run scoreboard players get $drop_y ss_scratch_a
+scoreboard players reset $drop_y ss_scratch_a
 execute in minecraft:overworld run function shadowslave:nightmare/return with storage shadowslave:ret

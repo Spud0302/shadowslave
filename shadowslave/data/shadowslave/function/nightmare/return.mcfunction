@@ -9,7 +9,7 @@
 #
 # Selectors are dimension-scoped, so coordinates cannot pull entities across a dimension
 # boundary. Giving /tp a destination ENTITY can: a marker placed at the return position.
-$summon minecraft:marker $(x) $(y) $(z) {Tags:["ss_return_marker"]}
+$summon minecraft:marker $(x) $(dy) $(z) {Tags:["ss_return_marker"]}
 execute in shadowslave:nightmare run tp @e[tag=ss_drop] @e[tag=ss_return_marker,limit=1]
 tag @e[tag=ss_drop] remove ss_drop
 kill @e[tag=ss_return_marker]

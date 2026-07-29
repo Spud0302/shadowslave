@@ -3,10 +3,17 @@
 # Sample health so we can eject before a real death drops their gear.
 # ponytail: NBT reads on players are expensive, but this only runs for players
 # ponytail: actually inside a nightmare — a handful at most
+# Reset BEFORE the read, then compare. If the read fails the score stays absent, and
+# `matches` fails outright on an absent score — which is the same behaviour that caused
+# the /trigger soul lockout, used deliberately this time.
+#
+# The previous attempt at this guarded with `matches 1..8` to exclude a zero reading.
+# That also excluded a real 0, which is exactly what /kill and any lethal hit produce —
+# so death stopped triggering the teardown, and with it the item recovery. The range has
+# to include 0; the staleness has to be handled by the reset.
+scoreboard players reset @s ss_health
 execute store result score @s ss_health run data get entity @s Health
-# `1..8`, not `..8`. If the read above ever fails, the score keeps its previous value —
-# a stale or zero reading must never be able to eject someone at full health.
-execute if score @s ss_health matches 1..8 run function shadowslave:nightmare/eject
+execute if score @s ss_health matches ..8 run function shadowslave:nightmare/eject
 execute if entity @s[tag=!ss_in_nightmare] run return 0
 
 # Count down. Stops once the creature is up — otherwise the score runs unboundedly
