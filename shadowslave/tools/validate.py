@@ -24,6 +24,7 @@ Checks:
   - every dimension_type covers the vertical range its noise settings generate
   - every dimension_type has its required fields, with the shapes 1.21.1 parses
   - every biome has the required fields, with the types 1.21.1 expects
+  - pack.mcmeta and the load message declare the same version
 """
 import json
 import re
@@ -364,6 +365,37 @@ def check_biomes():
                     errors.append(f"{f.relative_to(PACK)}: biome effects missing required {key!r}")
 
 
+
+def check_version_agreement():
+    """pack.mcmeta and the load message must declare the same version.
+
+    Datapacks have no variables, so the version is a hand-maintained literal in two
+    places. A version string that lies is worse than not having one — you end up
+    testing a build you think is something else.
+    """
+    meta = PACK / "pack.mcmeta"
+    init = DATA / NAMESPACE / "function" / "init.mcfunction"
+    if not (meta.is_file() and init.is_file()):
+        return
+    try:
+        desc = json.loads(meta.read_text()).get("pack", {}).get("description", "")
+    except json.JSONDecodeError:
+        return
+    in_meta = re.search(r"v(\d+\.\d+\.\d+)", desc if isinstance(desc, str) else "")
+    in_init = re.search(r"v(\d+\.\d+\.\d+)", init.read_text())
+    if not in_meta:
+        errors.append("pack.mcmeta description carries no vX.Y.Z version")
+        return
+    if not in_init:
+        errors.append("init.mcfunction announces no vX.Y.Z version")
+        return
+    if in_meta.group(1) != in_init.group(1):
+        errors.append(
+            f"version mismatch: pack.mcmeta says v{in_meta.group(1)}, "
+            f"init.mcfunction says v{in_init.group(1)}"
+        )
+
+
 def main():
     check_pack_mcmeta()
     check_no_plural_dirs()
@@ -378,6 +410,7 @@ def main():
     check_dimension_height()
     check_dimension_type_fields()
     check_biomes()
+    check_version_agreement()
     if errors:
         for e in errors:
             print(f"FAIL: {e}")
