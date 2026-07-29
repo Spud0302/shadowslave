@@ -1,3 +1,9 @@
 .superpowers/
 __pycache__/
 *.pyc
+testserver/server.jar
+testserver/world/
+testserver/logs/
+testserver/node_modules/
+testserver/*.log
+testserver/probe*.mjs

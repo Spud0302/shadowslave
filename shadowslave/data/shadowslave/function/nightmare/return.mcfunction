@@ -9,10 +9,9 @@
 #
 # Selectors are dimension-scoped, so coordinates cannot pull entities across a dimension
 # boundary. Giving /tp a destination ENTITY can: a marker placed at the return position.
-$summon minecraft:marker $(x) $(dy) $(z) {Tags:["ss_return_marker"]}
-execute in shadowslave:nightmare run tp @e[tag=ss_drop] @e[tag=ss_return_marker,limit=1]
-tag @e[tag=ss_drop] remove ss_drop
-kill @e[tag=ss_return_marker]
+# Drops are swept a few ticks from now — see sweep.mcfunction. They do not exist yet at
+# this point, which is why the earlier attempt to tag them here found nothing.
+schedule function shadowslave:nightmare/sweep 5t
 
 # A corpse needs no teleport. A dead-but-not-yet-respawned player still ticks, so this used
 # to run behind the death screen — they watched the portal warp and their own bed appear,
