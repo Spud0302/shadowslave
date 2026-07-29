@@ -2,6 +2,11 @@
 
 function shadowslave:nightmare/leave
 
+# The Spell is spent for a while. Without this, re-entering at the health that just ejected
+# you ejects you again on the first tick — a loop with no exit — and every night's sleep gets
+# hijacked forever. 600 seconds is the dial.
+scoreboard players set @s ss_cooldown 600
+
 # Shaken.
 effect give @s minecraft:blindness 5 0 true
 effect give @s minecraft:nausea 8 0 true

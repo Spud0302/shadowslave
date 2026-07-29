@@ -13,6 +13,10 @@ scoreboard objectives add ss_roll dummy "Roll"
 scoreboard objectives add ss_clock dummy "Clock"
 # Counts seconds between the Spell's calls to its Carriers
 scoreboard objectives add ss_call dummy "Spell Call"
+# Seconds until the Spell will take a Carrier again. While this is running they sleep
+# normally — the mod stops hijacking every night, and an ejected player cannot bounce
+# straight back in at the low health that ejected them.
+scoreboard objectives add ss_cooldown dummy "Spell Cooldown"
 # Scratch for the soul readout. Deliberately separate from ss_health, which the ejection
 # check reads — sharing them once made reading your soul lock you out of the mod.
 scoreboard objectives add ss_scratch_a dummy "Scratch A"

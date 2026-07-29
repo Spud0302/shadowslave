@@ -21,7 +21,7 @@ execute if score $ss_clock ss_clock matches 0 as @a[scores={ss_rank=1..}] at @s 
 # works at any hour. The vanilla slept_in_bed advancement still works as a second path.
 # NOTE: `unless ... matches 1..`, not `matches 0` — a Sleeper has no ss_rank entry at all,
 # and `matches` fails outright on an absent score.
-execute if score $ss_clock ss_clock matches 0 as @a[tag=ss_carrier] at @s unless score @s ss_rank matches 1.. if predicate shadowslave:is_sneaking if block ~ ~ ~ #minecraft:beds run function shadowslave:nightmare/enter
+execute if score $ss_clock ss_clock matches 0 as @a[tag=ss_carrier,scores={ss_cooldown=..0}] at @s unless score @s ss_rank matches 1.. if predicate shadowslave:is_sneaking if block ~ ~ ~ #minecraft:beds run function shadowslave:nightmare/enter
 
 # Telegraph the hold. The check above polls once a second, so a quick tap falls between
 # polls and reads as unresponsive — but a deliberate hold is the RIGHT interaction here:
@@ -29,6 +29,9 @@ execute if score $ss_clock ss_clock matches 0 as @a[tag=ss_carrier] at @s unless
 # So keep the hold and say so. Polled every tick, unlike the entry itself, so the message
 # appears the instant they crouch.
 execute as @a[tag=ss_carrier] at @s unless score @s ss_rank matches 1.. unless entity @s[tag=ss_in_nightmare] if predicate shadowslave:is_sneaking if block ~ ~ ~ #minecraft:beds run title @s actionbar {"text":"The Spell reaches for you...","color":"dark_purple","italic":true}
+
+# Cooldown ticks down once a second.
+execute if score $ss_clock ss_clock matches 0 as @a[scores={ss_cooldown=1..}] run scoreboard players remove @s ss_cooldown 1
 
 # The Spell calls its Carriers every 30 seconds until they answer it.
 execute if score $ss_clock ss_clock matches 0 run scoreboard players add $ss_call ss_call 1

@@ -112,6 +112,7 @@ These work as built. Whether they're _right_ is your call.
 
 ## 4. Deliberate limitations — not bugs
 
+- **The First Nightmare is not winnable at wood/no-armour, and that is now intended.** Measured on Normal difficulty, wooden sword, no armour: 4-6 hits landed of the 15 needed, ejected after ~3 hits taken (v1.3.0, 60 HP creature — was 3 of 40 at 160 HP). Each entry spawns a fresh creature, so attempts do not chip it down. The answer is to come back better equipped, which the v1.4.0 cooldown makes a real loop rather than a bounce. Revisit if iron-tier also proves impossible.
 - **Instant-kill damage bypasses ejection entirely.** The threshold catches you at 9 HP, so anything that takes you from above that straight to 0 — a long fall, lava, the void, `/kill` — kills you outright and drops your gear. Confirmed in-game v1.2.0 via `/kill`. The teardown still runs correctly (tag cleared, bossbar hidden, creature removed), so this is a limit of the gear-retention promise, not a state bug.
 - **The leash teleports the creature onto you, and it gets a free hit.** Confirmed in-game v1.2.0 at ~234 blocks. Judged fair by the playtester: fleeing should cost something, and you cannot outrun the Nightmare. If it ever needs softening, teleport it a few blocks away rather than to the player's exact position.
 Recorded so nobody "fixes" them by accident.
