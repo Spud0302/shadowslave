@@ -170,3 +170,57 @@ importance. Start with a clean state: `/function shadowslave:test/reset`.
 | R13 | The full loop once, clean | infect → sleep → survive → kill → Awakened, with the right Aspect and Flaw. Eleven things changed; this confirms none of them broke the loop. |
 
 **R1 and R2 are the two I would test first.** Both are new code paths, and R2 is the one that could otherwise make the mod look completely broken.
+
+
+---
+
+# `v1.4.2` — what still needs a human
+
+The mineflayer harness now covers the mechanical half, so **you do not need to test any of
+this**: infection guards, the weakness gate, entry and its tags and countdown, re-entry
+refusal, the soul-readout lockout, or death teardown. Those run before every build ships.
+
+What is left is what a bot cannot judge, plus what it has never exercised.
+
+## 1. Broken — reproduce if you can
+
+| # | Do this | Expect |
+| --- | --- | --- |
+| T1 | Fill your hotbar, `test/nightmare`, `/kill @s`, then look around your bed | **Your items should be there.** They are not, reliably — the harness recovered them once and never again, and afterwards the drops are in *neither* dimension. If you see them arrive, tell me what was different; that is the missing clue. |
+
+## 2. New since you last tested — never seen in-game
+
+| # | Do this | Expect |
+| --- | --- | --- |
+| T2 | Get cast out at low health, then immediately crouch on a bed | Refused. *"You are too weak. The Spell has no use for you yet."* Ejection is supposed to cost you the time to heal. |
+| T3 | Straight after being cast out, `/time set night` and sleep | An ordinary night's sleep — night passes, you are not taken, and the actionbar says *"You sleep, and nothing reaches for you."* This is the 600-second cooldown. |
+| T4 | Wait out the cooldown, heal up, then sleep or crouch on a bed | It takes you again. |
+| T5 | As an untouched player, `/trigger soul` | `Rank: Mundane`. "Sleeper" is the human name for the *Dormant* rank, which you only hold once marked — an untouched player should not have a rank at all. |
+
+## 3. Never confirmed on any build
+
+| # | Do this | Expect |
+| --- | --- | --- |
+| T6 | Die in the trial and watch the death screen | **No** portal warp, no glimpse of your bed behind it. Only testable from v1.3.1 — before that nothing ran on death at all. |
+| T7 | `test/awaken`, note the Aspect, then `test/reset` and `test/awaken` again | The old Aspect and Flaw are fully gone. Check `/trigger soul`: Vitality 20 unless the **new** roll is Fragile, Endurance 0 unless it is Bone. Modifiers used to outlive the Aspect that granted them. |
+| T8 | As an **Awakened** player, sleep at night | Sleeps normally and grants **Sleep Undisturbed**. That advancement was unreachable until v1.2.1. |
+| T9 | `test/cure` while Awakened | Refuses and points you at `test/reset`. It used to claim the Spell had lost interest, which was untrue. |
+| T10 | As a Carrier, crouch on a bed | *"The Spell reaches for you..."* appears **immediately**, before the hold completes. |
+| T11 | Let the creature chase you | Noticeably faster than it used to be. Its speed comes from an effect now — the attribute was being overwritten by the ravager itself and had never applied. |
+| T12 | The whole loop once, cleanly | infect → sleep → survive → kill → Awakened. Confirms none of the last eight releases broke it. |
+
+## 4. Judgement — only you can settle these
+
+| # | Question |
+| --- | --- |
+| J1 | **The fight.** 60 health, 15 wooden-sword hits, ejection after about three hits taken. You measured 4-6 hits landed per attempt. Right, or still a wall? |
+| J2 | **The dark.** `ambient_light` 0.1 — oppressive, or still unreadable? |
+| J3 | **The cooldown.** 600 seconds. Long enough to gear up, short enough not to feel like the mod switched off? |
+| J4 | **The bossbar.** Renders, switches to the creature, tracks its health down. |
+| J5 | **Spawn rates.** The nightmare biome weights — you called them "alright, could go either way". |
+| J6 | **The sneak hold.** Deliberate, or unresponsive? |
+
+---
+
+**If you only do three:** T1 (the broken one), T3 (the cooldown, entirely new), and J1 (the fight,
+which nothing but play can settle).
