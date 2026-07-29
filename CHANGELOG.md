@@ -10,6 +10,42 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 
 ---
 
+## `1.4.5` — sneak-to-enter had been dead for five releases
+
+- **Sneaking on a bed did nothing but show the telegraph.** The per-tick selector filtered on
+  `scores={ss_cooldown=..0}`, and a player who has never been ejected has no `ss_cooldown`
+  entry at all — an absent score fails `matches` outright. So the filter excluded *everyone*,
+  and the entire sneak path has been dead since `1.4.0` introduced it. This is the third bug of
+  this exact shape, and the rule is written in the README and in a comment two lines above the
+  offending selector. The filter is now gone: `1.4.3` already moved the cooldown guard into
+  `enter.mcfunction`, where `matches 1..` behaves correctly on an absent score. Guard at the
+  choke point, never in the caller.
+- **Being cast out vacuumed the nightmare into your pockets.** The sweep ran on every exit and
+  moves *every* item in the dimension — mob drops, the killed creature's loot, anything ever
+  dropped in there — onto the return position. A player ejected alive still has their gear, so
+  there is nothing to recover; they just got showered in loot they never earned. The sweep now
+  runs only on death.
+- **The cooldown ends when you wake, not on a 600-second wall clock.** Sleeping through the
+  night *is* the recovery. That night passes untouched; from waking, the Spell can take you
+  again. Andrew's call — going back to bed after losing and being told nothing reaches for you,
+  twice, reads as the mod switching off.
+- **Ejection threshold dropped from 4 hearts to 2**, and the entry gate from 7 to 5. The fight
+  wanted to run longer. The trade is deliberate: from 5 hearts a full creature hit kills you
+  outright rather than ejecting, so death becomes the ordinary failure and ejection the near
+  miss. Acceptable only because item recovery on death is confirmed working.
+
+Harness: the entry assertions were failing against a *correct* pack. `score()` matched
+`has (-?\d+)`, and `/tag list` replies `"tester has 2 tags:"` — a late reply landed in the next
+command's window and was read as `ss_timer=2`. Replies are drained before each command now, and
+the scoreboard pattern requires the trailing `[Objective]`.
+
+The item-recovery assertion was **deleted**, not fixed. Probes showed it could never work: the
+nightmare's chunks unload once the player leaves, so the query reports nothing whether or not
+items are there — and with the area force-loaded, the Overworld query returns the *same*
+coordinates as the nightmare query. A check that gives the same answer for pass and fail is
+worse than no check. Confirmed by hand instead: drops land around the bed, most within pickup
+range. **24/24 mechanical assertions pass.**
+
 ## `1.4.4` — testing commands stop fighting the systems they test
 
 - `test/nightmare` now carries an explicit **`ss_test_bypass`** tag that `enter.mcfunction`

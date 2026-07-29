@@ -13,7 +13,7 @@
 # to include 0; the staleness has to be handled by the reset.
 scoreboard players reset @s ss_health
 execute store result score @s ss_health run data get entity @s Health
-execute if score @s ss_health matches ..8 run function shadowslave:nightmare/eject
+execute if score @s ss_health matches ..4 run function shadowslave:nightmare/eject
 execute if entity @s[tag=!ss_in_nightmare] run return 0
 
 # Count down. Stops once the creature is up — otherwise the score runs unboundedly

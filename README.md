@@ -111,7 +111,7 @@ docs/superpowers/       design spec and implementation plan
 
 ```bash
 python3 shadowslave/tools/validate.py      # static: structure, references, schema
-cd testserver && node harness.mjs          # live: 22 assertions against a real server
+cd testserver && node harness.mjs          # live: 24 assertions against a real server
 ```
 
 **`validate.py`** catches what fails _silently_ in Minecraft — plural directory names, a

@@ -30,13 +30,16 @@ execute unless entity @s[tag=ss_test_bypass] if score @s ss_cooldown matches 1..
 # also meant ejection cost nothing at all: thrown out at 2 hearts, straight back in at full.
 # Refusing entry instead makes failure expensive. You have to actually recover.
 #
-# 14 (7 hearts) leaves a couple of hits of margin above the ejection threshold of 8, so you
-# cannot enter and be ejected again immediately.
+# 10 (5 hearts) leaves a hit of margin above the ejection threshold of 4, so you cannot enter
+# and be ejected again immediately. Both dropped in 1.4.5 on Andrew's call: the fight wanted
+# to run longer. The trade is real deaths — from 5 hearts a full creature hit kills outright
+# rather than ejecting, so death is now the ordinary failure and ejection the near miss.
+# Item recovery on death is confirmed working, which is what makes that acceptable.
 # ponytail: own scratch objective, NOT ss_health — the ejection check reads that one
 scoreboard players reset @s ss_scratch_a
 execute store result score @s ss_scratch_a run data get entity @s Health
-execute unless entity @s[tag=ss_test_bypass] if score @s ss_scratch_a matches ..13 run tellraw @s {"text":"You are too weak. The Spell has no use for you yet — recover, and it will come.","color":"dark_gray","italic":true}
-execute unless entity @s[tag=ss_test_bypass] if score @s ss_scratch_a matches ..13 run return 0
+execute unless entity @s[tag=ss_test_bypass] if score @s ss_scratch_a matches ..9 run tellraw @s {"text":"You are too weak. The Spell has no use for you yet — recover, and it will come.","color":"dark_gray","italic":true}
+execute unless entity @s[tag=ss_test_bypass] if score @s ss_scratch_a matches ..9 run return 0
 
 # Bypass consumed. It only ever survives one entry, so a stray tag cannot silently disable
 # the gates for the rest of a session — which is exactly the kind of thing that has bitten

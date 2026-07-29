@@ -21,7 +21,13 @@ execute if score $ss_clock ss_clock matches 0 as @a[scores={ss_rank=1..}] at @s 
 # works at any hour. The vanilla slept_in_bed advancement still works as a second path.
 # NOTE: `unless ... matches 1..`, not `matches 0` — a Sleeper has no ss_rank entry at all,
 # and `matches` fails outright on an absent score.
-execute if score $ss_clock ss_clock matches 0 as @a[tag=ss_carrier,scores={ss_cooldown=..0}] at @s unless score @s ss_rank matches 1.. if predicate shadowslave:is_sneaking if block ~ ~ ~ #minecraft:beds run function shadowslave:nightmare/enter
+# NOTE: no ss_cooldown filter here. `scores={ss_cooldown=..0}` looked right and killed this
+# path outright for every player from 1.4.0 to 1.4.4: a player who has never been ejected
+# has no ss_cooldown entry at all, and an absent score fails `matches` — the same rule
+# spelled out two lines above for ss_rank, and the third time this shape has caused a bug.
+# The cooldown is enforced in enter.mcfunction with `matches 1..`, which is correct on an
+# absent score. Guard at the choke point, never in the caller.
+execute if score $ss_clock ss_clock matches 0 as @a[tag=ss_carrier] at @s unless score @s ss_rank matches 1.. if predicate shadowslave:is_sneaking if block ~ ~ ~ #minecraft:beds run function shadowslave:nightmare/enter
 
 # Telegraph the hold. The check above polls once a second, so a quick tap falls between
 # polls and reads as unresponsive — but a deliberate hold is the RIGHT interaction here:

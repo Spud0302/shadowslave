@@ -11,7 +11,12 @@
 # boundary. Giving /tp a destination ENTITY can: a marker placed at the return position.
 # Drops are swept a few ticks from now — see sweep.mcfunction. They do not exist yet at
 # this point, which is why the earlier attempt to tag them here found nothing.
-schedule function shadowslave:nightmare/sweep 5t
+# ONLY on death. The sweep moves every item in the nightmare, so running it on the ejection
+# path dumped the entire dimension's loose drops — mob drops, the killed creature's loot,
+# anything ever dropped anywhere in there — onto a player who had lost nothing and still
+# had their gear. Reported as "random items jumped into my inventory". A player who walks
+# out alive is carrying their belongings already; there is nothing to recover.
+execute if entity @s[nbt={Health:0.0f}] run schedule function shadowslave:nightmare/sweep 5t
 
 # A corpse needs no teleport. A dead-but-not-yet-respawned player still ticks, so this used
 # to run behind the death screen — they watched the portal warp and their own bed appear,

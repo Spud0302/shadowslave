@@ -31,6 +31,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
  * Commands answer asynchronously, so we clear the log, send, and wait a beat.
  */
 async function cmd(bot, command, expect = null, timeoutMs = 4000) {
+  // Drain first. A reply that arrives after the previous cmd() gave up still lands in the next
+  // command's window, where a loose pattern happily matches it — that is how `/tag list`'s
+  // "tester has 2 tags:" was read as ss_timer=2, failing entry assertions on a pack that was
+  // working correctly. Settle, then clear, then send.
+  await sleep(120)
   chatLog = []
   bot.chat(command.startsWith('/') ? command : '/' + command)
   // Fixed sleeps do not work here. After a dimension change the server's replies lag, and a
@@ -47,8 +52,8 @@ async function cmd(bot, command, expect = null, timeoutMs = 4000) {
 
 /** Read a scoreboard value for the bot. Returns a number, or null if the score is absent. */
 async function score(bot, objective) {
-  const out = await cmd(bot, `/scoreboard players get ${USER} ${objective}`, /has -?\d+|Can't get|no score/i)
-  const m = out.match(/has (-?\d+)/)
+  const out = await cmd(bot, `/scoreboard players get ${USER} ${objective}`, /has -?\d+ \[|Can't get|no score/i)
+  const m = out.match(/has (-?\d+) \[/)
   return m ? parseInt(m[1], 10) : null
 }
 
@@ -104,7 +109,7 @@ async function run(bot) {
   // ss_test_bypass and is meant to walk straight through this gate. Asserting on the wrapper
   // would test the bypass while claiming to test the gate.
   await cmd(bot, '/function shadowslave:test/infect')
-  await cmd(bot, '/effect give @s minecraft:instant_damage 1 1 true')
+  await cmd(bot, '/damage @s 12')  // -> 8 HP, under the 1.4.5 entry gate of 10
   await sleep(400)
   const hurtHealth = await score(bot, 'ss_scratch_a')
   const weakEntry = await cmd(bot, '/function shadowslave:nightmare/enter')
@@ -156,23 +161,20 @@ async function run(bot) {
   assert('death clears the in-nightmare tag', !(await hasTag(bot, 'ss_in_nightmare')))
   assert('death does not strand you in the nightmare', dimAfterDeath !== 'shadowslave:nightmare', `dimension=${dimAfterDeath}`)
 
-  await sleep(1500)  // the sweep is scheduled 5 ticks after the teardown
-  // Search the whole Overworld, not a radius around the player.
+  // Item recovery on death is NOT asserted here, deliberately.
   //
-  // This assertion was wrong twice. First it asked for the NEAREST item and checked it was a
-  // diamond — an unrelated sugar cane lying closer failed it. Then it searched 16 blocks
-  // around the player, but the player RESPAWNS at their spawn point while the drops are sent
-  // to the stored return position, which can be far apart. Both times the feature was working
-  // and the check was looking in the wrong place.
-  const drops = await cmd(
-    bot,
-    '/execute in minecraft:overworld run data get entity @e[type=item,nbt={Item:{id:"minecraft:diamond"}},limit=1] Pos',
-    /entity data|No entity/i
-  )
-  assert(
-    'dropped items are recovered from the nightmare (UNRELIABLE — see ISSUES 1.6)',
-    /\d/.test(drops) && !/No entity/i.test(drops),
-    drops.includes('No entity') ? 'no diamond found in the Overworld' : drops.slice(0, 90)
+  // Three different assertions "failed" this feature while it worked, and the probes finally
+  // showed why: after the player leaves, the nightmare chunks unload, so `execute in
+  // shadowslave:nightmare run data get entity @e[type=item]` reports nothing whether or not
+  // items are there. Force-loading the area makes them appear — and then the overworld query
+  // returns the SAME coordinates as the nightmare query, so the check cannot even tell the two
+  // dimensions apart. A test that returns the same answer for pass and fail is worse than none.
+  //
+  // Confirmed in-game instead, twice, by the playtester: after dying in the trial the drops
+  // land around the bed, most within pickup range, a few a couple of blocks out.
+  needsHuman(
+    'item recovery on death',
+    'not machine-checkable — nightmare chunks unload before the query runs; re-confirm by hand'
   )
 
   // --- T5: an untouched player is Mundane, not a Sleeper ------------------
@@ -215,7 +217,7 @@ async function run(bot) {
   await cmd(bot, '/function shadowslave:test/nightmare')
   await sleep(600)
   // drop below the ejection threshold without dying
-  await cmd(bot, '/effect give @s minecraft:instant_damage 1 2 true')
+  await cmd(bot, '/damage @s 16')  // -> 4 HP, at the 1.4.5 ejection threshold
   await sleep(2500)
   const dimAfterEject = await dimension(bot)
   assert('low health ejects you from the trial', dimAfterEject !== 'shadowslave:nightmare', `dimension=${dimAfterEject}`)
@@ -235,14 +237,48 @@ async function run(bot) {
     `dimension=${dimDuringCooldown}`
   )
 
+  // --- 1.4.5: sleeping ends the cooldown, rather than 600s of wall clock ---
+  await cmd(bot, '/scoreboard players set @s ss_cooldown 600')
+  await cmd(bot, '/function shadowslave:sleep')
+  const cdAfterSleep = await score(bot, 'ss_cooldown')
+  assert('sleeping clears the cooldown', cdAfterSleep === null || cdAfterSleep === 0, `ss_cooldown=${cdAfterSleep}`)
+  // The recovery sleep must NOT also pull you in — clearing the score and testing it for the
+  // return on the next line would read the value just erased and fall through into the trial.
+  const dimAfterRecovery = await dimension(bot)
+  assert(
+    'the recovery sleep does not pull you in',
+    dimAfterRecovery !== 'shadowslave:nightmare',
+    `dimension=${dimAfterRecovery}`
+  )
+
+  // --- 1.4.5: ejection must not vacuum the nightmare onto the player -------
+  await cmd(bot, '/scoreboard players reset @s ss_cooldown')
+  await cmd(bot, '/function shadowslave:test/nightmare')
+  await cmd(bot, '/summon item ~5 ~ ~5 {Item:{id:"minecraft:diamond_block",count:1}}')
+  await sleep(300)
+  await cmd(bot, '/damage @s 16')
+  await sleep(600)
+  const strayHere = await cmd(bot, '/execute as @e[type=item,distance=..6] run data get entity @s Item.id')
+  assert(
+    'ejection does not sweep loose items onto you',
+    !/diamond_block/.test(strayHere),
+    'items the player never dropped must stay in the nightmare'
+  )
+  await cmd(bot, '/scoreboard players reset @s ss_cooldown')
+
   // --- cooldown (1.4.0) ---------------------------------------------------
 
   // --- things only a person can judge -------------------------------------
-  needsHuman('the fight', 'creature damage, pacing, whether 60 health is right at wood/no-armour')
-  needsHuman('the dark', 'whether ambient_light 0.1 reads as oppressive or unplayable')
-  needsHuman('the bossbar', 'renders, switches to the creature, tracks its health')
-  needsHuman('mob spawn rate', 'the nightmare biome spawner weights')
-  needsHuman('sneak-to-enter feel', 'whether the hold and its telegraph read as deliberate')
+  // Keep this list honest. Everything below is genuinely unsettled; anything the playtester has
+  // already ruled on gets deleted, not left here. A list that re-asks answered questions wastes
+  // the one resource this harness cannot replace.
+  //
+  // Settled, do not re-add: the fight (too hard at wood/no-armour -> drove the cooldown and the
+  // 1.4.5 threshold drop), the dark (ambient_light 0.1 fine), the bossbar (switches to the
+  // creature and tracks its health), spawn rates ("could go either way"), sneak-to-enter feel
+  // (tap does nothing, hold takes you, telegraph is immediate).
+  needsHuman('the fight at 2 hearts', '1.4.5 dropped ejection to 4 HP — does it now kill you outright too often?')
+  needsHuman('the recovery sleep', '1.4.5: sleeping ends the cooldown. Does one night feel like the right price for losing?')
 
   console.log('\n=== summary ===')
   console.log(`${pass.length} passed, ${fail.length} failed`)

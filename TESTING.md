@@ -186,7 +186,7 @@ What is left is what a bot cannot judge, plus what it has never exercised.
 
 | # | Do this | Expect |
 | --- | --- | --- |
-| T1 | Fill your hotbar, `test/nightmare`, `/kill @s`, then look around your bed | **Your items should be there.** They are not, reliably — the harness recovered them once and never again, and afterwards the drops are in *neither* dimension. If you see them arrive, tell me what was different; that is the missing clue. |
+| ~~T1~~ | ~~Fill your hotbar, `test/nightmare`, `/kill @s`, then look around your bed~~ | **CONFIRMED WORKING v1.4.4.** Drops land around the bed, most inside pickup range. **Re-check on v1.4.5** — that release changed the sweep to run only on death, so this exact path was touched. |
 
 ## 2. New since you last tested — never seen in-game
 
@@ -225,8 +225,9 @@ already-answered questions still on it, which wastes a playtest.
 
 | # | Question |
 | --- | --- |
-| J3 | **The cooldown.** 600 seconds. Long enough to gear up, short enough not to feel like the mod switched off? Never played against — it shipped in v1.4.0 after your last sweep. |
-| J4 | **The bossbar.** Renders, switches to the creature, tracks its health down. |
+| J3 | **The cooldown, reworked in v1.4.5.** It now ends when you wake rather than after 600 seconds. Is one night the right price for losing? |
+| J7 | **The fight at 2 hearts (v1.4.5).** Ejection moved from 4 hearts to 2. Longer fight — but does the creature now just kill you outright most of the time? |
+| ~~J4~~ | **CONFIRMED WORKING v1.4.4.** Switches to the creature and tracks its health. |
 
 ---
 

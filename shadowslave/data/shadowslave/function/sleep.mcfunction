@@ -18,8 +18,17 @@ execute if score @s ss_rank matches 1.. run return 0
 
 # Spent Spell — sleep normally. This is the whole point of the cooldown: after it throws you
 # out you get your game back, and it comes for you again later.
+# Sleeping through the night IS the recovery, so it ends the cooldown rather than waiting out
+# 600 real-time seconds of wall clock. This night passes untouched; from waking, the Spell
+# can take you again. Reset rather than set 0 — an absent score is what enter.mcfunction
+# tests for, and `matches 0` would never match anyway.
 execute if score @s ss_cooldown matches 1.. run title @s actionbar {"text":"You sleep, and nothing reaches for you.","color":"dark_gray","italic":true}
-execute if score @s ss_cooldown matches 1.. run return 0
+#
+# `return run` again, for the same reason as the infect branch below: clearing the score on one
+# line and testing it for the return on the next means the test reads the value this function
+# just erased, falls through, and pulls the player into the trial on the very sleep meant to
+# let them recover. Reset and return have to be one command.
+execute if score @s ss_cooldown matches 1.. run return run scoreboard players reset @s ss_cooldown
 
 # First sleep: the Spell notices. Let them wake normally this once.
 #
