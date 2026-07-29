@@ -10,6 +10,30 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 
 ---
 
+## `1.4.7` — the countdown was five minutes
+
+- **The trial's countdown drops from 6000 ticks to 1800** — five real minutes of dark down to
+  90 seconds. Andrew's call: it read as waiting rather than dread, and the trial does not
+  actually begin until the creature lands.
+
+`validate.py` gains a check for the bug shape that killed sneak-to-enter for five releases:
+a selector filter like `scores={ss_cooldown=..0}`, which looks like "zero or unset" and in fact
+matches **nobody**, because an absent score fails `matches` outright. Third occurrence of this
+shape in the project, so it is now caught statically. Verified by reintroducing the original
+v1.4.0 line and watching the validator reject it.
+
+The harness's `dimension()` preferred mineflayer's cached `bot.game.dimension` over asking the
+server, on a comment asserting it was "instant and authoritative". The second half was never
+verified and is false — a cross-dimension `/tp` does not reliably produce a respawn packet, so
+the cached value reported the nightmare after the player was already home. It failed ejection,
+cooldown re-entry and the recovery sleep against a **correct** pack; direct probes disagreed with
+it, which is what exposed it. It asks the server every time now. In a test harness, wrong is more
+expensive than slow.
+
+Also pinned the countdown assertion near its exact value. The old `timer <= 6000` would have
+passed for any countdown between 1 tick and five minutes, so it could never have caught this
+being retuned wrongly. **25/25 assertions pass.**
+
 ## `1.4.6` — dying is not being cast out
 
 Spotted in a playtest screenshot: the death screen had *"You were not ready"* and *"The Nightmare

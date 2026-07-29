@@ -63,14 +63,22 @@ async function hasTag(bot, tag) {
   return out.includes(tag)
 }
 
-/** The dimension the bot is in, as reported by the server. */
+/**
+ * The dimension the bot is in, read from the server.
+ *
+ * Ask the server, every time. This used to return `bot.game.dimension` first, on a comment
+ * claiming it was "instant and authoritative" — the second half was never verified and is
+ * false. mineflayer updates that field from the respawn packet, and a cross-dimension /tp does
+ * not reliably produce one, so the cached value goes stale and reports the nightmare after the
+ * player is back in the Overworld. It cost three false failures: ejection, cooldown re-entry
+ * and the recovery sleep all "broke" while direct probes showed the pack behaving correctly.
+ *
+ * A chat round-trip per call is slower. In a test harness, wrong is more expensive than slow.
+ */
 async function dimension(bot) {
-  // mineflayer tracks this from the respawn packet, so it is both instant and authoritative —
-  // no chat round-trip to race with.
-  if (bot.game && bot.game.dimension) return bot.game.dimension
   const out = await cmd(bot, `/data get entity ${USER} Dimension`, /entity data|failed/i)
   const m = out.match(/"([^"]+)"/)
-  return m ? m[1] : null
+  return m ? m[1] : bot.game?.dimension ?? null
 }
 
 function assert(name, condition, detail = '') {

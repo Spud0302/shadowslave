@@ -396,6 +396,37 @@ def check_version_agreement():
         )
 
 
+def check_absent_score_filters():
+    """Reject selector score filters whose lower bound is open, e.g. scores={x=..0}.
+
+    An absent score fails `matches` outright — nothing in this pack ever writes 0, so a score
+    that has not been set has no entry at all and `..0` excludes the player entirely rather
+    than matching "zero or unset". A filter like `scores={ss_cooldown=..0}` therefore matches
+    NOBODY on a fresh player, which is exactly how sneak-to-enter died in v1.4.0 and stayed
+    dead through five releases: every player who had never been ejected was filtered out of
+    the entry path.
+
+    This is the third bug of this shape in the project (see also the /trigger soul lockout and
+    the v1.2.1 ejection guard), so it is worth catching statically rather than in play. The
+    correct form is to invert: guard with `unless ... matches 1..` at the choke point.
+
+    Ranges with an explicit lower bound (`0..`, `1..8`, `..8` on a score the pack always sets)
+    are fine — only an open-ended upper-bound-only range that would have to match an absent
+    score is rejected.
+    """
+    pat = re.compile(r"scores=\{[^}]*?(\w+)\s*=\s*\.\.(-?\d+)")
+    for path, lines in mcfunctions():
+        # mcfunctions() has already dropped comments and blank lines.
+        for n, line in enumerate(lines, 1):
+            for m in pat.finditer(line):
+                obj, bound = m.group(1), m.group(2)
+                errors.append(
+                    f"{path.name}:{n}: selector filter scores={{{obj}=..{bound}}} can never match a "
+                    f"player whose {obj} is unset — an absent score fails `matches`. Invert it: "
+                    f"filter on the tag alone and guard with `unless score @s {obj} matches 1..`"
+                )
+
+
 def main():
     check_pack_mcmeta()
     check_no_plural_dirs()
@@ -410,6 +441,7 @@ def main():
     check_dimension_height()
     check_dimension_type_fields()
     check_biomes()
+    check_absent_score_filters()
     check_version_agreement()
     if errors:
         for e in errors:
