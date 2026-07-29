@@ -1,27 +1,11 @@
 # Runs as and at the player. The timer has expired; the Nightmare shows its face.
 
-# Spawning is two steps, and both are needed.
+# Spawned overhead, then placed on the surface at a distance.
 #
-# Local coords (`^ ^1 ^12`) follow pitch as well as yaw, so looking downhill buried the
-# creature inside terrain, and near the world floor or ceiling it fell outside the dimension
-# and the summon failed outright. So: summon directly overhead, where the player's own
-# column is definitionally clear at any terrain and any angle.
-#
-# But landing on the player's head hands it free hits before they can react. So immediately
-# spread it out — `spreadplayers` is the only vanilla primitive that places an entity on the
-# surface via the heightmap, which is exactly the safe-placement guarantee we need. It ends
-# up on solid ground, at a distance, in view.
-# Attribute format is 1.20.5+: lowercase `attributes`, with `id` and `base`.
-#
-# 60 health, not 160. Measured in-game at the tier this actually happens — wooden sword,
-# no armour: 3 hits landed (12 damage) before ejection at 3 hits taken. Winning needed
-# thirteen ejection-free runs' worth of damage in one attempt, so it was not hard, it was
-# impossible. 60 is 15 wooden-sword hits. attack_damage stays at 4 — three hits should
-# still end you.
-#
-# Speed comes from an effect, not an attribute: a ravager zeroes and restores its own
-# movement_speed base during its stun state, overwriting whatever we set. An in-game dump
-# showed base 0.0 where the file said 0.32. Effects survive that.
+# Local coords (^ ^1 ^12) follow pitch, so looking downhill buried it in terrain and
+# looking down near the world floor put it outside the dimension entirely. The player's
+# own column is always clear, so summon there — but landing on their head hands it free
+# hits, hence the spread below. See ISSUES.md for the full history.
 summon minecraft:ravager ~ ~10 ~ {Tags:["ss_creature"],CustomName:'{"text":"Nightmare Creature","color":"dark_purple","bold":true}',CustomNameVisible:1b,PersistenceRequired:1b,attributes:[{id:"minecraft:generic.max_health",base:60},{id:"minecraft:generic.attack_damage",base:4},{id:"minecraft:generic.knockback_resistance",base:0.8},{id:"minecraft:generic.follow_range",base:64}],Health:60f,active_effects:[{id:"minecraft:fire_resistance",amplifier:0b,duration:-1,show_particles:0b},{id:"minecraft:speed",amplifier:0b,duration:-1,show_particles:0b}]}
 
 # Put it on the surface at a distance, rather than on top of the player.

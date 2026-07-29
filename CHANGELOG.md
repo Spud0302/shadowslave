@@ -1,0 +1,184 @@
+# Changelog
+
+[Pride Versioning](https://pridever.org/) — `PROUD.DEFAULT.SHAME`. Bump PROUD for something
+you are proud of, DEFAULT for a release that is fine, SHAME for fixing what is embarrassing.
+
+The convention here is **tag first, then bump SHAME for each round of fixes**. Holding a
+release back until everything works makes the version number lie about what it took.
+
+Issue numbers refer to [ISSUES.md](ISSUES.md).
+
+---
+
+## `1.4.2` — item recovery works, and a bot now checks the work
+
+Added a **mineflayer test harness**: a bot joins a local 1.21.1 server, runs commands and
+reads the replies back, asserting on game state. 14 mechanical checks run before a build
+ships; anything needing judgement is emitted as a "needs a human" list.
+
+- **§1.6** Dying in the nightmare no longer loses your items permanently. Third attempt at
+  this, and the first two failed for different reasons the harness exposed in minutes:
+  tagging drops during teardown matched nothing (Minecraft spawns them _after_ the tick
+  health hits 0), and a marker as the teleport destination never resolved (selectors are
+  dimension-scoped, so it was looked for in the wrong dimension). Now a scheduled sweep
+  chains two `in` clauses to move items across.
+
+The harness caught its own bug first — fixed sleeps made entry look broken, because chat
+replies lag after a dimension change. It waits for a matching reply now.
+
+## `1.4.1` — failure costs something again
+
+- **§1.9** Re-entering after being cast out healed you to full, so ejection was free. That
+  heal came from `1.1.1`, where it fixed the opposite loop. Removed it and refused entry
+  below 14 health instead, which closes both.
+
+## `1.4.0` — the Spell rests
+
+- A **600-second cooldown** after ejection. While it runs, sleeping is an ordinary night's
+  sleep and crouching on a bed does nothing. Two reasons, both Andrew's: re-entering at the
+  health that just ejected you ejected you again — a loop with no exit — and without it the
+  mod hijacks every single night.
+- Recorded the measured difficulty at 60 HP: on Normal with a wooden sword and no armour,
+  4–6 hits land of the 15 needed. Coming back better equipped is the intended answer.
+
+## `1.3.1` — restoring what my own guard broke
+
+- **§1.8** `1.2.1`'s ejection guard used `1..8` to reject a stale reading, but a real death is
+  exactly **0** — so death stopped triggering the teardown, and the brand-new item recovery
+  never ran. Two fixes from one batch breaking each other. The guard now targets the _read_:
+  reset the score before it, so a failure leaves it absent and `matches` fails on it.
+- Drops land a block above the return position; the stored position is the bed itself.
+
+## `1.3.0` — the pack says which version it is
+
+- Version shown on load and `/reload`, in the datapack list, and in the self-check header.
+  Both of us lost track of which build was installed more than once, and at least one test
+  result was attributed to the wrong version.
+- `validate.py` asserts the manifest and the load message agree. It caught a mismatch one
+  release later, exactly as intended.
+
+## `1.2.1` — the post-sweep batch
+
+Ten bugs from a 39-check in-game sweep, plus the `cure` message. Every one was invisible to
+static analysis; **four were introduced by my own earlier fixes**.
+
+- **§1.7** Reading your soul then entering ejected you instantly, repeatedly. The readout
+  borrowed `ss_health` as scratch to hold your _armour_ — the same score the ejection check
+  reads. A `ponytail:` comment had asserted the reuse was safe.
+- **§2.8** First sleep both infected you _and_ pulled you in: the guard checked a tag its own
+  previous line had just set.
+- **§2.9** Creature speed had never applied — a ravager overwrites its own `movement_speed`.
+  Moved to an effect.
+- **§2.10** The Spell kept calling you while you were already inside the trial.
+- **§2.11** Your corpse was teleported home behind the death screen.
+- **§2.12** Attribute modifiers outlived the Aspect that granted them.
+- **§2.13** _Sleep Undisturbed_ was unreachable — the `1.2.0` refactor orphaned the grant
+  behind a branch that could no longer reach it.
+- **§3.2** The fight was **unwinnable**: 12 of 160 damage landed before ejection. 160 → 60.
+- **§3.4** Sneak-to-enter now telegraphs itself.
+- `cure` refuses on an Awakened instead of claiming the Spell lost interest.
+
+Also swept every guard in the pack for the self-invalidating shape behind 2.8, 2.10 and 2.13.
+
+## `1.2.0` — infection is an event
+
+- **Three states**: untouched → Carrier → Awakened. A fresh player was a Carrier from spawn,
+  so the calling started before they could build a bed. It is also wrong: in the novel,
+  infection happens _to_ you. Your first ordinary sleep is what marks you.
+- **Testing commands**: `test/help`, `infect`, `cure`, `nightmare`, `awaken`, `reset`.
+
+## `1.1.2` — Weightless stopped punishing jumping
+
+- **§1.5** `safe_fall_distance −2` left a safe distance of 1, and a standing jump is 1.25
+  blocks — so jumping on the spot cost half a heart. Now −1. Fixed from four measured data
+  points, which made it arithmetic instead of guesswork.
+
+## `1.1.1` — the creature keeps its distance
+
+- **§2.7** `spreadplayers`' distance argument is the minimum gap _between targets_, so with
+  one creature it did nothing and the spawn range was uniform 0–14 blocks. Centred 12 blocks
+  ahead instead: a consistent 8–16.
+
+## `1.1.0` — the Spell calls its Carriers, at any hour
+
+- **Sneaking on a bed** takes a Carrier at any time of day. Vanilla only lets you sleep at
+  night, but the novel's Carriers fall under whenever the Spell takes them.
+- Carriers feel it: a nausea pulse and an actionbar line every 30 seconds.
+
+## `1.0.9` — you can get out of the bed
+
+- **§2.5** The return position is captured while you are _in_ the bed, so you rematerialised
+  inside it — inescapable under a low ceiling. Vanilla's own bed-exit search is not exposed to
+  commands, so `unstick` is the manual equivalent.
+
+## `1.0.8` — the creature spawns properly
+
+- **§2.1** Its fire resistance had never applied: 1.20.5 renamed the NBT key to
+  `active_effects` and the pack still used `ActiveEffects`. Found from an in-game `/data get`.
+- Spawn placement: local coordinates follow _pitch_, so looking downhill buried it in terrain.
+  Summoned overhead, then placed on the surface at a distance.
+
+## `1.0.7` — you can see
+
+- **§2.4** `ambient_light: 0.0` was pitch black rather than atmospheric. 0.1, matching the
+  Nether. Needs a fresh world — dimension types bake in at creation.
+
+## `1.0.6` — the verification tab renders
+
+- Minecraft draws nothing for an advancement tree with no completed entry, so the tab looked
+  broken on a fresh world. The root is granted on load.
+- **Closed §1.2** — the advancement `icon` format `{"id": ...}` is correct for 1.21.1.
+
+## `1.0.5` — the self-check stops hurting you
+
+- Running the diagnostic damaged the operator. It probes by _calling_ each Flaw, and
+  `1.0.1`'s change to magic damage removed the fire resistance that had been absorbing it by
+  accident. Resistance V now wraps the probes.
+- It reports its passes; previously a silent pass was indistinguishable from a check that
+  never ran.
+
+## `1.0.4` — the pack finally loads
+
+- **§1.3** `monster_spawn_light_level` wrapped its bounds in a `value` key; an int provider
+  puts them at the top level. This was the actual cause of _"Data pack validation failed!"_ —
+  found from the log after two wrong guesses.
+- Reverted `1.0.3`: the log reported errors for `dimension_type` only, so the biome had been
+  parsing fine and that "fix" was breaking a working file.
+
+## `1.0.3` — a wrong guess
+
+- Changed biome `carvers` from an object to a list. **This was not the bug** and was reverted
+  in `1.0.4`. Kept in the history because pretending otherwise is what the versioning scheme
+  exists to prevent.
+
+## `1.0.2` — a closer guess
+
+- `dimension_type` height must cover the range its noise settings generate: 256 → 384.
+  Correct, but not what was blocking the load.
+
+## `1.0.1` — fixes that needed no observation
+
+- Flame no longer cancels the Shadow Slave flaw (magic damage, not fire).
+- Flame's "burning strikes" implemented via a `player_hurt_entity` trigger.
+- `/trigger soul` prints attributes, as the spec always claimed.
+- `test/reset` no longer strands you in the nightmare.
+- The countdown stops once the creature spawns.
+- Validator extended to check function, predicate, dimension, objective, bossbar and tag
+  references, plus unpaired attribute modifiers.
+
+## `1.0.0` — Phase 1, The First Nightmare
+
+Sleep, be taken into a dark dimension, survive a countdown, kill what comes, and wake
+**Awakened** with an Aspect and a Flaw.
+
+Built as a vanilla datapack — no loader, no client install, server-side only. Ten tasks, each
+reviewed. A whole-branch review then found **three Criticals that ten per-task reviews had
+missed**, because each of those checked the code against a plan that was itself wrong:
+
+- Minecraft refuses all player NBT writes, so the return teleport silently dumped every player
+  at Overworld 0,0,0 — inside stone.
+- Tags survive death, so dying in the trial left you permanently tagged and eventually spawned
+  the boss beside your bed.
+- Entry teleported you to y=150 _after_ safe placement had already put you on the ground.
+
+All three were found by reasoning alone, and all three are now confirmed dead in-game.

@@ -142,7 +142,9 @@ async function run(bot) {
   assert('death does not strand you in the nightmare', dimAfterDeath !== 'shadowslave:nightmare', `dimension=${dimAfterDeath}`)
 
   await sleep(1500)  // the sweep is scheduled 5 ticks after the teardown
-  const drops = await cmd(bot, '/execute as @s at @s run data get entity @e[type=item,distance=..16,limit=1] Item.id', /entity data|No entity/i)
+  // Select the diamonds specifically. Asking for the NEAREST item and hoping it is ours
+  // is brittle — an unrelated sugar cane lying closer failed this once.
+  const drops = await cmd(bot, '/execute as @s at @s run data get entity @e[type=item,distance=..16,nbt={Item:{id:"minecraft:diamond"}},limit=1] Item.id', /entity data|No entity/i)
   assert(
     'dropped items are recoverable near the return point',
     /diamond/i.test(drops),
