@@ -4,7 +4,11 @@ scoreboard players set @s soul 0
 
 tellraw @s [{"text":"\n"},{"text":"— Soul —","color":"light_purple","bold":true}]
 
-execute unless score @s ss_rank matches 1.. unless entity @s[tag=ss_carrier] run tellraw @s [{"text":"Rank: ","color":"gray"},{"text":"Sleeper","color":"dark_gray"}]
+# "Sleeper" is the human name for the Dormant soul RANK, which you only hold once the
+# Spell has marked you — so calling an untouched player a Sleeper is wrong on the
+# wiki's own terms. "Mundane" is descriptive in the novel rather than a formal rank
+# name (see the lore note), but it is accurate where "Sleeper" was not.
+execute unless score @s ss_rank matches 1.. unless entity @s[tag=ss_carrier] run tellraw @s [{"text":"Rank: ","color":"gray"},{"text":"Mundane","color":"dark_gray"}]
 execute unless score @s ss_rank matches 1.. if entity @s[tag=ss_carrier] run tellraw @s [{"text":"Rank: ","color":"gray"},{"text":"Sleeper","color":"dark_gray"},{"text":"  (Carrier)","color":"dark_purple","italic":true}]
 execute if score @s ss_rank matches 1 run tellraw @s [{"text":"Rank: ","color":"gray"},{"text":"Awakened","color":"aqua"}]
 
