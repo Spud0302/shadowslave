@@ -22,7 +22,9 @@ existing lore-reference note until findings are sufficiently verified to promote
 3. **Miraheze community wiki:** https://shadowslave.miraheze.org/wiki/
 4. **Fandom community wiki:** https://shadowslave.fandom.com/wiki/
 
-Community wikis are indexes and research aids, not authority over direct novel text.
+Community wikis are indexes and research aids, not authority over direct novel text. They can also be
+unevenly updated: late-story claims must be checked against the novel instead of assuming either mirror
+is current.
 
 ## Confidence labels
 
@@ -36,6 +38,8 @@ Community wikis are indexes and research aids, not authority over direct novel t
 The project research brief prioritises depth over breadth:
 
 1. [Section A — Aspects and Flaws](section-a-aspects-and-flaws.md)
+   - [Verification pass 2](section-a-verification-pass-2.md) — newer corrections/stronger evidence that
+     supersede named entries in the first pass until final consolidation.
 2. Section B — Ranks and progression
 3. Section C — Memories
 4. Section D — Nightmares
