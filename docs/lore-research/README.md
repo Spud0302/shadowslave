@@ -18,7 +18,9 @@ existing lore-reference note until findings are sufficiently verified to promote
 
 ## Source order
 
-1. **Novel text** — NovelFull is explicitly authorised by the project owner for full-text research:
+1. **Novel text** — the primary authority. Andrew authorised the NovelFull mirror for this
+   project's own research; treat that as a decision about this repo, not a general licence, and
+   prefer the official release below when verifying a specific claim.
    https://novelfull.com/shadow-slave.html
 2. **Official WebNovel** — especially useful for verification and chapters newer than mirrors/indexes:
    https://www.webnovel.com/book/shadow-slave_22196546206090805
