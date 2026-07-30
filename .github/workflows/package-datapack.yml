@@ -1,0 +1,84 @@
+name: Package datapack
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'datapack-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate datapack
+        run: python3 shadowslave/tools/validate.py
+
+      - name: Build release ZIP
+        run: python3 shadowslave/tools/build_release.py
+
+      - name: Verify package output
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(shadowslave-v*.zip)
+          if [[ ${#files[@]} -ne 1 ]]; then
+            echo "Expected exactly one shadowslave-v*.zip, found ${#files[@]}" >&2
+            exit 1
+          fi
+
+          package="${files[0]}"
+          echo "file=$package" >> "$GITHUB_OUTPUT"
+          sha256sum "$package" > SHA256SUMS.txt
+
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            expected_version="${GITHUB_REF_NAME#datapack-v}"
+            expected_file="shadowslave-v${expected_version}.zip"
+            if [[ "$package" != "$expected_file" ]]; then
+              echo "Tag/package mismatch: $GITHUB_REF_NAME expects $expected_file, built $package" >&2
+              exit 1
+            fi
+          fi
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadow-slave-datapack
+          path: |
+            ${{ steps.package.outputs.file }}
+            SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_FILE: ${{ steps.package.outputs.file }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#datapack-v}"
+
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$PACKAGE_FILE" SHA256SUMS.txt --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              "$PACKAGE_FILE" \
+              SHA256SUMS.txt \
+              --verify-tag \
+              --generate-notes \
+              --title "Shadow Slave datapack v${version}"
+          fi
