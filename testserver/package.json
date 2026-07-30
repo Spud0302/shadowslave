@@ -4,7 +4,8 @@
   "private": true,
   "description": "Local Minecraft 1.21.1 integration harness for the Shadow Slave datapack",
   "scripts": {
-    "test": "node harness.mjs && node flaw_harness.mjs"
+    "test": "node harness.mjs",
+    "test:flaw": "node flaw_harness.mjs"
   },
   "license": "ISC",
   "dependencies": {

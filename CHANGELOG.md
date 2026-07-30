@@ -10,6 +10,47 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 
 ---
 
+## `0.7.0` — the Nightmare gets an objective seam
+
+Merged `gpt/v0.6-experience` and `gpt/v0.7-hardening` together (the latter is stacked on the former),
+so `0.6.0` is skipped deliberately — the policy in `docs/VERSIONING.md` allows combining milestones.
+
+### A Nightmare is a scenario, not a boss fight
+
+`nightmare/objective_tick` now owns the scenario-specific machinery: the countdown's atmosphere beats,
+summoning the conflict, the bossbar handover, the leash, and the victory test. `tick_player` keeps only
+the player lifecycle — health, ejection, the timer, the bar.
+
+The reasoning is canon-led and worth keeping: a Nightmare resolves a **central conflict**, and
+wait-then-kill-one-creature is *this prototype's* scenario rather than the definition. Keeping it behind
+a seam means the Java port grows a scenario abstraction instead of having boss-kill assumptions baked
+into entry, teardown and player state. Behaviour is unchanged from `0.5.0`; the atmosphere beats at
+1200/600/200 ticks are new.
+
+### Q3 answered: the earned Flaw families are testable
+
+`test/flaw/{baseline,bloodied,hungry,fled}` force each family deterministically, so the three families
+that previously had **no** automated coverage can now be verified after classification. Classification
+from real behaviour is still a human check — no bot can fight the creature.
+
+`test/reset` also clears the transient effects the pack itself applies during verification.
+
+### Verification
+
+Validator clean. Main harness **32/32**. The new `flaw_harness.mjs` reaches **39/39 run alone** but has
+an **order-dependent failure** when the main harness runs first, so it is **not** part of the release
+gate yet: `npm test` runs the main harness, `npm run test:flaw` runs the new one.
+
+The pack is not at fault — a direct probe shows the Weightless modifier applying at `-1` with the
+attribute reaching `2`. Two of my fixes did not resolve it (a longer timeout; driving upkeep directly),
+so I stopped rather than guess a third time and recorded it as **Q4** with the reproduction and the
+dead ends. Two wrong diagnoses in a row is where this project's own notes say to stop patching and get
+data.
+
+One fix I did keep: `forceFamily` now throws when `test/flaw/*` replies *"Already a Sleeper"*. The
+`expect` matched both the success line and that refusal, so a silent refusal would have looked like a
+pass and the run would have asserted against stale state — the same class of fault as Q1.
+
 ## `0.5.0` — generated Aspects, earned Flaws, and a version policy correction
 
 **The version went down on purpose.** Andrew's decision (`docs/VERSIONING.md`): `PROUD` stays `0`
