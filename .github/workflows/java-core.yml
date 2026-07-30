@@ -1,0 +1,86 @@
+name: Java core
+
+on:
+  pull_request:
+    paths:
+      - 'mod/**'
+      - '.github/workflows/java-core.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'mod/**'
+      - '.github/workflows/java-core.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Compile, unit test and package
+        run: ./mod/gradlew -p mod build --stacktrace
+
+      - name: Boot dedicated NeoForge server
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p mod/run-server-smoke
+          printf 'eula=true\n' > mod/run-server-smoke/eula.txt
+          printf 'online-mode=false\n' > mod/run-server-smoke/server.properties
+
+          log="$RUNNER_TEMP/shadowslave-server.log"
+          setsid ./mod/gradlew -p mod runServerSmoke --no-daemon >"$log" 2>&1 &
+          server_group=$!
+
+          cleanup() {
+            kill -TERM -- "-$server_group" >/dev/null 2>&1 || true
+            sleep 2
+            kill -KILL -- "-$server_group" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          for _ in $(seq 1 180); do
+            if grep -Eq 'Done \([0-9.]+s\)! For help, type "help"' "$log"; then
+              grep -F 'Shadow Slave Java core is loading' "$log"
+              echo 'Dedicated server reached ready state with Shadow Slave loaded.'
+              exit 0
+            fi
+
+            if ! kill -0 "$server_group" >/dev/null 2>&1; then
+              cat "$log"
+              echo 'Dedicated server exited before reaching ready state.' >&2
+              exit 1
+            fi
+
+            sleep 1
+          done
+
+          cat "$log"
+          echo 'Dedicated server did not reach ready state within 180 seconds.' >&2
+          exit 1
+
+      - name: Upload development JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadow-slave-java-core
+          path: mod/build/libs/*.jar
+          if-no-files-found: error
