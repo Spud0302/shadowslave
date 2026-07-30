@@ -10,5 +10,6 @@ import net.neoforged.fml.common.Mod;
 public final class ShadowSlaveClientMod {
     public ShadowSlaveClientMod(IEventBus modEventBus) {
         modEventBus.addListener(ClientModPayloads::register);
+        ShadowSlaveMod.LOGGER.info("Shadow Slave client is loading");
     }
 }
