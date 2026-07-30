@@ -110,7 +110,7 @@ async function forceFamily(bot, name, bandMin, bandMax, expectedTag) {
 
     // Enable an IN-SERVER observation before generation. No chat query reads these values until after
     // the normal attribute assertion, so the trace cannot make the intermittent timing disappear.
-    await cmd(bot, '/tag @s add ss_test_trace_weightless')
+    await cmd(bot, '/function shadowslave:test/trace/weightless_on')
     await cmd(bot, '/scoreboard players set @s ss_scratch_a 0')
     await cmd(bot, '/scoreboard players set @s ss_scratch_b -9999')
   }
