@@ -10,6 +10,6 @@ tellraw @s [{"text":"shadowslave:test/selfcheck","color":"aqua"},{"text":"   ass
 tellraw @s [{"text":"shadowslave:test/infect","color":"aqua"},{"text":"      become a Carrier now","color":"gray"}]
 tellraw @s [{"text":"shadowslave:test/cure","color":"aqua"},{"text":"        back to untouched","color":"gray"}]
 tellraw @s [{"text":"shadowslave:test/nightmare","color":"aqua"},{"text":"   enter the trial immediately","color":"gray"}]
-tellraw @s [{"text":"shadowslave:test/awaken","color":"aqua"},{"text":"      skip the trial, roll an Aspect","color":"gray"}]
+tellraw @s [{"text":"shadowslave:test/awaken","color":"aqua"},{"text":"      historical name: skip to a generated Sleeper identity","color":"gray"}]
 tellraw @s [{"text":"shadowslave:test/reset","color":"aqua"},{"text":"       wipe everything, start over","color":"gray"}]
 tellraw @s [{"text":"\nRun them with ","color":"gray"},{"text":"/function <id>","color":"white"},{"text":".  Skip the countdown mid-trial with ","color":"gray"},{"text":"/scoreboard players set @s ss_timer 1","color":"white"},{"text":"\n","color":"gray"}]
