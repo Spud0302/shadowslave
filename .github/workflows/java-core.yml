@@ -1,7 +1,11 @@
 name: Java core
 
 on:
+  workflow_dispatch:
   pull_request:
+    types:
+      - ready_for_review
+      - reopened
     paths:
       - 'mod/**'
       - '.github/workflows/java-core.yml'
