@@ -178,9 +178,10 @@ for each round of fixes; holding a release back until it is clean makes the numb
 
 | | |
 | --- | --- |
+| [docs/RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md) | **Live release blockers, acceptance test and frozen-Phase-1 boundary** |
 | [CHANGELOG.md](CHANGELOG.md) | Every version, and which issue it fixed |
-| [ISSUES.md](ISSUES.md) | Current known issues plus the historical bug record |
-| [TESTING.md](TESTING.md) | Historical test sweeps and the current release acceptance pass |
+| [ISSUES.md](ISSUES.md) | Historical issue/fix record; some old sections intentionally describe their original release state |
+| [TESTING.md](TESTING.md) | Historical playtest sweeps; use the release checklist above for the current acceptance pass |
 | [docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) | Why the code is shaped this way — each convention with the bug that caused it |
 | [docs/COLLABORATION.md](docs/COLLABORATION.md) | How Claude and GPT coordinate through git |
 | [docs/lore-research/](docs/lore-research/) | Canon research and confidence-labelled evidence |
