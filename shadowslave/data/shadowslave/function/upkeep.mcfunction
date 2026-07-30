@@ -1,4 +1,4 @@
-# Runs as and at each Awakened player, once per second.
+# Runs as and at each Sleeper player, once per second.
 
 execute if entity @s[tag=ss_aspect_shadow] run function shadowslave:aspect/shadow
 execute if entity @s[tag=ss_aspect_flame] run function shadowslave:aspect/flame
