@@ -2,8 +2,8 @@
 
 **Read first in a new GPT session.**  
 **Repository:** `Spud0302/shadowslave`  
-**Current main baseline used here:** `6a87991353480035f4fe6da08c775cd87d0e81df`  
-**Current GPT branch:** `gpt/admin-docs-current-state`
+**Current main baseline:** `2234efc327e60d13094517de305fd84d3c612e53`  
+**Current GPT branch:** none open — `gpt/admin-docs-current-state` is merged. Branch from `main`.
 
 ## Project state
 
@@ -14,9 +14,10 @@
 - No blocking gate. Human tests are deferred evidence per **D2**, not merge gates.
 - Modpack track: documented only; no manifest or dependencies committed.
 
-Claude subsequently committed documentation reconciliation for the retired Weightless mechanic,
-raised Q5 about the missing Java Nightmare lifecycle map, and removed an accidentally committed
-root `server.log`. This branch starts after those commits.
+All of that is now on `main`: the Weightless documentation reconciliation, Q5 (answered, lifecycle
+contract restored), the removed root `server.log`, the alpha.4 verification, and the **D2** rewording
+that turned human tests into deferred evidence. Nothing is in flight and nothing is open in
+`docs/OPEN-QUESTIONS.md`.
 
 ## What is implemented
 
@@ -97,18 +98,32 @@ remains a live contract and is restored by this branch:
 - scenario-specific objectives behind an abstraction;
 - evidence owned by the active Nightmare instance.
 
-## Next action after #16
+## Next action — unblocked
 
-Build the live datapack migration reader/writer in a new `gpt/*` branch:
+Build the live datapack migration reader/writer in a new `gpt/*` branch off `main`:
 
-1. read immutable legacy evidence;
+1. read immutable legacy evidence — **read the hazard note first**, see below;
 2. call the accepted pure translator;
 3. persist Java Soul/Aspect/Flaw records;
 4. read them back and verify identity;
 5. mark import complete;
 6. retain legacy values until all verification succeeds.
 
-Then implement `NightmareRegistryData` and explicit per-player instance ownership.
+**Step 1 carries this project's most repeated bug.** An absent scoreboard value is not `0`.
+`LegacyDatapackSnapshot` uses `0` to mean "no such score", and the translator reads `rankScore() == 0`
+as "never completed a First Nightmare" — so a failed or unread lookup that falls through to `0` would
+silently downgrade a completed Sleeper and, for a non-Carrier, skip their migration entirely and lose
+the identity. Map absent to `0` deliberately and fail the import when a score cannot be read. Full
+reasoning in **`docs/DATAPACK-MIGRATION.md` § "an absent score is not `0`"**. This shape has already
+cost this project §1.7, §1.10, the dead sneak-to-enter filter and the `scores={x=..0}` class the
+validator now rejects.
+
+Worth adding while you are there: a NeoForge GameTest that a Soul survives a relog. It is the only
+end-to-end gap left after the alpha.4 verification, and `mod/build.gradle` already declares
+`gameTestServer`.
+
+Then implement `NightmareRegistryData` and explicit per-player instance ownership, honouring the
+Nightmare lifecycle contract in `docs/JAVA-HANDOFF.md` §6 — one entry choke point, one teardown path.
 
 ## Workflow reminders
 
@@ -117,3 +132,12 @@ Then implement `NightmareRegistryData` and explicit per-player instance ownershi
 - Claude independently reviews and tests before merge.
 - CI is deliberately throttled; do not create per-commit workflow noise.
 - Historical docs are annotated, not silently rewritten as though earlier beliefs never existed.
+- Verify the Java smokes with `mod/verify-smoke.sh`, never the bare `runServerSmoke`/`runClientSmoke`
+  tasks: those report `BUILD SUCCESSFUL` with exit `0` even when the server never starts.
+- Verify the datapack with `cd testserver && npm run deploy && npm test`. The server loads a built zip,
+  not the working tree, so testing without deploying silently exercises the previous build.
+- A **JDK** 21 is required, not a JRE. A JRE fails in NeoForm's recompile with the misleading
+  `error: release version 21 not supported`.
+- If something needs to reach Claude, put it in the repo — `docs/OPEN-QUESTIONS.md`, a commit message or
+  an issue. Anything said only in chat to Andrew does not survive the handoff; that has already happened
+  once, with the JDK note.
