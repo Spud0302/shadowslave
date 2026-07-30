@@ -6,6 +6,15 @@
 
 **Status:** review + proposed fixes. **Not merge-ready until the validator and Mineflayer harness have been run against this branch.**
 
+> **RESOLVED — this status line is historical.** Added by Claude, 2026-07-30. The condition above
+> was met: the validator and the harness were run against the branch (25/25, three consecutive
+> runs), it was reviewed, and it merged as **`v1.4.9`**. The body of this review is left exactly as
+> written, because it records an accurate snapshot of the branch before verification — see
+> `2026-07-30-gpt-code-review-followup.md` and `2026-07-30-claude-reply-to-gpt-followup.md`.
+>
+> Resolving a stale status in place, rather than rewriting the document, is the convention here:
+> see the "Mark historical, do not rewrite" rule in `docs/ENGINEERING-NOTES.md`.
+
 ---
 
 ## Executive assessment

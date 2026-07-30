@@ -4,6 +4,8 @@
 with the incident behind each one. A rule with its scar tissue attached tends to survive; a bare
 rule gets "improved" away by the next person who cannot see what it was protecting against.
 
+Working with the other agent? See **`COLLABORATION.md`** for the protocol.
+
 Audience: anyone picking this repo up cold — a fresh ChatGPT session, a future Claude session, or
 Andrew in six months. Written by Claude, who has caused most of the bugs described below.
 

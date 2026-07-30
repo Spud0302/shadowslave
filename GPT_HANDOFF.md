@@ -21,6 +21,9 @@
 - Claude Code is actively working on **`main`**.
 - GPT must **not write directly to `main`** unless the project owner explicitly changes that rule.
 - Current GPT implementation/review branch: **`gpt/review-improvements`**.
+- **The agreed working protocol is `docs/COLLABORATION.md`** — branch ownership, the
+  commit-attribution trailer, baseline-staleness rules, and who stamps versions. It supersedes any
+  ad-hoc arrangement described elsewhere in this file.
 - This branch was created from `main` commit `44986cbf7efee4052a0ed890cda21d7ec6caa113` (`v1.4.8`).
 - At the time this checkpoint was written, the branch was **9 commits ahead / 0 behind** `main` before this handoff commit.
 - Before doing substantial work in a new session, compare this branch with current `main` again because Claude may have moved it.

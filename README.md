@@ -170,6 +170,8 @@ for each round of fixes; holding a release back until it is clean makes the numb
 | [CHANGELOG.md](CHANGELOG.md) | Every version, and which issue it fixed                             |
 | [ISSUES.md](ISSUES.md)       | Known issues, deliberate limitations, and what is confirmed working |
 | [TESTING.md](TESTING.md)     | Full in-game test plans                                             |
+| [docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) | Why the code is like this — each convention with the bug that caused it |
+| [docs/COLLABORATION.md](docs/COLLABORATION.md) | How the two AI agents work through this repo |
 | `docs/superpowers/specs/`    | Design spec, including the direction for generated Aspects          |
 
 ## Credit
