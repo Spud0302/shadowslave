@@ -24,12 +24,20 @@ public final class SoulService {
         return replace(player, SoulTransitions.infect(get(player)));
     }
 
+    public static SoulData beginFirstNightmare(ServerPlayer player) {
+        return replace(player, SoulTransitions.beginFirstNightmare(get(player)));
+    }
+
     public static SoulData completeFirstNightmare(
             ServerPlayer player,
             ResourceLocation aspectId,
+            SoulRank aspectRank,
             ResourceLocation flawId
     ) {
-        return replace(player, SoulTransitions.completeFirstNightmare(get(player), aspectId, flawId));
+        return replace(
+                player,
+                SoulTransitions.completeFirstNightmare(get(player), aspectId, aspectRank, flawId)
+        );
     }
 
     public static SoulData reset(ServerPlayer player) {
