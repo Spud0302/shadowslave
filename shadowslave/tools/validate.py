@@ -413,6 +413,12 @@ def check_absent_score_filters():
     Ranges with an explicit lower bound (`0..`, `1..8`, `..8` on a score the pack always sets)
     are fine — only an open-ended upper-bound-only range that would have to match an absent
     score is rejected.
+
+    POLICY, NOT SYNTAX. `scores={x=..0}` is valid Minecraft and is meaningful when the objective
+    is guaranteed to have a value for every candidate. Nothing in this pack guarantees that, and
+    the shape has now cost three bugs, so it is banned here as a project rule. If a legitimate
+    use ever appears, add a narrow documented allowlist rather than deleting this check — the
+    whole point is that the mistake is invisible in play.
     """
     pat = re.compile(r"scores=\{[^}]*?(\w+)\s*=\s*\.\.(-?\d+)")
     for path, lines in mcfunctions():

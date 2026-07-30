@@ -1,5 +1,8 @@
 # Shadow Slave — test plan for `v1.2.0`
 
+> **HISTORICAL.** Kept as a record of what was verified at the time. Pre-v1.4.8 terminology and
+> pre-retune numbers throughout. Skip to the `v1.4.2` section for anything current.
+
 Work through these and note what fails. Nothing gets fixed until the sweep is done, so
 report everything, including things that merely feel wrong.
 
@@ -136,6 +139,11 @@ take a minute of swinging. Report how it actually plays; the table is theory.
 
 ---
 
+> **HISTORICAL — do not use as a current expectation.** This list records what was tested at the
+> time and is kept for the record. Terminology predates v1.4.8 ("Awakened" where the runtime now
+> says "Sleeper"), and several numbers have since been retuned. The live plan is the `v1.4.2`
+> section below.
+
 # `v1.3.0` regression list
 
 Only what changed since the 39/39 sweep. Ordered by how likely each is to be wrong, not by
@@ -202,12 +210,12 @@ What is left is what a bot cannot judge, plus what it has never exercised.
 | # | Do this | Expect |
 | --- | --- | --- |
 | T6 | Die in the trial and watch the death screen | **No** portal warp, no glimpse of your bed behind it. Only testable from v1.3.1 — before that nothing ran on death at all. |
-| T7 | `test/awaken`, note the Aspect, then `test/reset` and `test/awaken` again | The old Aspect and Flaw are fully gone. Check `/trigger soul`: Vitality 20 unless the **new** roll is Fragile, Endurance 0 unless it is Bone. Modifiers used to outlive the Aspect that granted them. |
-| T8 | As an **Awakened** player, sleep at night | Sleeps normally and grants **Sleep Undisturbed**. That advancement was unreachable until v1.2.1. |
-| T9 | `test/cure` while Awakened | Refuses and points you at `test/reset`. It used to claim the Spell had lost interest, which was untrue. |
+| T7 | `test/awaken`, note the Aspect, then `test/reset` and `test/awaken` again | The old Aspect and Flaw are fully gone. Check `/trigger soul`: Max Health 20 unless the **new** roll is Fragile, Armor 0 unless it is Bone. (v1.4.8 renamed these from Vitality/Endurance — those were never canon Attributes.) Modifiers used to outlive the Aspect that granted them. |
+| T8 | As a **Sleeper**, sleep at night | Sleeps normally and grants **Sleep Undisturbed**. That advancement was unreachable until v1.2.1. |
+| T9 | `test/cure` as a Sleeper | Refuses and points you at `test/reset`. It used to claim the Spell had lost interest, which was untrue. |
 | ~~T10~~ | ~~As a Carrier, crouch on a bed~~ | **CONFIRMED WORKING v1.4.4.** The telegraph appears immediately, before the hold completes. The hold itself was already confirmed in v1.2.0 (B1); this closes the v1.2.1 telegraph added on top of it. |
 | ~~T11~~ | ~~Let the creature chase you~~ | **CONFIRMED WORKING v1.4.6.** The chase reads right. Its speed comes from an effect — the attribute had never applied, being overwritten by the ravager itself. |
-| ~~T12~~ | ~~The whole loop once, cleanly~~ | **CONFIRMED WORKING v1.4.6.** infect → sleep → survive → kill → Awakened, with the Aspect, the Flaw and the verification tree all filled in. The last untested branch, and the only one nothing automated can reach — killing the creature needs a real fight. |
+| ~~T12~~ | ~~The whole loop once, cleanly~~ | **CONFIRMED WORKING v1.4.6.** infect → sleep → survive → kill → Sleeper, with the Dormant Aspect, the Flaw and the verification tree all filled in. The last untested branch, and the only one nothing automated can reach — killing the creature needs a real fight. |
 
 ## 4. Judgement — only you can settle these
 

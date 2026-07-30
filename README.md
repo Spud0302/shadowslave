@@ -3,8 +3,8 @@
 A Minecraft datapack based on the webnovel _Shadow Slave_ by Guiltythree.
 
 Sleep, and something notices you. Sleep again and it takes you — into a dark world with a
-countdown and something hunting you. Survive, kill what comes, and wake **Awakened** with an
-Aspect that grants you power and a Flaw that charges you for it.
+countdown and something hunting you. Survive, kill what comes, and wake a **Sleeper** — holding a
+Dormant Aspect that grants you power and a Flaw that charges you for it.
 
 **Minecraft 1.21.1 · vanilla datapack · server-side only**
 
@@ -42,7 +42,11 @@ You start **Mundane** — untouched. Nothing happens to you.
 3. **Survive the countdown.** The nightmare is dark and full of things.
 4. **Kill the Nightmare Creature** when it comes. Drop too low and you are cast out instead,
    with your gear, to try again once you have recovered.
-5. **Wake Awakened**, with an Aspect and a Flaw.
+5. **Wake a Sleeper**, with a Dormant Aspect and a Flaw.
+
+Surviving a First Nightmare makes you a **Sleeper**, not an Awakened — canon puts Awakening after a
+first journey into the Dream Realm, which Phase 1 does not have. The ladder is
+**Mundane → Carrier → Sleeper (Dormant) → Awakened**.
 
 `/trigger soul` shows where you stand.
 
@@ -79,7 +83,7 @@ Skip the countdown mid-trial with `/scoreboard players set @s ss_timer 1`.
 **Testing commands bypass the systems they test.** `test/nightmare` walks past the ejection
 cooldown and the weakness gate via a single-use `ss_test_bypass` tag that entry consumes —
 otherwise the command for entering the trial refuses to enter the trial. The rank gate has no
-bypass on purpose: an Awakened in a First Nightmare is a state nothing handles. Use
+bypass on purpose: a Sleeper in a First Nightmare is a state nothing handles. Use
 `test/reset`.
 
 There is also a **Shadow Slave — Verification** advancement tab. Each entry is granted at the

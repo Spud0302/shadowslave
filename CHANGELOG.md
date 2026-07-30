@@ -10,6 +10,43 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 
 ---
 
+## `1.4.9` — the entry gate finally checks infection
+
+Merged from `gpt/review-improvements` after running the validator and the harness against it.
+
+- **A First Nightmare now requires infection, checked at the choke point.** The invariant lived
+  only in `sleep.mcfunction` and the sneak selector, so any direct call to `nightmare/enter` could
+  drop an untouched player into a trial. This closes the **B2** report from the very first playtest
+  — right-clicking a bed at night without being infected pulled you in — which had never actually
+  been fixed, only worked around by the two player routes happening to guard themselves.
+- **`test/reset` clears transient state**, `ss_cooldown` included, ordered *after* `nightmare/leave`
+  because leave is what sets it. Clearing before would have done nothing.
+- **Progression is split from the placeholder roll.** `progression/become_sleeper` owns the rank
+  transition; `prototype/roll_aspect_flaw` holds the temporary four-Aspects-four-Flaws generator.
+  The eventual procedural system now has one seam to replace instead of a function that mixed rank
+  progression with placeholder content. `awaken/roll` remains a thin alias so existing callers work.
+- **The soul readout stops calling Minecraft combat stats canon Attributes.** `Vitality`/`Endurance`
+  were never Attribute names; canon Attributes are named supernatural traits. It reads
+  `Body: Max Health / Armor` until a real Attribute system exists.
+- `README.md` and the live test plan caught up with `1.4.8`'s rank change; the older test plans are
+  now marked **HISTORICAL** rather than rewritten, since they record what was actually verified at
+  the time and editing them would falsify that.
+
+The reset fix earned its keep immediately by exposing a harness assertion that had been **passing
+for the wrong reason**: `ejection starts the cooldown` could read the cooldown left over from the
+earlier death test rather than the one the ejection had just set. It also exposed three
+timing-fragile assertions. A probe showed ejection behaving correctly — health 4, dimension
+overworld, cooldown 595 — while the harness called it broken, the fourth false failure fixed sleeps
+have produced here. Entry and ejection now poll for the state they care about via `waitDimension()`.
+
+`validate.py`'s absent-score rule is now documented as **project policy rather than Minecraft
+syntax**, a fair correction from the review: `scores={x=..0}` is valid and meaningful when an
+objective is guaranteed to exist. Nothing here guarantees that, and the shape has cost three bugs.
+
+Left open deliberately: the death sweep still moves every loose item in the dimension. Correctly
+diagnosed in the review and deferred to the Java port, where real drop ownership is possible,
+rather than patched with a radius heuristic. **25/25 assertions pass.**
+
 ## `1.4.8` — you are a Sleeper, not an Awakened
 
 The lore research in `docs/lore-research/` (Section B) establishes that surviving a First
