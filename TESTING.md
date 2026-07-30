@@ -1,7 +1,14 @@
-# Shadow Slave — test plan for `v1.2.0`
+# Shadow Slave — test history and current release checks
 
-> **HISTORICAL.** Kept as a record of what was verified at the time. Pre-v1.4.8 terminology and
-> pre-retune numbers throughout. Skip to the `v1.4.2` section for anything current.
+> The early plans below are **HISTORICAL** records. They intentionally preserve the terminology,
+> balance numbers, and assumptions that were true when those sweeps were run.
+>
+> **For the current release candidate, skip to “Current release-candidate checks” at the bottom.**
+> Mechanical regressions are now owned by `testserver/harness.mjs` rather than a human checklist.
+
+---
+
+# Historical — `v1.2.0` sweep
 
 Work through these and note what fails. Nothing gets fixed until the sweep is done, so
 report everything, including things that merely feel wrong.
@@ -139,10 +146,8 @@ take a minute of swinging. Report how it actually plays; the table is theory.
 
 ---
 
-> **HISTORICAL — do not use as a current expectation.** This list records what was tested at the
-> time and is kept for the record. Terminology predates v1.4.8 ("Awakened" where the runtime now
-> says "Sleeper"), and several numbers have since been retuned. The live plan is the `v1.4.2`
-> section below.
+> **HISTORICAL — do not use as a current expectation.** This list records the v1.3.0 regression
+> sweep. Terminology predates v1.4.8 and later releases changed several behaviours.
 
 # `v1.3.0` regression list
 
@@ -177,67 +182,85 @@ importance. Start with a clean state: `/function shadowslave:test/reset`.
 | --- | --- | --- |
 | R13 | The full loop once, clean | infect → sleep → survive → kill → Awakened, with the right Aspect and Flaw. Eleven things changed; this confirms none of them broke the loop. |
 
-**R1 and R2 are the two I would test first.** Both are new code paths, and R2 is the one that could otherwise make the mod look completely broken.
-
-
 ---
 
-# `v1.4.2` — what still needs a human
+# Current release-candidate checks
 
-The mineflayer harness now covers the mechanical half, so **you do not need to test any of
-this**: infection guards, the weakness gate, entry and its tags and countdown, re-entry
-refusal, the soul-readout lockout, or death teardown. Those run before every build ships.
+**Baseline for this section:** `main` v1.4.9 plus `gpt/datapack-release-completion`.
 
-What is left is what a bot cannot judge, plus what it has never exercised.
+The mechanical release gate is the Mineflayer harness, not this list:
 
-## 1. Broken — reproduce if you can
+```bash
+python3 shadowslave/tools/validate.py
+cd testserver && node harness.mjs
+```
 
-| # | Do this | Expect |
-| --- | --- | --- |
-| ~~T1~~ | ~~Fill your hotbar, `test/nightmare`, `/kill @s`, then look around your bed~~ | **CONFIRMED WORKING v1.4.4.** Drops land around the bed, most inside pickup range. **Re-confirmed v1.4.5** after the sweep was changed to run only on death. Drops land around the bed. |
+The harness now covers **32 assertions**, including infection/cure guards, untouched direct-entry
+refusal, weakness and cooldown gates, test bypasses, entry state/countdown, soul-readout isolation,
+reset from both outside and inside the Nightmare, death teardown, Sleeper readout/rank gate,
+Sleep Undisturbed, modifier cleanup, ejection, recovery sleep, and the no-sweep-on-ejection rule.
 
-## 2. New since you last tested — never seen in-game
+Do **not** spend human playtest time repeating those unless the harness fails or the relevant code
+changes. The following are the remaining checks where a person or release environment adds evidence
+the harness cannot.
 
-| # | Do this | Expect |
-| --- | --- | --- |
-| T2 | Get cast out at low health, then immediately crouch on a bed | Refused. *"You are too weak. The Spell has no use for you yet."* Ejection is supposed to cost you the time to heal. |
-| T3 | Straight after being cast out, `/time set night` and sleep | An ordinary night's sleep — night passes, you are not taken, and the actionbar says *"You sleep, and nothing reaches for you."* This is the 600-second cooldown. |
-| T4 | Wait out the cooldown, heal up, then sleep or crouch on a bed | It takes you again. |
-| T5 | As an untouched player, `/trigger soul` | `Rank: Mundane`. "Sleeper" is the human name for the *Dormant* rank, which you only hold once marked — an untouched player should not have a rank at all. |
+## H1 — death-screen presentation
 
-## 3. Never confirmed on any build
+1. `/function shadowslave:test/reset`
+2. `/function shadowslave:test/infect`
+3. `/function shadowslave:test/nightmare`
+4. `/kill @s`
 
-| # | Do this | Expect |
-| --- | --- | --- |
-| T6 | Die in the trial and watch the death screen | **No** portal warp, no glimpse of your bed behind it. Only testable from v1.3.1 — before that nothing ran on death at all. |
-| T7 | `test/awaken`, note the Aspect, then `test/reset` and `test/awaken` again | The old Aspect and Flaw are fully gone. Check `/trigger soul`: Max Health 20 unless the **new** roll is Fragile, Armor 0 unless it is Bone. (v1.4.8 renamed these from Vitality/Endurance — those were never canon Attributes.) Modifiers used to outlive the Aspect that granted them. |
-| T8 | As a **Sleeper**, sleep at night | Sleeps normally and grants **Sleep Undisturbed**. That advancement was unreachable until v1.2.1. |
-| T9 | `test/cure` as a Sleeper | Refuses and points you at `test/reset`. It used to claim the Spell had lost interest, which was untrue. |
-| ~~T10~~ | ~~As a Carrier, crouch on a bed~~ | **CONFIRMED WORKING v1.4.4.** The telegraph appears immediately, before the hold completes. The hold itself was already confirmed in v1.2.0 (B1); this closes the v1.2.1 telegraph added on top of it. |
-| ~~T11~~ | ~~Let the creature chase you~~ | **CONFIRMED WORKING v1.4.6.** The chase reads right. Its speed comes from an effect — the attribute had never applied, being overwritten by the ravager itself. |
-| ~~T12~~ | ~~The whole loop once, cleanly~~ | **CONFIRMED WORKING v1.4.6.** infect → sleep → survive → kill → Sleeper, with the Dormant Aspect, the Flaw and the verification tree all filled in. The last untested branch, and the only one nothing automated can reach — killing the creature needs a real fight. |
+**Expect:** a normal death screen. No portal warp and no visible glimpse of the bed/Overworld behind
+the death screen before respawn.
 
-## 4. Judgement — only you can settle these
+This has never been cleanly confirmed by a human on a build where the current death teardown was
+active. The harness verifies state cleanup but cannot judge what the client visually renders.
 
-**Settled — do not ask again.** Recorded here because this list was handed back with
-already-answered questions still on it, which wastes a playtest.
+## H2 — natural cooldown expiry
 
-| # | Verdict |
-| --- | --- |
-| J1 | **The fight — answered v1.4.0.** "Still a bit hard": on Normal, wooden sword, no armour, 4-6 hits land per attempt and about three taken ejects you. This is what drove the 600s cooldown. Coming back better equipped is the intended answer; revisit only if it still walls at stone/iron. |
-| J2 | **The dark — closed v1.4.4.** `ambient_light` 0.1 has been live in every test since the fresh world was made after v1.0.7, and the original "way too dark to see anything" was never re-reported. Inferred from the absence of a complaint across the whole fight sweep, not an explicit verdict — say so if it still reads wrong. |
-| J5 | **Spawn rates — answered.** "Alright, could go either way." Left as-is; no change without a stronger signal. |
-| J6 | **The sneak hold — confirmed working.** A tap does nothing, a short hold takes you, and you judged it deliberate. See also §2.6 and §3.4. |
+This is mechanical, but the harness currently checks **cooldown refusal** and **sleep-to-clear** rather
+than waiting out the timer itself. Use a shortened score instead of waiting ten real minutes:
 
-**Still open**
+1. become a Carrier and get cast out once;
+2. heal above the entry threshold;
+3. `/scoreboard players set @s ss_cooldown 2`;
+4. wait about three seconds;
+5. crouch on a bed or call the real `shadowslave:nightmare/enter` function.
 
-| # | Question |
-| --- | --- |
-| ~~J3~~ | **ANSWERED v1.4.6.** The cooldown ending on waking reads right — one night is the right price for losing. |
-| ~~J7~~ | **ANSWERED v1.4.5.** 2 hearts reads right — "health drop out is good as well". |
-| ~~J4~~ | **CONFIRMED WORKING v1.4.4.** Switches to the creature and tracks its health. |
+**Expect:** the cooldown reaches zero and normal entry works again.
 
----
+If this fails, add it to the harness before fixing the datapack so the regression is reproducible.
 
-**If you only do three:** T1 (the broken one), T3 (the cooldown, entirely new), and J1 (the fight,
-which nothing but play can settle).
+## H3 — release ZIP smoke test
+
+From the repository root:
+
+```bash
+python3 shadowslave/tools/build_release.py
+```
+
+Then install the generated `shadowslave-vX.Y.Z.zip` into a **fresh Minecraft 1.21.1 world**.
+
+Confirm:
+
+- `/datapack list` sees and enables the pack;
+- the load banner has the expected version;
+- `/function shadowslave:test/selfcheck` reports PASS;
+- advancements render under the player-facing **Shadow Slave** tab, not “Verification”;
+- `/function shadowslave:test/nightmare` can enter the custom dimension.
+
+The fresh-world step matters because dimension and worldgen validation can fail at world creation in
+ways `/reload` on an existing world does not reproduce.
+
+## Already confirmed — re-run only after the owning code changes
+
+- **Death item recovery:** confirmed v1.4.4 and v1.4.5. Re-check only if `nightmare/sweep*` or death-return timing changes.
+- **Whole winning loop:** confirmed v1.4.6. Re-check after changes to `nightmare/survive`, `progression/`, placeholder generation, or the fight itself.
+- **Fight balance:** intentionally not winnable at wood/no-armour; come back better equipped. Revisit only if stone/iron gear still walls progression.
+- **Ambient darkness:** 0.1 accepted in repeated play.
+- **Bossbar handover:** confirmed working.
+- **Creature chase/leash:** confirmed working and judged fair.
+- **Spawn rate:** “could go either way”; leave unchanged without a stronger signal.
+- **Sneak hold/telegraph:** confirmed and judged intentional.
+- **Recovery sleep:** confirmed and now automated.
