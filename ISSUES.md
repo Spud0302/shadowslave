@@ -1,5 +1,62 @@
 # Shadow Slave — Known Issues
 
+## Current release status
+
+**Baseline:** `main` v1.4.9 plus the `gpt/datapack-release-completion` release-hardening branch.
+
+There is currently **no known datapack-fixable blocker** that should be solved by growing more
+command architecture before the Java transition. The current release work is test/release hardening
+and presentation, not a new gameplay phase.
+
+### Current low-risk uncertainties
+
+- **Ravager roar damage is assumed rather than isolated in a dedicated test.** Ordinary creature
+  damage is explicitly set, but the ravager's shield-stun roar is vanilla behaviour. Revisit only if
+  it produces an observed bad ejection/death edge case.
+- **Return coordinates pass through integer scoreboards.** Negative fractional coordinates truncate
+  toward zero, so the player may return up to roughly one block from the exact bed coordinate. The
+  unstick search handles the practical safety case.
+- **Natural cooldown expiry deserves one shortened smoke check.** The harness proves cooldown
+  refusal and sleep-to-clear; `TESTING.md` keeps a two-second manual expiry check until that path is
+  promoted into the harness.
+- **Death-screen presentation remains human-only.** State teardown is automated, but a bot cannot
+  judge whether the client briefly shows a portal warp/bed behind the death screen.
+
+### Deliberate Phase 1 ceilings — not bugs
+
+- **One active Nightmare at a time.** The datapack uses one global bossbar/creature set/return
+  storage. True concurrent instance ownership belongs in Java.
+- **Broad death-drop recovery.** On the death path, every loose item in the Nightmare dimension is
+  swept home. Precise per-player item ownership belongs in Java; do not replace this with an
+  unreliable radius heuristic.
+- **Instant-kill damage can bypass the 4 HP (2-heart) ejection threshold.** Teardown still runs;
+  reliably intercepting all real-death inventory behaviour is beyond the datapack boundary.
+- **The First Nightmare is intentionally not winnable at wood/no-armour.** Come back better equipped;
+  revisit only if stone/iron gear still walls progression.
+- **The creature is a ravager stand-in and terrain uses Overworld noise.** Bespoke AI/models and richer
+  world architecture are Java/content work.
+- **Four placeholder Aspects and four placeholder Flaws are intentionally finite.** Do not scale the
+  one-tag-per-power prototype into the future generated system.
+
+### Resolved during the release-completion pass
+
+- The shipped **“Shadow Slave — Verification”** screen has been converted into a player-facing
+  **Shadow Slave** advancement tree while keeping the historical `shadowslave:test/*` ids for
+  save/harness compatibility. This resolves historical issue **3.3** pending merge/version stamp.
+- `test/reset` from inside a Nightmare already performs teardown and clears the cooldown in v1.4.9;
+  the old limitation saying it strands the player is historical and is now covered by a harness
+  regression on this branch.
+- The static validator is no longer “thin”: it checks command references, objectives, bossbars,
+  tags, modifier pairing, dimension/biome shapes, absent-score policy, and three-way version
+  agreement.
+
+Everything below this line is the **historical issue log**. It is preserved because it records what
+was believed/tested at each release; do not treat an unedited old sentence as the current runtime
+contract. Current behaviour lives in `README.md`, current manual checks in the bottom of
+`TESTING.md`, and shipped fixes in `CHANGELOG.md`.
+
+---
+
 > ## Fixed in `v1.2.1` — the post-sweep batch
 >
 > All ten outstanding bugs from the 39/39 test sweep, plus the `cure` message.
@@ -22,7 +79,6 @@
 > and 2.13. None remain.
 >
 > **Untested.** Every one of these was written against a game that cannot run here.
-
 
 > **Fixed in `v1.0.1`** (while you were testing `v1.0.0`): §3.1 Flame no longer cancels the
 > Shadow Slave flaw; §4 `test/reset` no longer strands you in the nightmare; §5 burning
@@ -51,7 +107,7 @@ warn you.
 | 1.1 | ~~**Teleporting a sleeping player.**~~ **CONFIRMED WORKING v1.0.6.** Sleeping wakes you and pulls you in cleanly; title, bossbar and the Chosen advancement all fire. No `schedule` fallback needed. | — | — |
 | 1.2 | ~~**Advancement `icon` format.**~~ **CONFIRMED WORKING v1.0.4.** `{"id": ...}` is correct for 1.21.1 — the tree renders and the icons draw. | — | — |
 | 1.3 | ~~**The dimension registers.**~~ **CONFIRMED WORKING v1.0.4**, after four rounds: `height` had to match the noise settings' range, and `monster_spawn_light_level` needed its bounds at the top level rather than nested under `value`. | — | — |
-| 1.4 | **`generic.` attribute prefix.** Correct for 1.21.1; the prefix was dropped in 1.21.2.                                                             | `/attribute @s minecraft:generic.armor get`                                                                            | On 1.21.2+ every Aspect and Flaw attribute silently does nothing. Drop `generic.` throughout.                                       |
+| 1.4 | **`generic.` attribute prefix.** Correct for 1.21.1; the prefix was dropped in 1.21.2. | `/attribute @s minecraft:generic.armor get` | On 1.21.2+ every Aspect and Flaw attribute silently does nothing. Drop `generic.` throughout. |
 | 1.5 | ~~**`minecraft:generic.safe_fall_distance` exists in 1.21.1.**~~ **CONFIRMED WORKING v1.0.8.** It exists and applies. Retuned in v1.1.2: -2 left a safe distance of 1, and a standing jump is 1.25 blocks, so jumping on the spot cost half a heart. | — | — |
 
 ---
@@ -68,11 +124,11 @@ warn you.
 
 ## 2. Probably wrong, low blast radius
 
-| #   | Issue                                         | Detail                                                                                                                                                                                                             |
-| --- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2.1 | ~~**Creature's fire resistance may not apply.**~~ **CONFIRMED BROKEN, FIXED v1.0.8.** An in-game `/data get` showed no effects on the creature at all — 1.20.5 renamed the key to `active_effects` and the pack used the old `ActiveEffects`, so it was silently dropped. |
-| 2.2 | **Ravager roar damage is assumed ~6.**        | The ejection threshold (9 HP) was set against that figure. The roar fires when you block with a shield and is not governed by `attack_damage`. If it hits harder, raise the threshold in `tick_player.mcfunction`. |
-| 2.3 | **Return position truncates toward zero.**    | Coordinates go through integer scoreboards, so sleeping at x = −10.7 returns you to −10. Up to one block off, and only on negative coordinates.                                                                    |
+| #   | Issue                                         | Detail |
+| --- | --------------------------------------------- | ------ |
+| 2.1 | ~~**Creature's fire resistance may not apply.**~~ **CONFIRMED BROKEN, FIXED v1.0.8.** | An in-game `/data get` showed no effects on the creature at all — 1.20.5 renamed the key to `active_effects` and the pack used the old `ActiveEffects`, so it was silently dropped. |
+| 2.2 | **Ravager roar damage is assumed ~6.** | The ejection threshold was set against that figure. The roar fires when you block with a shield and is not governed by `attack_damage`. |
+| 2.3 | **Return position truncates toward zero.** | Coordinates go through integer scoreboards, so sleeping at x = −10.7 returns you to −10. Up to one block off, and only on negative coordinates. |
 
 ---
 
@@ -94,58 +150,61 @@ warn you.
 
 | 2.11 | ~~FIXED v1.2.1~~ — **Dying in the trial teleports your corpse home behind the death screen.** The per-tick health check sees 0 HP on a dead-but-not-yet-respawned player, fires the ejection, and `leave` runs its cross-dimension teleport — so the player watches the portal warp effect and their bed appear while the death screen is up. Then vanilla respawn sends them to the same place anyway. Confirmed in-game v1.2.0. | The state cleanup must still run on death; only the teleport is redundant. Add an early `return 0` in `leave.mcfunction` after the tag/bossbar/creature cleanup but before the return teleport, when `@s[nbt={Health:0.0f}]` — reading player NBT is allowed, only writing is refused. |
 
-| 2.12 | ~~FIXED v1.2.1~~ — **Every attribute modifier orphans when its Aspect/Flaw tag is removed.** CONFIRMED in-game v1.2.0 for both: after cycling Bone→Wind→Flame and dropping Fragile, the soul readout showed `Vitality: 14  Endurance: 6` — Fragile's max-health penalty and Bone's armour bonus both still applied, with neither tag present. The upkeep stops *reapplying* a modifier but nothing removes the one already on the player. `awaken/roll` also never clears previous tags, compounding it. Latent in normal play (you Awaken once); any re-roll leaves you carrying powers and penalties you no longer have. | Clear all eight `ss_aspect_*` / `ss_flaw_*` tags **and** strip all four attribute modifiers at the top of `roll.mcfunction` before applying the new roll. |
+| 2.12 | ~~FIXED v1.2.1~~ — **Every attribute modifier orphans when its Aspect/Flaw tag is removed.** CONFIRMED in-game v1.2.0 for both: after cycling Bone→Wind→Flame and dropping Fragile, the soul readout showed `Vitality: 14  Endurance: 6` — Fragile's max-health penalty and Bone's armour bonus both still applied, with neither tag present. `awaken/roll` also never clears previous tags, compounding it. | Clear all eight `ss_aspect_*` / `ss_flaw_*` tags **and** strip all four attribute modifiers at the top of `roll.mcfunction` before applying the new roll. |
 
-| 2.13 | ~~FIXED v1.2.1~~ — **`Sleep Undisturbed` is unreachable — regression from the v1.2.0 entry refactor.** The grant sits at `nightmare/enter.mcfunction:7` gated on `ss_rank matches 1..`, but `sleep.mcfunction:16` now returns early for Awakened players, so `enter` is never called for them. Adding `sleep.mcfunction` moved the Awakened check upstream and orphaned the grant behind a branch that can no longer reach it. Confirmed in-game v1.2.0 — the behaviour is right, only the advancement never fires. | Move the grant into `sleep.mcfunction`, onto the same line as the Awakened early return: `execute if score @s ss_rank matches 1.. run advancement grant @s only shadowslave:test/bypass`, immediately before the `return 0`. |
+| 2.13 | ~~FIXED v1.2.1~~ — **`Sleep Undisturbed` is unreachable — regression from the v1.2.0 entry refactor.** The grant sits at `nightmare/enter.mcfunction:7` gated on `ss_rank matches 1..`, but `sleep.mcfunction:16` now returns early for Awakened players, so `enter` is never called for them. Adding `sleep.mcfunction` moved the Awakened check upstream and orphaned the grant behind a branch that can no longer reach it. Confirmed in-game v1.2.0 — the behaviour is right, only the advancement never fires. | Move the grant into `sleep.mcfunction`, onto the same line as the Awakened early return. |
 
 | 3.5 | ~~**Getting out of bed may BE the entry gesture.**~~ **NOT REACHABLE — closed v1.3.0.** The trap needs a Carrier to wake up lying in a bed, and that state does not occur: a Carrier who sleeps is pulled in immediately, and the only sleep that ends with you in a bed is the first one, which happens while you are still untouched. Confirmed in-game: right-clicking a bed at night as a Carrier goes straight into the trial. | — |
 
 ## 3. Design problems worth a decision
 
-These work as built. Whether they're _right_ is your call.
+These entries are historical; current resolutions are called out where known.
 
-| #   | Issue                                                                                                                                                                                | Options                                                                                                                                                                                                             |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 3.1 | **Flame Aspect completely nullifies the Shadow Slave flaw.** Flame grants fire resistance; Shadow Slave deals `minecraft:on_fire` damage. Roll both and you have no drawback at all. | Change the flaw's damage type to `minecraft:magic` — one word, already the documented fallback. Or keep it as a lucky roll.                                                                                         |
-| 3.2 | ~~FIXED v1.2.1~~ — **The fight is unwinnable at the tier it happens.** Measured in-game v1.2.0, wooden sword and no armour: **3 hits landed (12 of 160 damage, 7.5%) before ejection at ~3 hits taken.** Winning would need roughly thirteen ejection-free runs' worth of damage in one attempt. The creature is not hard, it is impossible — and Phase 1 has nothing else to do, so the Awakening is unreachable. | Cut `max_health` hard — 160 → somewhere near 60, which is 15 wooden-sword hits. Keep `attack_damage` at 4 so it stays frightening. Also see 2.9: its speed is not actually being set, so kiting is more viable than intended. |
-| 3.3 | **The verification advancement tab ships with the pack.**                                                                                                                            | Fine while testing. Before any public release either delete `advancement/test/` and its grant lines, or convert the tree into real player-facing advancements — the trigger points are already in the right places. |
+| #   | Issue | Resolution / options |
+| --- | ----- | -------------------- |
+| 3.1 | ~~**Flame Aspect completely nullifies the Shadow Slave flaw.**~~ | **FIXED v1.0.1.** The Flaw uses magic damage so Flame's fire resistance does not cancel it. |
+| 3.2 | ~~**The fight is unwinnable at the tier it happens.**~~ | **FIXED/RETUNED v1.2.1.** Creature health dropped from 160 to 60. Later play established that wood/no-armour is still intentionally insufficient; come back better equipped. |
+| 3.3 | ~~**The verification advancement tab ships with the pack.**~~ | **RESOLVED on `gpt/datapack-release-completion`, pending merge/version.** Display copy is now player-facing while historical ids remain compatible. |
 
 ---
 
 - **Nightmare mob spawn rate is unsettled.** Judged "alright, could go either way" on one playtest — not enough to move it. The dial is the `spawners.monster` weights in `worldgen/biome/nightmare.json`: zombie 40, skeleton 30, spider 20, phantom 10, with `minCount`/`maxCount` per entry. Revisit when more than one person has played it.
 
-## 4. Deliberate limitations — not bugs
+## 4. Deliberate limitations — historical wording
 
-- **The First Nightmare is not winnable at wood/no-armour, and that is now intended.** Measured on Normal difficulty, wooden sword, no armour: 4-6 hits landed of the 15 needed, ejected after ~3 hits taken (v1.3.0, 60 HP creature — was 3 of 40 at 160 HP). Each entry spawns a fresh creature, so attempts do not chip it down. The answer is to come back better equipped, which the v1.4.0 cooldown makes a real loop rather than a bounce. Revisit if iron-tier also proves impossible.
-- **Instant-kill damage bypasses ejection entirely.** The threshold catches you at 9 HP, so anything that takes you from above that straight to 0 — a long fall, lava, the void, `/kill` — kills you outright and drops your gear. Confirmed in-game v1.2.0 via `/kill`. The teardown still runs correctly (tag cleared, bossbar hidden, creature removed), so this is a limit of the gear-retention promise, not a state bug.
-- **The leash teleports the creature onto you, and it gets a free hit.** Confirmed in-game v1.2.0 at ~234 blocks. Judged fair by the playtester: fleeing should cost something, and you cannot outrun the Nightmare. If it ever needs softening, teleport it a few blocks away rather than to the player's exact position.
-Recorded so nobody "fixes" them by accident.
+The current authoritative list is at the top of this file and in README. These older notes are kept
+for the development record.
 
-- **Single player at a time.** One global bossbar, and one player leaving the nightmare kills every creature in it — so a second player mid-trial gets a free Awakening. Per-player bossbars need macro-generated ids; per-player creatures need owner tags. Both deferred to Phase 6.
-- **Ejection at 9 HP, not at death.** Intercepting real death without dropping the player's gear is not reliably possible in a datapack, and keeping the gear matters more than the exact threshold.
-- **The Nightmare Creature is a reskinned ravager.** A bespoke creature needs custom models and AI, which means Java. Phase 2+.
-- **Terrain is Overworld noise.** Only the lighting, sky and spawns are nightmarish.
-- **`/function shadowslave:test/reset` run from inside the nightmare strands you.** It clears your tag without teleporting you out, and beds don't work there. Test-only tool — `/tp` yourself out.
-
----
-
-## 5. Spec drift — the design doc promises things Phase 1 doesn't deliver
-
-Either build them or amend the spec.
-
-- **Flame's "burning strikes"** — the spec's Aspect table promises fire immunity _and_ burning strikes; only immunity is implemented.
-- **Soul readout omits attributes** — spec says `/trigger soul` prints "rank, Aspect, Flaw and attributes". It prints the first three.
-- **`loot_table/nightmare_creature.json`** is in the spec's file layout and was never created. The creature drops vanilla ravager loot. Probably correct for Phase 1, since Memories are Phase 2 — strike it from the spec.
-- **Objective naming** — spec says `ss_return_{x,y,z}`, implementation uses `ss_ret_{x,y,z}`. Implementation is internally consistent; update the spec.
+- **The First Nightmare is not winnable at wood/no-armour, and that is now intended.** Measured on Normal difficulty, wooden sword, no armour: 4-6 hits landed of the 15 needed, ejected after ~3 hits taken (v1.3.0, 60 HP creature — was 3 of 40 at 160 HP). Each entry spawns a fresh creature, so attempts do not chip it down. The answer is to come back better equipped.
+- **Instant-kill damage bypasses ejection entirely.** The teardown still runs correctly; this is a limit of the gear-retention promise, not a state bug.
+- **The leash teleports the creature onto you, and it gets a free hit.** Confirmed and judged fair; fleeing should cost something.
+- **Single player at a time.** One global bossbar/creature ownership model; true instance ownership is deferred to Java.
+- **Ejection happens above death, not at death.** Intercepting real death without dropping gear is not reliably possible in a datapack.
+- **The Nightmare Creature is a reskinned ravager.** Bespoke AI/model belongs in Java.
+- **Terrain is Overworld noise.** Only lighting, sky and spawns are nightmarish.
+- ~~**`test/reset` from inside the nightmare strands you.**~~ **FIXED v1.0.1 and hardened again v1.4.9.** Current reset tears down first and clears transient cooldown state afterward.
 
 ---
 
-## 6. Housekeeping
+## 5. Spec drift — historical
 
-- **The validator's coverage is thin.** It checks `pack_format`, singular directory names, JSON validity, function-tag references, advancement parents and advancement grants. It does **not** check `function`/`predicate` references, objective names, attribute-modifier ids or bossbar ids — all silent-failure classes in Minecraft, and all cheap regex additions over the same file walk.
-- **`validate.py` grant-reference regex has no `#` comment guard.** A commented-out `advancement grant` line would trip a false failure. Harmless today.
-- **`ss_timer` keeps decrementing after the creature spawns.** Cosmetic — the health line overwrites the bossbar in the same tick, and `leave` resets it. Integer overflow is about 3.4 years of continuous ticking.
-- **The `ss_gone` win-delay is 40 ticks.** That guards against a rejoin being misread as a victory before the boss's chunk loads. Two seconds is generous single-player; a laggy server may need more.
+The original Phase 1 spec is now indexed as **HISTORICAL / SUPERSEDED** in
+`docs/superpowers/specs/README.md`. Do not treat the old checklist below as current work.
+
+- Flame's burning strikes were later implemented.
+- The soul readout terminology/model was corrected in v1.4.8/v1.4.9.
+- The old planned creature loot table was never needed for Phase 1.
+- Historical objective-name differences are implementation details, not current defects.
+
+---
+
+## 6. Housekeeping — historical
+
+The old validator-coverage concerns have been resolved across later releases. Current `validate.py`
+checks references, objectives, bossbars, tags, modifier pairing, dimension/biome schema assumptions,
+absent-score policy, and release version agreement.
+
+`ss_gone` still intentionally uses a 40-tick win delay to avoid a rejoin/chunk-load race.
 
 ---
 
@@ -155,10 +214,10 @@ Listed so they don't get re-litigated. Every one of these was a real defect in t
 plan, found during execution:
 
 - `execute in <dimension>` scopes only its own `run` — bare follow-up commands ran in the Overworld.
-- **Minecraft refuses all player NBT writes.** Three sites relied on them; the return teleport silently dumped every player at Overworld 0,0,0 inside stone. Now routed through command storage and a macro function.
-- Tags survive death, so dying in the trial left you permanently tagged and eventually spawned the boss beside your bed.
-- Entry teleported you to y=150 _after_ `spreadplayers` had already placed you safely — a 60-90 block fatal fall.
-- `if score … matches 0` fails on an _absent_ score, and nothing ever wrote 0 — so `/trigger soul` printed an empty card to every un-Awakened player.
-- A distance filter on an _absence_ test made the walk-away exploit easier, not harder.
-- Quitting mid-fight awarded a free win, because the boss's chunk hadn't deserialized on rejoin.
-- A failed summon tagged you as fighting a creature that didn't exist, which the win condition read as victory.
+- **Minecraft refuses all player NBT writes.** Return teleports now route through command storage and a macro.
+- Tags survive death, so death teardown must explicitly clear trial state.
+- Entry once teleported players to y=150 after safe placement, causing fatal falls.
+- `if score … matches 0` fails on an absent score rather than treating it as zero.
+- A distance filter on an absence test once made the walk-away exploit easier.
+- Quitting mid-fight once awarded a free win because the boss chunk had not deserialized on rejoin.
+- A failed summon once marked the player as fighting a creature that did not exist, which the win condition read as victory.
