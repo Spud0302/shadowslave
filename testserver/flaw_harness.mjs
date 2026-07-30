@@ -50,7 +50,12 @@ async function attributeValue(bot, attribute) {
   return parseFloat(match[1])
 }
 
-async function waitAttribute(bot, attribute, predicate, timeoutMs = 4000) {
+// 10s, not 4s. Every burden here is applied by the once-per-second upkeep, and the FIRST upkeep tick
+// after a server restart or a busy preceding harness run can land later than a 4s budget allows. That
+// produced a cold-start-only failure on safe_fall_distance while a direct probe showed the modifier
+// applied correctly — the pack was right and the wait was short. Waiting longer costs nothing on a
+// passing run, because the poll returns as soon as the value is observed.
+async function waitAttribute(bot, attribute, predicate, timeoutMs = 10000) {
   const deadline = Date.now() + timeoutMs
   let seen = null
   while (Date.now() < deadline) {
