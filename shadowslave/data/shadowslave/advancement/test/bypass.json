@@ -4,7 +4,7 @@
     "icon": { "id": "minecraft:white_bed" },
     "title": { "text": "Sleep Undisturbed", "color": "gray" },
     "description": {
-      "text": "A Sleeper slept without being pulled in — the rank gate works."
+      "text": "Sleep after becoming a Sleeper without the First Nightmare taking you again."
     },
     "frame": "task",
     "show_toast": true,

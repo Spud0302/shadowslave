@@ -4,7 +4,7 @@
     "icon": { "id": "minecraft:red_bed" },
     "title": { "text": "Chosen", "color": "dark_purple" },
     "description": {
-      "text": "Sleeping pulled a Carrier into the nightmare dimension."
+      "text": "Enter the First Nightmare after the Spell marks you."
     },
     "frame": "task",
     "show_toast": true,

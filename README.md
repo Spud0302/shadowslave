@@ -12,10 +12,10 @@ Dormant Aspect that grants you power and a Flaw that charges you for it.
 
 ## Install
 
-Drop the `.zip` into your world's `datapacks/` folder and `/reload`.
+Drop the release `.zip` into your world's `datapacks/` folder and `/reload`.
 
 ```
-<world>/datapacks/shadowslave-<version>.zip
+<world>/datapacks/shadowslave-v<version>.zip
 ```
 
 `pack.mcmeta` sits at the root of the archive, which is what Minecraft expects — if a pack
@@ -23,7 +23,7 @@ never appears in `/datapack list`, a wrapper folder is usually why.
 
 **No client install.** Datapacks are server-side, so anyone can join a server running this
 with a completely vanilla client and everything works: the dimension, the trial, Aspects,
-advancements. That is a deliberate reason to stay a datapack for as long as possible.
+advancements. That is a deliberate reason to stay a datapack through the completed Phase 1.
 
 **Requirements:** Minecraft **1.21.1** exactly (`pack_format` 48), difficulty **Easy or
 higher** (Peaceful strips hostile mobs and the trial is empty), and **cheats on** if you want
@@ -55,11 +55,12 @@ first journey into the Dream Realm, which Phase 1 does not have. The ladder is
 | **Aspects** | Shadow, Flame, Bone, Wind                   |
 | **Flaws**   | Shadow Slave, Fragile, Ravenous, Weightless |
 
-Rolled independently, so Shadow + Shadow Slave is possible — and thematically apt.
+Rolled independently in the Phase 1 prototype.
 
 > These eight are **placeholders**. The novel is explicit that every Aspect is unique and that
-> Flaws are never random, so the plan is to generate Aspects and derive Flaws from how you
-> actually survived the trial. See the design spec.
+> Flaws are personal rather than an independent random penalty. The completed datapack keeps this
+> small catalogue as a visible prototype seam; the Java/data-driven system replaces it instead of
+> extending one-tag-per-power indefinitely.
 
 ---
 
@@ -69,26 +70,27 @@ Rolled independently, so Shadow + Shadow Slave is possible — and thematically 
 /function shadowslave:test/help
 ```
 
-| Command          | Does                                |
-| ---------------- | ----------------------------------- |
-| `test/selfcheck` | Asserts the pack loaded correctly   |
-| `test/infect`    | Become a Carrier now                |
-| `test/cure`      | Back to untouched                   |
-| `test/nightmare` | Enter the trial immediately, no bed |
-| `test/awaken`    | Skip the trial, roll an Aspect      |
-| `test/reset`     | Wipe everything and start over      |
+| Command          | Does                                         |
+| ---------------- | -------------------------------------------- |
+| `test/selfcheck` | Asserts the pack loaded correctly            |
+| `test/infect`    | Become a Carrier now                         |
+| `test/cure`      | Back to untouched                            |
+| `test/nightmare` | Enter the trial immediately, no bed          |
+| `test/awaken`    | Historical name: skip to the Sleeper state   |
+| `test/reset`     | Wipe everything and start over               |
 
 Skip the countdown mid-trial with `/scoreboard players set @s ss_timer 1`.
 
 **Testing commands bypass the systems they test.** `test/nightmare` walks past the ejection
 cooldown and the weakness gate via a single-use `ss_test_bypass` tag that entry consumes —
-otherwise the command for entering the trial refuses to enter the trial. The rank gate has no
-bypass on purpose: a Sleeper in a First Nightmare is a state nothing handles. Use
+otherwise the command for entering the trial could be refused by the trial itself. The rank gate
+has no bypass on purpose: a Sleeper in a First Nightmare is a state nothing handles. Use
 `test/reset`.
 
-There is also a **Shadow Slave — Verification** advancement tab. Each entry is granted at the
-exact line a mechanic executes, so it records what actually ran rather than what you think
-ran. An incomplete branch tells you where the loop stopped.
+There is also a **Shadow Slave** advancement tab. Existing internal IDs remain under
+`shadowslave:test/*` for save and harness compatibility, but the displayed tree is player-facing.
+Each entry is still granted at the exact line its mechanic fires, so an incomplete branch records
+where the loop stopped.
 
 ---
 
@@ -97,36 +99,47 @@ ran. An incomplete branch tells you where the loop stopped.
 ### Structure
 
 ```
-shadowslave/            the datapack itself
+shadowslave/              the datapack itself
   data/shadowslave/
-    function/           all logic, grouped by responsibility
+    function/             all logic, grouped by responsibility
       nightmare/          the trial lifecycle
-      aspect/  flaw/      recurring per-second effects
-      awaken/             the one-time rank transition
+      progression/        First Nightmare -> Sleeper transition
+      prototype/          temporary Aspect/Flaw generator
+      aspect/  flaw/      recurring per-second placeholder effects
+      awaken/             historical compatibility alias
       test/               testing commands
     dimension_type/  dimension/  worldgen/biome/
     advancement/  predicate/
-  tools/validate.py     offline structure and reference checker
-testserver/             local 1.21.1 server + mineflayer harness
-docs/superpowers/       design spec and implementation plan
+  tools/validate.py       offline structure and reference checker
+  tools/build_release.py  validated reproducible release ZIP builder
+testserver/               local 1.21.1 server + Mineflayer harness
+docs/superpowers/         historical design/spec material
+docs/lore-research/       canon evidence and Java migration research
 ```
 
 ### Checks before shipping
 
 ```bash
-python3 shadowslave/tools/validate.py      # static: structure, references, schema
-cd testserver && node harness.mjs          # live: 25 assertions against a real server
+python3 shadowslave/tools/validate.py      # static: structure, references, schemas, versions
+cd testserver && node harness.mjs          # live: 32 assertions against a real 1.21.1 server
+cd .. && python3 shadowslave/tools/build_release.py
 ```
+
+The builder creates `shadowslave-vX.Y.Z.zip` at the repository root, containing only
+`pack.mcmeta`, optional `pack.png`, and `data/**`, and prints its SHA-256. It reruns the static
+validator; the live harness remains a separate required release gate.
 
 **`validate.py`** catches what fails _silently_ in Minecraft — plural directory names, a
 misspelled objective, a tag tested but never applied, an unresolvable function or predicate,
 an attribute modifier added without a paired remove, a `dimension_type` that does not cover
-its noise settings, and version drift between the manifest and the load message.
+its noise settings, project-banned absent-score selector filters, and version drift between
+`pack.mcmeta`, the load banner, and `test/selfcheck`.
 
-**`harness.mjs`** runs a mineflayer bot against a local server, executing commands and reading
+**`harness.mjs`** runs a Mineflayer bot against a local server, executing commands and reading
 the replies back to assert on game state. It covers the mechanical half — state transitions,
-guards, thresholds, teardown — and prints a **"needs a human"** list for everything requiring
-judgement.
+guards, thresholds, teardown — and prints a **"needs a human"** list for the few behaviours that
+cannot be observed reliably without a real player. Expected-query timeouts are test errors rather
+than negative results, so an unreadable state cannot silently count as a pass.
 
 Both exist because this project has repeatedly shipped code that was valid, well-formed, and
 wrong. Almost every way a datapack breaks is silent.
@@ -161,6 +174,26 @@ a bare rule tends to get "improved" away by someone who cannot see what it was p
 [Pride Versioning](https://pridever.org/) — `PROUD.DEFAULT.SHAME`. Tag first, then bump SHAME
 for each round of fixes; holding a release back until it is clean makes the number lie.
 
+Version stamping happens on `main` after review. `pack.mcmeta`, `init.mcfunction`, and
+`test/selfcheck.mcfunction` must agree; the validator enforces all three.
+
+---
+
+## Phase 1 completion boundary
+
+The datapack is the **completed Phase 1 reference implementation**, not the permanent architecture
+for every future system. These known ceilings are deliberately left for the Java port rather than
+papered over with increasingly fragile command machinery:
+
+- one active Nightmare at a time through a shared creature and bossbar;
+- broad item recovery on death inside the single-player Nightmare instance;
+- a shallow `ss_rank` flag rather than a full Soul data model;
+- four fixed placeholder Aspects and four fixed placeholder Flaws;
+- a ravager stand-in, Overworld-noise Nightmare terrain, no custom GUI and no custom AI.
+
+Those limits are documented migration seams. Phase 2+ should preserve the proven entry/teardown and
+testing ideas while replacing the state/ownership systems in Java.
+
 ---
 
 ## Documents
@@ -172,11 +205,11 @@ for each round of fixes; holding a release back until it is clean makes the numb
 | [TESTING.md](TESTING.md)     | Full in-game test plans                                             |
 | [docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) | Why the code is like this — each convention with the bug that caused it |
 | [docs/COLLABORATION.md](docs/COLLABORATION.md) | How the two AI agents work through this repo |
-| [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) | Questions between agents, and the answers that settled them |
-| `docs/superpowers/specs/`    | Design spec, including the direction for generated Aspects          |
+| [docs/lore-research/](docs/lore-research/) | Canon evidence and migration research |
+| `docs/superpowers/specs/`    | Historical design specs; read status banners before relying on them |
 
 ## Credit
 
 _Shadow Slave_ is by **Guiltythree**. This is an unofficial fan project, not affiliated with
-the author or publisher. Lore is drawn from the community wiki; the vault note is the
-project's source of truth for it.
+the author or publisher. Canon research and confidence labels are tracked under
+[`docs/lore-research/`](docs/lore-research/); the novel is treated as the primary authority.

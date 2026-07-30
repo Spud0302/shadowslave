@@ -10,7 +10,7 @@ scoreboard players set @s ss_gone 0
 # This lived in eject.mcfunction, which meant DEATH set no cooldown at all: dying reaches the
 # teardown by a different route — the dimension-mismatch cleanup calls this function directly,
 # never touching eject. Every exit passes through here, so this is where it belongs. Harmless
-# on the survive path, since the Awakened cannot re-enter anyway.
+# on the survive path, since a Sleeper cannot re-enter a First Nightmare anyway.
 scoreboard players set @s ss_cooldown 600
 
 # Kills every creature in the nightmare, not just this player's. Phase 1 is single-player

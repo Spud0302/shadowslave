@@ -4,7 +4,7 @@
     "icon": { "id": "minecraft:iron_sword" },
     "title": { "text": "Slayer", "color": "dark_purple" },
     "description": {
-      "text": "The creature died and the trial resolved as a win."
+      "text": "Kill the creature at the heart of your First Nightmare."
     },
     "frame": "goal",
     "show_toast": true,
