@@ -4,7 +4,7 @@
     "icon": { "id": "minecraft:wither_rose" },
     "title": { "text": "Cast Out", "color": "dark_red" },
     "description": {
-      "text": "Near-death ejection returned you with gear intact and no Awakening."
+      "text": "Escape the Nightmare on the edge of death. You will have to face it again."
     },
     "frame": "task",
     "show_toast": true,
