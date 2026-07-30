@@ -29,6 +29,11 @@ execute if score @s ss_timer matches ..0 unless entity @s[tag=ss_creature_spawne
 # Once the creature exists, the bar tracks its health instead of the timer.
 execute if entity @s[tag=ss_creature_spawned] store result bossbar shadowslave:trial value run data get entity @e[tag=ss_creature,limit=1] Health
 
+# Cross-column Q2 hook: observe strong First-Nightmare behavior while the creature is genuinely
+# present. This MUST run before the 48-block leash below; otherwise a flee signal is teleported away
+# before the observer can see it. The helper does not change combat/trial state.
+execute if entity @e[tag=ss_creature] run function shadowslave:prototype/observe_trial
+
 # You cannot outrun the Nightmare. Leashing the creature also makes the absence test below
 # a genuine "it died" signal rather than "I walked away".
 execute if entity @s[tag=ss_creature_spawned] run tp @e[tag=ss_creature,distance=48..] ~ ~ ~
