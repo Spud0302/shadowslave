@@ -4,7 +4,7 @@
     "icon": { "id": "minecraft:red_bed" },
     "title": { "text": "Chosen", "color": "dark_purple" },
     "description": {
-      "text": "Sleeping pulled a Sleeper into the nightmare dimension."
+      "text": "Sleeping pulled a Carrier into the nightmare dimension."
     },
     "frame": "task",
     "show_toast": true,

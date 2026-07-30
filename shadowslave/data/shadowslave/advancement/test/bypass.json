@@ -4,7 +4,7 @@
     "icon": { "id": "minecraft:white_bed" },
     "title": { "text": "Sleep Undisturbed", "color": "gray" },
     "description": {
-      "text": "An Awakened player slept without being pulled in — the rank gate works."
+      "text": "A Sleeper slept without being pulled in — the rank gate works."
     },
     "frame": "task",
     "show_toast": true,

@@ -3,7 +3,7 @@
   "display": {
     "icon": { "id": "minecraft:ender_eye" },
     "title": { "text": "Aspect Holds", "color": "aqua" },
-    "description": { "text": "Aspect upkeep ran on a live Awakened player." },
+    "description": { "text": "Aspect upkeep ran on a live Sleeper." },
     "frame": "task",
     "show_toast": true,
     "announce_to_chat": false

@@ -10,6 +10,36 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 
 ---
 
+## `1.4.8` — you are a Sleeper, not an Awakened
+
+The lore research in `docs/lore-research/` (Section B) establishes that surviving a First
+Nightmare produces a **Sleeper** holding a **Dormant** Aspect. Awakening is a rank further on,
+reached after a first journey into the Dream Realm and a return through a Gateway — which Phase 1
+does not have. The trial's climax was announcing a rank the player cannot yet hold.
+
+The corrected ladder is **Mundane → Carrier → Sleeper (Dormant) → Awakened**. Two labels moved:
+
+- Surviving the trial now says *"You are a Sleeper"*, and the soul readout reports
+  `Rank: Sleeper (Dormant)`.
+- A Carrier was previously labelled a Sleeper. Being marked is not a rank — you hold Dormant only
+  after surviving. A Carrier now reads `Rank: Carrier (marked)`.
+
+**Labels only.** `ss_rank 1` still means "survived the First Nightmare" everywhere it is tested,
+so no guard, gate or advancement condition changed. Function names (`awaken/roll`, `test/awaken`)
+also stay — renaming them is churn for no behavioural gain, and Awakening is still where the
+ladder is heading. The stale comments in `soul.mcfunction` and `init.mcfunction` that documented
+the old model were the real hazard and are corrected.
+
+Two harness assertions had been quietly disarmed by the rewording: `cure refuses on a Sleeper`
+waited on a string the pack can no longer emit, and `cure on a Carrier does not refuse` was
+searching for "Awakened" in a refusal that now says "Sleeper" — passing whatever happened, which
+is worse than failing. Both match the current wording.
+
+Separately, `ejection does not sweep loose items onto you` was flaky, for a reason that inverted
+it: on a fixed sleep the check could run before the ejection teleport landed, while the player was
+still stood in the nightmare beside the summoned item — so "an item is near me" was true and said
+nothing about the sweep. It polls for the dimension now. **25/25, stable across three runs.**
+
 ## `1.4.7` — the countdown was five minutes
 
 - **The trial's countdown drops from 6000 ticks to 1800** — five real minutes of dark down to

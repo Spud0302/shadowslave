@@ -110,7 +110,10 @@ async function run(bot) {
 
   const cureAsCarrier = await cmd(bot, '/function shadowslave:test/cure')
   assert('cure removes the mark', !(await hasTag(bot, 'ss_carrier')))
-  assert('cure on a Carrier does not refuse', !/Awakened/i.test(cureAsCarrier))
+  // Match the CURRENT refusal wording. 1.4.8 reworded it from "You are Awakened" to
+  // "You are a Sleeper", which would have left this searching for a string the pack can no
+  // longer emit — passing whatever happened, which is worse than failing.
+  assert('cure on a Carrier does not refuse', !/Sleeper|cannot lose interest/i.test(cureAsCarrier))
 
   // --- the weakness gate (v1.4.1) -----------------------------------------
   // Call the real entry function, not test/nightmare — as of 1.4.4 the wrapper carries
@@ -223,9 +226,9 @@ async function run(bot) {
   assert('untouched reads as Mundane', /Mundane/i.test(soulUntouched), soulUntouched.match(/Rank:[^\n]*/)?.[0] || '')
 
   // --- T9: cure refuses on an Awakened ------------------------------------
-  await cmd(bot, '/function shadowslave:test/awaken', /Awakened/i)
-  const cureAwakened = await cmd(bot, '/function shadowslave:test/cure', /Awakened|lost interest/i)
-  assert('cure refuses on an Awakened', /cannot lose interest|test\/reset/i.test(cureAwakened), cureAwakened.slice(0, 80))
+  await cmd(bot, '/function shadowslave:test/awaken', /Sleeper/i)
+  const cureAwakened = await cmd(bot, '/function shadowslave:test/cure', /Sleeper|lost interest/i)
+  assert('cure refuses on a Sleeper', /cannot lose interest|test\/reset/i.test(cureAwakened), cureAwakened.slice(0, 80))
 
   // --- T7: re-rolling clears the previous Aspect's modifiers --------------
   // Force Bone so there is definitely an armour modifier to leave behind.
@@ -236,7 +239,7 @@ async function run(bot) {
   await sleep(1400)  // upkeep runs once a second
   const armourWithBone = await cmd(bot, '/attribute @s minecraft:generic.armor get', /Value of|attribute/i)
   await cmd(bot, '/function shadowslave:test/reset')
-  await cmd(bot, '/function shadowslave:test/awaken', /Awakened/i)
+  await cmd(bot, '/function shadowslave:test/awaken', /Sleeper/i)
   await sleep(1400)
   const armourAfterReroll = await cmd(bot, '/attribute @s minecraft:generic.armor get', /Value of|attribute/i)
   const boneVal = parseFloat(armourWithBone.match(/is ([\d.]+)/)?.[1] ?? '0')
@@ -295,12 +298,23 @@ async function run(bot) {
   await cmd(bot, '/summon item ~5 ~ ~5 {Item:{id:"minecraft:diamond_block",count:1}}')
   await sleep(300)
   await cmd(bot, '/damage @s 16')
-  await sleep(600)
+
+  // Wait for the ejection to actually land before looking. A fixed sleep made this flaky, and
+  // for a reason that inverted the test: until the teleport completes the player is still stood
+  // in the nightmare beside the block we just summoned, so "an item is near me" is TRUE and has
+  // nothing to do with the sweep. Poll for the dimension instead — the assertion is only
+  // meaningful once the player is home.
+  let ejectedTo = null
+  for (let i = 0; i < 20; i++) {
+    ejectedTo = await dimension(bot)
+    if (ejectedTo !== 'shadowslave:nightmare') break
+    await sleep(200)
+  }
   const strayHere = await cmd(bot, '/execute as @e[type=item,distance=..6] run data get entity @s Item.id')
   assert(
     'ejection does not sweep loose items onto you',
-    !/diamond_block/.test(strayHere),
-    'items the player never dropped must stay in the nightmare'
+    ejectedTo !== 'shadowslave:nightmare' && !/diamond_block/.test(strayHere),
+    `ejected to ${ejectedTo}; items the player never dropped must stay in the nightmare`
   )
   await cmd(bot, '/scoreboard players reset @s ss_cooldown')
 

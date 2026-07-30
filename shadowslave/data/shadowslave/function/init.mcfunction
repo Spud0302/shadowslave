@@ -1,6 +1,8 @@
 # Shadow Slave — one-time setup, runs on every /reload and world load.
 
-# Rank: 0 = Sleeper, 1 = Awakened
+# Rank: 0 = Mundane or Carrier (see the ss_carrier tag), 1 = Sleeper, holding a Dormant Aspect.
+# NOT Awakened — that is the rank after a first Dream Realm journey, which Phase 1 does not have.
+# The scores are unchanged; only what they are called was wrong. See soul.mcfunction.
 scoreboard objectives add ss_rank dummy "Soul Rank"
 # Nightmare countdown, in ticks
 scoreboard objectives add ss_timer dummy "Nightmare Timer"
@@ -45,4 +47,4 @@ bossbar set shadowslave:trial visible false
 # Announce the version on every load and /reload. Datapacks have no variables, so this
 # literal and the one in pack.mcmeta are maintained by hand — validate.py asserts they
 # agree, because a version string that lies is worse than none at all.
-tellraw @a [{"text":"[Shadow Slave] ","color":"dark_gray"},{"text":"v1.4.7","color":"light_purple","bold":true},{"text":" — The Spell stirs.","color":"dark_gray","italic":true},{"text":"  (testing commands: ","color":"dark_gray"},{"text":"shadowslave:test/help","color":"aqua"},{"text":")","color":"dark_gray"}]
+tellraw @a [{"text":"[Shadow Slave] ","color":"dark_gray"},{"text":"v1.4.8","color":"light_purple","bold":true},{"text":" — The Spell stirs.","color":"dark_gray","italic":true},{"text":"  (testing commands: ","color":"dark_gray"},{"text":"shadowslave:test/help","color":"aqua"},{"text":")","color":"dark_gray"}]
