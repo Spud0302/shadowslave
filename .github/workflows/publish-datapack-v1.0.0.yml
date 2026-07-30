@@ -1,0 +1,77 @@
+name: Publish datapack v1.0.0
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/publish-datapack-v1.0.0.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: datapack-v1.0.0
+      RELEASE_SHA: 39176d698244e3cff295becf0d752213f9790cb9
+      PACKAGE_FILE: shadowslave-v1.0.0.zip
+
+    steps:
+      - name: Check out the frozen release commit
+        uses: actions/checkout@v4
+        with:
+          ref: 39176d698244e3cff295becf0d752213f9790cb9
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate frozen datapack
+        run: python3 shadowslave/tools/validate.py
+
+      - name: Build release ZIP
+        run: python3 shadowslave/tools/build_release.py
+
+      - name: Verify release artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "$PACKAGE_FILE"
+          shopt -s nullglob
+          files=(shadowslave-v*.zip)
+          if [[ ${#files[@]} -ne 1 || "${files[0]}" != "$PACKAGE_FILE" ]]; then
+            printf 'Expected only %s; found: %s\n' "$PACKAGE_FILE" "${files[*]:-none}" >&2
+            exit 1
+          fi
+          sha256sum "$PACKAGE_FILE" > SHA256SUMS.txt
+
+      - name: Publish GitHub Release and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; replacing its assets."
+            gh release upload "$RELEASE_TAG" "$PACKAGE_FILE" SHA256SUMS.txt --clobber
+            exit 0
+          fi
+
+          cleanup_failed_release() {
+            gh release delete "$RELEASE_TAG" --cleanup-tag --yes >/dev/null 2>&1 || true
+          }
+          trap cleanup_failed_release ERR
+
+          gh release create "$RELEASE_TAG" \
+            "$PACKAGE_FILE" \
+            SHA256SUMS.txt \
+            --target "$RELEASE_SHA" \
+            --title "Shadow Slave datapack v1.0.0" \
+            --notes-file docs/releases/datapack-v1.0.0.md
+
+          trap - ERR
