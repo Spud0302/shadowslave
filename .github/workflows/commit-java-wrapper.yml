@@ -1,0 +1,56 @@
+name: Commit Java Gradle wrapper
+
+on:
+  push:
+    branches:
+      - gpt/java-core-scaffold
+    paths:
+      - '.github/workflows/commit-java-wrapper.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  commit-wrapper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out Java branch
+        uses: actions/checkout@v4
+        with:
+          ref: gpt/java-core-scaffold
+          fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle 9.2.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.2.1'
+
+      - name: Generate official wrapper
+        run: |
+          gradle -p mod wrapper --gradle-version 9.2.1
+          chmod +x mod/gradlew
+
+      - name: Commit generated wrapper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "Spud0302"
+          git config user.email "60161044+Spud0302@users.noreply.github.com"
+          git add mod/gradlew mod/gradlew.bat mod/gradle/wrapper/gradle-wrapper.jar mod/gradle/wrapper/gradle-wrapper.properties
+
+          if git diff --cached --quiet; then
+            echo "Gradle wrapper is already committed."
+            exit 0
+          fi
+
+          git commit -m "build(mod): commit verified Gradle wrapper" \
+            -m "Co-Authored-By: ChatGPT <gpt@openai.com>"
+          git push origin HEAD:gpt/java-core-scaffold
