@@ -2,8 +2,8 @@
 # player regardless of where the reset was invoked or what the previous test touched.
 #
 # BEST-PRACTICE: test reset helpers must clear hidden/transient state as well as visible state.
-# Leaving a cooldown or scratch score behind makes later tests order-dependent and can turn a
-# correct feature into a false failure (or vice versa).
+# Leaving a cooldown, observation tag or scratch score behind makes later tests order-dependent and
+# can turn a correct feature into a false failure (or vice versa).
 
 # Get out of the nightmare first if we are in it. This must happen before state is cleared:
 # nightmare/leave owns teardown of the bossbar, creature and return teleport.
@@ -19,10 +19,12 @@ scoreboard players set @s ss_aspect 0
 scoreboard players set @s ss_flaw 0
 
 # Transient state. nightmare/leave deliberately sets ss_cooldown, so reset MUST clear it after
-# calling leave or a reset performed inside the Nightmare contaminates the next run.
+# calling leave or a reset performed inside the Nightmare contaminates the next run. ss_roll is also
+# the per-trial hunger baseline before it returns to random-generation scratch at progression time.
 scoreboard players reset @s ss_cooldown
 scoreboard players reset @s ss_gone
 scoreboard players reset @s ss_health
+scoreboard players reset @s ss_roll
 scoreboard players reset @s ss_scratch_a
 scoreboard players reset @s ss_scratch_b
 scoreboard players reset @s ss_ret_x
@@ -34,6 +36,9 @@ tag @s remove ss_in_nightmare
 tag @s remove ss_carrier
 tag @s remove ss_creature_spawned
 tag @s remove ss_test_bypass
+tag @s remove ss_trial_bloodied
+tag @s remove ss_trial_hungry
+tag @s remove ss_trial_fled
 tag @s remove ss_aspect_shadow
 tag @s remove ss_aspect_flame
 tag @s remove ss_aspect_bone
@@ -44,7 +49,7 @@ tag @s remove ss_flaw_ravenous
 tag @s remove ss_flaw_weightless
 
 # Tags alone are not enough: persistent attribute modifiers survive after their source tag is
-# removed, so every modifier owned by the placeholder Aspect/Flaw system is stripped explicitly.
+# removed, so every modifier owned by the finite Dormant mechanical vocabulary is stripped explicitly.
 attribute @s minecraft:generic.armor modifier remove shadowslave:aspect_bone_armor
 attribute @s minecraft:generic.movement_speed modifier remove shadowslave:aspect_wind_speed
 attribute @s minecraft:generic.max_health modifier remove shadowslave:flaw_fragile_health

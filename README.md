@@ -50,18 +50,43 @@ first journey into the Dream Realm, which Phase 1 does not have. The ladder is
 
 `/trigger soul` shows where you stand.
 
-|             |                                             |
-| ----------- | ------------------------------------------- |
-| **Aspects** | Shadow, Flame, Bone, Wind                   |
-| **Flaws**   | Shadow Slave, Fragile, Ravenous, Weightless |
+### Generated Aspect identity
 
-Rolled independently in the current Phase 1 prototype.
+A new Sleeper's Aspect name is **composed from two independent vocabularies**:
 
-> These eight are **placeholders**. The novel is explicit that every Aspect is unique and that
-> Flaws are personal rather than an independent random penalty. A dedicated pre-Java datapack
-> redesign is tracked in `docs/OPEN-QUESTIONS.md` Q2: generated Aspect identity and
-> behaviour-influenced Flaws, within what vanilla commands can honestly support. Java later replaces
-> the remaining finite/predeclared effect machinery with a proper data model.
+- nature: **Veiled / Ashen / Pale / Restless**;
+- archetype: **Witness / Bearer / Warden / Wanderer**.
+
+That makes combinations such as _Veiled Warden_, _Ashen Wanderer_, _Pale Witness_, or
+_Restless Bearer_ instead of selecting one whole name from a fixed class list. The nature also maps
+to one of four Dormant mechanics a vanilla datapack can honestly execute: darkness, ember/fire,
+hardened body, or unnatural movement.
+
+The finite mechanical vocabulary is deliberate. The pack can compose names and state at runtime; it
+cannot invent a brand-new command implementation out of thin air. Java can later replace the four
+roots without changing what an Aspect is meant to represent.
+
+### Flaws remember the trial
+
+Flaws are no longer rolled as an unrelated second class. The successful First Nightmare is classified
+from behavior the pack can actually observe:
+
+- no strong deviation during the creature fight earns the **baseline night/daylight burden** family;
+- being driven into the **5–8 HP** near-collapse window earns the reduced-health burden family;
+- consuming **6+ food points** during the creature fight earns the hunger burden family;
+- opening **40+ blocks** of distance from the creature earns the unstable-footing/fall family.
+
+If more than one strong signal happened, the more specific result wins: **fled > hungry > bloodied >
+baseline**. The mechanical burden itself is therefore earned from the trial rather than randomized.
+
+Randomness comes **afterward**, choosing one of four personal names inside that earned family. Two
+people can survive in the same way, carry the same kind of price, and still receive different formal
+Flaw identities. The old player-facing **Shadow Slave Flaw** is gone — _Shadow Slave_ is canonically
+an Aspect name.
+
+> The generated names and selection rules are fan-created game systems constrained by the verified
+> lore; they are **not** presented as the Nightmare Spell's canonical algorithm. Canon establishes
+> influences and examples, but no deterministic formula.
 
 ---
 
@@ -77,7 +102,7 @@ Rolled independently in the current Phase 1 prototype.
 | `test/infect`    | Become a Carrier now                         |
 | `test/cure`      | Back to untouched                            |
 | `test/nightmare` | Enter the trial immediately, no bed          |
-| `test/awaken`    | Historical name: skip to the Sleeper state   |
+| `test/awaken`    | Skip the trial; generate a Sleeper identity  |
 | `test/reset`     | Wipe everything and start over               |
 
 Skip the countdown mid-trial with `/scoreboard players set @s ss_timer 1`.
@@ -87,6 +112,10 @@ cooldown and the weakness gate via a single-use `ss_test_bypass` tag that entry 
 otherwise the command for entering the trial could be refused by the trial itself. The rank gate
 has no bypass on purpose: a Sleeper in a First Nightmare is a state nothing handles. Use
 `test/reset`.
+
+`test/awaken` deliberately clears any observations left by a failed trial before generating the
+identity, so it exercises the no-strong-signal baseline family while still randomizing the personal
+Flaw name inside it.
 
 There is also a **Shadow Slave** advancement tab. Existing internal IDs remain under
 `shadowslave:test/*` for save and harness compatibility, but the displayed tree is player-facing.
@@ -105,11 +134,10 @@ shadowslave/              the datapack itself
     function/             all logic, grouped by responsibility
       nightmare/          the trial lifecycle
       progression/        First Nightmare -> Sleeper transition
-      prototype/          temporary Aspect/Flaw generator
-      aspect/  flaw/      recurring per-second placeholder effects
+      prototype/          generated identity + trial observation seam
+      aspect/  flaw/      finite Dormant mechanics / burden families
       awaken/             historical compatibility alias
       test/               testing commands
-    dimension_type/  dimension/  worldgen/biome/
     advancement/  predicate/
   tools/validate.py       offline structure and reference checker
   tools/build_release.py  validated reproducible release ZIP builder
@@ -207,9 +235,10 @@ can be reviewed and tested as a focused gameplay change.
 | [TESTING.md](TESTING.md)     | Full in-game test plans                                             |
 | [docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) | Why the code is like this — each convention with the bug that caused it |
 | [docs/COLLABORATION.md](docs/COLLABORATION.md) | How the two AI agents work through this repo |
-| [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) | Questions between agents and the answers that settled them |
+| [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) | Questions between agents, and the answers that settled them |
 | [docs/lore-research/](docs/lore-research/) | Canon evidence and migration research |
-| `docs/superpowers/specs/`    | Historical design specs; read status banners before relying on them |
+| [Aspect/Flaw rework spec](docs/superpowers/specs/2026-07-30-aspect-flaw-rework.md) | Composed identity, trial observations, compatibility and acceptance criteria |
+| `docs/superpowers/specs/`    | Older design specs; read status banners before relying on them |
 
 ## Credit
 

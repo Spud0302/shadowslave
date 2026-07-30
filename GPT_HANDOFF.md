@@ -1,217 +1,236 @@
 # GPT handoff — living checkpoint
 
-> **Read first in a new GPT session.** Canon authority is `docs/lore-research/`; engineering authority
-> is `docs/ENGINEERING-NOTES.md`; workflow authority is `docs/COLLABORATION.md`.
+> **Read first in a new GPT session.** Canon authority is `docs/lore-research/`; engineering
+> authority is `docs/ENGINEERING-NOTES.md`; workflow authority is `docs/COLLABORATION.md`.
 
 ## Repository state
 
 - Repository: `Spud0302/shadowslave`
-- Release/default branch: `main`
-- Current release baseline: **v1.4.9**
-- Latest `main` incorporated into this branch: `a470b914f3e0710d3dfee63adc29b8e6e50d4599`
-- GPT branch: **`gpt/datapack-release-completion`**
-- Pull request: **#1 — Datapack release-completion hardening**
-- Original pre-reconcile branch history is preserved at:
-  `gpt/datapack-release-completion-pre-reconcile`
+- Default/release branch: `main`
+- Current release on main: **v1.4.9**
+- Main baseline used here: `a470b914f3e0710d3dfee63adc29b8e6e50d4599`
+- Active gameplay branch: **`gpt/aspect-flaw-rework`**
+- Active gameplay PR: **#2 — Rework generated Aspects and earned Flaws**
+- Separate release-hardening PR: **#1 — Datapack release-completion hardening**
 
-The branch originally started from `main@70d3548089e0ef3503ba260a9021cb23d4ccbacd`. While GPT was
-working, `main` gained three collaboration/process commits and the PR became unmergeable because both
-sides had edited README/GPT_HANDOFF. The final reviewed tree was rebuilt on top of
-`main@a470b914f3e0710d3dfee63adc29b8e6e50d4599`; no release or gameplay commit from `main` was lost.
+Latest checks when this handoff was written:
 
-GPT does not write directly to `main`. Claude reviews/merges GPT branches, runs live verification,
-stamps versions, and ships releases.
+- PR #2: **mergeable**, 0 commits behind main;
+- PR #1: graph is 0 behind main, but GitHub's connector still reports `mergeable: false` despite the
+  clean ancestry and no status checks. Treat that as unresolved merge-gate metadata until Claude/GitHub
+  identifies the exact gate; do not invent a file conflict.
 
-## Current project goal
+GPT does not write directly to `main`. Claude reviews/merges GPT branches, owns live Minecraft
+verification and version stamping, and ships releases.
 
-The owner's current instruction is to get the **datapack fully finished and release-ready before
-moving to Java**.
+## Owner goal
 
-There are now two separate pieces of work:
+Finish the **datapack completely and release-ready before moving to Java**.
 
-1. **Release hardening** — this PR. It is complete from GPT's repository-review side and awaits
-   Claude's real-server verification/review.
-2. **Aspect/Flaw rework** — current-main `docs/OPEN-QUESTIONS.md` Q2. This is the remaining explicit
-   pre-Java gameplay/canon task. Do it on a separate focused GPT branch; do not stack it into PR #1.
+That work is deliberately split:
 
-This distinction matters. The global Nightmare ownership, broad death sweep, ravager stand-in,
-Overworld-noise terrain, shallow `ss_rank`, GUI/data-model limits and bespoke AI are Java-boundary
-ceilings. The **four fixed Aspects/four fixed Flaws are not being silently waved through anymore**:
-Q2 explicitly hands their redesign to GPT.
+1. **PR #1 — release hardening:** fail-closed harness, three-way version validation, reproducible
+   release ZIP, player-facing advancement presentation and current release docs.
+2. **PR #2 — Q2 gameplay/canon rework:** replace the fixed four-class Aspect presentation and
+   independently random Flaw model.
+
+The remaining global Nightmare ownership, broad death-item sweep, ravager stand-in, Overworld-noise
+terrain, shallow rank storage, GUI/data-model limits and bespoke AI remain honest Java-boundary
+ceilings. Do not build them in commands merely to postpone the Java transition.
 
 ## Collaboration rules currently in force
 
-The latest `docs/COLLABORATION.md` says the split is by file rather than by role.
+Read `docs/COLLABORATION.md`; it supersedes older handoff wording.
 
-GPT's natural side:
-- lore-derived Aspect/Flaw content;
-- `prototype/roll_aspect_flaw.mcfunction` and what replaces it;
-- player-facing copy / Spell voice;
-- progression semantics and rank/canon naming;
-- canon research/design docs.
+GPT's natural area includes lore-derived Aspect/Flaw content, `prototype/roll_aspect_flaw`,
+player-facing copy and canon/progression semantics. Claude's natural area includes Nightmare state
+machine, harness, validator, dimension/storage plumbing, version stamping and release.
 
-Claude's natural side:
-- Nightmare state machine, guards, teardown, cooldown/threshold logic;
-- `testserver/harness.mjs`;
-- `shadowslave/tools/validate.py`;
-- dimension/worldgen/macro/storage plumbing;
-- version stamping, packaging and release.
+The lists are not hard fences, but cross-column edits must be explicit and Claude must scrutinize
+them. Two rules never move:
 
-Neither list is a hard fence, but cross-column changes must be called out. Two hard rules never move:
-
-1. Claude runs validator + harness before anything merges.
+1. Claude runs validator + harness before merge.
 2. `ENGINEERING-NOTES.md` invariants bind both agents.
 
-### Process exception in PR #1
+## PR #2 design answer
 
-The harness, validator and release-builder work in PR #1 was written **before** the newest file split
-landed on `main`. The PR/review doc calls those changes out explicitly as GPT proposals requiring
-Claude's implementation-level scrutiny. The `nightmare/leave.mcfunction` edit is comment-only.
+Current-main `docs/OPEN-QUESTIONS.md` Q2 asked how to replace the fixed four Aspects/four randomized
+Flaws while staying inside vanilla limits.
 
-Do not read this exception as ownership precedent for future work.
+### Aspect = composed identity over a finite Dormant expression
 
-## PR #1 — what is finished
+New Aspect identity is generated from **two independent vocabularies**:
 
-Detailed review artifact:
+- nature/root: `Veiled / Ashen / Pale / Restless`;
+- archetype: `Witness / Bearer / Warden / Wanderer`.
 
-`docs/reviews/2026-07-30-gpt-datapack-release-completion.md`
+`ss_aspect` encodes `nature * 10 + archetype`, producing 16 combinations from two axes rather than
+choosing one whole name from a fixed class list.
 
-### Harness hardening
+The nature maps to exactly one existing compatibility/mechanics tag:
 
-`testserver/harness.mjs` grows from 25 to **32 mechanical assertions** and now fails closed.
+- Veiled -> `ss_aspect_shadow`
+- Ashen -> `ss_aspect_flame`
+- Pale -> `ss_aspect_bone`
+- Restless -> `ss_aspect_wind`
 
-Fixed false-confidence paths:
+This keeps the vanilla ceiling honest: identity can be generated; arbitrary new executable abilities
+cannot be invented at runtime.
 
-- expected-query timeouts no longer become empty/negative results;
-- `hasTag()` cannot convert an unreadable query into confirmed absence;
-- dimension checks no longer fall back to Mineflayer's known-stale cached dimension;
-- null/unreadable dimension state cannot satisfy a “not in Nightmare” assertion;
-- transition polling throws on timeout;
-- attribute reads parse-or-throw instead of using pass-friendly defaults;
-- weakness-gate assertion now requires refusal **and** confirmed non-entry, rather than OR;
-- harness exceptions enter the failure list before process exit, so they cannot exit 0.
+### Flaw = observed trial classification, randomness on top
 
-New direct regressions cover:
+The successful First Nightmare records:
 
-- untouched direct-entry refusal at `nightmare/enter`;
-- `test/reset` clearing transient cooldown state;
-- reset inside a Nightmare performing teardown and leaving no cooldown;
-- `test/nightmare` bypassing weakness and cooldown and consuming its bypass;
-- Sleeper sleep staying outside another First Nightmare and granting `Sleep Undisturbed`.
+- `ss_trial_bloodied` — health reaches 5..8 while the creature is active;
+- `ss_trial_hungry` — FoodLevel falls at least 6 below the entry baseline;
+- `ss_trial_fled` — creature reaches 40+ blocks before the 48-block leash.
 
-This is GPT's concrete answer to current-main **OPEN-QUESTIONS Q1**. Because that file was created on
-`main` after the original branch diverged, PR #1 does not rewrite it. Claude should move Q1 to
-Answered on `main` when accepting the result.
+Family precedence:
 
-### Static/release hardening
+```text
+fled > hungry > bloodied > baseline
+```
 
-`shadowslave/tools/validate.py` still covers the existing structural/reference/worldgen/project
-policy checks and now enforces version agreement across:
+Mechanical burden:
 
-1. `pack.mcmeta`
-2. `function/init.mcfunction`
-3. `function/test/selfcheck.mcfunction`
+- baseline/no strong deviation -> family 1, daylight burden;
+- bloodied -> family 2, reduced max health;
+- hungry -> family 3, hunger burden;
+- fled -> family 4, fall/footing burden.
 
-`shadowslave/tools/build_release.py` was added as a reproducible public-ZIP builder:
+**Only after the family is earned** does a `1..4` roll choose the personal Flaw name inside that
+family. This is the requested “behavior with randomness on top”; the mechanical Flaw is not
+independently randomized.
 
-- runs static validation first;
-- packages only `pack.mcmeta`, optional `pack.png`, and `data/**`;
-- keeps `pack.mcmeta` at archive root;
-- normalizes ZIP timestamps;
-- prints SHA-256;
-- does not pretend the live harness was run.
+The historical internal id `ss_flaw_shadow_slave` remains for compatibility only. New player-facing
+family-1 names are Nightbound / Pale Dawn / Sunshy / Dusk's Debt because `Shadow Slave` is canonically
+an Aspect name, not a Flaw.
 
-`testserver/package.json` now maps `npm test` to the real harness.
+## PR #2 implementation map
 
-### Player/release presentation
+Full design:
 
-- advancement display is now a player-facing **Shadow Slave** tree;
-- historical `shadowslave:test/*` ids are retained for save/harness compatibility;
-- source/help comments use the correct Phase 1 endpoint: Sleeper/Dormant, not Awakened;
-- README, TESTING and ISSUES were updated to distinguish current behavior from historical records;
-- `docs/superpowers/specs/README.md` marks the old pre-research design spec historical/superseded;
-- current manual release checks are reduced to genuinely additional evidence rather than repeating
-  harness coverage.
+`docs/superpowers/specs/2026-07-30-aspect-flaw-rework.md`
 
-## PR #1 — verification still required
+Claude review/test brief:
 
-GPT **cannot claim live success** from the connector environment.
+`docs/reviews/2026-07-30-gpt-aspect-flaw-rework.md`
 
-Claude must run:
+### Added
+
+- `prototype/trial_begin.mcfunction`
+  - clears observations from an earlier attempt;
+  - stores entry `foodLevel` in player `ss_roll`.
+- `prototype/observe_trial.mcfunction`
+  - records bloodied / hungry / fled signals.
+
+### Reworked
+
+- `prototype/roll_aspect_flaw.mcfunction`
+  - strips old tags/modifiers;
+  - composes encoded Aspect identity;
+  - derives Flaw family from observations;
+  - randomizes only the personal name inside that earned family;
+  - reapplies exactly one compatibility tag from each set;
+  - consumes observations and resets player `ss_roll`.
+- `soul.mcfunction`
+  - displays composed Aspect / generated Flaw identity;
+  - keeps legacy `1..4` readout support;
+  - never presents `Shadow Slave` as a Flaw.
+- `test/awaken`
+  - historical id retained;
+  - clears old observations because it skips the trial;
+  - therefore exercises family 1 baseline and randomizes only its personal name.
+- `test/reset`
+  - clears observation tags and player `ss_roll`.
+- README/help/init/progression/upkeep/internal Flaw comments match the new semantics.
+
+## Cross-column PR #2 changes Claude must review closely
+
+### `nightmare/enter.mcfunction`
+
+One hook after accepted entry:
+
+```mcfunction
+function shadowslave:prototype/trial_begin
+```
+
+No guard, cooldown, weakness threshold, timer, teleport or bossbar behavior was otherwise changed.
+
+### `nightmare/tick_player.mcfunction`
+
+One hook while the creature exists, **before** the 48-block leash:
+
+```mcfunction
+execute if entity @e[tag=ss_creature] run function shadowslave:prototype/observe_trial
+```
+
+Ordering is required so the leash cannot erase the 40+ flee signal. No ejection/countdown/win/leash
+values changed.
+
+### `test/reset.mcfunction`
+
+Adds Q2 transient cleanup. Claude owns test/state-hygiene review.
+
+## No new objective
+
+The branch reuses:
+
+- `ss_aspect` — encoded nature × archetype;
+- `ss_flaw` — encoded family × name variant;
+- `ss_roll` — entry FoodLevel baseline, later random scratch;
+- `ss_scratch_b` — current FoodLevel observation scratch.
+
+`/trigger soul` does not use player `ss_roll`; `test/selfcheck` uses fake-player `$check/$ok` entries
+in that objective, so the player entry is not shared with those paths.
+
+## Compatibility
+
+Kept:
+
+- four Aspect mechanic tags/functions;
+- four Flaw mechanic tags/functions;
+- `ss_aspect` / `ss_flaw` objective names;
+- `test/awaken` and `awaken/roll` compatibility ids;
+- historical advancement ids.
+
+Old worlds with score values `1..4` continue executing mechanics from tags and get a
+`legacy prototype` Soul readout until reset/re-roll.
+
+## Verification still required
+
+GPT cannot run the project's real Minecraft 1.21.1 server and has **not** claimed this branch passes.
+
+Claude should extend/reconcile the harness using the exact deterministic cases in the Q2 review doc,
+then run:
 
 ```bash
 python3 shadowslave/tools/validate.py
 cd testserver && node harness.mjs
 ```
 
-Expected result if PR #1 is correct:
+Minimum Q2 coverage:
 
-```text
-32 passed, 0 failed
-```
+- no-signal/test-awaken -> `ss_flaw=11..14` + family-1 tag;
+- bloodied -> `21..24`;
+- bloodied + hungry -> `31..34`;
+- all three -> `41..44`;
+- exactly one Aspect tag and one Flaw tag;
+- stale observations cleared on accepted entry;
+- entry `ss_roll` equals FoodLevel baseline;
+- boundaries: health 8 vs 9, food delta 6 vs 5, distance 40 vs 39.x;
+- observations/player `ss_roll` consumed after generation;
+- `test/awaken` cannot inherit a prior failed-trial signal;
+- legacy `1..4` Soul readout;
+- all eight existing mechanics and modifier cleanup.
 
-Then:
+If PR #1 lands first, Q2 tests belong on top of its hardened 32-assertion harness rather than the
+current-main 25-assertion baseline.
 
-```bash
-python3 shadowslave/tools/build_release.py
-```
-
-And the current release-environment/human checks in `TESTING.md`:
-
-- H1 death-screen presentation;
-- H2 shortened natural cooldown-expiry smoke test;
-- H3 generated ZIP installed into a fresh 1.21.1 world.
-
-No version files were changed by GPT. Claude stamps the next Pride Versioning release only after the
-review/gates pass.
-
-## Next datapack task before Java — Q2 Aspect/Flaw redesign
-
-Current `main` explicitly hands this to GPT.
-
-### Why it remains
-
-The current implementation rolls one of four Aspects and one of four Flaws independently. Canon
-research says:
-
-- Aspects are unique/personal rather than a universal four-item list;
-- Flaws are personal rather than an independent random penalty;
-- a First Nightmare's Dormant Aspect can begin deliberately weak and become meaningful through later
-  progression rather than granting a near-final power in the tutorial.
-
-The repository also records the owner's earlier direction:
-
-- **generated Aspect identity**, not simply choosing from a fixed name list;
-- Flaws influenced/earned by behavior in the trial, with some randomness so identical play does not
-  necessarily produce identical results.
-
-### Vanilla datapack ceiling
-
-Names/descriptions can be composed with macros/storage, but arbitrary new behavior cannot be created
-at runtime: each mechanical effect still needs pre-existing command logic. Do not fake “infinite
-procedural powers” when the actual behavior is one of a small hidden list.
-
-The right Phase 1 target is therefore a **generated identity layered over a finite, honest mechanical
-vocabulary**, plus behavior-derived Flaw selection, unless the owner explicitly chooses a different
-boundary.
-
-### Machinery constraints to preserve
-
-- `prototype/roll_aspect_flaw.mcfunction` is the intended replacement seam.
-- Every persistent attribute modifier needs paired remove-before-add.
-- Never write player NBT.
-- If one-tag-per-power changes, `test/reset`, `soul`, `upkeep`, advancements and the harness all need
-  a migration plan.
-- Keep this rework on a new focused `gpt/*` branch; Claude owns any new harness/validator plumbing
-  needed to verify it.
+No GPT version stamp.
 
 ## Recommended next action
 
-1. Claude reviews PR #1 and runs the required gates.
-2. GPT starts the dedicated Aspect/Flaw rework from the latest `main` (or rebases after PR #1 lands),
-   using Q2 and `docs/lore-research/` as the design authority.
-3. Only after that gameplay rework is merged/verified should the project honestly call the datapack
-   final and move the architecture boundary to Java.
-
-Do not return to the old assumption that the fixed four/four catalogue automatically waits for Java;
-the newest repository state supersedes that decision.
+Claude reviews PRs #1 and #2 separately, adds/runs the required live coverage, and returns any failed
+acceptance case to GPT before merge. Once both are reconciled, tested and version-stamped, the
+Phase 1 datapack can honestly be called complete and the project can move to Java.

@@ -63,6 +63,12 @@ execute store result score @s ss_ret_y run data get entity @s Pos[1]
 execute store result score @s ss_ret_z run data get entity @s Pos[2]
 
 tag @s add ss_in_nightmare
+
+# Cross-column Q2 hook: only accepted entries reach this line. Reset the behavior observations here
+# so an ejected/dead earlier attempt cannot influence the successful First Nightmare that eventually
+# generates the player's Aspect and Flaw. The helper also captures starting hunger in ss_roll.
+function shadowslave:prototype/trial_begin
+
 # 1800 ticks = 90 seconds. Was 6000 (five real minutes), which read as waiting rather than
 # dread — the dark has said everything it has to say well before then, and the trial does not
 # actually begin until the creature lands. Ticked down once per tick at 20 tps, so this value
