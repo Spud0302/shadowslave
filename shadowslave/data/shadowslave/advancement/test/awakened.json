@@ -4,7 +4,7 @@
     "icon": { "id": "minecraft:nether_star" },
     "title": { "text": "Sleeper", "color": "aqua" },
     "description": {
-      "text": "Rank set to Sleeper with one Aspect and one Flaw rolled."
+      "text": "Survive your First Nightmare and receive a Dormant Aspect and a Flaw."
     },
     "frame": "challenge",
     "show_toast": true,
