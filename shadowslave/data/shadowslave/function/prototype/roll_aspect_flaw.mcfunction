@@ -53,11 +53,11 @@ execute if score @s ss_aspect matches 4 if score @s ss_roll matches 3 run scoreb
 execute if score @s ss_aspect matches 4 if score @s ss_roll matches 4 run scoreboard players set @s ss_aspect 44
 
 # --- Flaw -------------------------------------------------------------------
-# Start with a random family for a run where the pack observed no strong behavior. Then let actual
-# First-Nightmare signals override it in increasing specificity. "Fled" wins over "hungry", which
-# wins over "bloodied": almost any close fight can become bloody, while consuming six food points
-# or opening a 40-block gap are more distinctive choices/outcomes.
-execute store result score @s ss_flaw run random value 1..4
+# Every mechanical Flaw family comes from the successful trial classification. Family 1 is the
+# baseline when the pack observed no strong deviation; the three direct observations override it in
+# increasing specificity. Randomness is applied later to the PERSONAL IDENTITY inside that family,
+# not to which mechanical burden the player earned.
+scoreboard players set @s ss_flaw 1
 execute if entity @s[tag=ss_trial_bloodied] run scoreboard players set @s ss_flaw 2
 execute if entity @s[tag=ss_trial_hungry] run scoreboard players set @s ss_flaw 3
 execute if entity @s[tag=ss_trial_fled] run scoreboard players set @s ss_flaw 4
@@ -70,8 +70,8 @@ execute if score @s ss_flaw matches 2 run tag @s add ss_flaw_fragile
 execute if score @s ss_flaw matches 3 run tag @s add ss_flaw_ravenous
 execute if score @s ss_flaw matches 4 run tag @s add ss_flaw_weightless
 
-# Randomness lives INSIDE the earned family. Two players who trigger the same strong behavior can
-# therefore carry the same burden mechanic without necessarily receiving the same formal identity.
+# Andrew's "randomness on top" lives here. Two players with the same trial classification can carry
+# the same burden family without necessarily receiving the same formal Flaw identity.
 execute store result score @s ss_roll run random value 1..4
 execute if score @s ss_flaw matches 1 if score @s ss_roll matches 1 run scoreboard players set @s ss_flaw 11
 execute if score @s ss_flaw matches 1 if score @s ss_roll matches 2 run scoreboard players set @s ss_flaw 12
