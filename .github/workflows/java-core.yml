@@ -30,13 +30,29 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Set up Gradle
+      - name: Set up bootstrap Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.2.1'
 
-      - name: Compile, unit test and package
-        run: gradle -p mod build --stacktrace
+      - name: Generate Gradle wrapper
+        run: |
+          gradle -p mod wrapper --gradle-version 9.2.1
+          chmod +x mod/gradlew
+
+      - name: Compile, unit test and package through wrapper
+        run: ./mod/gradlew -p mod build --stacktrace
+
+      - name: Upload generated Gradle wrapper
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadow-slave-gradle-wrapper
+          path: |
+            mod/gradlew
+            mod/gradlew.bat
+            mod/gradle/wrapper/gradle-wrapper.jar
+            mod/gradle/wrapper/gradle-wrapper.properties
+          if-no-files-found: error
 
       - name: Upload development JAR
         uses: actions/upload-artifact@v4
