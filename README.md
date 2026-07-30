@@ -68,18 +68,21 @@ roots without changing what an Aspect is meant to represent.
 
 ### Flaws remember the trial
 
-Flaws are no longer rolled as an unrelated second class. The successful First Nightmare records only
-strong behavior the pack can actually observe:
+Flaws are no longer rolled as an unrelated second class. The successful First Nightmare is classified
+from behavior the pack can actually observe:
 
-- being driven into the **5–8 HP** near-collapse window biases the reduced-health burden family;
-- consuming **6+ food points** during the creature fight biases the hunger burden family;
-- opening **40+ blocks** of distance from the creature biases the unstable-footing/fall family;
-- if none of those strong signals happened, the burden family falls back to random rather than
-  pretending the game measured personality it cannot see.
+- no strong deviation during the creature fight earns the **baseline night/daylight burden** family;
+- being driven into the **5–8 HP** near-collapse window earns the reduced-health burden family;
+- consuming **6+ food points** during the creature fight earns the hunger burden family;
+- opening **40+ blocks** of distance from the creature earns the unstable-footing/fall family.
 
-Randomness then chooses one of four personal names **inside** that family. Two people can therefore
-survive in the same way, carry the same kind of price, and still receive different Flaw identities.
-The old player-facing **Shadow Slave Flaw** is gone — _Shadow Slave_ is canonically an Aspect name.
+If more than one strong signal happened, the more specific result wins: **fled > hungry > bloodied >
+baseline**. The mechanical burden itself is therefore earned from the trial rather than randomized.
+
+Randomness comes **afterward**, choosing one of four personal names inside that earned family. Two
+people can survive in the same way, carry the same kind of price, and still receive different formal
+Flaw identities. The old player-facing **Shadow Slave Flaw** is gone — _Shadow Slave_ is canonically
+an Aspect name.
 
 > The generated names and selection rules are fan-created game systems constrained by the verified
 > lore; they are **not** presented as the Nightmare Spell's canonical algorithm. Canon establishes
@@ -111,7 +114,8 @@ bypass on purpose: a Sleeper in a First Nightmare is a state nothing handles. Us
 `test/reset`.
 
 `test/awaken` deliberately clears any observations left by a failed trial before generating the
-identity, so it exercises the no-trial/random-family path rather than inheriting an earned Flaw.
+identity, so it deterministically exercises family 1's no-strong-signal baseline while still
+randomizing the personal Flaw name inside that family.
 
 There is also a **Shadow Slave — Verification** advancement tab. Each entry is granted at the
 exact line a mechanic executes, so it records what actually ran rather than what you think
