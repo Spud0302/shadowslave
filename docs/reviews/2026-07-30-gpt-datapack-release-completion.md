@@ -1,89 +1,156 @@
 # GPT datapack release-completion pass
 
-**Baseline:** `main` at `70d3548089e0ef3503ba260a9021cb23d4ccbacd` (`v1.4.9`)
+**Original baseline:** `main` at `70d3548089e0ef3503ba260a9021cb23d4ccbacd` (`v1.4.9`)
 
 **Branch:** `gpt/datapack-release-completion`
 
+**Latest `main` observed during final review:** `a470b914f3e0710d3dfee63adc29b8e6e50d4599`
+
 **Goal:** leave the vanilla datapack in a deliberately completed, release-ready Phase 1 state before Java work begins.
 
-This does **not** mean forcing systems into commands that the repository has already identified as Java-boundary problems. It means the Phase 1 datapack should have no known datapack-fixable blocker, its release gate should be trustworthy, its current-facing documentation should tell the truth, and its public-facing presentation should not look like an internal verification build.
+This pass treats “complete” as **no known datapack-fixable release blocker, a trustworthy release gate, truthful current-facing documentation, public-facing presentation, and a reproducible release artifact**. It does not force Java-boundary ownership/state problems into more command machinery.
+
+## Baseline moved while this branch was in progress
+
+`main` advanced from `70d3548` to `a470b91` while this branch was already being written. The intervening commits are collaboration/process documentation, not a new gameplay release.
+
+The newest `docs/COLLABORATION.md` assigns harness/validator/release machinery primarily to Claude and player/canon content primarily to GPT, while explicitly saying neither list is a hard fence. This branch had already changed `testserver/harness.mjs`, `shadowslave/tools/validate.py`, and added `shadowslave/tools/build_release.py` before that split landed.
+
+**Process exception for Claude's review:** treat those machinery changes as GPT proposals that need Claude's normal extra scrutiny/testing. This branch is not claiming ownership of those files. The same applies to the comment-only edit in `nightmare/leave.mcfunction`. If Claude prefers to re-implement a machinery change while preserving the acceptance criteria below, that is compatible with the intent of this pass.
 
 ## Completion boundary
 
-### Must be finished in the datapack
+### Finished on this branch
 
-- Release-gate tests must fail when the behaviour they describe breaks, and must not turn query timeouts or malformed replies into passes.
-- The static validator must enforce the repository's own three-file version agreement (`pack.mcmeta`, `init.mcfunction`, `test/selfcheck.mcfunction`).
-- Current-facing documentation and the live human-test list must reflect `v1.4.9` behaviour rather than historical states.
-- The shipped advancement tab must read as player-facing progression rather than an internal "Verification" screen while retaining existing ids for save/test compatibility.
-- Source comments that still teach the pre-`1.4.8` First Nightmare -> Awakened model should be corrected.
-- There should be a reproducible release-zip path whose archive root is correct for Minecraft.
+- The release harness fails closed rather than turning unreadable state into a negative result.
+- Five missing `v1.4.9` regressions were added; the mechanical suite is now **32 assertions**.
+- The static validator enforces all three hand-maintained release version literals.
+- The advancement tree is player-facing while retaining historical ids for save/harness compatibility.
+- Current README/testing/issues/handoff documentation describes `v1.4.9` reality rather than historical pre-research behavior.
+- Current source comments stop teaching “First Nightmare -> Awakened”; Phase 1 terminates at Sleeper/Dormant.
+- A reproducible release-ZIP builder exists and excludes development/test files from the public archive.
+- `npm test` now invokes the Mineflayer harness instead of the package.json placeholder failure.
 
 ### Deliberately complete *with* these prototype ceilings
 
-The following are already recorded by both GPT and Claude as **prototype compromises**, not release bugs, and this pass will not grow fragile command machinery to hide them:
+These remain **prototype compromises**, not release bugs:
 
-- one active Nightmare/player at a time via a global creature and bossbar;
+- one active Nightmare at a time through a global creature/bossbar/return-storage model;
 - death recovery sweeping every loose item in the Nightmare dimension;
-- `ss_rank` as the shallow Phase 1 "survived First Nightmare" flag;
-- four fixed placeholder Aspects and four fixed placeholder Flaws;
-- the ravager stand-in, Overworld-noise Nightmare terrain, no GUI and no custom AI;
-- historical compatibility ids/names such as `awaken/roll`, `test/awaken` and `test/awakened`.
+- `ss_rank` as a shallow Phase 1 state flag rather than a future Soul data model;
+- the current finite placeholder power catalogue until the dedicated Aspect/Flaw redesign is resolved;
+- the ravager stand-in, Overworld-noise Nightmare terrain, no custom GUI, and no custom AI;
+- historical compatibility ids/names such as `awaken/roll`, `test/awaken`, and `test/awakened`.
 
-Those are migration seams for the Java port, not reasons to keep the datapack perpetually "unfinished".
+The first three and the entity/world/data-model ceilings are clear Java migration seams. The Aspect/Flaw catalogue now has a newer explicit handover in `docs/OPEN-QUESTIONS.md` (Q2); see “Separate follow-up scope” below.
 
-## Release-gate findings
+## Release-gate findings and fixes
 
-### Bug: the weakness-gate assertion can pass after a broken return
+### Q1 answer — assertions that could pass without proving their behavior
 
-The harness currently accepts:
+Current `main` added `docs/OPEN-QUESTIONS.md` after this branch diverged. Q1 asks which harness assertions could not fail if the behavior broke. This branch found and addresses the following classes:
 
-```js
-/too weak/i.test(weakEntry) || dimAfterWeak !== 'shadowslave:nightmare'
-```
+1. **Weakness-gate OR hole.** The old condition accepted either the refusal text **or** being outside the Nightmare. A broken function could print the refusal and then fall through into the Nightmare and still pass. It now requires both.
+2. **`hasTag()` timeout -> false.** A failed tag-list query was indistinguishable from confirmed tag absence, allowing negative tag assertions to pass without observation. Expected query timeouts now throw.
+3. **Stale dimension fallback.** `dimension()` could fall back to Mineflayer's cached dimension even though this project already proved that cache can stay stale after command teleports. The helper now requires a server query that parses.
+4. **`null !== nightmare` false-pass.** Several negative dimension checks accepted a failed/null read as “not in Nightmare.” Dimension reads and transition waits now fail closed.
+5. **Transition timeout ambiguity.** `waitDimension()` returned its last value after timeout; it now throws if the requested transition was never observed.
+6. **Attribute parse defaults.** The re-roll test defaulted unreadable values to `0`/`-1`, which could satisfy a less-than comparison and report success. Attribute reads now parse-or-throw and the upkeep effect is polled rather than guessed with a fixed sleep.
+7. **Harness exception -> exit 0.** The catch set `process.exitCode = 1`, but the old `finally` called `process.exit(fail.length ? 1 : 0)`, so an exception before an assertion failure could override the error with exit 0. Exceptions now enter the failure list before the final exit.
 
-If `enter.mcfunction` prints the refusal but then accidentally continues and teleports the player, the first half is true and the test still passes. The assertion must require both the refusal and a confirmed non-Nightmare dimension.
+**Merge note:** because `docs/OPEN-QUESTIONS.md` exists only on the newer `main` side of this divergence, this branch deliberately does not add a competing copy. When accepting this branch, Claude should move Q1 to **Answered** on `main` and point to this review/commit history.
 
-### Bug: failed reads can satisfy negative assertions
+### New direct regressions
 
-Several harness helpers/assertions collapse "could not prove the state" into a negative result:
+The harness now directly verifies:
 
-- `hasTag()` returns `false` if the expected tag-list reply never arrives;
-- `dimension()` falls back to Mineflayer's cached dimension even though the file documents that cache as stale after command teleports;
-- multiple checks use `dimension !== 'shadowslave:nightmare'`, so `null` can count as success.
+- an untouched player calling `nightmare/enter` is refused at the choke point;
+- `test/reset` clears cooldown/transient state from an ordinary state;
+- `test/reset` invoked inside a Nightmare performs teardown and leaves no cooldown behind;
+- `test/nightmare` bypasses weakness and cooldown while consuming the single-use bypass;
+- a Sleeper's ordinary sleep remains outside the First Nightmare and grants `Sleep Undisturbed`.
 
-The release gate should distinguish **confirmed absence** from **failed observation**.
+Together with the pre-existing coverage, the expected suite size is **32 passed, 0 failed** once Claude runs it on the real server.
 
-### Bug: a harness exception can still exit zero
+## Static/release hardening
 
-The `catch` sets `process.exitCode = 1`, but `finally` then calls `process.exit(fail.length ? 1 : 0)`. If the harness throws before recording an assertion failure, that explicit `process.exit(0)` overrides the earlier failure state.
+### Three-way version agreement
 
-### Missing regression coverage
+`validate.py` now requires one `vX.Y.Z` value across:
 
-The merged `v1.4.9` fixes deserve direct assertions for the invariants they repaired:
+1. `pack.mcmeta`
+2. `data/shadowslave/function/init.mcfunction`
+3. `data/shadowslave/function/test/selfcheck.mcfunction`
 
-- an untouched player calling `nightmare/enter` directly is refused;
-- `test/reset` clears cooldown/transient state;
-- reset invoked inside a Nightmare performs teardown and still leaves no cooldown behind;
-- `test/nightmare` bypasses cooldown as well as weakness and consumes the bypass;
-- a Sleeper's ordinary sleep grants `Sleep Undisturbed` without entering another First Nightmare.
+GPT intentionally did **not** change those version values. Version stamping remains Claude's merge/release responsibility.
 
-## Documentation/release debt
+### Reproducible release ZIP
 
-- `GPT_HANDOFF.md` still describes the already-merged `gpt/review-improvements` branch as pending.
-- The old Phase 1 design spec still opens with pre-research/pre-implementation assumptions; it should be marked historical/superseded rather than rewritten.
-- The live section of `TESTING.md` still asks a human to repeat checks the harness now covers.
-- Several source comments still say "Awakened" where runtime progression is Sleeper (Dormant).
-- The advancement root still ships as **Shadow Slave — Verification** even though the pack is approaching a public release.
-- README documents installing a `.zip`, but the repository has no obvious reproducible packaging command.
+`shadowslave/tools/build_release.py`:
 
-## Verification requirement
+- runs the static validator first;
+- reads the version from `pack.mcmeta`;
+- packages only `pack.mcmeta`, optional `pack.png`, and `data/**`;
+- puts `pack.mcmeta` at archive root rather than under a wrapper directory;
+- normalizes archive timestamps so identical source produces a stable ZIP;
+- prints the output SHA-256;
+- explicitly reminds the operator that the live Mineflayer gate is still required.
 
-Before merge, run on the real 1.21.1 test server:
+## Player-facing/documentation hardening
+
+- Existing advancement resource ids remain `shadowslave:test/*`; only display copy changed. This avoids save/test migration solely for presentation.
+- The root tab now displays **Shadow Slave**, not **Shadow Slave — Verification**.
+- README is the current runtime authority and now describes the Phase 1 completion boundary, 32-assertion gate, three-way version rule, builder, and Java migration ceilings.
+- `TESTING.md` retains old sweeps as history and limits the current release checklist to genuinely additional evidence.
+- `ISSUES.md` opens with current status and clearly fences the old issue log as historical.
+- `docs/superpowers/specs/README.md` marks the pre-research Phase 1 design spec historical/superseded rather than rewriting its body as if it always knew later canon.
+- `GPT_HANDOFF.md` is being maintained as the live GPT checkpoint.
+
+## Remaining release verification — NOT performed by GPT
+
+GPT's connector environment does not provide the project's live Minecraft 1.21.1 test server. Therefore this branch does **not** claim the following have passed.
+
+Claude must run before merge:
 
 ```bash
 python3 shadowslave/tools/validate.py
 cd testserver && node harness.mjs
 ```
 
-Per `docs/COLLABORATION.md`, GPT does not claim those live checks have passed from connector-side reasoning. Claude should run both when reviewing this branch and stamp the release version only after they pass.
+Expected harness count if the branch is correct:
+
+```text
+32 passed, 0 failed
+```
+
+Then build the candidate archive:
+
+```bash
+python3 shadowslave/tools/build_release.py
+```
+
+The live/manual release-candidate checks in `TESTING.md` are:
+
+- **H1:** death-screen presentation — no visible teleport/portal flash before respawn;
+- **H2:** shortened natural cooldown-expiry smoke test — complements refusal and sleep-clear automation;
+- **H3:** install the generated ZIP into a fresh 1.21.1 world and verify datapack registration, selfcheck, advancement presentation, and custom-dimension entry.
+
+Item recovery on death and the full winning loop are already human-confirmed and should only be repeated after changes to their owning paths.
+
+## Separate follow-up scope: Aspect/Flaw redesign (new main Q2)
+
+The newest `main` introduced Q2 in `docs/OPEN-QUESTIONS.md` while this release-hardening branch was already underway. It hands the lore-derived Aspect/Flaw rework to GPT and records the owner's earlier desire for generated Aspect identity plus behavior-influenced Flaws with some randomness.
+
+That is materially larger than release hardening and should **not** be stacked into this branch:
+
+- it changes gameplay/canon semantics, not merely release confidence;
+- it may replace the current `prototype/roll_aspect_flaw.mcfunction` seam and affect `soul`, `upkeep`, `test/reset`, and harness expectations;
+- the collaboration protocol now explicitly recommends small focused branches and file-level ownership coordination.
+
+**Recommendation:** merge/verify this hardening branch first. Then, if “completed datapack before Java” includes replacing the finite placeholder catalogue, make Q2 the next dedicated GPT branch from the new `main`. That branch can decide how far generated identity/behavior-derived Flaws can honestly go in vanilla commands without pretending arbitrary generated mechanics are possible.
+
+Until that decision lands, the current finite powers are a documented Phase 1 prototype seam, not a hidden defect.
+
+## Review verdict
+
+From static repository review, the release-hardening work is ready for Claude's live verification and code review. It is **not release-approved yet** because the required real-server gates have not been run on this branch, and GPT does not stamp or merge releases.
