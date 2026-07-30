@@ -1,9 +1,9 @@
 # Phase 1 generated Aspect/Flaw identity.
 #
 # Canon gives constraints, influences and examples — not a formula. This is a GAME generation
-# system, not a claim about the Nightmare Spell's canonical algorithm. The personal identity is
-# composed from a larger vocabulary while the executable Dormant effects remain four finite roots,
-# because a datapack cannot invent a new function at runtime.
+# system, not a claim about the Nightmare Spell's canonical algorithm. Aspect identity is composed
+# from independent nature + archetype vocabularies while the executable Dormant effects remain four
+# finite roots, because a datapack cannot invent a new function at runtime.
 
 # Clear the previous mechanical roots before applying a new identity. Removing a tag stops upkeep
 # from REAPPLYING a modifier, but it does not remove a modifier already on the player; both layers
@@ -22,17 +22,18 @@ attribute @s minecraft:generic.max_health modifier remove shadowslave:flaw_fragi
 attribute @s minecraft:generic.safe_fall_distance modifier remove shadowslave:flaw_weightless_fall
 
 # --- Aspect -----------------------------------------------------------------
-# First roll chooses the finite Dormant mechanical root. Keep the tags as compatibility/mechanics
-# ids; the player-facing identity is encoded in ss_aspect and is no longer literally "Shadow",
-# "Flame", "Bone" or "Wind".
+# First roll chooses the nature / finite Dormant mechanical root. Keep the tags as compatibility
+# mechanics ids; the player-facing first word is Veiled/Ashen/Pale/Restless rather than literally
+# "Shadow", "Flame", "Bone" or "Wind".
 execute store result score @s ss_aspect run random value 1..4
 execute if score @s ss_aspect matches 1 run tag @s add ss_aspect_shadow
 execute if score @s ss_aspect matches 2 run tag @s add ss_aspect_flame
 execute if score @s ss_aspect matches 3 run tag @s add ss_aspect_bone
 execute if score @s ss_aspect matches 4 run tag @s add ss_aspect_wind
 
-# Second roll chooses the expression within that nature. The final value is nature*10+expression:
-# 11..14 shadow-root identities, 21..24 ember-root, 31..34 body-root, 41..44 motion-root.
+# Second roll independently chooses the archetype Witness/Bearer/Warden/Wanderer. The final value is
+# nature*10+archetype, so every nature can recombine with every archetype instead of choosing one
+# prewritten whole Aspect name from a list.
 execute store result score @s ss_roll run random value 1..4
 execute if score @s ss_aspect matches 1 if score @s ss_roll matches 1 run scoreboard players set @s ss_aspect 11
 execute if score @s ss_aspect matches 1 if score @s ss_roll matches 2 run scoreboard players set @s ss_aspect 12
