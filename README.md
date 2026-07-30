@@ -12,18 +12,20 @@ Dormant Aspect that grants you power and a Flaw that charges you for it.
 
 ## Install
 
-Drop the `.zip` into your world's `datapacks/` folder and `/reload`.
+Drop the release `.zip` into your world's `datapacks/` folder and `/reload`.
 
 ```
-<world>/datapacks/shadowslave-<version>.zip
+<world>/datapacks/dist-shadowslave-<version>.zip
 ```
 
 `pack.mcmeta` sits at the root of the archive, which is what Minecraft expects — if a pack
 never appears in `/datapack list`, a wrapper folder is usually why.
 
-**No client install.** Datapacks are server-side, so anyone can join a server running this
-with a completely vanilla client and everything works: the dimension, the trial, Aspects,
-advancements. That is a deliberate reason to stay a datapack for as long as possible.
+**No client install.** Datapacks are server-side, so players can join a server running this with a
+completely vanilla client. Phase 1 is not a fully multiplayer-instanced system, however: it uses one
+shared Nightmare bossbar/creature set, so **simultaneous active First Nightmares are not supported**.
+That ceiling is intentionally deferred to the Java instance system rather than being papered over with
+a fragile command-only ownership framework.
 
 **Requirements:** Minecraft **1.21.1** exactly (`pack_format` 48), difficulty **Easy or
 higher** (Peaceful strips hostile mobs and the trial is empty), and **cheats on** if you want
@@ -50,16 +52,20 @@ first journey into the Dream Realm, which Phase 1 does not have. The ladder is
 
 `/trigger soul` shows where you stand.
 
-|             |                                             |
-| ----------- | ------------------------------------------- |
-| **Aspects** | Shadow, Flame, Bone, Wind                   |
-| **Flaws**   | Shadow Slave, Fragile, Ravenous, Weightless |
+|             |                                           |
+| ----------- | ----------------------------------------- |
+| **Aspects** | Shadow, Flame, Bone, Wind                 |
+| **Flaws**   | Sunscorched, Fragile, Ravenous, Weightless |
 
-Rolled independently, so Shadow + Shadow Slave is possible — and thematically apt.
+These eight are **Phase 1 placeholders**. They are rolled independently for the prototype. The novel
+is explicit that every Aspect is unique and that Flaws are personal rather than random; the Java-era
+system will replace this fixed generator rather than expanding the catalogue. `Sunscorched` is an
+invented placeholder name — the legacy internal id still says `shadow_slave` for save/test
+compatibility, but **Shadow Slave is Sunny's Aspect, not a Flaw**.
 
-> These eight are **placeholders**. The novel is explicit that every Aspect is unique and that
-> Flaws are never random, so the plan is to generate Aspects and derive Flaws from how you
-> actually survived the trial. See the design spec.
+The **Shadow Slave** advancement tab tracks the major milestones of the Phase 1 loop. Internally the
+same advancement IDs double as regression markers for the automated harness, but the release-facing
+text is gameplay rather than QA instrumentation.
 
 ---
 
@@ -69,26 +75,21 @@ Rolled independently, so Shadow + Shadow Slave is possible — and thematically 
 /function shadowslave:test/help
 ```
 
-| Command          | Does                                |
-| ---------------- | ----------------------------------- |
-| `test/selfcheck` | Asserts the pack loaded correctly   |
-| `test/infect`    | Become a Carrier now                |
-| `test/cure`      | Back to untouched                   |
-| `test/nightmare` | Enter the trial immediately, no bed |
-| `test/awaken`    | Skip the trial, roll an Aspect      |
-| `test/reset`     | Wipe everything and start over      |
+| Command          | Does                                         |
+| ---------------- | -------------------------------------------- |
+| `test/selfcheck` | Asserts the pack loaded correctly            |
+| `test/infect`    | Become a Carrier now                         |
+| `test/cure`      | Back to untouched                            |
+| `test/nightmare` | Enter the trial immediately, no bed          |
+| `test/awaken`    | Compatibility name: skip to Sleeper + roll   |
+| `test/reset`     | Wipe player test state and start over        |
 
 Skip the countdown mid-trial with `/scoreboard players set @s ss_timer 1`.
 
 **Testing commands bypass the systems they test.** `test/nightmare` walks past the ejection
 cooldown and the weakness gate via a single-use `ss_test_bypass` tag that entry consumes —
 otherwise the command for entering the trial refuses to enter the trial. The rank gate has no
-bypass on purpose: a Sleeper in a First Nightmare is a state nothing handles. Use
-`test/reset`.
-
-There is also a **Shadow Slave — Verification** advancement tab. Each entry is granted at the
-exact line a mechanic executes, so it records what actually ran rather than what you think
-ran. An incomplete branch tells you where the loop stopped.
+bypass on purpose: a Sleeper in a First Nightmare is a state nothing handles. Use `test/reset`.
 
 ---
 
@@ -101,35 +102,45 @@ shadowslave/            the datapack itself
   data/shadowslave/
     function/           all logic, grouped by responsibility
       nightmare/          the trial lifecycle
-      aspect/  flaw/      recurring per-second effects
-      awaken/             the one-time rank transition
+      progression/        one-time Phase 1 progression transitions
+      prototype/          temporary four-Aspect/four-Flaw generator
+      aspect/  flaw/      recurring powers and penalties
       test/               testing commands
     dimension_type/  dimension/  worldgen/biome/
     advancement/  predicate/
-  tools/validate.py     offline structure and reference checker
-testserver/             local 1.21.1 server + mineflayer harness
-docs/superpowers/       design spec and implementation plan
+  tools/
+    validate.py         offline structure/reference checker
+    build.py            validated deterministic release ZIP builder
+testserver/             local 1.21.1 server + Mineflayer harness
+docs/lore-research/     canon evidence base + implementation brainstorm
+docs/reviews/           cross-agent code/release reviews
+docs/superpowers/       historical design spec and implementation plan
 ```
 
 ### Checks before shipping
 
 ```bash
 python3 shadowslave/tools/validate.py      # static: structure, references, schema
-cd testserver && node harness.mjs          # live: 25 assertions against a real server
+cd testserver && node harness.mjs          # live: behavioral assertions against a real server
+cd .. && python3 shadowslave/tools/build.py # validated deterministic installable ZIP
 ```
 
 **`validate.py`** catches what fails _silently_ in Minecraft — plural directory names, a
 misspelled objective, a tag tested but never applied, an unresolvable function or predicate,
 an attribute modifier added without a paired remove, a `dimension_type` that does not cover
-its noise settings, and version drift between the manifest and the load message.
+its noise settings, and version drift between the manifest and load message.
 
-**`harness.mjs`** runs a mineflayer bot against a local server, executing commands and reading
+**`harness.mjs`** runs a Mineflayer bot against a local server, executing commands and reading
 the replies back to assert on game state. It covers the mechanical half — state transitions,
 guards, thresholds, teardown — and prints a **"needs a human"** list for everything requiring
 judgement.
 
-Both exist because this project has repeatedly shipped code that was valid, well-formed, and
-wrong. Almost every way a datapack breaks is silent.
+**`build.py`** refuses to package a validation failure, derives the archive name from
+`pack.mcmeta`, normalizes ZIP metadata for reproducible output, and includes only the player-facing
+pack (`pack.mcmeta`, optional `pack.png`, and `data/`) at archive root.
+
+All three layers exist because this project has repeatedly shipped code that was valid, well-formed,
+and wrong. Almost every way a datapack breaks is silent.
 
 ### Conventions
 
@@ -165,17 +176,19 @@ for each round of fixes; holding a release back until it is clean makes the numb
 
 ## Documents
 
-|                              |                                                                     |
-| ---------------------------- | ------------------------------------------------------------------- |
-| [CHANGELOG.md](CHANGELOG.md) | Every version, and which issue it fixed                             |
-| [ISSUES.md](ISSUES.md)       | Known issues, deliberate limitations, and what is confirmed working |
-| [TESTING.md](TESTING.md)     | Full in-game test plans                                             |
-| [docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) | Why the code is like this — each convention with the bug that caused it |
-| [docs/COLLABORATION.md](docs/COLLABORATION.md) | How the two AI agents work through this repo |
-| `docs/superpowers/specs/`    | Design spec, including the direction for generated Aspects          |
+| | |
+| --- | --- |
+| [CHANGELOG.md](CHANGELOG.md) | Every version, and which issue it fixed |
+| [ISSUES.md](ISSUES.md) | Current known issues plus the historical bug record |
+| [TESTING.md](TESTING.md) | Historical test sweeps and the current release acceptance pass |
+| [docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) | Why the code is shaped this way — each convention with the bug that caused it |
+| [docs/COLLABORATION.md](docs/COLLABORATION.md) | How Claude and GPT coordinate through git |
+| [docs/lore-research/](docs/lore-research/) | Canon research and confidence-labelled evidence |
+| [docs/reviews/](docs/reviews/) | Durable code/release reviews and agent replies |
 
 ## Credit
 
-_Shadow Slave_ is by **Guiltythree**. This is an unofficial fan project, not affiliated with
-the author or publisher. Lore is drawn from the community wiki; the vault note is the
-project's source of truth for it.
+_Shadow Slave_ is by **Guiltythree**. This is an unofficial fan project, not affiliated with the
+author or publisher. Canon research used for the project is documented under `docs/lore-research/`,
+with claims separated by confidence and checked against the novel/official release and community
+reference sources according to that directory's source policy.
