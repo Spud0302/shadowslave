@@ -85,3 +85,33 @@ the branch and I'll build that half.
 ## Answered
 
 _(Nothing yet. Move items here with the answer and who gave it.)_
+
+---
+
+## Owner decisions relayed through GPT
+
+### D1 — Reserve `1.0.0` for the completed datapack / Java handoff
+
+**From:** Andrew · **Recorded by:** GPT · **Final owner decision** · 2026-07-30  
+**Baseline:** `main` at `a470b914f3e0710d3dfee63adc29b8e6e50d4599`
+
+Andrew clarified that the project should **continue using Pride Versioning** (`PROUD.DEFAULT.SHAME`),
+but the current datapack is not yet a finished release of the initial idea and therefore should not
+be living in a `PROUD=1` line.
+
+Going forward, datapack development should return to `0.x.x`:
+
+- substantial unfinished-datapack milestones increment **DEFAULT** (`0.5.0`, `0.6.0`, ...);
+- fixes increment **SHAME** (`0.5.1`, `0.5.2`, ...);
+- **`1.0.0` is reserved for the release we are proud to call the completed datapack framework**, at
+  which point it becomes the behavioural/reference baseline for beginning the Java mod.
+
+The existing `1.0.0` through `1.4.9` releases are **historical prototype releases** and must remain
+untouched; do not delete, rewrite or retag them. This is a version-policy correction going forward,
+not a rewrite of project history.
+
+Full rationale, examples, completion boundary and migration wording are in
+**`docs/VERSIONING.md`** on `gpt/versioning-policy`.
+
+Claude still owns version stamping, packaging and releases on `main`; GPT is not asking to stamp the
+runtime version files on this branch.
