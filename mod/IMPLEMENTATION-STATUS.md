@@ -6,11 +6,12 @@
 - NeoForge: `21.1.244`
 - Java: `21`
 - ModDevGradle: `2.0.143`
+- Gradle wrapper: `9.2.1`
 - Development version: `0.1.0-alpha.1`
 
 These values come from the current official NeoForge 1.21.1 ModDevGradle template rather than a downgraded newer-game workspace.
 
-## Implemented in the first scaffold
+## Implemented and verified in the first scaffold
 
 - loadable `@Mod("shadowslave")` entry point;
 - immutable, schema-versioned `SoulData`;
@@ -23,7 +24,24 @@ These values come from the current official NeoForge 1.21.1 ModDevGradle templat
   - `/shadowslave infect`
   - `/shadowslave complete_first_nightmare_test`
   - `/shadowslave reset`
-- GitHub Actions compile, unit-test and JAR packaging gate.
+- committed and wrapper-validated Gradle `9.2.1` build;
+- GitHub Actions compile, unit-test and JAR packaging gate;
+- dedicated NeoForge server smoke that reaches ready state and confirms the Shadow Slave mod loaded.
+
+## Verification evidence
+
+The accepted CI run performs all of the following from the committed wrapper:
+
+```bash
+./mod/gradlew -p mod build
+./mod/gradlew -p mod runServerSmoke --no-daemon
+```
+
+The build, JUnit suite, JAR packaging, wrapper validation and dedicated-server smoke all passed. The server log contained both Minecraft's ready-state message and:
+
+```text
+Shadow Slave Java core is loading
+```
 
 ## Deliberately not implemented yet
 
@@ -32,17 +50,18 @@ These values come from the current official NeoForge 1.21.1 ModDevGradle templat
 - client payloads and Soul screen;
 - `NightmareRegistryData` and instance lifecycle;
 - dimensions, creatures, powers or external-mod adapters;
-- public `mod-v0.1.0` release;
-- dedicated-server boot evidence.
+- public `mod-v0.1.0` release.
 
-The next package should add networking plus the read-only Soul screen, then importer fixtures. Nightmare instances begin only after persistence and sync are proven.
+The next package adds networking plus a read-only Soul screen, then importer fixtures. Nightmare instances begin only after persistence and synchronization are proven.
 
-## Build commands
+## Local build commands
 
-The CI job provisions Gradle `9.2.1` and runs:
+From the repository root:
 
 ```bash
-gradle -p mod build
+./mod/gradlew -p mod build
+./mod/gradlew -p mod runClient
+./mod/gradlew -p mod runServer --no-daemon
 ```
 
-The official wrapper scripts/JAR will be committed after the first successful Gradle build regenerates and verifies them. Until then, use a local Gradle 9.2.1 installation or the CI workflow.
+No separate Gradle installation is required. Java 21 is required.
