@@ -28,8 +28,8 @@ public final class SoulScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(graphics, mouseX, mouseY, partialTick);
 
-        int panelWidth = Math.min(360, Math.max(220, this.width - 32));
-        int panelHeight = 190;
+        int panelWidth = Math.min(400, Math.max(250, this.width - 32));
+        int panelHeight = 236;
         int left = (this.width - panelWidth) / 2;
         int top = (this.height - panelHeight) / 2;
         int right = left + panelWidth;
@@ -40,20 +40,22 @@ public final class SoulScreen extends Screen {
         graphics.drawCenteredString(this.font, this.title, this.width / 2, top + 14, TITLE_COLOR);
 
         int labelX = left + 22;
-        int valueX = left + 118;
-        int lineY = top + 46;
+        int valueX = left + 126;
+        int lineY = top + 44;
 
-        drawRow(graphics, "Spell state", humanize(snapshot.spellState()), labelX, valueX, lineY, VALUE_COLOR);
-        drawRow(graphics, "Soul Rank", humanize(snapshot.soulRank()), labelX, valueX, lineY + 22, VALUE_COLOR);
-        drawRow(graphics, "Aspect", snapshot.displayedAspect(), labelX, valueX, lineY + 44, ASPECT_COLOR);
-        drawRow(graphics, "Flaw", snapshot.displayedFlaw(), labelX, valueX, lineY + 66, FLAW_COLOR);
+        drawRow(graphics, "Status", humanize(snapshot.spellState()), labelX, valueX, lineY, VALUE_COLOR);
+        drawRow(graphics, "Path", humanize(snapshot.awakeningPath()), labelX, valueX, lineY + 22, VALUE_COLOR);
+        drawRow(graphics, "Soul Rank", humanize(snapshot.displayedSoulRank()), labelX, valueX, lineY + 44, VALUE_COLOR);
+        drawRow(graphics, "Aspect", snapshot.displayedAspect(), labelX, valueX, lineY + 66, ASPECT_COLOR);
+        drawRow(graphics, "Aspect Rank", humanize(snapshot.displayedAspectRank()), labelX, valueX, lineY + 88, ASPECT_COLOR);
+        drawRow(graphics, "Flaw", snapshot.displayedFlaw(), labelX, valueX, lineY + 110, FLAW_COLOR);
         drawRow(
                 graphics,
                 "Origin",
-                snapshot.importedFromDatapack() ? "Imported from datapack" : "Native Java soul",
+                snapshot.importedFromDatapack() ? "Imported legacy identity" : "Native Java soul",
                 labelX,
                 valueX,
-                lineY + 88,
+                lineY + 132,
                 VALUE_COLOR
         );
 
@@ -61,7 +63,7 @@ public final class SoulScreen extends Screen {
                 this.font,
                 Component.translatable("screen.shadowslave.soul.close_hint"),
                 this.width / 2,
-                bottom - 22,
+                bottom - 20,
                 LABEL_COLOR
         );
 
@@ -82,7 +84,7 @@ public final class SoulScreen extends Screen {
     }
 
     private static String humanize(String value) {
-        if (value.isBlank()) {
+        if (value.isBlank() || "—".equals(value)) {
             return "—";
         }
 
