@@ -1,9 +1,9 @@
 package dev.spud.shadowslave.nightmare;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.InteractionResult;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
