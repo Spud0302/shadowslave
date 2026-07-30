@@ -17,8 +17,10 @@ Canon gives constraints, examples and themes, but **not an Aspect-generation for
 pack must not present a made-up deterministic algorithm as lore. It should use a game system that is
 canon-compatible rather than canon-claimed:
 
-- Aspect identity is generated from a small compositional vocabulary so the player receives a
-  personal supernatural archetype rather than the literal labels `Shadow`, `Flame`, `Bone`, `Wind`.
+- Aspect identity is **composed from two independently rolled vocabularies**, not selected as one
+  whole item from a larger fixed-name list.
+- The first component expresses the finite Dormant mechanical nature; the second is an independent
+  archetype. Their Cartesian product produces the player-facing identity.
 - The Dormant mechanical expression remains one of four finite command implementations. Vanilla can
   compose identity, but it cannot invent a brand-new executable ability at runtime.
 - Flaw **family** is derived from observable behavior in the successful First Nightmare when there is
@@ -40,7 +42,7 @@ From `docs/lore-research/section-a-aspects-and-flaws.md`:
 - Aspect names describe broad supernatural nature more plausibly than one literal combat move;
 - formal Aspect names are too sparse to infer a universal English grammar;
 - Flaws are personal burdens and often mirror, twist or attack a person's nature/power/circumstances;
-- `Shadow Slave` is Sunny's **Aspect**, not his Flaw. The current player-facing Flaw name must go.
+- `Shadow Slave` is Sunny's **Aspect**, not his Flaw. The old player-facing Flaw name must go.
 
 The generated names in this spec are **fan-created game content**, not claimed canon names.
 
@@ -52,7 +54,7 @@ A command pack can choose and compose values, names and presentation, but every 
 effect still has to exist ahead of time. Phase 1 therefore uses:
 
 ```text
-personal generated identity
+composed personal identity
         ↓
 finite Dormant mechanical root
         ↓
@@ -66,76 +68,60 @@ The existing internal tags remain the mechanical roots for save/test compatibili
 - `ss_aspect_bone`
 - `ss_aspect_wind`
 
-and the four historical Flaw tags remain internal burden-family ids. Player-facing identity no longer
+The four historical Flaw tags remain internal burden-family ids. Player-facing identity no longer
 uses those old raw labels.
 
 ## Aspect generation
 
 `ss_aspect` becomes an encoded identity score rather than `1..4`.
 
-The generator rolls:
+The generator rolls two independent axes:
 
-1. one **nature/root** (`1..4`) — this chooses the finite Dormant mechanic and internal Aspect tag;
-2. one **expression** (`1..4`) — this chooses the personal identity within that nature.
+1. **nature/root** (`1..4`) — chooses the finite Dormant mechanic and the first word;
+2. **archetype** (`1..4`) — independently chooses the second word.
 
-The final score is encoded as `nature * 10 + expression`, producing `11..44`.
+The final score is `nature * 10 + archetype`, producing `11..44`.
 
-### Nature 1 — shadow / concealment root
+### Nature vocabulary / mechanical roots
 
-Internal mechanic: `ss_aspect_shadow`.
+| Nature | First word | Internal mechanic | Dormant expression |
+| --- | --- | --- | --- |
+| 1 | **Veiled** | `ss_aspect_shadow` | darkness lends sight and a little speed |
+| 2 | **Ashen** | `ss_aspect_flame` | fire recoils; blows can carry embers |
+| 3 | **Pale** | `ss_aspect_bone` | the body hardens beneath the skin |
+| 4 | **Restless** | `ss_aspect_wind` | movement becomes unnaturally light and quick |
 
-| Score | Generated Aspect identity |
+### Independent archetype vocabulary
+
+| Archetype | Second word |
 | --- | --- |
-| 11 | Veiled Witness |
-| 12 | Dusk Wanderer |
-| 13 | Silent Shade |
-| 14 | Nightbound Pilgrim |
+| 1 | **Witness** |
+| 2 | **Bearer** |
+| 3 | **Warden** |
+| 4 | **Wanderer** |
 
-Dormant expression text: darkness lends sight and a little speed.
+This produces a Cartesian product rather than sixteen separately authored whole names:
 
-### Nature 2 — ember / heat root
+| Score | Generated identity | Score | Generated identity |
+| --- | --- | --- | --- |
+| 11 | Veiled Witness | 21 | Ashen Witness |
+| 12 | Veiled Bearer | 22 | Ashen Bearer |
+| 13 | Veiled Warden | 23 | Ashen Warden |
+| 14 | Veiled Wanderer | 24 | Ashen Wanderer |
+| 31 | Pale Witness | 41 | Restless Witness |
+| 32 | Pale Bearer | 42 | Restless Bearer |
+| 33 | Pale Warden | 43 | Restless Warden |
+| 34 | Pale Wanderer | 44 | Restless Wanderer |
 
-Internal mechanic: `ss_aspect_flame`.
-
-| Score | Generated Aspect identity |
-| --- | --- |
-| 21 | Ember Bearer |
-| 22 | Ashen Heart |
-| 23 | Cinder Warden |
-| 24 | Hearth Exile |
-
-Dormant expression text: fire recoils from the player and their blows can carry embers.
-
-### Nature 3 — body / endurance root
-
-Internal mechanic: `ss_aspect_bone`.
-
-| Score | Generated Aspect identity |
-| --- | --- |
-| 31 | Pale Bastion |
-| 32 | Iron Husk |
-| 33 | Gravebound Frame |
-| 34 | Stone Vessel |
-
-Dormant expression text: the body hardens beneath the skin.
-
-### Nature 4 — motion / air root
-
-Internal mechanic: `ss_aspect_wind`.
-
-| Score | Generated Aspect identity |
-| --- | --- |
-| 41 | Stray Gale |
-| 42 | Skybound Drifter |
-| 43 | Restless Horizon |
-| 44 | Wayward Step |
-
-Dormant expression text: movement becomes unnaturally light and quick.
+The command implementation still renders the resulting pair with score-specific tellraw lines because
+that is the simplest per-player persistence available in vanilla. Conceptually and mechanically,
+however, the identity is generated from two independent components; adding a fifth archetype later
+expands every nature rather than requiring a new hand-authored class.
 
 ### What is deliberately NOT claimed
 
-- The game is not claiming these 16 names are canon.
-- The game is not claiming a random roll is the Nightmare Spell's canonical algorithm.
+- These words are not claimed canon terminology.
+- The two-roll system is not claimed to be the Nightmare Spell's canonical algorithm.
 - The four mechanics are not claimed to be the complete space of possible Aspects.
 - A generated identity can share a mechanical root with another identity; that is the visible
   datapack ceiling the Java port later removes.
@@ -143,7 +129,7 @@ Dormant expression text: movement becomes unnaturally light and quick.
 ## Flaw observation
 
 A First Nightmare run records three **strong, directly observable** behavior signals. They are reset
-at every successful entry so an earlier failed attempt cannot contaminate the next attempt.
+at every accepted entry so an earlier failed attempt cannot contaminate the next attempt.
 
 ### `ss_trial_bloodied`
 
@@ -251,7 +237,8 @@ Burden: safe falling distance is reduced.
 - replace `prototype/roll_aspect_flaw.mcfunction` with the generated-identity / earned-family logic;
 - add `prototype/trial_begin.mcfunction` to reset observations and capture starting hunger;
 - add `prototype/observe_trial.mcfunction` to record the three behavior signals;
-- update `soul.mcfunction` to show the generated Aspect/Flaw identities and honest Dormant expressions;
+- update `soul.mcfunction` to show composed Aspect / generated Flaw identities and honest Dormant
+  expressions;
 - update the historical `flaw/shadow_slave.mcfunction` comment so internal compatibility naming is
   not mistaken for player/canon naming.
 
@@ -264,8 +251,8 @@ Two one-line state-machine hooks are required:
 - `nightmare/tick_player.mcfunction`: while the creature exists, call `prototype/observe_trial`
   **before** the existing distance leash can erase the `40+` observation.
 
-`test/reset.mcfunction` also needs to clear the three trial-observation tags and the player's
-`ss_roll` scratch value, because reset promises genuinely fresh state.
+`test/reset.mcfunction` also clears the three trial-observation tags and the player's `ss_roll`
+scratch value, because reset promises genuinely fresh state.
 
 These are cross-column edits under the current collaboration split. They are small, named here in
 advance, and Claude must scrutinize/test them.
@@ -306,29 +293,30 @@ Keep:
 Change only their value semantics/player-facing interpretation.
 
 Existing worlds with old `ss_aspect=1..4` or `ss_flaw=1..4` but current tags still continue to receive
-mechanics through the tags. `/trigger soul` should include a small legacy fallback display for those
-old score ranges until the player is reset/re-rolled.
+mechanics through the tags. `/trigger soul` includes a small legacy fallback display for those old
+score ranges until the player is reset/re-rolled.
 
 ## Acceptance criteria
 
 Claude should add/adjust live assertions as needed, but the observable contract is:
 
-1. `test/awaken` repeatedly produces more than four player-facing Aspect identities while still
-   assigning exactly one internal Aspect mechanic tag.
-2. `ss_aspect` after a new roll is one of `11..14`, `21..24`, `31..34`, `41..44`.
-3. exactly one internal Flaw tag is assigned.
-4. `ss_flaw` after a new roll is in the same encoded ranges.
-5. an ordinary test/awaken with no trial observations uses a random Flaw family.
-6. `ss_trial_bloodied` makes family 2 win over the random fallback.
-7. `ss_trial_hungry` makes family 3 win over bloodied.
-8. `ss_trial_fled` makes family 4 win over hungry/bloodied.
-9. Flaw identity still varies `1..4` within the selected family.
-10. entering a new First Nightmare clears observation tags from an earlier attempt.
-11. `test/reset` clears observations and `ss_roll`.
-12. `/trigger soul` displays the generated names, never the old player-facing `Aspect: Shadow/Flame/
-    Bone/Wind` or `Flaw: Shadow Slave/Fragile/Ravenous/Weightless` for a new roll.
-13. the existing Aspect/Flaw effects still function through the compatibility tags.
-14. re-rolling cannot leave an old attribute modifier behind.
+1. repeated `test/awaken` runs demonstrate independent recombination of **nature + archetype**, not
+   merely selection from the old four whole Aspect labels, while assigning exactly one internal
+   Aspect mechanic tag;
+2. `ss_aspect` after a new roll is one of `11..14`, `21..24`, `31..34`, `41..44`;
+3. exactly one internal Flaw tag is assigned;
+4. `ss_flaw` after a new roll is in the same encoded ranges;
+5. an ordinary `test/awaken` with no trial observations uses a random Flaw family;
+6. `ss_trial_bloodied` makes family 2 win over the random fallback;
+7. `ss_trial_hungry` makes family 3 win over bloodied;
+8. `ss_trial_fled` makes family 4 win over hungry/bloodied;
+9. Flaw identity still varies `1..4` within the selected family;
+10. entering a new First Nightmare clears observation tags from an earlier attempt;
+11. `test/reset` clears observations and `ss_roll`;
+12. `/trigger soul` displays composed/generated names, never the old player-facing
+    `Aspect: Shadow/Flame/Bone/Wind` or `Flaw: Shadow Slave/Fragile/Ravenous/Weightless` for a new roll;
+13. the existing Aspect/Flaw effects still function through the compatibility tags;
+14. re-rolling cannot leave an old attribute modifier behind;
 15. normal First-Nightmare entry, teardown, cooldown, death recovery and Sleeper progression remain
     unchanged except for the two observation hooks.
 
