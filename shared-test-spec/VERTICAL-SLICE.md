@@ -2,170 +2,195 @@
 
 This specification is implementation-neutral. The Nightmare Spell modpack track and standalone Java mod track must both pass it before the architecture comparison is scored.
 
-The datapack `1.0.0` is the behavioural reference where this document is silent. This document may deliberately require stronger Java-era behaviour, especially explicit instance ownership and multiplayer isolation.
+The frozen datapack remains a migration and regression reference, but Java-era behaviour follows `docs/JAVA-LORE-ALIGNMENT.md` where the datapack used a format-driven approximation.
 
 ## Test identities
 
-- **Player A:** fresh profile, no imported datapack state.
+- **Player A:** fresh profile, no imported state.
 - **Player B:** fresh profile used for multiplayer isolation.
 - **Imported Carrier:** datapack player with `ss_carrier` and no completed rank.
 - **Imported Sleeper:** datapack player with completed rank, generated Aspect and generated Flaw.
 
-## VS-01 — untouched player remains Mundane
+## VS-01 — uninfected player has no invented Rank zero
 
 **Given** Player A has no Soul state  
-**When** the server runs normally without the player sleeping  
-**Then** no infection, rank, Aspect or Flaw is silently assigned  
-**And** the Soul interface identifies the player as Mundane/untouched.
+**When** the server loads or the Soul screen opens  
+**Then** the player is identified as uninfected/Mundane  
+**And** Soul Rank is absent rather than `Mundane`  
+**And** no Aspect, Aspect Rank or Flaw is assigned.
 
-## VS-02 — first sleep creates a Carrier
+## VS-02 — infection creates a Carrier
 
-**Given** Player A is Mundane  
-**When** Player A completes the first qualifying ordinary sleep  
+**Given** Player A is uninfected  
+**When** the configured infection event marks the player  
 **Then** the server creates persistent Soul data  
-**And** marks the player as a Carrier  
-**And** does not assign a completed First-Nightmare Aspect or Flaw  
+**And** marks the player as a Carrier on the Nightmare Spell path  
+**And** does not assign Soul Rank, permanent Aspect or Flaw  
 **And** the state survives logout and server restart.
 
-## VS-03 — Carrier enters a First Nightmare
+Ordinary sleep may be used by a clearly labelled development shortcut, but it is not treated as the canonical cause of infection.
 
-**Given** Player A is a Carrier and passes every entry guard  
-**When** Player A completes the later sleep/bed interaction  
-**Then** one Nightmare instance is created  
-**And** Player A is recorded as its participant  
-**And** the return location is captured  
-**And** the chosen scenario is recorded by an ID  
-**And** all spawned objective entities are owned by that instance.
+## VS-03 — First Nightmare trigger creates an Aspirant
+
+**Given** Player A is a Carrier and passes every trigger guard  
+**When** supernatural exhaustion/forced-sleep logic starts the First Nightmare  
+**Then** the player becomes an Aspirant  
+**And** gains a Dormant Soul Core  
+**And** one individually owned Nightmare instance is created  
+**And** the return/recovery state is captured  
+**And** the chosen scenario is recorded by an ID.
 
 ## VS-04 — duplicate entry is rejected at the service boundary
 
 **Given** Player A already has an active Nightmare instance  
 **When** any caller requests another entry  
 **Then** the central Nightmare service rejects it  
-**And** no second instance, return location or objective is created.
+**And** no second instance, role, return state or objective is created.
 
-## VS-05 — trial evidence is captured per participant
+## VS-05 — historical role is instance-owned, not permanent Soul identity
+
+**Given** Player A enters a First Nightmare  
+**When** the scenario assigns a historical role/body and provisional trial context  
+**Then** those values belong to the Nightmare instance participant record  
+**And** temporary role Attributes or abilities are not silently written as the final permanent Aspect  
+**And** teardown cannot leave the waking player trapped in the historical body.
+
+## VS-06 — central conflict is scenario-defined
+
+**Given** Player A is inside a First Nightmare  
+**When** the player interacts with its reconstructed historical situation  
+**Then** progress is measured against a central conflict  
+**And** the conflict may support more than one resolution where designed  
+**And** a boss kill counts only when it actually resolves that conflict  
+**And** scenario logic is not hard-coded into the player lifecycle service.
+
+## VS-07 — meaningful evidence is captured without claiming a canon formula
 
 **Given** Player A is in an active First Nightmare  
-**When** the player reaches configured evidence conditions such as near-collapse, hunger consumption or sustained retreat  
+**When** the player makes significant choices or demonstrates sustained behaviour  
 **Then** evidence is appended to the active instance's participant record  
-**And** it is not stored as an unrelated global flag  
-**And** evidence from Player B cannot affect Player A.
+**And** it is not stored as unrelated global flags  
+**And** evidence from Player B cannot affect Player A  
+**And** the appraisal engine labels its weighting as project design rather than a canon algorithm.
 
-## VS-06 — victory produces a Sleeper
+## VS-08 — victory and appraisal produce a Dreamer/Sleeper
 
-**Given** Player A completes the scenario's central conflict  
-**When** the objective reports victory  
+**Given** Player A resolves the scenario's central conflict  
+**When** the objective reports victory and appraisal completes  
 **Then** the instance exits through the shared teardown path  
-**And** Player A returns safely  
-**And** becomes a Sleeper/Dreamer with Dormant Soul Rank  
-**And** receives one Aspect identity  
-**And** receives one Flaw identity derived from the recorded trial evidence  
+**And** Player A becomes a Dreamer, socially called a Sleeper  
+**And** Soul Rank remains Dormant  
+**And** one permanent Aspect identity and independent Aspect Rank are revealed  
+**And** one permanent Flaw identity/effect is revealed  
 **And** all identity data persists across restart.
 
-## VS-07 — Aspect and Flaw are instances, not display-only classes
+## VS-09 — Aspect Rank is independent from Soul Rank
 
-**Given** Player A is a Sleeper  
+**Given** Player A is a Dormant Dreamer  
+**When** the appraised Aspect has a Rank other than Dormant  
+**Then** the Soul record preserves both values independently  
+**And** UI, networking and ability resolution do not infer Aspect Rank from Soul Rank.
+
+## VS-10 — Aspect and Flaw are instances, not fixed datapack classes
+
+**Given** Player A is a Dreamer  
 **When** the Soul state is read  
-**Then** the Aspect has a stable instance ID, formal name, rank and ability references  
-**And** the Flaw has a stable instance ID, formal name, family and parameters  
-**And** the active mechanics resolve from those records  
-**And** removing a third-party integration does not erase the identity records.
+**Then** the Aspect has stable identity, formal-name state, Rank, nature and ability references  
+**And** the Flaw has stable identity, formal-name state and effect parameters  
+**And** unknown formal names remain unknown rather than being invented from effect labels  
+**And** removing a third-party integration does not erase either identity.
 
-## VS-08 — Flaw has a real reliable cost
+## VS-11 — Flaw has a real reliable cost
 
-**Given** Player A has a generated Flaw  
+**Given** Player A has a revealed Flaw  
 **When** the relevant gameplay condition is exercised  
 **Then** the drawback is observable and server-authoritative  
 **And** it does not silently fail while the UI still claims it is active  
-**And** its cleanup occurs only through defined progression, migration or administrative behaviour.
+**And** it is not casually removed like a temporary potion debuff.
 
-## VS-09 — ejection uses shared teardown
+## VS-12 — ordinary failure is lethal, not safe ejection
 
-**Given** Player A is in an active Nightmare  
-**When** an ejection condition is reached  
-**Then** the same exit service used by victory performs teardown  
-**And** the exit reason is EJECTION  
-**And** the player is returned without receiving victory progression  
-**And** owned entities, temporary effects and instance state are cleaned up  
-**And** retry/cooldown state is explicit and persistent as designed.
+**Given** Player A fails or dies in a First Nightmare under canonical rules  
+**When** failure resolves  
+**Then** the player does not receive Dreamer progression  
+**And** the death is treated as real  
+**And** the configured First-Nightmare Gate consequence or its explicit prototype placeholder is recorded  
+**And** the game does not describe the result as a normal retry granted by the Spell.
 
-## VS-10 — death and reconnect recover safely
+An optional accessibility mode may change this outcome, but must be labelled non-canon and tested separately.
 
-**Given** Player A is in an active Nightmare  
-**When** the player dies, disconnects, or the server restarts  
-**Then** the recovery policy produces one valid state  
+## VS-13 — crash and administrative recovery are technical paths
+
+**Given** Player A disconnects, the server restarts, or an instance becomes corrupt  
+**When** recovery runs  
+**Then** it produces one consistent technical state  
 **And** the player is never simultaneously inside and outside an instance  
-**And** items are not stranded in an unreachable abandoned instance  
-**And** duplicate objective rewards cannot be claimed.
+**And** items and owned entities are not stranded  
+**And** recovery is logged as technical/administrative rather than ordinary lore ejection  
+**And** duplicate rewards cannot be claimed.
 
-## VS-11 — simultaneous players are isolated
+## VS-14 — simultaneous players are isolated
 
-**Given** Player A and Player B are both eligible  
-**When** they enter separate Nightmares  
-**Then** each receives a distinct instance ID  
-**And** each has independent objective state, entities, boss presentation and return location  
-**And** victory or failure in one instance does not modify the other.
+**Given** Player A and Player B are eligible  
+**When** they enter separate First Nightmares  
+**Then** each receives a distinct instance ID, role, conflict state and return record  
+**And** each has independent entities and presentation  
+**And** victory, death or recovery in one instance does not modify the other.
 
-## VS-12 — Soul interface is server-synchronised
+## VS-15 — Soul interface is server-synchronised
 
 **Given** Player A opens the Soul interface  
 **When** the client requests the screen  
 **Then** the server sends an owning-player snapshot  
-**And** the snapshot contains only required display/action data  
-**And** the client cannot set its own rank, Aspect, Flaw, resources or cooldowns  
+**And** status, awakening path, Soul Rank and Aspect Rank are separate fields  
+**And** absent Soul Rank renders as absent rather than Mundane  
+**And** the client cannot set rank, Aspect, Flaw, evidence, resources or cooldowns  
 **And** stale snapshots are replaced after authoritative mutations.
 
-## VS-13 — datapack Carrier import
+## VS-16 — datapack Carrier import
 
 **Given** Imported Carrier has legacy datapack state  
 **When** Java migration runs  
 **Then** it constructs valid Soul data in memory first  
-**And** validates it  
-**And** persists the Java record  
-**And** marks migration complete only afterward  
-**And** preserves Carrier progression without inventing an Aspect or Flaw.
+**And** maps the player to Carrier on the Nightmare Spell path with no Soul Rank  
+**And** validates and persists the Java record before marking migration complete  
+**And** does not invent an Aspect or Flaw.
 
-## VS-14 — datapack Sleeper import
+## VS-17 — datapack Sleeper import
 
 **Given** Imported Sleeper has generated datapack identity  
 **When** Java migration runs  
-**Then** the player remains a Sleeper/Dreamer with Dormant rank  
-**And** the generated Aspect name and legacy root are retained  
+**Then** the player becomes a Dreamer/Sleeper with Dormant Soul Rank  
+**And** the generated Aspect name/root and legacy Dormant Aspect Rank are retained  
 **And** the generated Flaw name and semantic family are retained  
 **And** historical internal tag names are not shown as formal names  
-**And** no identity is rerolled.
+**And** no identity is rerolled  
+**And** the imported four-family prototype is not treated as the complete Java taxonomy.
 
-## VS-15 — migration is idempotent
+## VS-18 — alpha schema migration is compatible
 
-**Given** a player has already migrated successfully  
-**When** migration detection runs again  
-**Then** it does not duplicate history, abilities, items, instances or identity  
-**And** it does not reinterpret obsolete datapack scratch scores.
+**Given** a development save stores alpha schema 1 values such as `mundane` or `sleeper`  
+**When** schema 2 loads  
+**Then** `mundane` maps to uninfected with absent Soul Rank  
+**And** `sleeper` maps to Dreamer  
+**And** legacy completed Aspect identity receives an explicit imported Aspect Rank  
+**And** the migration is idempotent.
 
-## VS-16 — dedicated server boot
+## VS-19 — dedicated server and physical client both boot
 
-**Given** the client is absent  
-**When** a dedicated NeoForge server starts with the prototype installed  
-**Then** no client-only class is loaded  
-**And** registrations and data resources complete  
-**And** the server can host the full shared slice.
+**Given** the prototype is installed  
+**When** a dedicated NeoForge server starts without client classes  
+**Then** registrations and data resources complete  
+**And** the server reaches ready state  
+**And** a physical client separately loads the Soul UI and networking without duplicate registration.
 
-## VS-17 — clean uninstall/dependency failure behaviour
+## VS-20 — optional dependency failure preserves canonical identity
 
 **Given** an optional integration mod is absent  
 **When** the server loads a Soul containing an ability adapter from that integration  
-**Then** the canonical Soul and identity still load  
+**Then** the canonical Soul, Aspect and Flaw still load  
 **And** the missing adapter becomes unavailable with a clear diagnostic  
 **And** the save is not deleted or silently rerolled.
-
-## VS-18 — administrative teardown
-
-**Given** an instance is stuck or a player requires recovery  
-**When** an authorised administrator invokes teardown/recovery  
-**Then** the operation is logged  
-**And** uses the normal service boundary  
-**And** leaves the player and global instance registry consistent.
 
 ## Evidence required
 
@@ -173,13 +198,14 @@ For each path, record:
 
 - build identifier and exact dependency manifest;
 - automated test output;
-- dedicated-server log;
+- physical-client and dedicated-server logs;
 - save/restart test result;
 - two-player isolation result;
-- import fixture result;
-- observed gameplay notes;
+- import and schema-migration fixture results;
+- observed gameplay and lore-alignment notes;
+- any non-canon accessibility/configuration choices;
 - defects and workarounds;
 - implementation time for the slice;
 - any acceptance case skipped and the reason.
 
-A path has not passed because its developer believes the code should work. It passes when the behaviour above has been observed or asserted through a trustworthy test.
+A path has not passed because its developer believes the code should work. It passes when the behaviour above has been observed or asserted through trustworthy evidence.

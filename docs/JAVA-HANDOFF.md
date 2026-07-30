@@ -1,187 +1,210 @@
 # Java handoff contract — datapack `1.0.0` baseline
 
-**Maintained through:** `0.7.2` plus `gpt/replace-weightless-flaw`; Claude must stamp the final verified `1.0.0` baseline before Java import work begins.
+**Purpose:** preserve completed datapack players while replacing datapack machinery with the lore-aligned Java model in `docs/JAVA-LORE-ALIGNMENT.md`.
 
-**Purpose:** this is not a Java implementation plan. It is the behavioural and persistence contract the Java mod must preserve when the datapack is frozen at `1.0.0`.
+The port is not a line-by-line translation of mcfunctions. Preserve identity and tested contracts; replace prototype rules that exist because of datapack limits.
 
-The port is not a line-by-line translation of mcfunctions. Preserve the contracts; replace the machinery.
-
-## 1. Behavioural contracts that survive the port
-
-### Progression
+## 1. Frozen datapack behaviour worth preserving
 
 ```text
-Mundane / untouched
-  -> first ordinary sleep
-Carrier / marked
-  -> later sleep or deliberate bed interaction
-First Nightmare
-  -> successful central conflict
-Sleeper / Dreamer, Soul Rank Dormant
+Uninfected/Mundane description
+  -> Carrier
+  -> First Nightmare prototype
+  -> Sleeper/Dreamer with Dormant Soul Rank
+  -> persistent generated Aspect identity
+  -> persistent generated Flaw identity with a real drawback
 ```
 
-First-Nightmare completion is **not Awakening**. Actual Awakening belongs after the first Dream Realm journey and successful return through a Gateway.
+The datapack proved:
 
-### Nightmare lifecycle
+- progression and identity can persist;
+- a First Nightmare has a central objective seam;
+- Aspect and Flaw presentation can be personal rather than one display label;
+- drawbacks must remain mechanically real;
+- reset/teardown and deterministic verification matter;
+- a packaged release can run on a vanilla 1.21.1 server.
 
-Datapack seams map cleanly to Java responsibilities:
+It did not prove a canonical infection algorithm, Aspect/Flaw generator, safe failure rule or universal boss structure.
 
-| Datapack | Java contract |
-| --- | --- |
-| `nightmare/enter` | `NightmareService.tryEnter(player, source)` — every eligibility invariant in one choke point |
-| `nightmare/objective_tick` | scenario/objective implementation; boss kill is one Phase-1 objective, not the definition of every Nightmare |
-| `nightmare/leave` | `NightmareService.exit(instance, player, ExitReason)` — one teardown path |
-| `nightmare/eject` | exit reason + consequences/presentation, not separate cleanup |
-| `nightmare/survive` | objective completion -> exit -> progression |
-| `prototype/observe_trial` | behaviour/evidence collection owned by the active Nightmare instance |
+## 2. Java progression mapping
 
-The Java implementation must add explicit Nightmare instance ownership. Do **not** port the datapack's global creature selector, shared bossbar or shared command storage as architecture.
+### Uninfected datapack player
 
-## 2. Persistent datapack state to import
+No `ss_carrier` tag and no completed rank maps to:
 
-Only state that represents player identity/progression belongs in the importer. Scratch/runtime values do not.
+```text
+spellState = UNINFECTED
+awakeningPath = UNDECIDED
+soulRank = absent
+aspect = absent
+flaw = absent
+```
 
-### Spell/progression state
+`Mundane` is descriptive language, not Soul Rank zero.
 
-- `ss_carrier` tag and no completed rank -> `spellState = CARRIER`.
-- `ss_rank >= 1` -> `spellState = DREAMER` and `soulRank = DORMANT` under the completed datapack contract.
-- neither -> `spellState = UNTOUCHED`.
+### Imported Carrier
 
-The historical prototype once *called* `ss_rank=1` Awakened, but current runtime semantics intentionally reinterpret that same stored value as Sleeper/Dormant. There is no reliable version marker on old player state that can reconstruct which label a player saw years earlier; the Java importer follows the frozen datapack behaviour rather than resurrecting the superseded label.
+`ss_carrier` with no completed rank maps to:
 
-### Aspect identity
+```text
+spellState = CARRIER
+awakeningPath = NIGHTMARE_SPELL
+soulRank = absent
+aspect = absent
+flaw = absent
+```
+
+The Java First Nightmare service later creates the explicit Aspirant stage and Dormant Soul Core. Do not invent an active historical role during import.
+
+### Imported completed player
+
+`ss_rank >= 1` maps to:
+
+```text
+spellState = DREAMER
+awakeningPath = NIGHTMARE_SPELL
+soulRank = DORMANT
+```
+
+The social title is Sleeper; Dreamer is the Spell-facing status. First-Nightmare completion is not actual Awakening.
+
+## 3. Aspect import
 
 Current generated `ss_aspect` values are two digits:
 
-- tens digit / nature + mechanical root:
-  - `1x` = Veiled -> `ss_aspect_shadow`
-  - `2x` = Ashen -> `ss_aspect_flame`
-  - `3x` = Pale -> `ss_aspect_bone`
-  - `4x` = Restless -> `ss_aspect_wind`
-- ones digit / archetype:
-  - `x1` = Witness
-  - `x2` = Bearer
-  - `x3` = Warden
-  - `x4` = Wanderer
+- tens digit / legacy nature and mechanical root:
+  - `1x` = Veiled / shadow prototype;
+  - `2x` = Ashen / flame prototype;
+  - `3x` = Pale / bone prototype;
+  - `4x` = Restless / wind prototype;
+- ones digit / legacy archetype:
+  - `x1` = Witness;
+  - `x2` = Bearer;
+  - `x3` = Warden;
+  - `x4` = Wanderer.
 
-Import into an `AspectInstance`, not a registry enum. Suggested fields:
+Import into an `AspectInstance`, not an enum:
 
 ```text
 AspectInstance
   instanceId
-  name
-  rank = DORMANT
-  nature/root
-  archetype
+  formalName = generated datapack name
+  aspectRank = DORMANT       # explicit legacy prototype rank
+  legacyNature
+  legacyArchetype
   legacyMechanicalRoot
-  generationSeed?       # absent for datapack imports
   abilities[]
   evolutionHistory[]
   importedFromDatapack = true
 ```
 
-Legacy datapack scores `1..4` may still exist. Preserve them as explicit legacy prototype identities using the matching mechanics tag; do not silently reroll them during import.
+Legacy scores `1..4` may still exist. Preserve them as explicit legacy prototype identities using the matching mechanics tag; do not silently reroll them.
 
-### Flaw identity
+Aspect Rank is separate from the player's Dormant Soul Rank even though this importer assigns Dormant to the frozen prototype identities.
 
-Current generated `ss_flaw` values are also two digits:
+## 4. Flaw import
 
-- tens digit / earned mechanical family:
-  - `1x` = daylight burden -> internal compatibility tag `ss_flaw_shadow_slave`
-  - `2x` = reduced-health burden -> `ss_flaw_fragile`
-  - `3x` = hunger burden -> `ss_flaw_ravenous`
-  - `4x` = retreat/burdened-movement family -> historical compatibility tag `ss_flaw_weightless`
-- ones digit selects the personal formal name within that family.
+Current generated `ss_flaw` values are two digits:
 
-The `ss_flaw_weightless` tag is **only an import/save identifier now**. The unsafe-footing implementation was retired after `0.7.2` proved Minecraft could intermittently ignore its `safe_fall_distance` modifier. The completed datapack uses a reliable movement burden instead. Java should import the semantic family (trial behaviour -> personal Flaw -> real drawback), not the old command mechanism or internal tag name.
+- `1x` = daylight burden / compatibility tag `ss_flaw_shadow_slave`;
+- `2x` = reduced-health burden / `ss_flaw_fragile`;
+- `3x` = hunger burden / `ss_flaw_ravenous`;
+- `4x` = retreat/burdened-movement family / historical tag `ss_flaw_weightless`;
+- ones digit selects the generated player-facing name.
 
-Import into a `FlawInstance` with the **player-facing generated name**, family and parameters. Never expose the internal compatibility id `shadow_slave` as the Flaw name; Shadow Slave is canonically an Aspect.
+The `ss_flaw_weightless` tag is only an import identifier. Java imports the semantic burdened-movement identity, not the retired `safe_fall_distance` implementation.
 
-Suggested fields:
+Import into a `FlawInstance`:
 
 ```text
 FlawInstance
   instanceId
-  formalName
-  family
+  formalName = generated datapack name
+  effectDefinition
+  legacyFamily
   parameters
-  causalEvidence[]
+  revelationEvidence = unavailable/legacy
   importedFromDatapack = true
 ```
 
-The datapack does not retain full causal evidence after generation. For imported characters, record the family as known but mark detailed evidence as unavailable/legacy rather than inventing history.
+Never expose `shadow_slave` as the Flaw name; Shadow Slave is canonically an Aspect. The datapack does not retain complete causal evidence, so mark it unavailable rather than inventing history.
 
-## 3. State that must NOT become persistent Java architecture
+The four imported families remain compatibility identities, not the complete Java Flaw taxonomy or a canon generation formula.
 
-These values are runtime/scratch machinery:
+## 5. State that must not become permanent Java architecture
 
-- `ss_timer`
-- `ss_gone`
-- `ss_health`
-- `ss_roll`
-- `ss_scratch_a`, `ss_scratch_b`
-- `ss_ret_x`, `ss_ret_y`, `ss_ret_z`
-- `ss_cooldown`
-- `ss_in_nightmare`
-- `ss_creature_spawned`
-- `ss_test_bypass`
-- `ss_trial_bloodied`, `ss_trial_hungry`, `ss_trial_fled`
+Do not import these runtime/scratch values as Soul identity:
 
-Java may have analogous runtime fields, but they belong to typed player/session/Nightmare-instance objects rather than being imported as permanent soul identity.
+- `ss_timer`;
+- `ss_gone`;
+- `ss_health`;
+- `ss_roll`;
+- `ss_scratch_a`, `ss_scratch_b`;
+- `ss_ret_x`, `ss_ret_y`, `ss_ret_z`;
+- `ss_cooldown`;
+- `ss_in_nightmare`;
+- `ss_creature_spawned`;
+- `ss_test_bypass`;
+- `ss_trial_bloodied`, `ss_trial_hungry`, `ss_trial_fled`.
 
-## 4. Soul data boundary
+Java may have analogous typed runtime values, but they belong to player sessions and `NightmareInstance` records.
 
-The first Java implementation should separate concepts the datapack deliberately keeps shallow:
+## 6. Datapack rules Java must replace
 
-```text
-SoulData
-  schemaVersion
-  spellState
-  soulRank
-  coreState
-  aspect
-  flaw
-  attributes[]
-  trueName?
-  memories[]
-  echoes[]
-  dreamAnchor?
-  corruption
-  behaviorProfile
-  progressionHistory
-```
+Do not preserve these as universal Java lore:
 
-Do not turn `ss_rank` into a larger ordinal ladder. Spell state, Soul Rank, Aspect Rank, core saturation and exceptional core count/Class are separate concepts.
+- first ordinary sleep causes infection;
+- a Carrier skips directly to Dreamer without an Aspirant stage;
+- safe low-health ejection and retry are normal Spell behaviour;
+- every First Nightmare is a timer plus boss;
+- the most visible trial statistic deterministically creates the Flaw;
+- four Aspect roots and four Flaw families exhaust all possibilities;
+- Aspect Rank equals Soul Rank;
+- generic attributes such as Strength/Vitality are canon Spell Attributes.
 
-## 5. Import safety
+Imported players keep the result they already earned. Fresh Java players use the lore-aligned systems.
 
-Recommended one-time import order:
+## 7. Import safety
 
-1. detect datapack identity/progression state;
-2. construct Java `SoulData` in memory;
-3. validate every translated field;
-4. persist Java data with a migration/schema version;
-5. mark the player imported;
-6. only then remove/ignore legacy datapack values.
+Recommended one-time order:
+
+1. detect legacy identity/progression state;
+2. refuse or defer while the player has active `ss_in_nightmare` state;
+3. construct Java `SoulData`, `AspectInstance` and `FlawInstance` in memory;
+4. validate every translated field;
+5. persist Java data with schema and migration versions;
+6. read it back and verify identity;
+7. mark the player imported;
+8. only then remove or ignore legacy datapack values.
 
 Never delete datapack tags/objectives first and hope construction succeeds afterward.
 
-Migration should occur while no player is inside an active datapack Nightmare. If legacy `ss_in_nightmare` state is detected, fail safe: recover/teardown or defer import rather than constructing half an instance from global prototype state.
+If active Nightmare state is detected, perform explicit recovery or defer. The datapack used global prototype state and cannot be reconstructed safely as a Java instance after the fact.
 
-## 6. Resources to keep data-driven
+## 8. Resources to keep data-driven
 
-The Java mod should continue shipping datapack-style resources where Minecraft already has a good data format:
+Continue using Minecraft data formats for:
 
 - dimensions and dimension types;
-- biomes/worldgen;
-- predicates and tags;
+- biomes and world generation;
+- tags and predicates;
 - advancements;
-- recipes/loot/structures when later phases add them.
+- recipes, loot and structures;
+- future scenario, historical-role and conflict definitions where codecs are appropriate.
 
-Java owns state, behaviour, generation, networking, GUI, custom entities/AI and real Nightmare ownership. Do not rewrite JSON resources into Java merely because a mod loader exists.
+Java owns persistence, services, appraisal, networking, GUI, custom entities/AI and real Nightmare ownership.
 
-## 7. Definition of translation success
+## 9. Definition of migration success
 
-The initial Java build is behaviourally compatible when a fresh player can perform the same `1.0.0` vertical slice and an imported datapack player retains their progression, generated Aspect identity, Flaw identity and effective mechanics.
+Migration succeeds when:
 
-Only after that compatibility baseline passes should Java-only Phase 2+ systems expand the game.
+- an uninfected legacy player has no invented Soul Rank;
+- a legacy Carrier remains a Carrier with no permanent Aspect/Flaw;
+- a completed legacy player becomes a Dreamer/Sleeper with Dormant Soul Rank;
+- generated Aspect name/root and explicit legacy Aspect Rank are retained;
+- generated Flaw name/family and effective drawback are retained;
+- no identity is rerolled;
+- migration is idempotent;
+- optional mod integrations can disappear without erasing canonical identity.
+
+After compatibility passes, fresh Java progression may expand beyond datapack behaviour under the lore-alignment gate.
