@@ -36,7 +36,6 @@ tag @s remove ss_in_nightmare
 tag @s remove ss_carrier
 tag @s remove ss_creature_spawned
 tag @s remove ss_test_bypass
-tag @s remove ss_test_trace_weightless
 tag @s remove ss_trial_bloodied
 tag @s remove ss_trial_hungry
 tag @s remove ss_trial_fled
@@ -57,6 +56,7 @@ effect clear @s minecraft:speed
 effect clear @s minecraft:fire_resistance
 effect clear @s minecraft:jump_boost
 effect clear @s minecraft:hunger
+effect clear @s minecraft:slowness
 effect clear @s minecraft:weakness
 effect clear @s minecraft:blindness
 effect clear @s minecraft:nausea
@@ -66,6 +66,7 @@ effect clear @s minecraft:nausea
 attribute @s minecraft:generic.armor modifier remove shadowslave:aspect_bone_armor
 attribute @s minecraft:generic.movement_speed modifier remove shadowslave:aspect_wind_speed
 attribute @s minecraft:generic.max_health modifier remove shadowslave:flaw_fragile_health
+# Migration cleanup for 0.7.2 and older worlds. The fled family no longer uses this modifier.
 attribute @s minecraft:generic.safe_fall_distance modifier remove shadowslave:flaw_weightless_fall
 
 # Defensive cleanup for tests that spawned a creature without completing normal teardown.
