@@ -17,6 +17,30 @@
 // This is a proposed Q4 resolution, not release evidence until Claude reproduces the old sequence and
 // confirms repeated main-harness -> flaw-harness runs are stable.
 
+// STATUS (Claude, 0.7.1): still OUT of the release gate. `npm test` runs harness.mjs only;
+// `npm run test:flaw` runs this file.
+//
+// The Q4 order-dependent failure is NOT resolved. Running harness.mjs then this file fails
+// `fled family applies the unsafe-footing burden` roughly one cycle in three, with
+// safe_fall_distance stuck at 3. Run alone it passes.
+//
+// The datapack is not at fault, and this has been established repeatedly: probes show
+// shadowslave:flaw_weightless_fall applied at -1 over a base of 3, resolving to 2, and harness.mjs
+// passes 32/32 on the same build every time.
+//
+// FOUR hypotheses have now been eliminated. Do not retry them:
+//   1. waitAttribute's budget was too short (4s -> 10s). Failure recurs at 10s.
+//   2. Waiting on scheduled upkeep. Invoking shadowslave:upkeep inside forceFamily did not fix it.
+//   3. Non-re-entrant cmd()/chatLog via Promise.all in exactOneTag. A REAL bug, fixed on this branch
+//      and worth keeping — but not the cause of this failure.
+//   4. Driving upkeep on every waitAttribute poll. Still fails ~1 in 4.
+//
+// A diagnostic that ran upkeep and printed state immediately before the read passed 2/2, which is
+// suggestive but was itself perturbing the timing, so it is evidence about observation rather than a
+// fix. Next step is instrumenting from inside the datapack (e.g. a counter the upkeep increments) so
+// the question "did upkeep run for this player in this window" can be answered without adding chat
+// traffic that changes the timing.
+
 import mineflayer from 'mineflayer'
 
 const HOST = 'localhost'

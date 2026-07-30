@@ -10,6 +10,33 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 
 ---
 
+## `0.7.1` — a real harness bug fixed, and an honest dead end
+
+From `gpt/q4-harness-isolation`. No runtime change; test infrastructure only.
+
+**Fixed:** `flaw_harness.mjs` had one global mutable `chatLog`, and `exactOneTag()` fired four
+concurrent `hasTag()` queries through it via `Promise.all`. Concurrent readers could clear each other's
+reply window or satisfy several calls from one reply — the same reply-window contamination behind most
+of this harness's history of false results. Commands are serialised through one promise chain now, and
+the exactly-one-tag check makes a single authoritative query instead of four.
+
+**Not fixed:** the Q4 order-dependent failure. `harness.mjs` then `flaw_harness.mjs` still fails the
+fled family's `safe_fall_distance` assertion about one cycle in three, so that file stays **out** of the
+release gate — `npm test` runs the main harness, `npm run test:flaw` runs the other.
+
+**Four hypotheses are now eliminated** (three of them mine): the poll budget, waiting on scheduled
+upkeep, the non-re-entrant `chatLog` above, and driving upkeep on every poll. All recorded in
+`docs/OPEN-QUESTIONS.md` Q4 so they are not retried.
+
+The datapack is not implicated — probes show the Weightless modifier applied at `-1` over a base of `3`
+resolving to `2`, and the main harness passes 32/32 on the same build every time. A diagnostic that read
+state immediately before the assertion passed 2/2, but it added chat traffic and so changed the timing
+it was measuring. The suggested next step is instrumenting from inside the datapack, since chat-based
+probing perturbs what it observes.
+
+Recording this rather than shipping a fifth guess. Four wrong diagnoses is well past the point where
+this project's own notes say to stop patching and get data.
+
 ## `0.7.0` — the Nightmare gets an objective seam
 
 Merged `gpt/v0.6-experience` and `gpt/v0.7-hardening` together (the latter is stacked on the former),
