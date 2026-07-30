@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.soul;
 
 import dev.spud.shadowslave.attachment.ModAttachments;
+import dev.spud.shadowslave.network.SoulSyncService;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -36,7 +37,10 @@ public final class SoulService {
     }
 
     public static SoulData replace(ServerPlayer player, SoulData next) {
-        Objects.requireNonNull(player, "player").setData(ModAttachments.SOUL, Objects.requireNonNull(next, "next"));
-        return next;
+        ServerPlayer checkedPlayer = Objects.requireNonNull(player, "player");
+        SoulData checkedNext = Objects.requireNonNull(next, "next");
+        checkedPlayer.setData(ModAttachments.SOUL, checkedNext);
+        SoulSyncService.sync(checkedPlayer, checkedNext, false);
+        return checkedNext;
     }
 }
