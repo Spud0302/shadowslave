@@ -2,9 +2,9 @@
   "parent": "shadowslave:test/endured",
   "display": {
     "icon": { "id": "minecraft:iron_sword" },
-    "title": { "text": "Slayer", "color": "dark_purple" },
+    "title": { "text": "Defy the Nightmare", "color": "dark_purple" },
     "description": {
-      "text": "The creature died and the trial resolved as a win."
+      "text": "Slay the Nightmare Creature and bring your First Nightmare to an end."
     },
     "frame": "goal",
     "show_toast": true,
