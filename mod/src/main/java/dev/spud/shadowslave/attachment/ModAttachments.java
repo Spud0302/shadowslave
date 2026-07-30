@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.attachment;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.migration.ImportedIdentityData;
 import dev.spud.shadowslave.soul.SoulData;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
@@ -16,6 +17,12 @@ public final class ModAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<SoulData>> SOUL =
             ATTACHMENTS.register("soul", () -> AttachmentType.builder(SoulData::uninfected)
                     .serialize(SoulData.CODEC.codec())
+                    .copyOnDeath()
+                    .build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<ImportedIdentityData>> IMPORTED_IDENTITY =
+            ATTACHMENTS.register("imported_identity", () -> AttachmentType.builder(ImportedIdentityData::empty)
+                    .serialize(ImportedIdentityData.CODEC.codec())
                     .copyOnDeath()
                     .build());
 
