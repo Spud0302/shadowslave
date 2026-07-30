@@ -4,7 +4,7 @@
     "icon": { "id": "minecraft:nether_star" },
     "title": { "text": "Sleeper", "color": "aqua" },
     "description": {
-      "text": "Survive your First Nightmare and awaken a Dormant Aspect and Flaw."
+      "text": "Survive your First Nightmare and become a Sleeper with a Dormant Aspect and Flaw."
     },
     "frame": "challenge",
     "show_toast": true,
