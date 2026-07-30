@@ -3,7 +3,7 @@
 A Minecraft datapack based on the webnovel _Shadow Slave_ by Guiltythree.
 
 Sleep, and something notices you. Sleep again and it takes you — into a dark world with a
-countdown and something hunting you. Survive, kill what comes, and wake a **Sleeper** — holding a
+countdown and something hunting you. Survive the conflict and wake a **Sleeper** — holding a
 Dormant Aspect that grants you power and a Flaw that charges you for it.
 
 **Minecraft 1.21.1 · vanilla datapack · server-side only**
@@ -40,9 +40,10 @@ You start **Mundane** — untouched. Nothing happens to you.
 2. **Sleep again, or crouch on a bed at any hour.** It takes you. Vanilla only lets you sleep
    at night; the Spell does not care what time it is.
 3. **Survive the countdown.** The nightmare is dark and full of things.
-4. **Kill the Nightmare Creature** when it comes. Drop too low and you are cast out instead,
+4. **Resolve the First Nightmare's conflict.** The Phase 1 scenario eventually sends a Nightmare
+   Creature after you; kill it before it kills you. Drop too low and you are cast out instead,
    with your gear, to try again once you have recovered.
-5. **Wake a Sleeper**, with a Dormant Aspect and a Flaw.
+5. **Wake a Sleeper**, with a Dormant Aspect and a Flaw shaped by the trial.
 
 Surviving a First Nightmare makes you a **Sleeper**, not an Awakened — canon puts Awakening after a
 first journey into the Dream Realm, which Phase 1 does not have. The ladder is
@@ -64,11 +65,11 @@ hardened body, or unnatural movement.
 
 The finite mechanical vocabulary is deliberate. The pack can compose names and state at runtime; it
 cannot invent a brand-new command implementation out of thin air. Java can later replace the four
-roots without changing what an Aspect is meant to represent.
+roots without changing what an Aspect instance is meant to represent.
 
 ### Flaws remember the trial
 
-Flaws are no longer rolled as an unrelated second class. The successful First Nightmare is classified
+Flaws are not rolled as an unrelated second class. The successful First Nightmare is classified
 from behavior the pack can actually observe:
 
 - no strong deviation during the creature fight earns the **baseline night/daylight burden** family;
@@ -96,14 +97,18 @@ an Aspect name.
 /function shadowslave:test/help
 ```
 
-| Command          | Does                                         |
-| ---------------- | -------------------------------------------- |
-| `test/selfcheck` | Asserts the pack loaded correctly            |
-| `test/infect`    | Become a Carrier now                         |
-| `test/cure`      | Back to untouched                            |
-| `test/nightmare` | Enter the trial immediately, no bed          |
-| `test/awaken`    | Skip the trial; generate a Sleeper identity  |
-| `test/reset`     | Wipe everything and start over               |
+| Command                         | Does                                                |
+| ------------------------------- | --------------------------------------------------- |
+| `test/selfcheck`                | Asserts the pack loaded correctly                   |
+| `test/infect`                   | Become a Carrier now                                |
+| `test/cure`                     | Back to untouched                                   |
+| `test/nightmare`                | Enter the trial immediately, no bed                 |
+| `test/awaken`                   | Skip the trial; generate a baseline Sleeper identity|
+| `test/flaw/baseline`            | Force the baseline Flaw family through real generation |
+| `test/flaw/bloodied`            | Force the near-collapse Flaw family                 |
+| `test/flaw/hungry`              | Force the hunger Flaw family                        |
+| `test/flaw/fled`                | Force the distance/retreat Flaw family              |
+| `test/reset`                    | Wipe verification state and start over              |
 
 Skip the countdown mid-trial with `/scoreboard players set @s ss_timer 1`.
 
@@ -113,9 +118,11 @@ otherwise the command for entering the trial could be refused by the trial itsel
 has no bypass on purpose: a Sleeper in a First Nightmare is a state nothing handles. Use
 `test/reset`.
 
-`test/awaken` deliberately clears any observations left by a failed trial before generating the
-identity, so it exercises the no-strong-signal baseline family while still randomizing the personal
-Flaw name inside it.
+The `test/flaw/*` functions are deterministic verification hooks. They inject an observation family
+and then execute the **real** `progression/become_sleeper → prototype/roll_aspect_flaw` path. They
+prove what each selected family generates and applies; they do **not** prove that natural gameplay
+classified the player's behavior correctly. Classification remains an explicit human/integration
+check before `1.0.0`.
 
 There is also a **Shadow Slave** advancement tab. Existing internal IDs remain under
 `shadowslave:test/*` for save and harness compatibility, but the displayed tree is player-facing.
@@ -132,7 +139,7 @@ where the loop stopped.
 shadowslave/              the datapack itself
   data/shadowslave/
     function/             all logic, grouped by responsibility
-      nightmare/          the trial lifecycle
+      nightmare/          entry/exit lifecycle + Phase 1 scenario objective
       progression/        First Nightmare -> Sleeper transition
       prototype/          generated identity + trial observation seam
       aspect/  flaw/      finite Dormant mechanics / burden families
@@ -141,16 +148,15 @@ shadowslave/              the datapack itself
     advancement/  predicate/
   tools/validate.py       offline structure and reference checker
   tools/build_release.py  validated reproducible release ZIP builder
-testserver/               local 1.21.1 server + Mineflayer harness
-docs/superpowers/         historical design/spec material
+testserver/               local 1.21.1 server + Mineflayer harnesses
 docs/lore-research/       canon evidence and Java migration research
 ```
 
 ### Checks before shipping
 
 ```bash
-python3 shadowslave/tools/validate.py      # static: structure, references, schemas, versions
-cd testserver && node harness.mjs          # live: 32 assertions against a real 1.21.1 server
+python3 shadowslave/tools/validate.py
+cd testserver && npm test
 cd .. && python3 shadowslave/tools/build_release.py
 ```
 
@@ -164,14 +170,13 @@ an attribute modifier added without a paired remove, a `dimension_type` that doe
 its noise settings, project-banned absent-score selector filters, and version drift between
 `pack.mcmeta`, the load banner, and `test/selfcheck`.
 
-**`harness.mjs`** runs a Mineflayer bot against a local server, executing commands and reading
-the replies back to assert on game state. It covers the mechanical half — state transitions,
-guards, thresholds, teardown — and prints a **"needs a human"** list for the few behaviours that
-cannot be observed reliably without a real player. Expected-query timeouts are test errors rather
-than negative results, so an unreadable state cannot silently count as a pass.
+**`npm test`** runs the main Mineflayer lifecycle harness and the deterministic Flaw-family harness.
+The main harness covers state transitions, guards, thresholds and teardown. The family harness makes
+all four generated Flaw families machine-reachable without pretending a bot fought a real trial.
+Unreadable expected state is a test error rather than a negative result.
 
-Both exist because this project has repeatedly shipped code that was valid, well-formed, and
-wrong. Almost every way a datapack breaks is silent.
+Both exist because this project has repeatedly shipped code that was valid, well-formed, and wrong.
+Almost every way a datapack breaks is silent.
 
 ### Conventions
 
@@ -187,21 +192,26 @@ a bare rule tends to get "improved" away by someone who cannot see what it was p
   systems. Either is fine; always name the ceiling **and** the upgrade path, never just
   "temporary".
 - **Guard at the choke point, never in the callers.** An invariant about a state transition
-  belongs in the function that performs it. Three bugs came from caller-side guards, most
-  recently an uninfected player being able to enter a nightmare.
+  belongs in the function that performs it.
 - **`remove` before every `add`** on attribute modifiers. The upkeep runs once a second
   forever; without it modifiers stack until the player is unkillable.
 - **Never guard on a score with `matches 0`**, and never filter a selector with `scores={x=..0}`.
   An absent score fails `matches` outright, and nothing writes 0 — use `unless ... matches 1..`.
-  This has caused **three** bugs, one of which killed sneak-to-enter for five releases.
 - **Player NBT is read-only.** `data merge|modify entity <player>` and
   `execute store ... entity <player>` are refused. Dynamic teleports go through command
   storage and a macro.
+- **Scenario-specific Nightmare objectives do not belong in entry/teardown.** Phase 1 currently
+  resolves one timer→creature conflict, but `nightmare/objective_tick` marks that as this scenario's
+  rule rather than the universal definition of a Nightmare.
 
 ### Versioning
 
 [Pride Versioning](https://pridever.org/) — `PROUD.DEFAULT.SHAME`. Tag first, then bump SHAME
 for each round of fixes; holding a release back until it is clean makes the number lie.
+
+During pre-1.0 development, `PROUD` remains `0`. **`1.0.0` is reserved for the completed playable
+datapack framework that becomes the behavioural baseline for the Java port.** Historical `1.x`
+prototype tags remain untouched.
 
 Version stamping happens on `main` after review. `pack.mcmeta`, `init.mcfunction`, and
 `test/selfcheck.mcfunction` must agree; the validator enforces all three.
@@ -211,34 +221,42 @@ Version stamping happens on `main` after review. `pack.mcmeta`, `init.mcfunction
 ## Phase 1 datapack boundary
 
 The datapack is the Phase 1 reference implementation, not the permanent architecture for every
-future system. These known ceilings should not be papered over with increasingly fragile command
-machinery:
+future system. These known ceilings are explicit Java migration seams, not invitations to build
+increasingly fragile command machinery:
 
 - one active Nightmare at a time through a shared creature and bossbar;
 - broad item recovery on death inside the single-player Nightmare instance;
 - a shallow `ss_rank` flag rather than a full Soul data model;
-- the current four fixed Aspects/four fixed Flaws **pending the dedicated Q2 datapack rework**;
+- generated Aspect/Flaw **identity** over four finite predeclared mechanical roots/families;
+- one fully playable First Nightmare scenario whose central conflict is timer → creature → kill;
 - a ravager stand-in, Overworld-noise Nightmare terrain, no custom GUI and no custom AI.
 
-The ownership/state/entity/data-model ceilings are Java migration seams. The Aspect/Flaw placeholder
-catalogue is the remaining explicit pre-Java design task, kept separate from release hardening so it
-can be reviewed and tested as a focused gameplay change.
+Canon Nightmares are scenarios with a central conflict, not universally boss fights. The datapack
+therefore keeps the current scenario's win machinery behind `nightmare/objective_tick`. Java should
+replace that seam with real scenario/objective instances while preserving the entry and teardown
+contracts that already work.
+
+Do not add Dream Realm progression, true Awakening, Memories, Soul/Core systems, Gates, custom
+entities/AI, GUI, or command-engineered multiplayer instancing merely to make the datapack look more
+complete. Those are the reason to move to Java after the vertical slice is frozen.
 
 ---
 
 ## Documents
 
-|                              |                                                                     |
-| ---------------------------- | ------------------------------------------------------------------- |
-| [CHANGELOG.md](CHANGELOG.md) | Every version, and which issue it fixed                             |
-| [ISSUES.md](ISSUES.md)       | Known issues, deliberate limitations, and what is confirmed working |
-| [TESTING.md](TESTING.md)     | Full in-game test plans                                             |
-| [docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) | Why the code is like this — each convention with the bug that caused it |
-| [docs/COLLABORATION.md](docs/COLLABORATION.md) | How the two AI agents work through this repo |
-| [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) | Questions between agents, and the answers that settled them |
+| | |
+| --- | --- |
+| [CHANGELOG.md](CHANGELOG.md) | Every shipped version and what changed |
+| [ISSUES.md](ISSUES.md) | Known issues, deliberate limitations, confirmed behaviour |
+| [TESTING.md](TESTING.md) | In-game test plans |
+| [docs/PRE1-ROADMAP.md](docs/PRE1-ROADMAP.md) | Remaining stages and the `1.0.0` completion boundary |
+| [docs/RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md) | Exact automated/human release gates |
+| [docs/JAVA-HANDOFF.md](docs/JAVA-HANDOFF.md) | Behaviour and persistence contract for the Java translation |
+| [docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) | Why the code is shaped this way |
+| [docs/COLLABORATION.md](docs/COLLABORATION.md) | How GPT and Claude work through the repository |
+| [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) | Questions between agents and their resolutions |
 | [docs/lore-research/](docs/lore-research/) | Canon evidence and migration research |
-| [Aspect/Flaw rework spec](docs/superpowers/specs/2026-07-30-aspect-flaw-rework.md) | Composed identity, trial observations, compatibility and acceptance criteria |
-| `docs/superpowers/specs/`    | Older design specs; read status banners before relying on them |
+| [Aspect/Flaw rework spec](docs/superpowers/specs/2026-07-30-aspect-flaw-rework.md) | Generated identity and earned Flaw design |
 
 ## Credit
 
