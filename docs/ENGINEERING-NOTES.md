@@ -147,6 +147,44 @@ _inverted_ the test: the check could run before the ejection teleport landed, wh
 still stood in the nightmare beside the item — so "an item is near me" was true and said nothing at
 all about the sweep.
 
+### A command that matches nothing says nothing
+
+`execute if entity <selector> run <cmd>` and `execute as @e[...] run <cmd>` emit **no chat reply at
+all** when the selector matches nothing. Any assertion that reads their output therefore cannot tell
+a clean pass from an unreadable query — both look like an empty string.
+
+This produced two broken assertions in the same file: one vacuous (could never fail) and one
+unfalsifiable (could only fail).
+
+**Rule:** to test a condition, write it into a score and read the score.
+
+```mcfunction
+execute store success score $probe ss_roll if entity @s[advancements={ns:thing=true}]
+execute store result  score $count ss_roll if entity @e[type=item,distance=..6]
+```
+
+Both always write a definite value. `test/selfcheck.mcfunction` already used this idiom; the harness
+did not, and paid for it.
+
+### Establish preconditions; do not assume a command took effect
+
+An assertion that sets health and then checks a threshold was failing about one run in four, and every
+investigation initially blamed the pack. `/damage` does not always apply the full amount — natural
+regeneration, invulnerability frames and absorption all interfere — so *"I issued the damage"* is a
+different claim from *"the player is below the threshold"*.
+
+`driveHealthTo()` in the harness now confirms the state before the assertion depending on it runs.
+Generalise it: when a test needs a precondition, verify the precondition, and fail as a **test error**
+if it cannot be reached. A test that proceeds on an unmet precondition reports a product bug.
+
+### Long-lived test worlds accumulate state
+
+The test server's world is never reset. An item-sweep assertion was intermittently finding **litter
+from previous runs**: the death test summons an item, and the death sweep correctly moves items to the
+Overworld, where they persist. The check blamed the current ejection for the previous run's debris.
+
+**Rule:** a test that inspects world state must clear that state first, in every dimension it looks at.
+
 ### When the harness and a direct probe disagree, believe the probe
 
 This has happened three times. Every time, the pack was correct and the harness was wrong. **Twice

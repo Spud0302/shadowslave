@@ -103,6 +103,37 @@ async function hasAdvancement(bot, advancement) {
 const inNightmare = (value) => value === 'shadowslave:nightmare'
 const notNightmare = (value) => typeof value === 'string' && value !== 'shadowslave:nightmare'
 
+/**
+ * Read the player's current health from the server.
+ */
+async function health(bot) {
+  const out = await cmd(bot, `/data get entity ${USER} Health`, /entity data|-?\d+(?:\.\d+)?f/i)
+  const match = out.match(/(-?\d+(?:\.\d+)?)f/)
+  if (!match) throw new Error(`Could not parse health from: ${out}`)
+  return parseFloat(match[1])
+}
+
+/**
+ * Drive health to at or below `target`, confirming it before returning.
+ *
+ * Assertions that set health and then check a threshold were intermittently failing about one run in
+ * four, and every investigation blamed the pack for a race the test created. /damage does not always
+ * land the full amount when it lands — invulnerability frames, absorption and regeneration all
+ * interfere — so "I issued the damage" is not the same claim as "the player is below the threshold".
+ * Establish the precondition, verify it, and only then assert on the behaviour that depends on it.
+ */
+async function driveHealthTo(bot, target, timeoutMs = 6000) {
+  const deadline = Date.now() + timeoutMs
+  let current = await health(bot)
+  while (Date.now() < deadline) {
+    if (current <= target) return current
+    await cmd(bot, `/damage @s ${Math.max(1, Math.ceil(current - target))}`, /but took no damage|Applied|damage/i)
+    await sleep(250)
+    current = await health(bot)
+  }
+  throw new Error(`Could not drive health to <=${target}; last value=${current}`)
+}
+
 /** Poll dimension until the requested state is actually observed. Timeout is a test error. */
 async function waitDimension(bot, predicate, timeoutMs = 6000) {
   let seen = null
@@ -141,6 +172,15 @@ async function run(bot) {
   console.log('\n=== Shadow Slave harness ===\n')
 
   await cmd(bot, '/gamemode survival')
+
+  // Freeze natural regeneration for the whole run.
+  //
+  // Several assertions set health to an exact value and then check a threshold. Regen ticks ~1 HP/s,
+  // so it can lift the player back across the boundary between the /damage and the check — the
+  // weakness gate then correctly does NOT refuse, and the test blames the pack for a race it created
+  // itself. This is not masking behaviour: nothing in the pack depends on regeneration, and the gates
+  // under test are threshold comparisons, so a stable health value is what makes them observable.
+  await cmd(bot, '/gamerule naturalRegeneration false', /naturalRegeneration/i)
   await cmd(bot, '/function shadowslave:test/reset')
   await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')
   await sleep(300)
@@ -179,8 +219,8 @@ async function run(bot) {
 
   // --- weakness gate + explicit test bypass --------------------------------
   await cmd(bot, '/function shadowslave:test/infect')
-  await cmd(bot, '/damage @s 12') // -> 8 HP, under the 10 HP entry gate
-  await sleep(400)
+  // Confirm we are actually under the 10 HP entry gate before testing that the gate refuses us.
+  const weakenedTo = await driveHealthTo(bot, 8)
 
   const weakEntry = await cmd(bot, '/function shadowslave:nightmare/enter', /too weak/i)
   const dimAfterWeak = await dimension(bot)
@@ -190,7 +230,7 @@ async function run(bot) {
   assert(
     'entry refused while too weak',
     /too weak/i.test(weakEntry) && notNightmare(dimAfterWeak),
-    `health=${hurtHealth}, dimension=${dimAfterWeak}`
+    `health=${weakenedTo} (scratch ${hurtHealth}), dimension=${dimAfterWeak}`
   )
 
   await cmd(bot, '/function shadowslave:test/nightmare')
@@ -402,17 +442,45 @@ async function run(bot) {
 
   // --- ejection must not vacuum unrelated Nightmare loot ------------------
   await cmd(bot, '/scoreboard players reset @s ss_cooldown')
+
+  // Clear loose items in BOTH dimensions first. This assertion was intermittent for a reason that
+  // had nothing to do with the sweep: the death test above also summons a diamond, and the death
+  // sweep legitimately moves items to the return position in the Overworld. Those survive between
+  // harness runs, so this check was periodically finding litter from a PREVIOUS run and blaming
+  // this ejection for it. The world is long-lived; the test has to isolate itself.
+  await cmd(bot, '/execute in minecraft:overworld run kill @e[type=item]', /Killed|No entity/i)
+  await cmd(bot, '/execute in shadowslave:nightmare run kill @e[type=item]', /Killed|No entity/i)
+
   await cmd(bot, '/function shadowslave:test/nightmare')
   await waitDimension(bot, inNightmare)
-  await cmd(bot, '/summon item ~5 ~ ~5 {Item:{id:"minecraft:diamond_block",count:1}}')
+  await cmd(bot, '/summon item ~5 ~ ~5 {Item:{id:"minecraft:diamond_block",count:1}}', /Summoned/i)
   await sleep(300)
   await cmd(bot, '/damage @s 16')
   const ejectedTo = await waitDimension(bot, notNightmare)
-  const strayHere = await cmd(bot, '/execute as @e[type=item,distance=..6] run data get entity @s Item.id')
+  // Count matches into a score. `execute as @e[...] run <cmd>` emits NO reply when nothing matches
+  // — the same trap that made the Cast Out assertion vacuous — so the clean, passing case was
+  // indistinguishable from an unreadable one. `store result ... if entity` always writes a definite
+  // count, so 0 genuinely means "no stray items on the player".
+  await cmd(bot, '/scoreboard players reset $stray ss_roll')
+  await cmd(
+    bot,
+    '/execute store result score $stray ss_roll if entity @e[type=item,distance=..6,nbt={Item:{id:"minecraft:diamond_block"}}]',
+    /score|set|Nothing changed|Test failed/i
+  )
+  const strayCount = await score(bot, 'ss_roll', '$stray')
   assert(
     'ejection does not sweep loose items onto you',
-    notNightmare(ejectedTo) && !/diamond_block/.test(strayHere),
-    `ejected to ${ejectedTo}; items the player never dropped must stay in the nightmare`
+    notNightmare(ejectedTo) && strayCount === 0,
+    `ejected to ${ejectedTo}, stray diamond_blocks on player=${strayCount}; items the player never dropped must stay in the nightmare`
+  )
+
+  // Coverage gap, found by probing the new generator: test/awaken deliberately clears trial
+  // observations, so it can only ever produce the BASELINE Flaw family. The three earned families
+  // (near-collapse, hunger, distance) require a real fought trial, which no bot can do. The
+  // interesting half of the feature is therefore unreachable from here.
+  needsHuman(
+    'earned Flaw families',
+    'only the baseline family is machine-reachable; near-collapse / hunger / fled need a real trial'
   )
 
   // --- things only a person can judge -------------------------------------

@@ -10,6 +10,68 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 
 ---
 
+## `0.5.0` — generated Aspects, earned Flaws, and a version policy correction
+
+**The version went down on purpose.** Andrew's decision (`docs/VERSIONING.md`): `PROUD` stays `0`
+while the datapack is still an unfinished implementation of the initial idea, and **`1.0.0` is
+reserved for the release we are proud to call the completed framework** — the baseline the Java mod
+will be built from. `1.0.0`-`1.4.9` remain untouched as historical prototype releases. A correction
+going forward, not a rewrite of history.
+
+Merged from three GPT branches, each verified before merge.
+
+### Aspects are composed, Flaws are earned
+
+- An Aspect name is now built from **two independent vocabularies** (nature x archetype) rather than
+  picked from a list of four, because canon is explicit that every Aspect is unique. Confirmed live:
+  *Restless Bearer*, *Veiled Warden*, *Restless Warden*, *Pale Witness*.
+- The four underlying Dormant mechanics stay finite and predeclared - correctly. A datapack can
+  compose names and state at runtime but cannot invent a command implementation, so a design assuming
+  arbitrary generated *behaviour* would have forced the Java port early.
+- **Flaws are no longer a second unrelated roll.** The trial is classified from behaviour the pack can
+  actually observe - near-collapse, food consumed, distance opened from the creature - and the earned
+  family decides the mechanical burden. Randomness only picks the personal name inside that family, so
+  two players who survive the same way carry the same price under different names. That is what Andrew
+  asked for: earned from behaviour, with randomness so identical play does not give identical Flaws.
+- *Shadow Slave* is no longer shown as a Flaw. Canonically it is an Aspect.
+
+### The harness stopped lying, at some cost to my pride
+
+GPT's answer to `OPEN-QUESTIONS` Q1 - *which assertions could not fail if the behaviour broke* - found
+several real false-confidence paths in code I wrote. It now **fails closed**: 25 -> 32 assertions,
+unreadable state is a test error rather than evidence of absence, `hasTag()` can no longer turn a
+failed query into confirmed absence, and the weakness gate requires refusal **and** confirmed
+non-entry instead of either.
+
+That change immediately caught two of my own broken assertions:
+
+- **"death does not grant the Cast Out advancement" was vacuous.** `execute if entity ... run say`
+  emits no reply when the condition is false, so a pass and an unreadable result were identical. It
+  could never have failed. Now reads through `execute store success`.
+- **The recovery-sleep check could only fail** - it waited on text the pack emits via
+  `title @s actionbar`, which never reaches chat. Unfalsifiable rather than unfailable, and equally
+  useless.
+
+Then three intermittent failures, none of which were the pack:
+
+- the item-sweep check was finding **litter from previous runs** - the death test also summons an item,
+  and the death sweep legitimately moves items to the Overworld, where they persist between runs. It
+  isolates itself now.
+- the same check used `execute as @e[...]`, which emits nothing when nothing matches, so the clean
+  passing case was unreadable. It counts into a score instead.
+- the weakness gate assumed `/damage` had landed. It does not always, and regeneration can lift the
+  player back across the threshold. There is now a `driveHealthTo()` that **confirms the precondition
+  before asserting on behaviour that depends on it**.
+
+**32/32 across four consecutive runs.** Also added: `build_release.py` for reproducible validated
+release zips, and the advancement tree is player-facing rather than verification-flavoured.
+
+### Known coverage gap
+
+`test/awaken` clears trial observations by design, so it can only ever produce the **baseline** Flaw
+family. The three earned families need a real fought trial, which no bot can do - so the most
+interesting half of the new Flaw system is verifiable only by hand.
+
 ## `1.4.9` — the entry gate finally checks infection
 
 Merged from `gpt/review-improvements` after running the validator and the harness against it.
