@@ -11,24 +11,19 @@ prototype called out by `docs/OPEN-QUESTIONS.md` Q2.
 ## Intent
 
 Make the First Nightmare reward feel **personal rather than like choosing one of eight classes**,
-while staying honest about what a vanilla datapack can actually generate.
+while staying honest about what vanilla commands can actually generate.
 
-Canon gives constraints, examples and themes, but **not an Aspect-generation formula**. Therefore the
-pack must not present a made-up deterministic algorithm as lore. It should use a game system that is
-canon-compatible rather than canon-claimed:
+Canon gives constraints, examples and themes, but **not an Aspect-generation formula**. Therefore:
 
-- Aspect identity is **composed from two independently rolled vocabularies**, not selected as one
+- Aspect identity is composed from **two independently rolled vocabularies**, not selected as one
   whole item from a larger fixed-name list.
 - The first component expresses the finite Dormant mechanical nature; the second is an independent
-  archetype. Their Cartesian product produces the player-facing identity.
+  archetype.
 - The Dormant mechanical expression remains one of four finite command implementations. Vanilla can
   compose identity, but it cannot invent a brand-new executable ability at runtime.
-- Flaw **family** is derived from observable behavior in the successful First Nightmare when there is
-  a strong signal.
-- Randomness varies the personal Flaw identity inside that earned family, so two players who behave
-  the same do not necessarily receive the same formal name.
-- If no tracked behavior produced a strong signal, the family is random rather than pretending the
-  game observed personality data that it did not.
+- Every Flaw **mechanical family** is derived from the successful trial classification.
+- Randomness happens **after** family selection, varying the personal Flaw identity inside the earned
+  burden so identical play does not necessarily produce an identical formal Flaw.
 
 This is a Phase 1 endpoint, not the future Java Soul model.
 
@@ -44,14 +39,12 @@ From `docs/lore-research/section-a-aspects-and-flaws.md`:
 - Flaws are personal burdens and often mirror, twist or attack a person's nature/power/circumstances;
 - `Shadow Slave` is Sunny's **Aspect**, not his Flaw. The old player-facing Flaw name must go.
 
-The generated names in this spec are **fan-created game content**, not claimed canon names.
+The generated names and game-side selection rules here are **fan-created content**, not claimed canon
+names or a canonical Nightmare Spell algorithm.
 
 ## Datapack ceiling
 
 Do not fake arbitrary procedural mechanics.
-
-A command pack can choose and compose values, names and presentation, but every distinct executable
-effect still has to exist ahead of time. Phase 1 therefore uses:
 
 ```text
 composed personal identity
@@ -61,7 +54,7 @@ finite Dormant mechanical root
 future Java implementation can replace the root with data-driven/custom behavior
 ```
 
-The existing internal tags remain the mechanical roots for save/test compatibility:
+Existing internal Aspect tags remain the four mechanical roots for save/test compatibility:
 
 - `ss_aspect_shadow`
 - `ss_aspect_flame`
@@ -69,7 +62,7 @@ The existing internal tags remain the mechanical roots for save/test compatibili
 - `ss_aspect_wind`
 
 The four historical Flaw tags remain internal burden-family ids. Player-facing identity no longer
-uses those old raw labels.
+uses those raw labels.
 
 ## Aspect generation
 
@@ -100,7 +93,7 @@ The final score is `nature * 10 + archetype`, producing `11..44`.
 | 3 | **Warden** |
 | 4 | **Wanderer** |
 
-This produces a Cartesian product rather than sixteen separately authored whole names:
+This is a Cartesian product, not sixteen separately authored whole names:
 
 | Score | Generated identity | Score | Generated identity |
 | --- | --- | --- | --- |
@@ -113,74 +106,69 @@ This produces a Cartesian product rather than sixteen separately authored whole 
 | 33 | Pale Warden | 43 | Restless Warden |
 | 34 | Pale Wanderer | 44 | Restless Wanderer |
 
-The command implementation still renders the resulting pair with score-specific tellraw lines because
-that is the simplest per-player persistence available in vanilla. Conceptually and mechanically,
-however, the identity is generated from two independent components; adding a fifth archetype later
-expands every nature rather than requiring a new hand-authored class.
+The command implementation renders the pair with score-specific tellraw lines because that is simple
+per-player persistence in vanilla. Conceptually the identity is generated from two independent
+components: adding a new archetype expands every nature rather than adding another whole class.
 
-### What is deliberately NOT claimed
+### Deliberately not claimed
 
-- These words are not claimed canon terminology.
-- The two-roll system is not claimed to be the Nightmare Spell's canonical algorithm.
-- The four mechanics are not claimed to be the complete space of possible Aspects.
-- A generated identity can share a mechanical root with another identity; that is the visible
-  datapack ceiling the Java port later removes.
+- these words are not canon terminology;
+- the two-roll system is not the canonical Spell algorithm;
+- four mechanics are not the complete space of possible Aspects;
+- sharing a mechanical root does not mean two generated identities are canonically the same Aspect.
 
 ## Flaw observation
 
-A First Nightmare run records three **strong, directly observable** behavior signals. They are reset
-at every accepted entry so an earlier failed attempt cannot contaminate the next attempt.
+A First Nightmare records three **strong, directly observable** behavior signals. They reset at every
+accepted entry so an earlier failed attempt cannot contaminate the successful run.
 
 ### `ss_trial_bloodied`
 
 Set after the creature exists if sampled health reaches **5..8 HP**.
 
-Why this range:
-
-- normal entry refuses `..9`, so reaching 8 or less proves health fell during the trial;
+- normal entry refuses `..9`, so reaching 8 or less proves health fell during this trial;
 - `..4` triggers ejection/death teardown, so 5..8 is the survivable near-collapse window.
 
 ### `ss_trial_hungry`
 
-At entry, store the player's FoodLevel in the existing `ss_roll` scratch objective. During the fight,
-compare current FoodLevel with that baseline. Set the tag after a **drop of at least 6 food points**.
+At entry, store the player's FoodLevel in existing `ss_roll`. During the fight, compare current
+FoodLevel with that baseline. Set the tag after a **drop of at least 6 food points**.
 
-This is better than checking absolute hunger: entering the Nightmare already hungry must not be
-misread as behavior performed during the trial.
+Absolute hunger is not used: somebody who entered hungry should not be credited with behavior that
+happened before the Nightmare.
 
 ### `ss_trial_fled`
 
-Set if the Nightmare Creature is ever **40+ blocks** from the player before the existing 48-block
+Set if the Nightmare Creature reaches **40+ blocks** from the player before the existing 48-block
 leash teleports it back.
 
-This captures deliberate disengagement without changing the leash or trial outcome.
-
-### No invented fourth signal
-
-Do not manufacture a personality judgement for an ordinary fight. If none of the three strong
-signals occurred, Flaw family is random. `UNKNOWN`/unobserved is better than pretending the pack
-measured courage, mercy or aggression when it did not.
+The observer must run before the leash so the safety mechanic does not erase the evidence.
 
 ## Flaw family selection
 
-Priority when multiple strong signals occurred:
+Every successful run gets a behavior classification. The absence of a strong deviation is itself the
+baseline class; the pack does **not** randomize the mechanical burden.
 
-1. fled;
-2. hungry;
-3. bloodied;
-4. otherwise random family `1..4`.
+Priority when multiple observations occurred:
 
-The priority intentionally favors the most behaviorally specific signal. Being bloodied can happen
-in almost every close fight; creating 40 blocks of separation or burning six food points is more
-distinctive.
+1. `ss_trial_fled` -> family 4;
+2. `ss_trial_hungry` -> family 3;
+3. `ss_trial_bloodied` -> family 2;
+4. no strong signal -> family 1 baseline.
 
-After family selection, roll `1..4` for a personal identity variant and encode
-`family * 10 + variant` in `ss_flaw`.
+The priority favors the most specific signal. Being bloodied can occur in many close fights; burning
+six food points or opening a forty-block gap is more distinctive.
 
-### Family 1 — night / daylight burden
+Only after the family is fixed does the generator roll `1..4` for a personal identity variant and
+encode `family * 10 + variant` in `ss_flaw`.
+
+That is the intended **“behavior, with randomness on top”** model: identical play earns the same
+burden family but can still produce a different formal Flaw identity.
+
+### Family 1 — baseline / night-daylight burden
 
 Internal compatibility tag/function: `ss_flaw_shadow_slave` / `flaw/shadow_slave`.
-The old player-facing name **Shadow Slave** is removed because that is canonically an Aspect name.
+The internal id stays for compatibility; **Shadow Slave is never the player-facing Flaw name**.
 
 | Score | Generated Flaw identity |
 | --- | --- |
@@ -191,7 +179,7 @@ The old player-facing name **Shadow Slave** is removed because that is canonical
 
 Burden: direct sunlight hurts and weakens the player.
 
-### Family 2 — fragile-body burden
+### Family 2 — bloodied / fragile-body burden
 
 Internal tag: `ss_flaw_fragile`.
 
@@ -217,7 +205,7 @@ Internal tag: `ss_flaw_ravenous`.
 
 Burden: hunger drains faster.
 
-### Family 4 — footing/fall burden
+### Family 4 — flee / footing-fall burden
 
 Internal tag: `ss_flaw_weightless`.
 
@@ -232,42 +220,27 @@ Burden: safe falling distance is reduced.
 
 ## Required implementation shape
 
-### GPT-owned content files
+GPT-side content:
 
-- replace `prototype/roll_aspect_flaw.mcfunction` with the generated-identity / earned-family logic;
-- add `prototype/trial_begin.mcfunction` to reset observations and capture starting hunger;
-- add `prototype/observe_trial.mcfunction` to record the three behavior signals;
-- update `soul.mcfunction` to show composed Aspect / generated Flaw identities and honest Dormant
-  expressions;
-- update the historical `flaw/shadow_slave.mcfunction` comment so internal compatibility naming is
-  not mistaken for player/canon naming.
+- replace `prototype/roll_aspect_flaw.mcfunction`;
+- add `prototype/trial_begin.mcfunction`;
+- add `prototype/observe_trial.mcfunction`;
+- update `soul.mcfunction` and player-facing docs;
+- keep historical mechanic ids internal.
 
-### Cross-column hooks that this branch must call out for Claude
+Cross-column hooks that Claude must scrutinize:
 
-Two one-line state-machine hooks are required:
-
-- `nightmare/enter.mcfunction`: after entry is accepted, call `prototype/trial_begin` before the
-  teleport/trial begins;
+- `nightmare/enter.mcfunction`: after accepted entry, call `prototype/trial_begin`;
 - `nightmare/tick_player.mcfunction`: while the creature exists, call `prototype/observe_trial`
-  **before** the existing distance leash can erase the `40+` observation.
+  **before** the 48-block leash;
+- `test/reset.mcfunction`: clear the three observation tags and player's `ss_roll`.
 
-`test/reset.mcfunction` also clears the three trial-observation tags and the player's `ss_roll`
-scratch value, because reset promises genuinely fresh state.
+No new objective is required:
 
-These are cross-column edits under the current collaboration split. They are small, named here in
-advance, and Claude must scrutinize/test them.
-
-### No new objective
-
-Reuse:
-
-- `ss_aspect` for encoded Aspect identity;
-- `ss_flaw` for encoded Flaw identity;
-- `ss_roll` as temporary starting-hunger/random scratch;
-- `ss_scratch_b` as current-food temporary scratch inside trial observation.
-
-Update the comments in `init.mcfunction`, but do not add another persistent objective merely to make
-the implementation easier.
+- `ss_aspect` = encoded Aspect identity;
+- `ss_flaw` = encoded Flaw identity;
+- `ss_roll` = entry-hunger baseline, then random scratch;
+- `ss_scratch_b` = current-food temporary during observation.
 
 ## State hygiene
 
@@ -275,52 +248,51 @@ At generation/reset:
 
 - remove all four internal Aspect tags;
 - remove all four internal Flaw tags;
-- remove every persistent modifier before the new identity is applied;
+- remove every persistent modifier before applying a new identity;
 - clear all three observation tags after generation;
-- reset the player's `ss_roll` once generation no longer needs it.
+- reset player's `ss_roll` when it is no longer needed.
 
-The existing modifier invariant remains absolute: remove before add, every time.
+The existing remove-before-add modifier invariant remains absolute.
 
 ## Compatibility
 
 Keep:
 
-- historical internal tags and function paths for the four mechanical roots;
+- historical internal tags/function paths for all eight finite mechanics;
 - `test/awaken` as the historical command name;
 - advancement ids under `shadowslave:test/*`;
 - `ss_aspect` / `ss_flaw` objective names.
 
-Change only their value semantics/player-facing interpretation.
+Existing worlds with old `ss_aspect=1..4` or `ss_flaw=1..4` plus current tags continue receiving
+mechanics through the tags. `/trigger soul` includes legacy fallback display until reset/re-roll.
 
-Existing worlds with old `ss_aspect=1..4` or `ss_flaw=1..4` but current tags still continue to receive
-mechanics through the tags. `/trigger soul` includes a small legacy fallback display for those old
-score ranges until the player is reset/re-rolled.
+`test/awaken` clears old observation tags first because it skips the trial; its deterministic burden
+family is therefore family 1, with only the personal family-1 name randomized.
 
 ## Acceptance criteria
 
-Claude should add/adjust live assertions as needed, but the observable contract is:
+Claude should add/adjust live assertions as needed. Observable contract:
 
-1. repeated `test/awaken` runs demonstrate independent recombination of **nature + archetype**, not
-   merely selection from the old four whole Aspect labels, while assigning exactly one internal
-   Aspect mechanic tag;
-2. `ss_aspect` after a new roll is one of `11..14`, `21..24`, `31..34`, `41..44`;
+1. Aspect identity recombines independent **nature + archetype** axes while exactly one internal
+   Aspect mechanic tag is assigned;
+2. new `ss_aspect` is in `11..14`, `21..24`, `31..34`, or `41..44`;
 3. exactly one internal Flaw tag is assigned;
-4. `ss_flaw` after a new roll is in the same encoded ranges;
-5. an ordinary `test/awaken` with no trial observations uses a random Flaw family;
-6. `ss_trial_bloodied` makes family 2 win over the random fallback;
-7. `ss_trial_hungry` makes family 3 win over bloodied;
-8. `ss_trial_fled` makes family 4 win over hungry/bloodied;
-9. Flaw identity still varies `1..4` within the selected family;
-10. entering a new First Nightmare clears observation tags from an earlier attempt;
-11. `test/reset` clears observations and `ss_roll`;
-12. `/trigger soul` displays composed/generated names, never the old player-facing
-    `Aspect: Shadow/Flame/Bone/Wind` or `Flaw: Shadow Slave/Fragile/Ravenous/Weightless` for a new roll;
-13. the existing Aspect/Flaw effects still function through the compatibility tags;
+4. new `ss_flaw` is in the same encoded bands;
+5. `test/awaken` / no strong signal deterministically selects family 1 (`ss_flaw=11..14`);
+6. `ss_trial_bloodied` selects family 2 (`21..24`);
+7. `ss_trial_hungry` selects family 3 (`31..34`) over bloodied;
+8. `ss_trial_fled` selects family 4 (`41..44`) over hungry/bloodied;
+9. identity variant still varies `1..4` inside the selected family;
+10. accepted First-Nightmare entry clears observations from an earlier failed attempt;
+11. `test/reset` clears observations and player's `ss_roll`;
+12. `/trigger soul` shows composed/generated names, never the old player-facing fixed labels for a
+    new roll;
+13. existing Aspect/Flaw effects still function through compatibility tags;
 14. re-rolling cannot leave an old attribute modifier behind;
-15. normal First-Nightmare entry, teardown, cooldown, death recovery and Sleeper progression remain
-    unchanged except for the two observation hooks.
+15. normal entry, teardown, cooldown, death recovery and Sleeper progression are unchanged except for
+    the two observation hooks.
 
-## What must NOT change in this branch
+## What must NOT change
 
 - no rank beyond Sleeper/Dormant;
 - no Dream Realm / Awakening implementation;
@@ -329,10 +301,10 @@ Claude should add/adjust live assertions as needed, but the observable contract 
 - no death-sweep redesign;
 - no dimension/worldgen changes;
 - no version stamp;
-- no claim that a generated name or this selection algorithm is canonical.
+- no claim that these names or selection rules are canonical.
 
 ## Release relationship
 
-This branch is intentionally independent of PR #1 (`gpt/datapack-release-completion`) and starts from
-current `main`. PR #1 hardens tests/release packaging; this branch changes gameplay semantics. Claude
-can review them separately and reconcile whichever lands second.
+This branch is independent of PR #1 (`gpt/datapack-release-completion`) and starts from current
+`main`. PR #1 hardens tests/release packaging; this branch changes gameplay semantics. Claude can
+review them separately and reconcile whichever lands second.
