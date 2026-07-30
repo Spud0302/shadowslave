@@ -19,6 +19,7 @@ repositories {
 
 neoForge {
     version = project.neo_version
+    addModdingDependenciesTo sourceSets.test
 
     parchment {
         mappingsVersion = project.parchment_mappings_version
