@@ -7,12 +7,12 @@
 #
 #   uninfected  -> sleeps once, normally. The Spell marks them.
 #   Carrier     -> feels the calling; sleeping or sneaking on a bed takes them under.
-#   Awakened    -> has already answered it; sleeps normally forever after.
+#   Sleeper     -> survived the First Nightmare; sleeps normally for the rest of Phase 1.
 
 # Re-arm the trigger for next time.
 advancement revoke @s only shadowslave:enter_nightmare
 
-# The Awakened sleep like anyone else.
+# Sleepers sleep like anyone else. True Awakening comes after the later Dream Realm journey.
 execute if score @s ss_rank matches 1.. run advancement grant @s only shadowslave:test/bypass
 execute if score @s ss_rank matches 1.. run return 0
 
