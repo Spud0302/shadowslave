@@ -4,11 +4,11 @@
       "id": "minecraft:black_bed"
     },
     "title": {
-      "text": "Shadow Slave — Verification",
+      "text": "Shadow Slave",
       "color": "light_purple"
     },
     "description": {
-      "text": "Each of these is granted the moment a mechanic actually fires."
+      "text": "Survive the Nightmare Spell and discover what sleeps within your soul."
     },
     "background": "minecraft:textures/block/deepslate.png",
     "frame": "task",
