@@ -27,10 +27,12 @@ public record DatapackMigrationPlan(
             throw new IllegalArgumentException("Dreamer migration plan requires imported identity metadata");
         }
         if (aspect.isPresent()) {
-            if (!soulData.aspectId().contains(aspect.orElseThrow().instanceId())) {
+            ImportedAspect importedAspect = aspect.orElseThrow();
+            ImportedFlaw importedFlaw = flaw.orElseThrow();
+            if (!Optional.of(importedAspect.instanceId()).equals(soulData.aspectId())) {
                 throw new IllegalArgumentException("SoulData Aspect ID does not match imported Aspect");
             }
-            if (!soulData.flawId().contains(flaw.orElseThrow().instanceId())) {
+            if (!Optional.of(importedFlaw.instanceId()).equals(soulData.flawId())) {
                 throw new IllegalArgumentException("SoulData Flaw ID does not match imported Flaw");
             }
         }
