@@ -12,19 +12,20 @@ From repository-level reasoning, the Q2 implementation is ready for Claude's **i
 and live Minecraft verification**. GPT has not run Minecraft 1.21.1 and does not claim the branch is
 release-approved.
 
-The branch deliberately changes gameplay semantics while preserving the existing Phase 1 mechanics
-as compatibility roots:
+The branch deliberately changes gameplay semantics while preserving the current Phase 1 mechanics as
+compatibility roots:
 
-- Aspect formal identity is generated compositionally from **nature × archetype**;
+- Aspect identity is generated compositionally from **nature × archetype**;
 - four existing internal Aspect tags remain the finite Dormant mechanics;
-- Flaw family is biased by strong observed trial behavior, with randomness inside the family;
+- every Flaw mechanical family comes from the successful trial classification;
+- randomness is applied only to the personal Flaw name **after** the family is earned;
 - the old player-facing `Shadow Slave` Flaw is removed because `Shadow Slave` is canonically an
   Aspect name;
 - old `ss_aspect=1..4` / `ss_flaw=1..4` worlds retain a legacy `/trigger soul` fallback;
 - no new scoreboard objective, rank, dimension, death path, ownership model or version stamp was
   introduced.
 
-Full design rationale and acceptance criteria:
+Full rationale and acceptance criteria:
 
 `docs/superpowers/specs/2026-07-30-aspect-flaw-rework.md`
 
@@ -32,8 +33,8 @@ Full design rationale and acceptance criteria:
 
 ### Existing effects continue to run by tags
 
-`upkeep.mcfunction` does not dispatch Aspect/Flaw effects from `ss_aspect` or `ss_flaw` numeric
-values. It dispatches from:
+`upkeep.mcfunction` dispatches effects from the existing compatibility tags, not the numeric identity
+scores:
 
 - `ss_aspect_shadow`
 - `ss_aspect_flame`
@@ -45,55 +46,51 @@ values. It dispatches from:
 - `ss_flaw_weightless`
 
 The generator still assigns exactly one tag from each set before it encodes the richer score value.
-This is why the score migration can be done without rewriting all eight effect functions.
+This is why the score migration does not require rewriting all eight effect functions.
 
 ### Historical test alias reaches the new generator
 
-`test/awaken` still routes through `awaken/roll`, and that compatibility alias routes directly to
-`progression/become_sleeper`, which calls `prototype/roll_aspect_flaw`.
+`test/awaken` still routes through `awaken/roll` -> `progression/become_sleeper` ->
+`prototype/roll_aspect_flaw`.
 
-The helper now explicitly clears trial-observation tags first, because a command that skips the trial
-must exercise the no-trial/random-family path rather than inherit behavior from an earlier failed
-attempt.
+Because `test/awaken` explicitly skips the trial, it clears old observation tags first. With no
+strong trial signal it deterministically uses family 1's baseline burden and randomizes only the
+personal name inside that family.
 
 ### No new objective
 
-The branch reuses existing objectives:
+The branch reuses:
 
 - `ss_aspect` — encoded nature × archetype;
 - `ss_flaw` — encoded family × personal variant;
 - `ss_roll` — trial entry FoodLevel baseline, then generation scratch;
 - `ss_scratch_b` — current FoodLevel temporary during observation.
 
-The `ss_roll` reuse is safe against the current runtime paths inspected in the repository:
+The `ss_roll` reuse is compatible with current runtime paths inspected in the repository:
 
-- `/trigger soul` uses `ss_scratch_a` / `ss_scratch_b`, not `ss_roll`;
+- `/trigger soul` uses `ss_scratch_a` / `ss_scratch_b`, not player `ss_roll`;
 - `test/selfcheck` uses fake-player `$check` / `$ok` entries in `ss_roll`, not the player's `@s`
   entry;
-- generation occurs only after the trial is over, at which point overwriting the hunger baseline is
-  intentional.
+- generation occurs only after the trial is over, when overwriting the hunger baseline is intended.
 
 ### Player hunger is read, not written
 
-The new observer depends on the player's `foodLevel` NBT field through `data get entity`. That stays
-inside the project's established rule: player NBT reads are allowed; writes are not.
+The observer reads the player's `foodLevel` through `data get entity`; no player NBT write was added.
 
 ## Cross-column changes Claude must scrutinize
 
-Under the current file split, three changes touch Claude's natural area. They are intentionally small.
+Under the current collaboration split, three changes touch Claude's natural area.
 
 ### `nightmare/enter.mcfunction`
 
-After every guard has accepted the player and after `ss_in_nightmare` is set:
+After every entry guard has accepted the player and `ss_in_nightmare` is set:
 
 ```mcfunction
 function shadowslave:prototype/trial_begin
 ```
 
-Purpose: clear observations from an earlier failed attempt and capture entry hunger before the trial
-starts.
-
-No guard, cooldown, weakness threshold, timer, teleport or bossbar command was otherwise changed.
+Purpose: clear observations from an earlier failed attempt and capture entry hunger before the trial.
+No guard, cooldown, weakness threshold, timer, teleport or bossbar behavior was otherwise changed.
 
 ### `nightmare/tick_player.mcfunction`
 
@@ -103,10 +100,8 @@ While the creature exists, immediately **before** the existing 48-block leash:
 execute if entity @e[tag=ss_creature] run function shadowslave:prototype/observe_trial
 ```
 
-The ordering is intentional. If observation ran after the leash, a `40+` flee signal could be erased
-by the teleport before it was recorded.
-
-No ejection threshold, countdown, creature-absence/win logic or leash distance was changed.
+The ordering is intentional: after the leash, a 40+ flee signal can be erased by the teleport.
+No ejection threshold, countdown, win/absence logic or leash distance was changed.
 
 ### `test/reset.mcfunction`
 
@@ -117,13 +112,13 @@ Adds cleanup for:
 - `ss_trial_fled`
 - player's `ss_roll`
 
-Reset must remain a genuinely fresh state for tests.
+Reset must remain genuinely fresh state.
 
-## New generated Aspect contract
+## Generated Aspect contract
 
 Aspect score = `nature * 10 + archetype`.
 
-Nature / first word / internal mechanical tag:
+Nature / first word / internal mechanic:
 
 | digit | word | tag |
 | --- | --- | --- |
@@ -148,10 +143,10 @@ Examples:
 - `31` = **Pale Witness** + body-root mechanic;
 - `42` = **Restless Bearer** + motion-root mechanic.
 
-The point of the two axes is architectural, not just cosmetic: adding another archetype expands every
-nature instead of hand-authoring another entire class list.
+The two axes matter architecturally: adding an archetype expands every nature instead of adding
+another whole class name.
 
-## New Flaw contract
+## Earned Flaw contract
 
 Observation tags:
 
@@ -162,10 +157,10 @@ Observation tags:
 Family precedence:
 
 ```text
-fled > hungry > bloodied > random fallback
+fled > hungry > bloodied > baseline
 ```
 
-Family / encoded score range / compatibility tag:
+Family / score / compatibility tag:
 
 | family | scores | tag | burden |
 | --- | --- | --- | --- |
@@ -174,33 +169,44 @@ Family / encoded score range / compatibility tag:
 | 3 | 31..34 | `ss_flaw_ravenous` | faster hunger drain |
 | 4 | 41..44 | `ss_flaw_weightless` | reduced safe fall distance |
 
-The family-1 **internal id** remains `ss_flaw_shadow_slave` only for compatibility. New player-facing
-names are Nightbound / Pale Dawn / Sunshy / Dusk's Debt.
+Family 1 is the deterministic **no strong deviation observed** baseline. The family-1 internal id
+remains `ss_flaw_shadow_slave` only for compatibility; new player-facing names are Nightbound,
+Pale Dawn, Sunshy and Dusk's Debt.
+
+Randomness happens only after family selection, choosing one of four names inside the family. This
+is the repository handover's requested **behavior with randomness on top**, not an independently
+random mechanical Flaw.
 
 ## Suggested Claude harness additions
 
-The existing harness should remain responsible for live mechanics. The following tests are designed
-to be deterministic where possible; do not use probabilistic distribution as a release gate.
+Keep the release gate deterministic. Do not require random distributions to hit every value.
 
-### A. Encoded identity shape + exactly one mechanical tag
+### A. Encoded identity + exactly one mechanics tag
 
 After `test/reset` + `test/awaken`:
 
-- assert `ss_aspect` matches one of the four encoded bands (`11..14`, `21..24`, `31..34`, `41..44`);
-- assert exactly one `ss_aspect_*` compatibility tag is present;
-- assert `ss_flaw` matches one encoded band;
-- assert exactly one `ss_flaw_*` compatibility tag is present;
-- `/trigger soul` must contain the expected composed name for the observed score.
+- `ss_aspect` must be in one encoded band (`11..14`, `21..24`, `31..34`, `41..44`);
+- exactly one `ss_aspect_*` compatibility tag must be present;
+- because the helper has no trial signal, `ss_flaw` must be **11..14**;
+- exactly one Flaw tag must be present, specifically `ss_flaw_shadow_slave` for this baseline path;
+- `/trigger soul` must render the composed Aspect name matching the observed score and one family-1
+  personal Flaw name.
 
-Do **not** require all 16 random combinations to appear in one CI run. That would make the gate
-probabilistic. Mapping can be checked deterministically by setting each encoded score temporarily and
-calling `soul` if desired.
+Do not require all 16 Aspect combinations or all four family-1 names to appear in a CI run. Mapping
+can be checked deterministically by setting encoded scores and calling `soul`.
 
-### B. Generator precedence — deterministic direct forcing
+### B. Generator precedence — direct deterministic forcing
 
-The generator consumes observation tags directly, so precedence can be tested without conducting a
-fight. Use `test/reset`, add the relevant observation tags, then call
-`shadowslave:prototype/roll_aspect_flaw` directly.
+The generator consumes observation tags directly, so family precedence can be tested without a fight.
+
+**Baseline**
+
+```mcfunction
+function shadowslave:test/reset
+function shadowslave:prototype/roll_aspect_flaw
+```
+
+Expect `ss_flaw=11..14` and only `ss_flaw_shadow_slave`.
 
 **Bloodied only**
 
@@ -235,9 +241,9 @@ function shadowslave:prototype/roll_aspect_flaw
 
 Expect `ss_flaw=41..44` and only `ss_flaw_weightless`.
 
-After each call, assert all three `ss_trial_*` tags were consumed and player `ss_roll` is absent.
+After every generation call, all `ss_trial_*` tags must be consumed and player `ss_roll` absent.
 
-### C. `test/awaken` does not inherit an old failed-trial observation
+### C. `test/awaken` must discard an old failed-trial signal
 
 ```mcfunction
 function shadowslave:test/reset
@@ -245,105 +251,93 @@ tag @s add ss_trial_fled
 function shadowslave:test/awaken
 ```
 
-The important deterministic assertion is that `ss_trial_fled` is removed **before generation**.
-Because the no-signal family is random, do not assert that the resulting Flaw is non-family-4; random
-fallback is allowed to select family 4 legitimately.
-
-If the harness needs to prove order, add a test-only instrumentation path rather than converting a
-random outcome into a flaky assertion.
+Expect `ss_flaw=11..14`, not family 4. This is now deterministic and directly proves the helper
+cleared the inherited signal before generation.
 
 ### D. Trial-entry reset/baseline integration
 
 Enter through `test/nightmare`, then assert:
 
 - all three observation tags are absent immediately after accepted entry;
-- player's `ss_roll` equals the player's FoodLevel read from the server.
+- player's `ss_roll` equals the player's current FoodLevel read from the server.
 
-This proves the new `enter` hook is actually wired to accepted entry, not merely that
-`trial_begin.mcfunction` works in isolation.
+This proves the entry hook is wired, not merely that `trial_begin` works in isolation.
 
 ### E. Observer boundaries
 
-With an active test creature or a controlled direct call:
+With an active test creature or controlled direct setup:
 
-- `ss_health=9` must **not** set bloodied;
-- `ss_health=8` must set bloodied;
-- `ss_health=5` must set bloodied;
-- `ss_health=4` is owned by ejection and should not become the successful-run bloodied signal through
-  the normal tick path.
+- `ss_health=9` -> no bloodied;
+- `ss_health=8` -> bloodied;
+- `ss_health=5` -> bloodied;
+- `ss_health=4` belongs to normal ejection and must not become a successful-run bloodied observation
+  through `tick_player`.
 
-For hunger, compare baseline/current values around the exact delta:
+Hunger delta:
 
-- drop 5 -> no `ss_trial_hungry`;
-- drop 6 -> set `ss_trial_hungry`.
+- drop 5 -> no hungry tag;
+- drop 6 -> hungry tag.
 
-For fleeing:
+Distance:
 
-- creature at 39.x blocks -> no flee tag;
-- creature at 40+ -> set flee tag;
-- normal `tick_player` must observe the tag before the existing 48+ leash relocates the creature.
+- creature at 39.x -> no fled tag;
+- creature at 40+ -> fled tag;
+- normal tick must observe fleeing before the existing 48+ leash relocates the creature.
 
 ### F. Legacy readout
 
-Manually create one old-style state (`ss_aspect=1`, `ss_flaw=1`, matching compatibility tags) and
-call `/trigger soul`.
+Create old-style `ss_aspect=1`, `ss_flaw=1` with matching compatibility tags and call `/trigger soul`.
 
 Expect:
 
-- Aspect line visibly says legacy prototype rather than disappearing;
-- Flaw line uses **Nightbound (legacy prototype)** rather than re-exposing `Shadow Slave` as a Flaw.
+- Aspect line says `legacy prototype` rather than disappearing;
+- Flaw line uses **Nightbound (legacy prototype)** rather than exposing `Shadow Slave` as a Flaw.
 
-## Manual checks worth a human
+## Human checks worth keeping human
 
 ### Naming feel
 
-Roll `test/reset` + `test/awaken` repeatedly and read `/trigger soul`.
-
-Judge whether combinations such as **Ashen Wanderer**, **Pale Warden** and **Restless Witness** feel
-like supernatural identities rather than RPG class names. This is subjective and should not be
-encoded as a harness assertion.
+Roll `test/reset` + `test/awaken` repeatedly and read `/trigger soul`. Judge whether combinations such
+as **Ashen Wanderer**, **Pale Warden** and **Restless Witness** feel like supernatural identities
+rather than RPG classes.
 
 ### Flaw attribution feel
 
-Play several real successful First Nightmares deliberately:
+Win deliberate runs in four patterns:
 
-1. close/clean fight with no tracked strong signal;
-2. allow health into 5..8 then recover and win;
-3. deliberately burn at least 6 food points during the creature phase and win;
-4. deliberately open 40+ blocks of distance, recover control and win.
+1. no strong tracked deviation;
+2. reach health 5..8 and recover;
+3. consume at least 6 food points during creature phase;
+4. open 40+ blocks of distance and still win.
 
-Confirm the eventual burden feels connected to what the run actually did rather than arbitrary.
-The exact Flaw **name** should still vary inside the earned burden family.
+Confirm the eventual burden family tracks the intended classification. The formal name should still
+vary inside that earned family.
 
 ## Required release gates
 
-GPT has not run these:
+GPT has **not** run:
 
 ```bash
 python3 shadowslave/tools/validate.py
 cd testserver && node harness.mjs
 ```
 
-Claude should first reconcile/add the Q2 assertions above to the harness, then run the full suite on
-the real 1.21.1 test server.
-
-If PR #1 (`gpt/datapack-release-completion`) lands first, the expected existing suite baseline becomes
-32 assertions rather than the current-main 25. Q2 assertions should be added on top of whichever
-baseline is current at review time.
+Claude should first add/reconcile the Q2 assertions above, then run the full suite against the real
+1.21.1 server. If PR #1 lands first, its expected existing baseline is 32 assertions rather than
+current-main's 25; Q2 tests go on top of whichever baseline is current.
 
 No version stamp belongs on this GPT branch.
 
 ## Q2 answer for `OPEN-QUESTIONS.md`
 
-**Answer:** yes, the datapack can move meaningfully closer to canon before Java without pretending to
-have infinite procedural mechanics.
+**Answer:** the datapack can get meaningfully closer to canon before Java without pretending it has
+infinite procedural mechanics.
 
-Use a **composed identity / finite-expression** model for Aspects, and a
-**strong-observation -> burden family -> randomized personal name** model for Flaws.
+Use a **composed identity / finite-expression** model for Aspects and an
+**observed-trial classification -> burden family -> randomized personal name** model for Flaws.
 
-This satisfies the owner's generated-identity / behavior-influenced direction while keeping the
-vanilla ceiling explicit. The remaining four mechanical roots are then an honest implementation
-boundary for the Java port rather than the player's entire supernatural identity.
+This matches the owner's generated-identity / behavior-plus-randomness direction while keeping the
+vanilla ceiling explicit. The four remaining mechanical roots become an honest Java migration seam
+rather than the player's entire supernatural identity.
 
-When Claude accepts and verifies this branch, move Q2 to **Answered** and link this review/spec rather
-than duplicating the whole rationale in `OPEN-QUESTIONS.md`.
+When Claude accepts and verifies this branch, move Q2 to **Answered** and link this review/spec.
