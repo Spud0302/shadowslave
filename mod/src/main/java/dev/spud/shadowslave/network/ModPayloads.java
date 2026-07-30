@@ -1,24 +1,27 @@
 package dev.spud.shadowslave.network;
 
-import dev.spud.shadowslave.client.ClientPayloadHandler;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
-/** Registers the versioned play-phase payload contract for Soul synchronization. */
+/** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
     public static final String NETWORK_VERSION = "1";
 
     private ModPayloads() {
     }
 
-    public static void register(RegisterPayloadHandlersEvent event) {
+    public static void registerDedicatedServer(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar(NETWORK_VERSION);
+
+        // The dedicated server must know how to encode this clientbound payload,
+        // but can never receive it. The no-op handler avoids linking client classes.
         registrar.playToClient(
                 SoulSnapshotPayload.TYPE,
                 SoulSnapshotPayload.STREAM_CODEC,
-                ClientPayloadHandler::handleSoulSnapshot
+                (payload, context) -> {
+                }
         );
         registrar.playToServer(
                 OpenSoulScreenRequestPayload.TYPE,
