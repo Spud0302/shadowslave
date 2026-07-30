@@ -6,10 +6,12 @@
 scoreboard objectives add ss_rank dummy "Soul Rank"
 # Nightmare countdown, in ticks
 scoreboard objectives add ss_timer dummy "Nightmare Timer"
-# Rolled Aspect and Flaw, 1-4 each
+# Generated identity scores. New rolls encode family/root × 10 + personal variant (11..44).
+# The compatibility tags still carry the finite Dormant mechanics; see prototype/roll_aspect_flaw.
 scoreboard objectives add ss_aspect dummy "Aspect"
 scoreboard objectives add ss_flaw dummy "Flaw"
-# Scratch space for /random rolls
+# Scratch for random rolls. During an active First Nightmare this temporarily stores the player's
+# entry FoodLevel so the Flaw observer can measure hunger consumed by THIS trial rather than absolute hunger.
 scoreboard objectives add ss_roll dummy "Roll"
 # Global once-a-second counter, held on the fake player $ss_clock
 scoreboard objectives add ss_clock dummy "Clock"
