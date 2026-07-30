@@ -170,8 +170,8 @@ did not, and paid for it.
 
 An assertion that sets health and then checks a threshold was failing about one run in four, and every
 investigation initially blamed the pack. `/damage` does not always apply the full amount — natural
-regeneration, invulnerability frames and absorption all interfere — so *"I issued the damage"* is a
-different claim from *"the player is below the threshold"*.
+regeneration, invulnerability frames and absorption all interfere — so _"I issued the damage"_ is a
+different claim from _"the player is below the threshold"_.
 
 `driveHealthTo()` in the harness now confirms the state before the assertion depending on it runs.
 Generalise it: when a test needs a precondition, verify the precondition, and fail as a **test error**
@@ -184,6 +184,63 @@ from previous runs**: the death test summons an item, and the death sweep correc
 Overworld, where they persist. The check blamed the current ejection for the previous run's debris.
 
 **Rule:** a test that inspects world state must clear that state first, in every dimension it looks at.
+
+### The server runs a built zip, not your working tree
+
+**This is the first thing to check when a test fails after an edit.** The test server loads
+`testserver/world/datapacks/ss-trace.zip`. Editing a `.mcfunction` and re-running `npm test` tests the
+**old pack**. Nothing warns you — the harness connects fine, the pack loads fine, and the assertions
+report on code you did not write.
+
+So the loop is always **deploy, then test**:
+
+```bash
+cd testserver && npm run deploy && npm test
+```
+
+`deploy.mjs` builds (validator included), installs the zip, `/reload`s, and then **fails loudly unless
+the server announces the version it just installed** — a reload that quietly left the old pack in
+place is precisely the failure being guarded against. Deploying by hand is fine; skipping the version
+confirmation is not.
+
+I lost most of a session to this: I edited `flaw/burdened.mcfunction`, re-ran the gate, saw the same
+failure, and concluded the _mechanic_ was broken. It was not. The pack under test never changed.
+
+**Rule:** after editing pack source, either redeploy before testing or state plainly that you have not
+tested the edit. Never reason about a test result without knowing which build produced it.
+
+If you do run the steps by hand, use **absolute paths**. `build_release.py` writes to the repo root
+while living in `shadowslave/tools/`, and the pack directory shares its name with the repo directory
+(`/project/src/shadowslave/shadowslave/`). Relative `cd` chains through those two facts is how the
+session above burned another handful of commands on `No such file or directory`.
+
+### Two unrelated assertions failing together points at the environment
+
+The signal I had and ignored: after one edit, `fled family applies the burdened-movement Flaw` **and**
+`hungry family applies Hunger` both started failing. Hunger was untouched by that edit and had passed
+minutes earlier.
+
+Two independent mechanics do not regress from one unrelated change. That pattern means the thing
+_under_ both of them moved — a stale build, a server that did not reload, world state, a harness
+helper they share. Chasing either failure as a mechanic bug is wasted work.
+
+**Rule:** when failures spread beyond what the change could plausibly touch, stop debugging the
+feature and go verify the environment.
+
+### Read the command's units before changing a value
+
+`effect give <target> <effect> [seconds] [amplifier] [hideParticles]` takes **seconds**. Every effect
+in this pack relies on that: `hunger 2`, `slowness 2`, `nausea 4`, `night_vision 15`,
+`fire_resistance 15`. Upkeep runs once per second, so a `2` is a deliberate 2× overlap — the effect is
+refreshed before it can lapse, which is what makes these burdens persistent without ever writing player
+NBT.
+
+I misread that `2` as 2 **ticks**, decided it was expiring before the harness could see it, and
+"fixed" it to `1200` — believing I was writing 60 seconds when I was writing 20 minutes. The change
+was reverted; GPT's original passes 71/71 untouched. The actual fault was the stale zip above.
+
+**Rule:** a value that matches its siblings is a convention, not a bug. Before changing one, find out
+what the surrounding values mean and why they agree.
 
 ### When the harness and a direct probe disagree, believe the probe
 
