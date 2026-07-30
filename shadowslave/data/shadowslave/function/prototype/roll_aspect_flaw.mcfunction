@@ -6,8 +6,8 @@
 # finite roots, because a datapack cannot invent a new function at runtime.
 
 # Clear the previous mechanical roots before applying a new identity. Removing a tag stops upkeep
-# from REAPPLYING a modifier, but it does not remove a modifier already on the player; both layers
-# have to be stripped or re-rolling can leave an old Aspect/Flaw behind.
+# from REAPPLYING a modifier/effect, but it does not necessarily clear one already on the player; both
+# layers have to be stripped or re-rolling can leave an old Aspect/Flaw behind.
 tag @s remove ss_aspect_shadow
 tag @s remove ss_aspect_flame
 tag @s remove ss_aspect_bone
@@ -19,7 +19,9 @@ tag @s remove ss_flaw_weightless
 attribute @s minecraft:generic.armor modifier remove shadowslave:aspect_bone_armor
 attribute @s minecraft:generic.movement_speed modifier remove shadowslave:aspect_wind_speed
 attribute @s minecraft:generic.max_health modifier remove shadowslave:flaw_fragile_health
+# Migration cleanup for the retired pre-0.7.3 fled-family implementation.
 attribute @s minecraft:generic.safe_fall_distance modifier remove shadowslave:flaw_weightless_fall
+effect clear @s minecraft:slowness
 
 # --- Aspect -----------------------------------------------------------------
 # First roll chooses the nature / finite Dormant mechanical root. Keep the tags as compatibility
@@ -63,8 +65,8 @@ execute if entity @s[tag=ss_trial_hungry] run scoreboard players set @s ss_flaw 
 execute if entity @s[tag=ss_trial_fled] run scoreboard players set @s ss_flaw 4
 
 # Apply the compatibility/mechanics tag while ss_flaw still holds the family id.
-# The historical ss_flaw_shadow_slave id stays internal for save/function compatibility; its old
-# player-facing name was lore-wrong because Shadow Slave is an Aspect, not a Flaw.
+# Historical internal ids remain for save/import compatibility. In particular ss_flaw_weightless now
+# means the fled/retreat family; it no longer implies the retired safe-fall-distance implementation.
 execute if score @s ss_flaw matches 1 run tag @s add ss_flaw_shadow_slave
 execute if score @s ss_flaw matches 2 run tag @s add ss_flaw_fragile
 execute if score @s ss_flaw matches 3 run tag @s add ss_flaw_ravenous
