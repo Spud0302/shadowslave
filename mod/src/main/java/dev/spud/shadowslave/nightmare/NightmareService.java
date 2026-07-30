@@ -16,7 +16,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.RelativeMovement;
 import net.minecraft.world.level.Level;
 
 import java.util.Objects;
@@ -79,28 +78,32 @@ public final class NightmareService {
             ).withStyle(ChatFormatting.LIGHT_PURPLE));
             return prepared;
         } catch (RuntimeException exception) {
-            LastSignalScenario.removeOwnedEntities(nightmareLevel, prepared);
-            registry.removeByPlayer(player.getUUID());
+            teardown(server, prepared);
             SoulService.replace(player, beforeSoul);
             throw new IllegalStateException("Nightmare entry failed and was rolled back", exception);
         }
     }
 
     public static boolean resolveSignalFire(ServerPlayer player, net.minecraft.core.BlockPos interactedPos) {
-        NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
-        Optional<NightmareInstance> optional = registry.findByPlayer(player.getUUID());
-        if (optional.isEmpty()) {
-            return false;
-        }
-        NightmareInstance instance = optional.orElseThrow();
-        if (!player.serverLevel().dimension().equals(NIGHTMARE_LEVEL)
+        NightmareInstance instance = activeFor(player).orElse(null);
+        if (instance == null
+                || !player.serverLevel().dimension().equals(NIGHTMARE_LEVEL)
                 || !instance.altar().equals(interactedPos)) {
             return false;
         }
 
         LastSignalScenario.igniteAltar(player.serverLevel(), instance);
         NightmareInstance completed = exit(player, NightmareExitReason.SUCCESS);
-        PreviewAppraisalService.appraise(player, completed);
+        try {
+            PreviewAppraisalService.appraise(player, completed);
+        } catch (RuntimeException exception) {
+            SoulIdentityService.replace(player, SoulIdentityData.empty());
+            SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
+            throw new IllegalStateException(
+                    "The preview appraisal failed after lifecycle teardown; Java state was recovered to Carrier",
+                    exception
+            );
+        }
         player.sendSystemMessage(Component.literal("The signal answers. The Spell appraises the life you lived in the borrowed role.")
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
         player.sendSystemMessage(Component.literal("Aspect revealed: [Last Light] — Awakened Rank. Flaw revealed: [Cold Ash].")
@@ -110,8 +113,8 @@ public final class NightmareService {
 
     public static NightmareInstance technicalRecover(ServerPlayer player) {
         NightmareInstance instance = exit(player, NightmareExitReason.TECHNICAL_RECOVERY);
-        SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
         SoulIdentityService.replace(player, SoulIdentityData.empty());
+        SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
         player.sendSystemMessage(Component.literal(
                 "Technical recovery completed. This is an administrative path, not mercy from the Nightmare Spell."
         ).withStyle(ChatFormatting.YELLOW));
@@ -120,23 +123,19 @@ public final class NightmareService {
 
     public static NightmareInstance adminAbort(ServerPlayer player) {
         NightmareInstance instance = exit(player, NightmareExitReason.ADMIN_ABORT);
-        SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
         SoulIdentityService.replace(player, SoulIdentityData.empty());
+        SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
         return instance;
     }
 
     public static void canonicalDeath(ServerPlayer player) {
-        NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
-        Optional<NightmareInstance> removed = registry.removeByPlayer(player.getUUID());
-        if (removed.isEmpty()) {
+        NightmareInstance instance = activeFor(player).orElse(null);
+        if (instance == null) {
             return;
         }
-        ServerLevel nightmareLevel = player.getServer().getLevel(NIGHTMARE_LEVEL);
-        if (nightmareLevel != null) {
-            LastSignalScenario.removeOwnedEntities(nightmareLevel, removed.orElseThrow());
-        }
-        SoulService.reset(player);
+        teardown(player.getServer(), instance);
         SoulIdentityService.replace(player, SoulIdentityData.empty());
+        SoulService.reset(player);
         player.sendSystemMessage(Component.literal(
                 "Canonical First-Nightmare outcome: death. Minecraft respawn is a development accommodation; the Spell did not safely eject you."
         ).withStyle(ChatFormatting.RED));
@@ -148,14 +147,8 @@ public final class NightmareService {
 
     private static NightmareInstance exit(ServerPlayer player, NightmareExitReason reason) {
         MinecraftServer server = player.getServer();
-        NightmareRegistryData registry = NightmareRegistryData.get(server);
-        NightmareInstance instance = registry.findByPlayer(player.getUUID())
+        NightmareInstance instance = activeFor(player)
                 .orElseThrow(() -> new IllegalStateException("Player does not own an active Nightmare"));
-
-        ServerLevel nightmareLevel = server.getLevel(NIGHTMARE_LEVEL);
-        if (nightmareLevel != null) {
-            LastSignalScenario.removeOwnedEntities(nightmareLevel, instance);
-        }
 
         ResourceKey<Level> returnKey = ResourceKey.create(Registries.DIMENSION, instance.returnDimension());
         ServerLevel returnLevel = server.getLevel(returnKey);
@@ -175,7 +168,7 @@ public final class NightmareService {
                 instance.returnYaw(),
                 instance.returnPitch()
         );
-        registry.removeByPlayer(player.getUUID());
+        teardown(server, instance);
         ShadowSlaveMod.LOGGER.info(
                 "Nightmare {} exited for player {} with reason {}",
                 instance.instanceId(),
@@ -183,6 +176,14 @@ public final class NightmareService {
                 reason
         );
         return instance;
+    }
+
+    private static void teardown(MinecraftServer server, NightmareInstance instance) {
+        ServerLevel nightmareLevel = server.getLevel(NIGHTMARE_LEVEL);
+        if (nightmareLevel != null) {
+            LastSignalScenario.removeOwnedEntities(nightmareLevel, instance);
+        }
+        NightmareRegistryData.get(server).removeByPlayer(instance.playerId());
     }
 
     private static ResourceLocation id(String path) {
