@@ -5,6 +5,11 @@
 >
 > **For the current release candidate, skip to “Current release-candidate checks” at the bottom.**
 > Mechanical regressions are now owned by `testserver/harness.mjs` rather than a human checklist.
+>
+> **Every human check in this file is deferred evidence, not a gate** (owner decision **D2** in
+> `docs/OPEN-QUESTIONS.md`): what remains for a person to judge is presentation and balance, and the
+> underlying state is already covered by the automated gates. They are still worth running and none of
+> them has been run — deferred is not passed. Anything one of them turns up is ordinary polish work.
 
 ---
 
@@ -101,9 +106,11 @@ mechanic it was named after. The old version reduced `safe_fall_distance`, which
 intermittently ignored even when the command succeeded — a player could carry the Flaw and receive no
 penalty at all. It is now Slowness I, refreshed once per second by upkeep.
 
-**Still an open judgement call:** is the slowness _noticeable but not obnoxious_? The harness can only
-prove the effect is present and that reset clears it — whether it feels like a fair price for the trial
-is a human call. If it reads as obnoxious, say so; that is legitimate `0.8.x` work per the roadmap.
+**Still an open judgement call, now deferred:** is the slowness _noticeable but not obnoxious_? The
+harness proves the effect applies and that reset clears it; whether it feels like a fair price for the
+trial is a human call. Per **D2** this is balance judgement and no longer gates anything — Q4 is closed
+as answered on that basis. Nobody has judged it yet. If it reads as obnoxious, say so; that is ordinary
+`0.8.x` balance work.
 
 ## G. Edge cases
 

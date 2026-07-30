@@ -1,7 +1,7 @@
 # Shadow Slave project status
 
 **Status date:** 2026-07-30  
-**Documentation baseline:** `main@6a87991353480035f4fe6da08c775cd87d0e81df`  
+**Documentation baseline:** `main@a852a76` (alpha.4 verification)  
 **Canonical repository:** `Spud0302/shadowslave`
 
 This is the current-state document. Historical assumptions remain in the changelog, issue log,
@@ -9,11 +9,11 @@ testing history, review records and Git history, but they do not override this f
 
 ## Products
 
-| Product | Current state | Public release |
-| --- | --- | --- |
-| Vanilla datapack | completed and frozen behavioural reference | `datapack-v1.0.0` |
-| Standalone/shared Java core | `0.1.0-alpha.4`, CI-green, awaiting Claude verification | not released |
-| Nightmare Spell modpack | design and dependency boundaries only | not released |
+| Product                     | Current state                                           | Public release    |
+| --------------------------- | ------------------------------------------------------- | ----------------- |
+| Vanilla datapack            | completed and frozen behavioural reference              | `datapack-v1.0.0` |
+| Standalone/shared Java core | `0.1.0-alpha.4`, CI-green and Claude-verified            | not released      |
+| Nightmare Spell modpack     | design and dependency boundaries only                   | not released      |
 
 ## Datapack
 
@@ -24,7 +24,7 @@ defects, compatibility corrections and documentation.
 
 ## Java core implemented
 
-- NeoForge 21.1.244 / Minecraft 1.21.1 / Java 21 workspace;
+- NeoForge 21.1.244 / Minecraft 1.21.1 / JDK 21 workspace (JRE-only hosts cannot build it);
 - committed Gradle wrapper and CI packaging;
 - persistent, schema-versioned, server-authoritative `SoulData`;
 - lore-aligned Uninfected -> Carrier -> Aspirant -> Dreamer model;
@@ -40,17 +40,29 @@ defects, compatibility corrections and documentation.
 ## Verification state
 
 GitHub Actions passed compilation, unit tests, JAR packaging, client startup and dedicated-server
-startup for PRs #14 and #15. That is not the final project gate. Under `docs/COLLABORATION.md`,
-Claude independently reviews and tests GPT work.
+startup for PRs #14 and #15. Under `docs/COLLABORATION.md` that is not the final gate on its own, so
+Claude reviewed and independently re-ran the work.
 
-**Blocking gate:** [Issue #16 — Claude verification gate: Java alpha.4](https://github.com/Spud0302/shadowslave/issues/16).
+**Alpha.4 is Claude-verified.** [Issue #16](https://github.com/Spud0302/shadowslave/issues/16) is
+closed. Evidence, reproduced locally rather than taken from workflow status:
 
-Until #16 is closed as verified or verified-with-fixes:
+- `./mod/gradlew -p mod build` — BUILD SUCCESSFUL, 14 tests, 0 failures, `shadowslave-0.1.0-alpha.4.jar`;
+- dedicated-server smoke — `Done (15.023s)! For help, type "help"` with the mod loaded;
+- physical-client smoke under `xvfb` — client loading plus GUI atlas creation;
+- `python3 shadowslave/tools/validate.py` — clean, including the 16-name Java/datapack cross-check;
+- review of client/server side separation, payload registration and the migration translator.
 
-- `main` is CI-green but not Claude-verified for alpha.4;
-- no further Java feature package should merge;
-- no public Java release should be stamped;
-- no claim should be made that the real O-key interaction has passed.
+A fix came out of that verification: the bare Gradle smoke commands are **not** pass/fail gates — the
+dedicated server failed to start three times (port conflict, then a stale `session.lock`) while Gradle
+still reported `BUILD SUCCESSFUL` with exit `0`. `mod/verify-smoke.sh` now applies CI's marker-based
+criterion locally and is proven to fail as well as pass.
+
+**Human tests are deferred, not passed** (owner decision **D2** in `docs/OPEN-QUESTIONS.md`): they are
+visual or balance judgements, so they no longer gate merges or releases. Nobody has run them, and no
+document may claim otherwise. The real-client O-key walkthrough remains written down in `TESTING.md`.
+
+Still true regardless: **no public Java release should be stamped** until there is something worth
+releasing — that is a product decision, not a verification gate.
 
 ## Not implemented yet
 
@@ -67,12 +79,16 @@ Until #16 is closed as verified or verified-with-fixes:
 
 ## Next gated sequence
 
-1. Claude reviews and independently tests alpha.4, including a real client session.
-2. Record fixes/evidence and close Issue #16.
-3. Add the live datapack reader and verified persistence writer without deleting legacy state.
-4. Add persistent `NightmareRegistryData` and explicit instance ownership.
-5. Implement one lore-shaped historical role, central conflict and valid resolution.
-6. Build the same slice in the modpack track and compare with evidence.
+1. ~~Claude reviews and independently tests alpha.4.~~ **Done**; Issue #16 closed. The real client
+   session is deferred per **D2**, not performed.
+2. Add the live datapack reader and verified persistence writer without deleting legacy state. Absent
+   scores are not zeroes — see the hazard note in `docs/DATAPACK-MIGRATION.md` before writing it.
+3. Add persistent `NightmareRegistryData` and explicit instance ownership, honouring the Nightmare
+   lifecycle contract in `docs/JAVA-HANDOFF.md` §6.
+4. Implement one lore-shaped historical role, central conflict and valid resolution.
+5. Build the same slice in the modpack track and compare with evidence.
+6. Optional, closes the last real gap: a NeoForge GameTest for Soul persistence across a relog —
+   `mod/build.gradle` already declares `gameTestServer`.
 
 ## Canon boundary
 

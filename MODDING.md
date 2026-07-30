@@ -19,8 +19,8 @@ Location: [`mod/`](mod/)
 Current version: `0.1.0-alpha.4`.
 
 Implemented: persistence, lore-aligned schema, networking, O-key Soul screen, schema migration and
-pure datapack translation fixtures. CI is green. Claude's independent verification in Issue #16
-remains the blocking gate.
+pure datapack translation fixtures. CI is green and Claude's independent verification is complete —
+Issue #16 is closed. Human walkthroughs are deferred evidence (**D2**), not gates.
 
 ## Path A — Nightmare Spell modpack
 
@@ -54,7 +54,8 @@ evidence-based standalone/modpack/hybrid decision
 
 - Minecraft Java Edition 1.21.1;
 - NeoForge 21.1.244;
-- Java 21;
+- **JDK** 21 — a JRE is not enough: NeoForm recompiles Minecraft sources with `javac`, and without it
+  the build fails in `:createMinecraftArtifacts` with the misleading `error: release version 21 not supported`;
 - Gradle wrapper 9.2.1;
 - dedicated-server compatibility from the beginning;
 - server-authoritative state.

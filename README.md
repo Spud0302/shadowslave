@@ -49,9 +49,11 @@ Implemented:
 - pure datapack translation fixtures;
 - client, server, unit-test and JAR CI gates.
 
-Alpha.4 is **CI-green but awaiting Claude's independent review and real-client test**. Track the
-gate in [Issue #16](https://github.com/Spud0302/shadowslave/issues/16). It is not a public mod
-release and does not yet contain a playable Java Nightmare.
+Alpha.4 is **CI-green and Claude-verified** — [Issue #16](https://github.com/Spud0302/shadowslave/issues/16)
+is closed, with the build, both startup smokes and the validator re-run locally rather than taken from
+workflow status. The real-client walkthrough is **deferred, not performed** (owner decision **D2**):
+it judges presentation and feel, so it no longer gates anything. This is not a public mod release and
+does not yet contain a playable Java Nightmare.
 
 ### Development commands
 

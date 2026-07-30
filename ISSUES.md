@@ -16,10 +16,13 @@ by the accepted automated gate.
 Current development version is `0.1.0-alpha.4`.
 
 - GitHub CI: build/tests/JAR/client/server smoke passed;
-- independent Claude verification: pending;
-- blocking tracker: GitHub Issue #16;
-- no public Java release exists;
-- no further Java feature package should merge until #16 closes.
+- independent Claude verification: **done** — Issue #16 closed, evidence in `PROJECT-STATUS.md`;
+- no blocking tracker; human tests are deferred evidence per **D2**, not gates, and have not been run;
+- no public Java release exists.
+
+One defect found by that verification, fixed in `a852a76`: the bare `runServerSmoke`/`runClientSmoke`
+commands report `BUILD SUCCESSFUL` with exit `0` even when the server never starts. Use
+`mod/verify-smoke.sh`, which checks the log markers CI checks.
 
 Current implementation limits—not bugs disguised as finished features:
 

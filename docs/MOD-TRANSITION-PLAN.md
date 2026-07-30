@@ -13,7 +13,7 @@ This is a controlled comparison, not a commitment to maintain two permanent prod
 - datapack `datapack-v1.0.0`: released and frozen;
 - shared/standalone Java core: `0.1.0-alpha.4` on `main`;
 - implemented: Soul persistence, lore schema, networking/UI, schema migration and pure datapack translation;
-- blocking gate: Claude verification Issue #16;
+- no blocking gate: Claude verification complete, Issue #16 closed, human tests deferred per **D2**;
 - not implemented: live import, Nightmare SavedData/instances, playable conflict/appraisal;
 - modpack track: design only.
 

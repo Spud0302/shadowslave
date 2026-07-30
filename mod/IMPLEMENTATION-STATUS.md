@@ -4,7 +4,7 @@
 
 - Minecraft: `1.21.1`
 - NeoForge: `21.1.244`
-- Java: `21`
+- Java: **JDK** `21` (a JRE cannot build: NeoForm recompiles with `javac`)
 - ModDevGradle: `2.0.143`
 - Gradle wrapper: `9.2.1`
 - Development version: `0.1.0-alpha.4`
@@ -13,9 +13,12 @@
 ## Gate status
 
 The alpha.4 head is GitHub-CI green for compilation, unit tests, JAR packaging, physical-client
-startup and dedicated-server startup. It is **not yet Claude-verified**. Issue #16 blocks the next
-Java feature merge and any public mod release until independent review and real-client interaction
-evidence are recorded.
+startup and dedicated-server startup, and is **Claude-verified**: Issue #16 is closed, with the build,
+both startup smokes and the validator re-run locally rather than accepted from workflow status.
+
+Nothing blocks the next Java feature merge. Real-client interaction evidence is **deferred, not
+recorded** (owner decision **D2** in `docs/OPEN-QUESTIONS.md`) because it judges presentation and feel;
+no document may present it as having passed.
 
 ## Implemented
 
@@ -78,9 +81,14 @@ Nightmare registry work begins after that persistence boundary is accepted.
 ## Local commands
 
 ```bash
-./mod/gradlew -p mod build
-./mod/gradlew -p mod runClient
-./mod/gradlew -p mod runClientSmoke --no-daemon
+./mod/gradlew -p mod build      # compile, unit tests, JAR
+mod/verify-smoke.sh             # both startup smokes, pass/fail on CI's log markers
+./mod/gradlew -p mod runClient  # interactive client
 ./mod/gradlew -p mod runServer --no-daemon
-./mod/gradlew -p mod runServerSmoke --no-daemon
 ```
+
+**Do not use the bare `runClientSmoke`/`runServerSmoke` tasks as a gate.** They report
+`BUILD SUCCESSFUL` with exit `0` even when the server never starts — observed three times on
+2026-07-30 (a port clash with the Mineflayer harness on 25565, then a stale `world/session.lock`).
+`mod/verify-smoke.sh` greps for the same readiness markers CI does, resets the smoke world, sweeps
+JVMs that survive its own kill, and defaults to port 25599 to avoid that clash.

@@ -7,7 +7,7 @@ by the Nightmare Spell modpack track.
 
 Implemented:
 
-- NeoForge 1.21.1 / Java 21 workspace and committed wrapper;
+- NeoForge 1.21.1 / JDK 21 workspace and committed wrapper (a JRE cannot build it — NeoForm needs `javac`);
 - persistent schema-v2 Soul attachment;
 - lore-aligned Uninfected -> Carrier -> Aspirant -> Dreamer progression model;
 - separate Soul Rank and Aspect Rank;
@@ -18,8 +18,9 @@ Implemented:
 - pure fail-safe datapack migration translator and fixtures;
 - unit, packaging, client-startup and dedicated-server gates.
 
-**Status:** CI-green, but not yet independently verified by Claude. Issue #16 is the blocking gate.
-This is not a public release and does not yet include a playable Java Nightmare.
+**Status:** CI-green and Claude-verified; Issue #16 is closed. The real-client walkthrough is deferred
+rather than performed (**D2**), so nothing here claims a human has driven the Soul screen. This is not a
+public release and does not yet include a playable Java Nightmare.
 
 ## Lore model
 

@@ -10,10 +10,9 @@
 - Datapack `datapack-v1.0.0`: released, packaged and frozen.
 - Java core: `0.1.0-alpha.4` on `main`.
 - Java automated status: compile/tests/JAR/client/server CI green.
-- Java human/agent status: **not yet Claude-verified**.
-- Blocking gate: GitHub Issue #16.
+- Java human/agent status: **Claude-verified**; Issue #16 closed 2026-07-30.
+- No blocking gate. Human tests are deferred evidence per **D2**, not merge gates.
 - Modpack track: documented only; no manifest or dependencies committed.
-- No active Java feature PR should merge before #16 closes.
 
 Claude subsequently committed documentation reconciliation for the retired Weightless mechanic,
 raised Q5 about the missing Java Nightmare lifecycle map, and removed an accidentally committed
@@ -42,17 +41,24 @@ root `server.log`. This branch starts after those commits.
 - appraisal service, abilities or Dream Realm systems;
 - modpack manifest/integrations.
 
-## Blocking verification
+## Verification status — alpha.4 verified
 
-Issue #16 requires Claude to independently run:
+Issue #16 is **closed**. Claude ran, locally rather than trusting workflow status:
 
 ```bash
-./mod/gradlew -p mod build
-./mod/gradlew -p mod runClientSmoke --no-daemon
-./mod/gradlew -p mod runServerSmoke --no-daemon
+./mod/gradlew -p mod build      # BUILD SUCCESSFUL, 14 tests, 0 failures
+mod/verify-smoke.sh             # both smokes PASS on CI's log markers
+python3 shadowslave/tools/validate.py
 ```
 
-and test in a real client:
+**Use `mod/verify-smoke.sh`, not the bare Gradle smoke tasks.** Those tasks are not pass/fail gates:
+the dedicated server failed to start three times during this verification — a port clash with the
+Mineflayer harness on 25565, then a stale `world/session.lock` — and Gradle reported `BUILD SUCCESSFUL`
+with exit `0` every time. A JDK is required, not just a JRE; a JRE fails in NeoForm's recompile with the
+misleading `error: release version 21 not supported`.
+
+The real-client walkthrough below is **deferred, not performed** (**D2** — it judges presentation and
+feel):
 
 ```text
 O opens Soul screen
@@ -64,7 +70,11 @@ reset -> Uninfected / no Rank
 relog/restart -> persisted state
 ```
 
-Do not claim this interaction passed until Claude records evidence.
+Nobody has run this. Deferred is not passed — do not let any document imply otherwise. It stays here
+because it is still worth doing, and because step 8 (state surviving a relog) is the one item that is
+genuinely end-to-end rather than cosmetic: its mechanism is unit-tested by `codecRoundTripsImportedIdentity`,
+but the full round trip is not. `mod/build.gradle` already declares `gameTestServer`, so a NeoForge
+GameTest could cover it without a human.
 
 ## Lore rules now binding Java
 

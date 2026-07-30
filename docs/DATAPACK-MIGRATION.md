@@ -15,6 +15,28 @@ A live reader will collect:
 
 It creates `LegacyDatapackSnapshot` and performs no mutation.
 
+### Hazard for whoever writes that reader: an absent score is not `0`
+
+`LegacyDatapackSnapshot` uses `0` to mean "this player has no such score", and the translator relies on
+that — `rankScore() == 0` is how it recognises a player who never completed a First Nightmare. The
+convention is sound because the datapack never _sets_ `ss_rank`, `ss_aspect` or `ss_flaw` to zero:
+`progression/become_sleeper` writes `1`, the generator writes `11..44`, and `test/reset` **removes** the
+score rather than zeroing it. Absent is therefore the only not-a-Sleeper state.
+
+The hazard is on the reading side. Minecraft distinguishes "objective has no value for this player" from
+"value is 0", and a failed or unread lookup must not become `0`:
+
+- read each objective explicitly and map _absent_ to `0` deliberately, with a comment saying so;
+- never let an exception, an empty result or an unparsed command reply fall through to `0` — that would
+  silently downgrade a completed Sleeper to an unmigrated player and, because `hasAnyLegacyState()` would
+  then be false for a non-Carrier, skip their migration entirely and lose the identity;
+- if a score cannot be read, fail the import for that player rather than guessing. The translator is
+  already fail-closed; keep the reader the same.
+
+This is not a hypothetical. Absent-versus-zero is the single most repeated bug in this project's history
+— §1.7, §1.10, the dead sneak-to-enter filter, and the `scores={x=..0}` shape `validate.py` now rejects
+outright. `docs/ENGINEERING-NOTES.md` has the datapack-side rule; this is the Java-side restatement.
+
 ## Phase 2 — pure translation
 
 `DatapackMigrationTranslator` produces either:
