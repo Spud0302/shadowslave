@@ -38,6 +38,13 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
+        serverSmoke {
+            server()
+            gameDirectory = project.file('run-server-smoke')
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
         gameTestServer {
             type = 'gameTestServer'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
