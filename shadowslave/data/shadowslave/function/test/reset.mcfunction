@@ -36,6 +36,7 @@ tag @s remove ss_in_nightmare
 tag @s remove ss_carrier
 tag @s remove ss_creature_spawned
 tag @s remove ss_test_bypass
+tag @s remove ss_test_trace_weightless
 tag @s remove ss_trial_bloodied
 tag @s remove ss_trial_hungry
 tag @s remove ss_trial_fled
