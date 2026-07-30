@@ -1,3 +1,4 @@
+
 # Java core implementation status
 
 ## Package identity
@@ -7,61 +8,80 @@
 - Java: `21`
 - ModDevGradle: `2.0.143`
 - Gradle wrapper: `9.2.1`
-- Development version: `0.1.0-alpha.1`
+- Development version: `0.1.0-alpha.4`
+- Public Java release: none
 
-These values come from the current official NeoForge 1.21.1 ModDevGradle template rather than a downgraded newer-game workspace.
+## Gate status
 
-## Implemented and verified in the first scaffold
+The alpha.4 head is GitHub-CI green for compilation, unit tests, JAR packaging, physical-client
+startup and dedicated-server startup. It is **not yet Claude-verified**. Issue #16 blocks the next
+Java feature merge and any public mod release until independent review and real-client interaction
+evidence are recorded.
 
-- loadable `@Mod("shadowslave")` entry point;
-- immutable, schema-versioned `SoulData`;
-- explicit `SpellState` and `SoulRank` types;
-- codec-backed attachment persisted on players and copied across death;
-- `SoulService` as the only application-facing mutation boundary;
-- pure, unit-tested transition rules;
-- operator smoke-test commands:
-  - `/shadowslave soul`
-  - `/shadowslave infect`
-  - `/shadowslave complete_first_nightmare_test`
-  - `/shadowslave reset`
-- committed and wrapper-validated Gradle `9.2.1` build;
-- GitHub Actions compile, unit-test and JAR packaging gate;
-- dedicated NeoForge server smoke that reaches ready state and confirms the Shadow Slave mod loaded.
+## Implemented
 
-## Verification evidence
+- loadable common and physical-client mod entry points;
+- persistent codec-backed `SoulData` player attachment copied across death;
+- schema version 2 with legacy alpha decoding;
+- Uninfected, Carrier, Aspirant and Dreamer stages;
+- Nightmare Spell versus natural-awakening path field;
+- optional Soul Rank before the First Nightmare;
+- independent Aspect Rank;
+- server-owned `SoulService` mutation boundary;
+- server-to-client limited Soul snapshot;
+- read-only Soul screen opened with O or `/shadowslave soul_screen`;
+- login and mutation synchronization;
+- command-driven development progression;
+- pure datapack migration evidence snapshot, translator and validated plan;
+- exact generated and legacy datapack Aspect/Flaw mappings;
+- fail-closed rejection of active/inconsistent legacy state;
+- deterministic/idempotent migration fixtures;
+- wrapper validation, JUnit, JAR, client-smoke and server-smoke CI.
 
-The accepted CI run performs all of the following from the committed wrapper:
-
-```bash
-./mod/gradlew -p mod build
-./mod/gradlew -p mod runServerSmoke --no-daemon
-```
-
-The build, JUnit suite, JAR packaging, wrapper validation and dedicated-server smoke all passed. The server log contained both Minecraft's ready-state message and:
+## Development commands
 
 ```text
-Shadow Slave Java core is loading
+/shadowslave soul
+/shadowslave soul_screen
+/shadowslave infect
+/shadowslave begin_first_nightmare_test
+/shadowslave complete_first_nightmare_test
+/shadowslave reset
 ```
 
-## Deliberately not implemented yet
+## Deliberately not implemented
 
-- natural sleep infection hook;
-- datapack scoreboard/tag importer;
-- client payloads and Soul screen;
-- `NightmareRegistryData` and instance lifecycle;
-- dimensions, creatures, powers or external-mod adapters;
+- natural infection and exhaustion/sleep progression;
+- live datapack scoreboard/tag reader;
+- full imported `AspectInstance` and `FlawInstance` persistence/read-back;
+- migration-complete marker and legacy cleanup;
+- `NightmareRegistryData` / SavedData;
+- active instance allocation, ownership, entry or teardown;
+- historical-role/scenario/conflict resources;
+- canonical death and technical recovery implementation;
+- appraisal service or executable abilities;
+- modpack adapters;
 - public `mod-v0.1.0` release.
 
-The next package adds networking plus a read-only Soul screen, then importer fixtures. Nightmare instances begin only after persistence and synchronization are proven.
+## Next package after verification
 
-## Local build commands
+Add live migration without destructive cleanup:
 
-From the repository root:
+1. read legacy evidence from a real player;
+2. produce the accepted pure migration plan;
+3. persist Java data;
+4. read back and verify every identity field;
+5. mark migration complete;
+6. keep legacy values until success is proven.
+
+Nightmare registry work begins after that persistence boundary is accepted.
+
+## Local commands
 
 ```bash
 ./mod/gradlew -p mod build
 ./mod/gradlew -p mod runClient
+./mod/gradlew -p mod runClientSmoke --no-daemon
 ./mod/gradlew -p mod runServer --no-daemon
+./mod/gradlew -p mod runServerSmoke --no-daemon
 ```
-
-No separate Gradle installation is required. Java 21 is required.

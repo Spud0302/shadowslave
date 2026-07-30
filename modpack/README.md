@@ -2,6 +2,14 @@
 
 This directory is reserved for Path A: a curated NeoForge modpack that reuses mature mods for generic content while a custom Shadow Slave Java core owns identity, progression and Nightmare lifecycle.
 
+<!-- modpack-current-status -->
+## Current status
+
+Design only. No manifest, dependency lockfile, compatibility adapter, downloaded JAR or public package
+exists yet. Path A waits for Claude verification of Java alpha.4 and the accepted live migration plus
+Nightmare-instance boundaries. Dependency research may continue, but no external mod may become the
+canonical owner of Soul identity or Nightmare lifecycle.
+
 ## Purpose
 
 The prototype answers:

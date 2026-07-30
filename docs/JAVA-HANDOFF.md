@@ -4,6 +4,9 @@
 
 The port is not a line-by-line translation of mcfunctions. Preserve identity and tested contracts; replace prototype rules that exist because of datapack limits.
 
+<!-- java-handoff-current-status -->
+**Implementation status:** Java alpha.4 contains the schema, Soul UI and pure translation fixtures. It does not yet read/write live legacy player state or own a real Nightmare instance. Issue #16 is the independent Claude verification gate before further feature work.
+
 ## 1. Frozen datapack behaviour worth preserving
 
 ```text
@@ -149,7 +152,30 @@ Do not import these runtime/scratch values as Soul identity:
 
 Java may have analogous typed runtime values, but they belong to player sessions and `NightmareInstance` records.
 
-## 6. Datapack rules Java must replace
+## 6. Nightmare lifecycle contract
+
+<!-- restored-nightmare-lifecycle-contract -->
+The datapack machinery is not copied, but the failure-earned service boundaries remain binding:
+
+| Datapack seam | Java contract |
+| --- | --- |
+| `nightmare/enter` | `NightmareService.tryEnter(player, source)`; every eligibility rule is enforced at one choke point |
+| `nightmare/objective_tick` | scenario/conflict implementation; a boss kill is one prototype objective, not the definition of a Nightmare |
+| `nightmare/leave` | `NightmareService.exit(instance, player, ExitReason)`; one teardown path owns every exit reason |
+| `nightmare/eject` | consequences/presentation for a specific exit reason, never independent cleanup |
+| `nightmare/survive` | conflict resolution -> exit -> appraisal/progression in an explicit order |
+| `prototype/observe_trial` | evidence collection owned by the active `NightmareInstance`, not permanent Soul scratch state |
+
+Required invariants:
+
+- all entry sources call `tryEnter`; no caller owns a private cooldown/rank/infection bypass;
+- victory, canonical death, disconnect recovery and administrator teardown all converge on `exit`;
+- exit is idempotent and removes owned entities/objectives before releasing instance ownership;
+- temporary historical role, conflict state, evidence and return data live on the instance;
+- appraisal consumes accepted outcome/evidence after lifecycle completion rather than performing teardown;
+- crash/admin recovery is technical and must not be described as ordinary mercy from the Spell.
+
+## 7. Datapack rules Java must replace
 
 Do not preserve these as universal Java lore:
 
@@ -164,7 +190,7 @@ Do not preserve these as universal Java lore:
 
 Imported players keep the result they already earned. Fresh Java players use the lore-aligned systems.
 
-## 7. Import safety
+## 8. Import safety
 
 Recommended one-time order:
 
@@ -181,7 +207,7 @@ Never delete datapack tags/objectives first and hope construction succeeds after
 
 If active Nightmare state is detected, perform explicit recovery or defer. The datapack used global prototype state and cannot be reconstructed safely as a Java instance after the fact.
 
-## 8. Resources to keep data-driven
+## 9. Resources to keep data-driven
 
 Continue using Minecraft data formats for:
 
@@ -194,7 +220,7 @@ Continue using Minecraft data formats for:
 
 Java owns persistence, services, appraisal, networking, GUI, custom entities/AI and real Nightmare ownership.
 
-## 9. Definition of migration success
+## 10. Definition of migration success
 
 Migration succeeds when:
 

@@ -1,5 +1,11 @@
 # Pre-1.0 datapack completion roadmap
 
+<!-- completed-roadmap-status -->
+> **COMPLETED / HISTORICAL.** The roadmap culminated in the released `datapack-v1.0.0`.
+> Datapack feature development is frozen; current Java work is tracked in `PROJECT-STATUS.md`,
+> `mod/IMPLEMENTATION-STATUS.md` and `docs/MOD-TRANSITION-PLAN.md`. The plan below is preserved as
+> the record of the completion boundary, not a current to-do list.
+
 **Baseline:** `main@9f0cca9a0342f340cbdd9a72514363129f2156eb` (`0.5.0`)
 
 **Owner decision:** the datapack remains pre-1.0 until it is a complete, playable reference implementation of the initial idea and is good enough to become the behavioural baseline for the Java mod. Pride Versioning remains `PROUD.DEFAULT.SHAME`; `1.0.0` is the first completed datapack release we are proud to freeze and translate.

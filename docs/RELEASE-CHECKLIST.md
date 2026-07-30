@@ -1,5 +1,10 @@
 # Datapack release checklist
 
+<!-- completed-release-gate-status -->
+> **DATAPACK GATE COMPLETED.** `datapack-v1.0.0` is released and frozen. Use this checklist only
+> when rebuilding the frozen release or accepting a genuine datapack maintenance change. Java and
+> modpack releases have separate gates; current Java verification is Issue #16 and `TESTING.md`.
+
 This is the gate for the completed pre-Java datapack. A release number is a consequence of the evidence below, not a substitute for it.
 
 ## Every release

@@ -7,6 +7,17 @@
 
 This is a controlled comparison, not a commitment to maintain two permanent products feature-for-feature.
 
+<!-- transition-current-status -->
+## Current implementation status
+
+- datapack `datapack-v1.0.0`: released and frozen;
+- shared/standalone Java core: `0.1.0-alpha.4` on `main`;
+- implemented: Soul persistence, lore schema, networking/UI, schema migration and pure datapack translation;
+- blocking gate: Claude verification Issue #16;
+- not implemented: live import, Nightmare SavedData/instances, playable conflict/appraisal;
+- modpack track: design only.
+
+
 `docs/JAVA-LORE-ALIGNMENT.md` is the architecture gate for both paths. The frozen datapack is a migration and regression reference, not a limit on what Java may model.
 
 ## 1. Why both paths are worth testing

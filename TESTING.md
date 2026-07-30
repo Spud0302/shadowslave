@@ -194,83 +194,66 @@ importance. Start with a clean state: `/function shadowslave:test/reset`.
 
 ---
 
-# Current release-candidate checks
+# Current test gates
 
-**Baseline for this section:** `main` v1.4.9 plus `gpt/datapack-release-completion`.
+## Frozen datapack
 
-The mechanical release gate is the Mineflayer harness, not this list:
+The public datapack is `datapack-v1.0.0`. Re-run its full gate only when the frozen datapack or
+packaging changes:
 
 ```bash
 python3 shadowslave/tools/validate.py
-cd testserver && node harness.mjs
+cd testserver && npm test
+cd .. && python3 shadowslave/tools/build_release.py
 ```
 
-The harness now covers **32 assertions**, including infection/cure guards, untouched direct-entry
-refusal, weakness and cooldown gates, test bypasses, entry state/countdown, soul-readout isolation,
-reset from both outside and inside the Nightmare, death teardown, Sleeper readout/rank gate,
-Sleep Undisturbed, modifier cleanup, ejection, recovery sleep, and the no-sweep-on-ejection rule.
+A dimension/worldgen/install change additionally requires the generated ZIP in a fresh Minecraft
+1.21.1 world. Historical datapack sweeps above remain evidence, not current Java expectations.
 
-Do **not** spend human playtest time repeating those unless the harness fails or the relevant code
-changes. The following are the remaining checks where a person or release environment adds evidence
-the harness cannot.
+## Java alpha.4 automated gate
 
-## H1 — death-screen presentation
-
-1. `/function shadowslave:test/reset`
-2. `/function shadowslave:test/infect`
-3. `/function shadowslave:test/nightmare`
-4. `/kill @s`
-
-**Expect:** a normal death screen. No portal warp and no visible glimpse of the bed/Overworld behind
-the death screen before respawn.
-
-This has never been cleanly confirmed by a human on a build where the current death teardown was
-active. The harness verifies state cleanup but cannot judge what the client visually renders.
-
-## H2 — natural cooldown expiry
-
-This is mechanical, but the harness currently checks **cooldown refusal** and **sleep-to-clear** rather
-than waiting out the timer itself. Use a shortened score instead of waiting ten real minutes:
-
-1. become a Carrier and get cast out once;
-2. heal above the entry threshold;
-3. `/scoreboard players set @s ss_cooldown 2`;
-4. wait about three seconds;
-5. crouch on a bed or call the real `shadowslave:nightmare/enter` function.
-
-**Expect:** the cooldown reaches zero and normal entry works again.
-
-If this fails, add it to the harness before fixing the datapack so the regression is reproducible.
-
-## H3 — release ZIP smoke test
-
-From the repository root:
+GitHub CI passed build, unit tests, JAR packaging, physical-client startup and dedicated-server
+startup. Claude must independently review and run:
 
 ```bash
-python3 shadowslave/tools/build_release.py
+./mod/gradlew -p mod build
+./mod/gradlew -p mod runClientSmoke --no-daemon
+./mod/gradlew -p mod runServerSmoke --no-daemon
 ```
 
-Then install the generated `shadowslave-vX.Y.Z.zip` into a **fresh Minecraft 1.21.1 world**.
+Record exact results in Issue #16. A green GitHub workflow alone does not close the gate.
 
-Confirm:
+## Java alpha.4 real-client interaction
 
-- `/datapack list` sees and enables the pack;
-- the load banner has the expected version;
-- `/function shadowslave:test/selfcheck` reports PASS;
-- advancements render under the player-facing **Shadow Slave** tab, not “Verification”;
-- `/function shadowslave:test/nightmare` can enter the custom dimension.
+In a Minecraft 1.21.1 NeoForge development client:
 
-The fresh-world step matters because dimension and worldgen validation can fail at world creation in
-ways `/reload` on an existing world does not reproduce.
+1. join a world and press **O**; the Soul screen opens;
+2. fresh player: Uninfected, Undecided path, no Soul Rank/Aspect Rank/Aspect/Flaw;
+3. `/shadowslave infect`: Carrier, Nightmare Spell path, still no Soul Rank;
+4. `/shadowslave begin_first_nightmare_test`: Aspirant with Dormant Soul Rank, no permanent identity;
+5. `/shadowslave complete_first_nightmare_test`: Dreamer with Dormant Soul Rank, Aspect, separate Aspect Rank and Flaw;
+6. `/shadowslave reset`: Uninfected with no Rank;
+7. relog/restart at practical stages and confirm persistence.
 
-## Already confirmed — re-run only after the owning code changes
+Do not claim this passed until a real client was used.
 
-- **Death item recovery:** confirmed v1.4.4 and v1.4.5. Re-check only if `nightmare/sweep*` or death-return timing changes.
-- **Whole winning loop:** confirmed v1.4.6. Re-check after changes to `nightmare/survive`, `progression/`, placeholder generation, or the fight itself.
-- **Fight balance:** intentionally not winnable at wood/no-armour; come back better equipped. Revisit only if stone/iron gear still walls progression.
-- **Ambient darkness:** 0.1 accepted in repeated play.
-- **Bossbar handover:** confirmed working.
-- **Creature chase/leash:** confirmed working and judged fair.
-- **Spawn rate:** “could go either way”; leave unchanged without a stronger signal.
-- **Sneak hold/telegraph:** confirmed and judged intentional.
-- **Recovery sleep:** confirmed and now automated.
+## Migration review
+
+Confirm the pure translator:
+
+- leaves untouched players alone;
+- imports Carrier without inventing rank or identity;
+- imports completed datapack state as Dreamer/Dormant;
+- preserves exact generated names;
+- requires compatibility tags for old `1..4` identities;
+- maps `ss_flaw_weightless` to burdened movement, not retired fall-distance behaviour;
+- rejects active-Nightmare and inconsistent state before any write;
+- produces no second plan after migration is marked complete.
+
+The current package does **not** read or mutate a live player. The next package must persist and
+read back Java data before any legacy cleanup is allowed.
+
+## Merge gate
+
+No new Java feature package merges until Issue #16 records **verified**, **verified with fixes** or
+**blocked**. Documentation-only reconciliation may be reviewed separately but does not waive that gate.

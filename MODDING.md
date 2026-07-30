@@ -1,21 +1,66 @@
-# From datapack to mod
 
-The completed datapack remains the frozen behavioural reference. Java-era development is a two-track experiment:
+# From datapack to Java mod and modpack
 
-- **Nightmare Spell modpack:** selected existing mods provide generic content and mechanics; the custom Shadow Slave core fills the gaps and owns canonical Soul/Nightmare state.
-- **Standalone Shadow Slave mod:** the same core contracts are implemented directly as a purpose-built NeoForge mod.
+The datapack phase is complete. Java-era development compares two delivery paths that share one
+canonical Soul/Nightmare core.
 
-Start here:
+See [PROJECT-STATUS.md](PROJECT-STATUS.md) for the current gate.
 
-1. [Two-track transition plan](docs/MOD-TRANSITION-PLAN.md)
-2. [Shared vertical-slice acceptance specification](shared-test-spec/VERTICAL-SLICE.md)
-3. [Standalone Java track](mod/README.md)
-4. [Nightmare Spell modpack track](modpack/README.md)
-5. [Datapack-to-Java persistence contract](docs/JAVA-HANDOFF.md)
+## Frozen reference
 
-## Product-qualified release tags
+- product: vanilla datapack;
+- release: `datapack-v1.0.0`;
+- asset: `shadowslave-v1.0.0.zip`;
+- purpose: behavioural/import compatibility reference, not a Java architecture constraint.
 
-Historical tags already occupy ordinary `v1.x` names, so releases use product-qualified tags:
+## Path B — standalone/shared Java core
+
+Location: [`mod/`](mod/)
+
+Current version: `0.1.0-alpha.4`.
+
+Implemented: persistence, lore-aligned schema, networking, O-key Soul screen, schema migration and
+pure datapack translation fixtures. CI is green. Claude's independent verification in Issue #16
+remains the blocking gate.
+
+## Path A — Nightmare Spell modpack
+
+Location: [`modpack/`](modpack/)
+
+Current state: design only. No dependency JARs, manifest, adapters or public package have been
+committed. The modpack will consume the same Java core; scripts and dependencies must never become
+canonical Soul or Nightmare storage.
+
+## Current ordering
+
+```text
+datapack-v1.0.0 released and frozen
+        ↓
+shared Java core alpha.4
+        ↓
+Claude verification gate (#16)
+        ↓
+live datapack import + persistence verification
+        ↓
+persistent Nightmare registry / instance ownership
+        ↓
+one lore-shaped playable Java First Nightmare
+        ↓
+modpack implementation of the same slice
+        ↓
+evidence-based standalone/modpack/hybrid decision
+```
+
+## Toolchain
+
+- Minecraft Java Edition 1.21.1;
+- NeoForge 21.1.244;
+- Java 21;
+- Gradle wrapper 9.2.1;
+- dedicated-server compatibility from the beginning;
+- server-authoritative state.
+
+## Product-qualified tags
 
 ```text
 datapack-v1.0.0
@@ -23,22 +68,13 @@ mod-v0.1.0
 modpack-v0.1.0
 ```
 
-The GitHub workflow at `.github/workflows/package-datapack.yml` validates and packages the datapack. A `datapack-v*` tag additionally creates or updates a GitHub Release containing the ZIP and `SHA256SUMS.txt`.
+Historical ordinary `v1.x` prototype tags remain untouched.
 
-## Current ordering
+## Start here
 
-```text
-finish/push frozen datapack
-        ↓
-publish datapack-v1.0.0
-        ↓
-scaffold shared NeoForge Soul/Nightmare core
-        ↓
-Nightmare Spell modpack prototype
-        +
-standalone mod prototype
-        ↓
-run the same vertical-slice tests
-        ↓
-choose modpack-led, standalone-led, or hybrid
-```
+1. [Current project status](PROJECT-STATUS.md)
+2. [Lore-aligned Java model](docs/JAVA-LORE-ALIGNMENT.md)
+3. [Datapack migration/lifecycle handoff](docs/JAVA-HANDOFF.md)
+4. [Two-track transition plan](docs/MOD-TRANSITION-PLAN.md)
+5. [Shared acceptance specification](shared-test-spec/VERTICAL-SLICE.md)
+6. [Java implementation status](mod/IMPLEMENTATION-STATUS.md)

@@ -1,5 +1,11 @@
 # Shared vertical-slice acceptance specification
 
+<!-- shared-slice-current-status -->
+> **CURRENT STATUS:** neither Path A nor Path B has completed this slice. The shared Java foundation
+> covers persistence, snapshots, UI and pure migration translation; natural infection, real instance
+> ownership, a playable historical conflict and appraisal remain outstanding. Issue #16 must close
+> before new feature packages merge.
+
 This specification is implementation-neutral. The Nightmare Spell modpack track and standalone Java mod track must both pass it before the architecture comparison is scored.
 
 The frozen datapack remains a migration and regression reference, but Java-era behaviour follows `docs/JAVA-LORE-ALIGNMENT.md` where the datapack used a format-driven approximation.

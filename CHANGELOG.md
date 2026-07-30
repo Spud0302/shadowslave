@@ -10,6 +10,44 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 
 ---
 
+<!-- current-java-transition-changelog -->
+## `0.1.0-alpha.4` — fail-safe datapack translation foundation
+
+- immutable legacy evidence snapshot and pure translator;
+- exact generated and legacy Aspect/Flaw mappings;
+- fail-closed rejection of active/inconsistent state;
+- deterministic imported IDs and idempotency fixtures;
+- corrected-head CI passed build, tests, JAR, client and server smoke;
+- **Claude verification remains pending in Issue #16.**
+
+## `0.1.0-alpha.3` — lore-aligned Java schema
+
+- removed Mundane from the Soul Rank ladder;
+- added explicit Aspirant and Dreamer stages plus awakening path;
+- separated Aspect Rank from Soul Rank;
+- updated Soul snapshot/screen and schema-1 migration;
+- documented novel/manhwa/design authority boundaries.
+
+## `0.1.0-alpha.2` — server-synchronised Soul screen
+
+- limited server-owned Soul snapshots;
+- O-key read-only screen and command fallback;
+- login/mutation synchronization;
+- physical-client and dedicated-server side-separation gates.
+
+## `0.1.0-alpha.1` — persistent Java Soul core
+
+- NeoForge 1.21.1 / Java 21 workspace;
+- codec-backed player Soul attachment and mutation service;
+- unit tests, JAR packaging and dedicated-server load smoke.
+
+## `datapack-v1.0.0` — completed vanilla datapack reference
+
+The tested `0.7.3` behaviour was stamped and frozen as the public `1.0.0` datapack baseline. The
+GitHub Release contains `shadowslave-v1.0.0.zip` and `SHA256SUMS.txt`. Datapack feature development
+ended; Java preserves earned identity/contracts while replacing command-era machinery.
+
+
 ## `0.7.3` — Q4 closed: the unreliable mechanic is retired, not patched
 
 From `gpt/replace-weightless-flaw`, on Andrew's direction to replace the troublesome Flaw mechanic

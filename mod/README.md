@@ -1,39 +1,40 @@
-# Standalone Shadow Slave Java mod
 
-This directory contains Path B and the canonical Java core shared with the Nightmare Spell modpack.
+# Standalone/shared Shadow Slave Java core
 
-## Baseline
+This directory contains the canonical Java core used by the standalone track and, where practical,
+by the Nightmare Spell modpack track.
 
-- Minecraft `1.21.1`
-- NeoForge `21.1.244`
-- Java `21`
-- committed Gradle wrapper
-- physical-client and dedicated-server smoke gates
-- server-authoritative state
-- lore architecture defined by `../docs/JAVA-LORE-ALIGNMENT.md`
-
-## Current development state — `0.1.0-alpha.3`
+## Current state — `0.1.0-alpha.4`
 
 Implemented:
 
-- NeoForge workspace and checked-in wrapper;
-- persistent codec-backed `SoulData` attachment;
-- schema migration from the alpha-1/alpha-2 model;
-- server-owned Soul mutation service;
-- server-to-client Soul snapshots;
-- read-only Soul screen opened with **O**;
-- command-driven development progression;
-- unit tests, JAR packaging, physical-client startup and dedicated-server startup.
+- NeoForge 1.21.1 / Java 21 workspace and committed wrapper;
+- persistent schema-v2 Soul attachment;
+- lore-aligned Uninfected -> Carrier -> Aspirant -> Dreamer progression model;
+- separate Soul Rank and Aspect Rank;
+- server-authoritative mutation service;
+- limited server-to-client snapshots;
+- read-only O-key Soul screen;
+- alpha-schema compatibility;
+- pure fail-safe datapack migration translator and fixtures;
+- unit, packaging, client-startup and dedicated-server gates.
 
-The lore-aligned schema separates:
+**Status:** CI-green, but not yet independently verified by Claude. Issue #16 is the blocking gate.
+This is not a public release and does not yet include a playable Java Nightmare.
 
-- uninfected description from Soul Rank;
-- Carrier, Aspirant and Dreamer stages;
-- Nightmare Spell and natural awakening paths;
-- Soul Rank from Aspect Rank;
-- temporary Nightmare roles from permanent Soul identity.
+## Lore model
 
-## Development smoke commands
+```text
+Uninfected — no Soul Rank
+  -> Carrier — no Soul Rank
+  -> Aspirant — Dormant Soul Rank, temporary role belongs to NightmareInstance
+  -> Dreamer/Sleeper — Dormant Soul Rank, permanent Aspect + Aspect Rank + Flaw
+```
+
+Mundane is descriptive rather than Rank zero. Aspect Rank is independent of Soul Rank. Project
+appraisal algorithms are design unless canon explicitly defines a rule.
+
+## Smoke commands
 
 ```text
 /shadowslave soul
@@ -44,121 +45,52 @@ The lore-aligned schema separates:
 /shadowslave reset
 ```
 
-Expected sequence:
-
-```text
-Uninfected, no Soul Rank
-  -> infect
-Carrier, no Soul Rank
-  -> begin_first_nightmare_test
-Aspirant, Dormant Soul Rank
-  -> complete_first_nightmare_test
-Dreamer (Sleeper), Dormant Soul Rank, permanent Aspect + Aspect Rank + Flaw
-```
-
-These commands are architecture smoke tests. They are not the final natural infection or Nightmare gameplay.
-
-## First public mod target — `mod-v0.1.0`
-
-The first JAR proves architecture, lore boundaries and migration rather than content quantity.
-
-Required:
-
-1. persistent lore-aligned Soul schema;
-2. server-synchronised Soul screen;
-3. safe datapack and alpha-schema import fixtures;
-4. global `NightmareRegistryData` stored as server/Overworld `SavedData`;
-5. one individually owned First Nightmare instance;
-6. explicit Carrier -> Aspirant -> Dreamer lifecycle;
-7. one data-driven historical role and provisional trial context;
-8. one central conflict with at least one valid resolution;
-9. one appraisal boundary revealing Aspect and Flaw identity;
-10. canonical death outcome plus clearly technical crash/admin recovery;
-11. dedicated-server and physical-client verification;
-12. no external content dependency required to boot.
-
-## Intended package structure
-
-```text
-src/main/java/dev/spud/shadowslave/
-  api/
-  appraisal/
-  attachment/
-  client/
-  command/
-  compat/
-  config/
-  content/
-  data/
-  migration/
-  network/
-  nightmare/
-    instance/
-    role/
-    scenario/
-    conflict/
-  progression/
-  soul/
-    aspect/
-    flaw/
-    history/
-```
+These bypass natural gameplay and exist only to test architecture.
 
 ## Authority rules
 
-- server owns every Soul mutation;
-- client payloads express intent, never rank or identity values;
-- UI state is a snapshot, not save authority;
-- commands and integrations call services rather than modifying attachments;
-- scenario conflicts call the central Nightmare lifecycle service;
-- optional mods adapt mechanics behind internal IDs;
-- missing optional mods cannot make Soul identity undecodable;
-- project generation/appraisal algorithms are labelled design, not canon.
+- server owns every permanent mutation;
+- client sends intent, never rank/identity values;
+- UI is a snapshot, not save authority;
+- commands, scenarios and integrations call services;
+- one Nightmare service owns eligibility and teardown;
+- external mods never become canonical identity storage;
+- missing optional integrations cannot make Soul data undecodable.
 
-## Persistence split
+## Persistence ownership
 
-### Player attachment
+- player attachment: progression, path, rank/core, Aspect, Flaw, Attributes and personal history;
+- Overworld/server SavedData: Nightmare registry, instance ownership, role/conflict state, return and recovery records;
+- data components: generated item/Memory identity and charges;
+- data resources/codecs: roles, scenarios, conflicts and compatible content definitions.
 
-Use for permanent player-owned state:
+## First public target — `mod-v0.1.0`
 
-- progression status and awakening path;
-- optional Soul Rank and core state;
-- Aspect and Flaw instances;
-- Attributes, history and personal resources.
+The first public JAR requires:
 
-### Nightmare registry SavedData
+1. Claude-verified current foundation;
+2. safe live datapack import with read-back verification;
+3. persistent per-player Nightmare instance ownership;
+4. one historical role and central conflict;
+5. one valid completion path and canonical death outcome;
+6. appraisal revealing Aspect and Flaw;
+7. real client and dedicated-server evidence;
+8. no mandatory external content dependency.
 
-Use for:
+## Next order
 
-- active/recoverable instance IDs;
-- scenario and historical-role ownership;
-- central-conflict state;
-- participants and return/recovery records;
-- restart recovery;
-- instance-owned entities and temporary context.
+1. close Issue #16 with evidence/fixes;
+2. live migration reader/writer;
+3. Nightmare registry and lifecycle;
+4. data-driven role/conflict prototype;
+5. appraisal boundary;
+6. shared vertical-slice verification;
+7. release only when the slice is genuinely playable.
 
-### Data components
+## Build
 
-Use for custom item state such as Memories, charges, binding and generated item identity.
-
-## Next implementation order
-
-1. verify `0.1.0-alpha.3` compile/tests/client/server gates;
-2. manually check the O-key screen and four-stage command sequence;
-3. implement datapack and alpha-schema migration fixtures;
-4. add persistent Nightmare registry and instance records;
-5. add data-driven historical role and central-conflict definitions;
-6. implement canonical death plus technical recovery boundaries;
-7. add the first appraisal service;
-8. run the shared vertical-slice cases applicable to `0.1.0`;
-9. publish `shadowslave-mod-v0.1.0.jar` when the accepted slice is genuinely playable.
-
-## Deferred until the foundation passes
-
-- elaborate procedural Aspect/Flaw revelation;
-- many abilities;
-- Memories and Echoes;
-- first Dream Realm journey and true Awakening;
-- custom creature renderer/AI library selection;
-- multi-loader support;
-- public API stability guarantees.
+```bash
+./mod/gradlew -p mod build
+./mod/gradlew -p mod runClientSmoke --no-daemon
+./mod/gradlew -p mod runServerSmoke --no-daemon
+```

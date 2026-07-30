@@ -2,53 +2,45 @@
 
 ## Current release status
 
-**Baseline:** `main` v1.4.9 plus the `gpt/datapack-release-completion` release-hardening branch.
+**Canonical status:** see `PROJECT-STATUS.md`.
 
-There is currently **no known datapack-fixable blocker** that should be solved by growing more
-command architecture before the Java transition. The current release work is test/release hardening
-and presentation, not a new gameplay phase.
+### Datapack
 
-### Current low-risk uncertainties
+`datapack-v1.0.0` is released and frozen. There is no known datapack-fixable blocker requiring
+more command architecture. Q4's remaining real-client judgement of the burdened-movement feel is an
+evidence gap, not evidence that the released mechanic is broken; Slowness presence/removal is covered
+by the accepted automated gate.
 
-- **Ravager roar damage is assumed rather than isolated in a dedicated test.** Ordinary creature
-  damage is explicitly set, but the ravager's shield-stun roar is vanilla behaviour. Revisit only if
-  it produces an observed bad ejection/death edge case.
-- **Return coordinates pass through integer scoreboards.** Negative fractional coordinates truncate
-  toward zero, so the player may return up to roughly one block from the exact bed coordinate. The
-  unstick search handles the practical safety case.
-- **Natural cooldown expiry deserves one shortened smoke check.** The harness proves cooldown
-  refusal and sleep-to-clear; `TESTING.md` keeps a two-second manual expiry check until that path is
-  promoted into the harness.
-- **Death-screen presentation remains human-only.** State teardown is automated, but a bot cannot
-  judge whether the client briefly shows a portal warp/bed behind the death screen.
+### Java core
 
-### Deliberate Phase 1 ceilings — not bugs
+Current development version is `0.1.0-alpha.4`.
 
-- **One active Nightmare at a time.** The datapack uses one global bossbar/creature set/return
-  storage. True concurrent instance ownership belongs in Java.
-- **Broad death-drop recovery.** On the death path, every loose item in the Nightmare dimension is
-  swept home. Precise per-player item ownership belongs in Java; do not replace this with an
-  unreliable radius heuristic.
-- **Instant-kill damage can bypass the 4 HP (2-heart) ejection threshold.** Teardown still runs;
-  reliably intercepting all real-death inventory behaviour is beyond the datapack boundary.
-- **The First Nightmare is intentionally not winnable at wood/no-armour.** Come back better equipped;
-  revisit only if stone/iron gear still walls progression.
-- **The creature is a ravager stand-in and terrain uses Overworld noise.** Bespoke AI/models and richer
-  world architecture are Java/content work.
-- **Four placeholder Aspects and four placeholder Flaws are intentionally finite.** Do not scale the
-  one-tag-per-power prototype into the future generated system.
+- GitHub CI: build/tests/JAR/client/server smoke passed;
+- independent Claude verification: pending;
+- blocking tracker: GitHub Issue #16;
+- no public Java release exists;
+- no further Java feature package should merge until #16 closes.
 
-### Resolved during the release-completion pass
+Current implementation limits—not bugs disguised as finished features:
 
-- The shipped **“Shadow Slave — Verification”** screen has been converted into a player-facing
-  **Shadow Slave** advancement tree while keeping the historical `shadowslave:test/*` ids for
-  save/harness compatibility. This resolves historical issue **3.3** pending merge/version stamp.
-- `test/reset` from inside a Nightmare already performs teardown and clears the cooldown in v1.4.9;
-  the old limitation saying it strands the player is historical and is now covered by a harness
-  regression on this branch.
-- The static validator is no longer “thin”: it checks command references, objectives, bossbars,
-  tags, modifier pairing, dimension/biome shapes, absent-score policy, and three-way version
-  agreement.
+- no live datapack reader/writer or legacy cleanup;
+- no persistent Nightmare registry/instance ownership;
+- no natural infection or playable Java Nightmare;
+- no appraisal/abilities/Memories/Dream Realm systems;
+- no modpack manifest or external adapters.
+
+### Current low-risk datapack uncertainties
+
+- ravager roar damage is assumed rather than isolated;
+- integer return coordinates can move a negative fractional position by roughly one block;
+- death-screen presentation and the final human judgement of Slowness feel remain human-only;
+- these do not justify expanding the frozen datapack unless a real defect is observed.
+
+### Administrative correction
+
+PRs #14 and #15 were merged after CI without the separate Claude gate required by collaboration
+policy. Issue #16 restores that gate. The code is not being reverted merely for process; it is being
+held from further feature stacking until independently reviewed and tested.
 
 Everything below this line is the **historical issue log**. It is preserved because it records what
 was believed/tested at each release; do not treat an unedited old sentence as the current runtime

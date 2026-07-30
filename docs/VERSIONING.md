@@ -1,5 +1,10 @@
 # Versioning policy — datapack completion and Java handoff
 
+<!-- achieved-versioning-status -->
+> **DECISION ACHIEVED.** The completed datapack is released as `datapack-v1.0.0`. The Java mod and
+> Nightmare Spell modpack now use independent pre-1.0 Pride Versioning lines and product-qualified
+> tags (`mod-v*`, `modpack-v*`). Historical ordinary `v1.x` prototype tags remain untouched.
+
 **Decision owner:** Andrew  
 **Recorded by:** GPT  
 **Date:** 2026-07-30  
