@@ -1,7 +1,11 @@
 name: Java core
 
 on:
+  workflow_dispatch:
   pull_request:
+    types:
+      - ready_for_review
+      - reopened
     paths:
       - 'mod/**'
       - '.github/workflows/java-core.yml'
@@ -18,7 +22,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - name: Check out repository
@@ -38,6 +42,45 @@ jobs:
 
       - name: Compile, unit test and package
         run: ./mod/gradlew -p mod build --stacktrace
+
+      - name: Boot physical NeoForge client
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p mod/run-client-smoke
+
+          log="$RUNNER_TEMP/shadowslave-client.log"
+          setsid xvfb-run -a ./mod/gradlew -p mod runClientSmoke --no-daemon >"$log" 2>&1 &
+          client_group=$!
+
+          cleanup() {
+            kill -TERM -- "-$client_group" >/dev/null 2>&1 || true
+            sleep 2
+            kill -KILL -- "-$client_group" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          for _ in $(seq 1 180); do
+            if grep -Fq 'Shadow Slave client is loading' "$log" \
+              && grep -Fq 'minecraft:textures/atlas/gui.png-atlas' "$log"; then
+              grep -F 'Shadow Slave client is loading' "$log"
+              grep -F 'minecraft:textures/atlas/gui.png-atlas' "$log" | tail -1
+              echo 'Physical client completed resource initialization with Shadow Slave client code loaded.'
+              exit 0
+            fi
+
+            if ! kill -0 "$client_group" >/dev/null 2>&1; then
+              cat "$log"
+              echo 'Physical client exited before completing resource initialization.' >&2
+              exit 1
+            fi
+
+            sleep 1
+          done
+
+          cat "$log"
+          echo 'Physical client did not complete resource initialization within 180 seconds.' >&2
+          exit 1
 
       - name: Boot dedicated NeoForge server
         shell: bash

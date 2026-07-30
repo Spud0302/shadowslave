@@ -32,6 +32,12 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
+        clientSmoke {
+            client()
+            gameDirectory = project.file('run-client-smoke')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
         server {
             server()
             programArgument '--nogui'
