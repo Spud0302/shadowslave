@@ -1,13 +1,24 @@
-# Runs as and at the player, from the slept_in_bed advancement reward.
+# Single First-Nightmare entry choke point. Runs as and at the player from sleep, sneak entry,
+# testing wrappers, or any future caller. Eligibility belongs here rather than being trusted to
+# every caller independently.
 
-# Revoke immediately so the trigger can fire again on the next sleep.
+# Revoke immediately so the slept_in_bed trigger can fire again on a later sleep.
 advancement revoke @s only shadowslave:enter_nightmare
 
-# Only Sleepers are Chosen. Awakened players sleep normally.
+# A Sleeper has already survived a First Nightmare and cannot enter another one. Phase 1 does
+# not implement the later Dream Realm journey yet, so ss_rank 1 is the terminal progression state.
 execute if score @s ss_rank matches 1.. run advancement grant @s only shadowslave:test/bypass
 execute if score @s ss_rank matches 1.. run return 0
-# Guard against re-entry if something fires twice.
+
+# Guard against duplicate entry while an existing trial is active.
 execute if entity @s[tag=ss_in_nightmare] run return 0
+
+# The normal First Nightmare requires infection first. Historically this invariant lived only in
+# sleep.mcfunction and the sneak selector, so a direct call to this function could put an untouched
+# player into a First Nightmare. Keep eligibility at the choke point. test/nightmare explicitly adds
+# ss_carrier before calling here, so tests do not need a special exception.
+execute unless entity @s[tag=ss_carrier] run tellraw @s {"text":"The Spell has not marked you yet.","color":"dark_gray","italic":true}
+execute unless entity @s[tag=ss_carrier] run return 0
 
 # The Spell is still spent.
 #
@@ -17,7 +28,7 @@ execute if entity @s[tag=ss_in_nightmare] run return 0
 # explicit and single-use.
 #
 # This guard used to live only in the callers — sleep.mcfunction and the sneak check — which
-# meant any other path in bypassed it entirely. Both player routes were covered, so it was
+# meant any other path bypassed it entirely. Both player routes were covered, so it was
 # invisible in play, but it is the same fragility as guarding in callers instead of at the
 # choke point. Every entry passes through here.
 execute unless entity @s[tag=ss_test_bypass] if score @s ss_cooldown matches 1.. run tellraw @s {"text":"The Spell is spent. It will come for you again.","color":"dark_gray","italic":true}
@@ -62,7 +73,6 @@ scoreboard players set @s ss_gone 0
 # Pull them in. Teleporting wakes the player out of the bed.
 execute in shadowslave:nightmare run tp @s 0 120 0
 execute in shadowslave:nightmare run spreadplayers 0 0 200 400 false @s
-
 
 bossbar set shadowslave:trial max 1800
 bossbar set shadowslave:trial value 1800

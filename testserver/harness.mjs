@@ -81,6 +81,28 @@ async function dimension(bot) {
   return m ? m[1] : bot.game?.dimension ?? null
 }
 
+/**
+ * Wait until the bot's dimension satisfies `pred`, or give up. Returns the last value seen.
+ *
+ * Fixed sleeps are the single largest source of false failures in this harness. They have now
+ * misreported entry, ejection, cooldown re-entry, the recovery sleep and the item sweep — every
+ * one of them against a pack that was behaving correctly. A duration that looks generous is still
+ * a guess about someone else's scheduler; polling for the state you actually care about is not.
+ */
+async function waitDimension(bot, pred, timeoutMs = 6000) {
+  let seen = null
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    seen = await dimension(bot)
+    if (pred(seen)) return seen
+    await sleep(200)
+  }
+  return seen
+}
+
+const inNightmare = (d) => d === 'shadowslave:nightmare'
+const notNightmare = (d) => d !== null && d !== 'shadowslave:nightmare'
+
 function assert(name, condition, detail = '') {
   const line = detail ? `${name} — ${detail}` : name
   ;(condition ? pass : fail).push(line)
@@ -256,11 +278,10 @@ async function run(bot) {
   await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')
   await cmd(bot, '/function shadowslave:test/infect')
   await cmd(bot, '/function shadowslave:test/nightmare')
-  await sleep(600)
+  await waitDimension(bot, inNightmare)
   // drop below the ejection threshold without dying
   await cmd(bot, '/damage @s 16')  // -> 4 HP, at the 1.4.5 ejection threshold
-  await sleep(2500)
-  const dimAfterEject = await dimension(bot)
+  const dimAfterEject = await waitDimension(bot, notNightmare)
   assert('low health ejects you from the trial', dimAfterEject !== 'shadowslave:nightmare', `dimension=${dimAfterEject}`)
 
   const cooldown = await score(bot, 'ss_cooldown')
