@@ -16,31 +16,14 @@ execute store result score @s ss_health run data get entity @s Health
 execute if score @s ss_health matches ..4 run function shadowslave:nightmare/eject
 execute if entity @s[tag=!ss_in_nightmare] run return 0
 
-# Count down. Stops once the creature is up — otherwise the score runs unboundedly
+# Count down. Stops once the scenario's conflict is active — otherwise the score runs unboundedly
 # negative for the rest of the fight, and the bar it writes is overwritten anyway.
 execute unless entity @s[tag=ss_creature_spawned] run scoreboard players remove @s ss_timer 1
 execute unless entity @s[tag=ss_creature_spawned] store result bossbar shadowslave:trial value run scoreboard players get @s ss_timer
 # Self-healing after a /reload or restart, which hides the bar via init.
 bossbar set shadowslave:trial visible true
 
-# Timer expired and no creature yet: summon it.
-execute if score @s ss_timer matches ..0 unless entity @s[tag=ss_creature_spawned] run function shadowslave:nightmare/spawn_creature
-
-# Once the creature exists, the bar tracks its health instead of the timer.
-execute if entity @s[tag=ss_creature_spawned] store result bossbar shadowslave:trial value run data get entity @e[tag=ss_creature,limit=1] Health
-
-# Cross-column Q2 hook: observe strong First-Nightmare behavior while the creature is genuinely
-# present. This MUST run before the 48-block leash below; otherwise a flee signal is teleported away
-# before the observer can see it. The helper does not change combat/trial state.
-execute if entity @e[tag=ss_creature] run function shadowslave:prototype/observe_trial
-
-# You cannot outrun the Nightmare. Leashing the creature also makes the absence test below
-# a genuine "it died" signal rather than "I walked away".
-execute if entity @s[tag=ss_creature_spawned] run tp @e[tag=ss_creature,distance=48..] ~ ~ ~
-
-# Creature was summoned and is now gone: the trial is won. Require the absence to
-# hold for two seconds so a rejoin (chunk not yet deserialized) can't be misread
-# as a kill.
-execute if entity @e[tag=ss_creature] run scoreboard players set @s ss_gone 0
-execute if entity @s[tag=ss_creature_spawned] unless entity @e[tag=ss_creature] run scoreboard players add @s ss_gone 1
-execute if score @s ss_gone matches 40.. run function shadowslave:nightmare/survive
+# Scenario-specific conflict, presentation and completion live behind one seam. Do not put future
+# Nightmare win conditions back into this player lifecycle function; the Java port needs objectives /
+# scenarios to vary independently from entry, failure and teardown.
+function shadowslave:nightmare/objective_tick
