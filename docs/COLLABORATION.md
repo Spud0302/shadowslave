@@ -13,14 +13,64 @@ git as the channel between agents.
 
 ## Who owns what
 
-|            |                                                                                                                                                             |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Andrew** | Owns the project and the decisions. Playtests. Both agents check with him rather than deciding for him — see the list at the end of `ENGINEERING-NOTES.md`. |
-| **Claude** | Works on `main`. Reviews and merges `gpt/*` branches. Stamps versions. Runs the validator and the harness.                                                  |
-| **GPT**    | Works on `gpt/*` branches. Does not write to `main` unless Andrew says otherwise.                                                                           |
+**Revised 2026-07-30 by Andrew.** The split follows a practical constraint, not a judgement about
+capability: Andrew is **not token-limited with GPT**, so design conversation happens there, where it
+is cheap to iterate. Claude's budget is spent on implementation and verification instead — which is
+also the half GPT cannot do, since the connector environment has no Minecraft server.
 
-Branch prefix `gpt/` is how GPT's work is identified. `main` is Claude's working branch and the
-release branch.
+|                |                                                                                                                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Andrew**     | Owns the project and every decision. Playtests. **Gives most instructions to GPT.**                                                                                                    |
+| **GPT**        | Design, specs, canon research, code review, and turning Andrew's instructions into written briefs. Works on `gpt/*` branches. Does not write to `main`.                                 |
+| **Claude**     | **Implementation and testing.** Works on `main`. Reviews and merges `gpt/*`. Runs the validator and the harness. Stamps versions. Ships builds.                                         |
+
+Branch prefix `gpt/` identifies GPT's work. `main` is Claude's working branch and the release branch.
+
+### What this changes
+
+- **GPT should stop writing pack code.** Write the spec instead; Claude implements it. GPT's earlier
+  branches did write working code and it was good code — but two agents implementing the same files
+  is how conflicts and duplicated effort start, and only one of them can run the tests.
+- **Reviewing is still GPT's job**, and remains valuable. GPT's first review found a bug from
+  Andrew's very first play session that had survived nine releases.
+- **Prototyping is still allowed** on a `gpt/*` branch when a spec is easier to demonstrate than to
+  describe. Mark it as illustrative, not as the implementation.
+
+### The risk this introduces, and the mitigation
+
+If Andrew's instructions go to GPT, Claude implements from a written brief **without having heard the
+conversation that produced it.** Ambiguities that would have been a ten-second question become
+guesses, and a confident wrong guess in this codebase is invisible — see `ENGINEERING-NOTES.md`.
+
+Two mitigations, both obligations rather than suggestions:
+
+1. **A spec must carry intent, not just requirements** — see the next section.
+2. **`docs/OPEN-QUESTIONS.md`** is where Claude logs questions that block or shape implementation.
+   Andrew's instructions now reach Claude second-hand, so Claude's questions need a route back that
+   does not depend on being relayed through a chat. GPT and Andrew answer there.
+
+---
+
+## What a spec needs for Claude to implement it without guessing
+
+Not a template to fill in mechanically — these are the things whose absence has caused rework.
+
+- **The intent behind the requirement.** *Why* Andrew wants it, in a sentence. This is the single
+  most useful line in any brief: it is what lets an implementer resolve an ambiguity correctly
+  instead of picking a plausible reading. When the countdown was cut from five minutes to ninety
+  seconds, the reason — "it read as waiting rather than dread" — mattered more than the number.
+- **Exact values.** Numbers, strings, thresholds, message copy. If a value is Claude's call, say so
+  explicitly; otherwise Claude will treat an omission as an oversight and ask.
+- **Acceptance criteria** — how to know it works, stated observably. Ideally what a harness
+  assertion should check, since that is the gate on every release.
+- **What must NOT change.** Named files, behaviours, or invariants to leave alone. This repo has a
+  list of deliberate compromises in `ENGINEERING-NOTES.md` and a position on each deferred concern in
+  `docs/reviews/2026-07-30-claude-reply-to-gpt-followup.md`; a spec that would overturn one of those
+  should say so on purpose rather than by implication.
+- **The baseline commit** the spec was written against — rule 2 below.
+
+Specs go in `docs/superpowers/specs/` (existing convention) or `docs/lore-research/` when they are
+canon-derived design.
 
 ---
 

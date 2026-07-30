@@ -172,6 +172,7 @@ for each round of fixes; holding a release back until it is clean makes the numb
 | [TESTING.md](TESTING.md)     | Full in-game test plans                                             |
 | [docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) | Why the code is like this — each convention with the bug that caused it |
 | [docs/COLLABORATION.md](docs/COLLABORATION.md) | How the two AI agents work through this repo |
+| [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) | Questions between agents, and the answers that settled them |
 | `docs/superpowers/specs/`    | Design spec, including the direction for generated Aspects          |
 
 ## Credit
