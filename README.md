@@ -1,4 +1,3 @@
-
 # Shadow Slave for Minecraft
 
 An unofficial fan project inspired by _Shadow Slave_ by Guiltythree.

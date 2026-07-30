@@ -355,15 +355,14 @@ The datapack's `1.0.0` freezes a reference; it does not make the Java products c
 
 ## 13. Current sequence
 
-1. finish and verify the lore-aligned alpha Soul schema;
-2. manually verify the Soul screen and Carrier -> Aspirant -> Dreamer test sequence;
-3. implement datapack and alpha-schema migration fixtures;
-4. implement the persistent Nightmare registry and per-player instance lifecycle;
-5. add data-driven historical roles and one central-conflict scenario;
-6. add the appraisal boundary without claiming a canon formula;
-7. use the shared core in the modpack prototype;
-8. complete the same accepted slice in the standalone path;
-9. score both paths and choose the long-term architecture.
+1. close Claude verification Issue #16 with evidence or fixes;
+2. implement live datapack reading, Java persistence and read-back verification;
+3. retain legacy state until import is confirmed and idempotent;
+4. implement `NightmareRegistryData` and explicit per-player instance ownership;
+5. implement one data-driven historical role, central conflict and valid resolution;
+6. add appraisal revealing one Aspect and Flaw through the shared core;
+7. build the same accepted slice in the modpack track;
+8. score both paths and choose standalone-led, modpack-led or hybrid.
 
 ## 14. Non-goals before the comparison gate
 

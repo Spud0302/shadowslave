@@ -1,9 +1,8 @@
-
 # GPT handoff — living checkpoint
 
 **Read first in a new GPT session.**  
 **Repository:** `Spud0302/shadowslave`  
-**Current main baseline used here:** `e0850193d52c85b4f81e1115f908f9dbdb67d419`  
+**Current main baseline used here:** `6a87991353480035f4fe6da08c775cd87d0e81df`  
 **Current GPT branch:** `gpt/admin-docs-current-state`
 
 ## Project state

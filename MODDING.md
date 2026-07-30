@@ -1,4 +1,3 @@
-
 # From datapack to Java mod and modpack
 
 The datapack phase is complete. Java-era development compares two delivery paths that share one

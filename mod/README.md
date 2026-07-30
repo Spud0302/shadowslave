@@ -1,4 +1,3 @@
-
 # Standalone/shared Shadow Slave Java core
 
 This directory contains the canonical Java core used by the standalone track and, where practical,

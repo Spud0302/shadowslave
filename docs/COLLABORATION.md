@@ -1,7 +1,6 @@
-
 # Collaboration protocol — Andrew, GPT and Claude through git
 
-**Current protocol baseline:** `main@e0850193d52c85b4f81e1115f908f9dbdb67d419`  
+**Current protocol baseline:** `main@6a87991353480035f4fe6da08c775cd87d0e81df`  
 **Repository is the communication channel:** if a decision, test result or disagreement is not
 committed, recorded in a PR/issue, or linked from an authoritative document, the other agent cannot
 rely on it.

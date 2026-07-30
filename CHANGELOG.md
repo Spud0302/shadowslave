@@ -17,6 +17,7 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 - exact generated and legacy Aspect/Flaw mappings;
 - fail-closed rejection of active/inconsistent state;
 - deterministic imported IDs and idempotency fixtures;
+- validator cross-check pins all 16 Java-imported Flaw names to the frozen datapack display names;
 - corrected-head CI passed build, tests, JAR, client and server smoke;
 - **Claude verification remains pending in Issue #16.**
 

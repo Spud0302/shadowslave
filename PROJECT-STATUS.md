@@ -1,8 +1,7 @@
-
 # Shadow Slave project status
 
 **Status date:** 2026-07-30  
-**Documentation baseline:** `main@e0850193d52c85b4f81e1115f908f9dbdb67d419`  
+**Documentation baseline:** `main@6a87991353480035f4fe6da08c775cd87d0e81df`  
 **Canonical repository:** `Spud0302/shadowslave`
 
 This is the current-state document. Historical assumptions remain in the changelog, issue log,
@@ -35,6 +34,7 @@ defects, compatibility corrections and documentation.
 - command-driven development transitions;
 - alpha-schema migration;
 - pure, fail-safe datapack migration translation and fixtures;
+- validator cross-check ensuring all 16 imported Flaw names still match the frozen datapack;
 - physical-client and dedicated-server startup smoke gates.
 
 ## Verification state

@@ -1,4 +1,3 @@
-
 # Java core implementation status
 
 ## Package identity
