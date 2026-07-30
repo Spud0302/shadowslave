@@ -15,7 +15,7 @@ public final class ModAttachments {
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<SoulData>> SOUL =
             ATTACHMENTS.register("soul", () -> AttachmentType.builder(SoulData::mundane)
-                    .serialize(SoulData.CODEC)
+                    .serialize(SoulData.CODEC.codec())
                     .copyOnDeath()
                     .build());
 
