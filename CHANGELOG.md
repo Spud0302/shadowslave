@@ -10,6 +10,43 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 
 ---
 
+## `0.7.2` — Q4 root-caused: Weightless can fail to apply
+
+Diagnostic build. From `gpt/q4-server-trace`, which took the suggested approach of instrumenting the
+datapack instead of probing over chat, because chat round-trips perturb the timing being measured.
+
+**It worked, and it overturns what I had been saying.** `flaw/weightless.mcfunction` now records,
+server-side and in the same tick, how many times it ran and what `safe_fall_distance` was immediately
+after its `modifier add`:
+
+| Cycle | executions | value after `add` (x1000) |
+| --- | --- | --- |
+| 1 pass | 4 | **2000** |
+| 2 **fail** | 14 | **3000** |
+| 3 pass | 3 | **2000** |
+
+In the failing cycle the `add` ran and the attribute stayed at its base of 3, across **14** consecutive
+upkeep executions. Not a stale read and not a chat artifact — the server reports it from inside the pack.
+
+**So Q4 is a gameplay bug, not a harness bug.** Across `0.7.0` and `0.7.1` I said repeatedly that the
+datapack was not at fault; that was wrong, and it came from probes that happened to hit the passing path.
+The same upkeep runs in normal play, so a player who earns the `fled` Flaw family can intermittently
+receive **no penalty at all** while the soul readout still names the Flaw.
+
+**Not fixed here.** The failure is localised but not identified, and four hypotheses have already been
+eliminated. `docs/OPEN-QUESTIONS.md` Q4 records what is established, what is not, and the next probe:
+capture whether the modifier *exists* after the `add`, which separates "the add silently did nothing"
+from "the add worked and something removed it in the same tick" — different bugs, different fixes.
+
+Also: `validate.py` rejected the incoming branch because `ss_test_trace_weightless` was tested in the
+pack but only ever applied by the harness over `/tag`. That check earns its keep — dead and misspelled
+tags fail silently in Minecraft — so the trace got a proper in-pack toggle, `test/trace/weightless_on`,
+rather than a validator exception.
+
+The trace reuses `ss_scratch_a`/`ss_scratch_b`, which `nightmare/enter` and `soul.mcfunction` also write.
+Fine for an isolated probe, marked with `ponytail:` comments naming the ceiling — reusing scratch across
+systems is what caused §1.7.
+
 ## `0.7.1` — a real harness bug fixed, and an honest dead end
 
 From `gpt/q4-harness-isolation`. No runtime change; test infrastructure only.

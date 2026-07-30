@@ -49,4 +49,4 @@ bossbar set shadowslave:trial visible false
 # Announce the version on every load and /reload. Datapacks have no variables, so this
 # literal and the one in pack.mcmeta are maintained by hand — validate.py asserts they
 # agree, because a version string that lies is worse than none at all.
-tellraw @a [{"text":"[Shadow Slave] ","color":"dark_gray"},{"text":"v0.7.1","color":"light_purple","bold":true},{"text":" — The Spell stirs.","color":"dark_gray","italic":true},{"text":"  (testing commands: ","color":"dark_gray"},{"text":"shadowslave:test/help","color":"aqua"},{"text":")","color":"dark_gray"}]
+tellraw @a [{"text":"[Shadow Slave] ","color":"dark_gray"},{"text":"v0.7.2","color":"light_purple","bold":true},{"text":" — The Spell stirs.","color":"dark_gray","italic":true},{"text":"  (testing commands: ","color":"dark_gray"},{"text":"shadowslave:test/help","color":"aqua"},{"text":")","color":"dark_gray"}]
