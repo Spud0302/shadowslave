@@ -75,7 +75,7 @@ from behavior the pack can actually observe:
 - no strong deviation during the creature fight earns the **baseline night/daylight burden** family;
 - being driven into the **5–8 HP** near-collapse window earns the reduced-health burden family;
 - consuming **6+ food points** during the creature fight earns the hunger burden family;
-- opening **40+ blocks** of distance from the creature earns the unstable-footing/fall family.
+- opening **40+ blocks** of distance from the creature earns the **burdened-movement** family.
 
 If more than one strong signal happened, the more specific result wins: **fled > hungry > bloodied >
 baseline**. The mechanical burden itself is therefore earned from the trial rather than randomized.
