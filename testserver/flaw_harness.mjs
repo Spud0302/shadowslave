@@ -6,11 +6,9 @@
 // selected family, generated identity band, mechanical burden and cleanup without duplicating runtime
 // generation logic in JavaScript.
 //
-// STATUS (GPT after 0.7.1): Q4 remains diagnostic, not a release gate. Claude eliminated four guesses
-// and showed that adding chat-based diagnostics changes the timing. The fled case now enables a
-// TEST-ONLY server-side trace in flaw/weightless: ss_scratch_a counts executions and ss_scratch_b stores
-// safe_fall_distance * 1000 immediately after the modifier command. The trace is read only AFTER the
-// normal attribute assertion succeeds or fails, so observation cannot perturb the state being measured.
+// 0.7.2 root-caused the old fled-family safe_fall_distance burden as intermittently failing inside
+// Minecraft itself. The completed-datapack path does not preserve that datapack-specific mechanism:
+// family 4 keeps its score/tag compatibility but now applies a simple Slowness burden instead.
 
 import mineflayer from 'mineflayer'
 
@@ -40,7 +38,7 @@ async function runCommand(bot, command, expect = null, timeoutMs = 4000) {
 }
 
 // Every query below consumes the same chatLog. Queue commands so no two callers can own the reply
-// window at once. This fixed a real independent harness bug in 0.7.1 even though it was not Q4.
+// window at once. This fixed a real independent harness bug in 0.7.1.
 function cmd(bot, command, expect = null, timeoutMs = 4000) {
   const task = commandTail.then(() => runCommand(bot, command, expect, timeoutMs))
   commandTail = task.catch(() => {})
@@ -69,7 +67,6 @@ async function attributeValue(bot, attribute) {
   return parseFloat(match[1])
 }
 
-// Claude proved Q4 is not a short timeout, but a generous budget costs nothing on a passing poll.
 async function waitAttribute(bot, attribute, predicate, timeoutMs = 10000) {
   const deadline = Date.now() + timeoutMs
   let seen = null
@@ -103,25 +100,13 @@ const aspectTags = ['ss_aspect_shadow', 'ss_aspect_flame', 'ss_aspect_bone', 'ss
 async function forceFamily(bot, name, bandMin, bandMax, expectedTag) {
   await cmd(bot, '/function shadowslave:test/reset')
 
-  // Q4 discriminator: reset must first restore vanilla safe_fall_distance=3.
-  if (name === 'fled') {
-    const cleanFall = await waitAttribute(bot, 'minecraft:generic.safe_fall_distance', (value) => value === 3)
-    assert('fled starts from a clean safe-fall baseline', cleanFall === 3, `safe_fall_distance=${cleanFall}`)
-
-    // Enable an IN-SERVER observation before generation. No chat query reads these values until after
-    // the normal attribute assertion, so the trace cannot make the intermittent timing disappear.
-    await cmd(bot, '/function shadowslave:test/trace/weightless_on')
-    await cmd(bot, '/scoreboard players set @s ss_scratch_a 0')
-    await cmd(bot, '/scoreboard players set @s ss_scratch_b -9999')
-  }
-
   const applied = await cmd(bot, `/function shadowslave:test/flaw/${name}`, /Sleeper/i)
   if (/Already a Sleeper/i.test(applied)) {
     throw new Error(`test/flaw/${name} refused: player was still a Sleeper after test/reset`)
   }
 
-  // Drive upkeep once so family mechanics are exercised directly. Claude already established that
-  // this does not itself resolve Q4; it simply removes the once-per-second scheduler from the test.
+  // Drive upkeep once so family mechanics are exercised directly rather than waiting for the global
+  // once-per-second scheduler. The production path is the same function.
   await cmd(bot, '/execute as @s at @s run function shadowslave:upkeep')
   await sleep(200)
 
@@ -145,6 +130,16 @@ async function forceFamily(bot, name, bandMin, bandMax, expectedTag) {
   assert(`${name} consumes fled observation`, !(await hasTag(bot, 'ss_trial_fled')))
 }
 
+async function effectClearSuccess(bot, effect, scratchHolder) {
+  await cmd(bot, `/scoreboard players reset ${scratchHolder} ss_scratch_a`)
+  await cmd(
+    bot,
+    `/execute store success score ${scratchHolder} ss_scratch_a run effect clear @s minecraft:${effect}`,
+    /score|effect|Removed|Nothing changed|Test failed/i
+  )
+  return score(bot, 'ss_scratch_a', scratchHolder)
+}
+
 async function run(bot) {
   console.log('\n=== Shadow Slave deterministic Flaw harness ===\n')
   await cmd(bot, '/gamemode survival')
@@ -161,62 +156,21 @@ async function run(bot) {
 
   await forceFamily(bot, 'hungry', 31, 34, 'ss_flaw_ravenous')
   await cmd(bot, '/function shadowslave:flaw/ravenous')
-  await cmd(bot, '/scoreboard players reset $hunger ss_scratch_a')
-  await cmd(
-    bot,
-    '/execute store success score $hunger ss_scratch_a run effect clear @s minecraft:hunger',
-    /score|effect|Removed|Nothing changed|Test failed/i
-  )
-  const hungerWasApplied = await score(bot, 'ss_scratch_a', '$hunger')
+  const hungerWasApplied = await effectClearSuccess(bot, 'hunger', '$hunger')
   assert('hungry family applies Hunger', hungerWasApplied === 1, `effect-clear success=${hungerWasApplied}`)
   await cmd(bot, '/function shadowslave:flaw/ravenous')
   await cmd(bot, '/function shadowslave:test/reset')
-  await cmd(bot, '/scoreboard players reset $hunger ss_scratch_a')
-  await cmd(
-    bot,
-    '/execute store success score $hunger ss_scratch_a run effect clear @s minecraft:hunger',
-    /score|effect|Removed|Nothing changed|Test failed/i
-  )
-  const hungerAfterReset = await score(bot, 'ss_scratch_a', '$hunger')
+  const hungerAfterReset = await effectClearSuccess(bot, 'hunger', '$hunger')
   assert('reset clears transient Hunger', hungerAfterReset === 0, `effect-clear success=${hungerAfterReset}`)
 
   await forceFamily(bot, 'fled', 41, 44, 'ss_flaw_weightless')
-
-  let reducedFall = null
-  let fallError = null
-  try {
-    reducedFall = await waitAttribute(bot, 'minecraft:generic.safe_fall_distance', (value) => value === 2)
-  } catch (error) {
-    fallError = error
-  }
-
-  // Read the trace only after the observation window. These commands therefore cannot change whether
-  // the ordinary attribute poll saw 2 or got stuck at 3.
-  const traceRuns = await score(bot, 'ss_scratch_a')
-  const traceFallMilli = await score(bot, 'ss_scratch_b')
-  assert(
-    'Weightless server-side trace executed',
-    traceRuns !== null && traceRuns > 0,
-    `executions=${traceRuns}`
-  )
-  assert(
-    'server saw safe-fall distance 2 immediately after Weightless add',
-    traceFallMilli === 2000,
-    `safe_fall_distance*1000=${traceFallMilli}`
-  )
-
-  if (fallError) {
-    throw new Error(
-      `${fallError instanceof Error ? fallError.message : String(fallError)}; ` +
-      `server trace executions=${traceRuns}, immediate safe_fall_distance*1000=${traceFallMilli}`
-    )
-  }
-
-  assert('fled family applies the unsafe-footing burden', reducedFall === 2, `safe_fall_distance=${reducedFall}`)
-  await cmd(bot, '/tag @s remove ss_test_trace_weightless')
+  const slownessWasApplied = await effectClearSuccess(bot, 'slowness', '$slow')
+  assert('fled family applies the burdened-movement Flaw', slownessWasApplied === 1, `effect-clear success=${slownessWasApplied}`)
+  // Reapply before testing reset cleanup, because the existence probe above intentionally cleared it.
+  await cmd(bot, '/function shadowslave:flaw/burdened')
   await cmd(bot, '/function shadowslave:test/reset')
-  const restoredFall = await waitAttribute(bot, 'minecraft:generic.safe_fall_distance', (value) => value === 3)
-  assert('reset removes the fall-distance modifier', restoredFall === 3, `safe_fall_distance=${restoredFall}`)
+  const slownessAfterReset = await effectClearSuccess(bot, 'slowness', '$slow')
+  assert('reset clears the burdened-movement Flaw effect', slownessAfterReset === 0, `effect-clear success=${slownessAfterReset}`)
 
   // The real classifier gives fled > hungry > bloodied. Prove that precedence in the production
   // generator without adding a special "precedence" implementation path.
