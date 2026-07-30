@@ -54,10 +54,10 @@ async function cmd(bot, command, expect = null, timeoutMs = 4000) {
 }
 
 /** Read a scoreboard value. null means Minecraft explicitly reported that no score exists. */
-async function score(bot, objective) {
+async function score(bot, objective, holder = USER) {
   const out = await cmd(
     bot,
-    `/scoreboard players get ${USER} ${objective}`,
+    `/scoreboard players get ${holder} ${objective}`,
     /has -?\d+ \[|Can't get|no score/i
   )
   const match = out.match(/has (-?\d+) \[/)
@@ -276,15 +276,27 @@ async function run(bot) {
   assert('death clears the in-nightmare tag', !(await hasTag(bot, 'ss_in_nightmare')))
   assert('death does not strand you in the nightmare', notNightmare(dimAfterDeath), `dimension=${dimAfterDeath}`)
 
-  const castOutOnDeath = await cmd(
+  // Read the condition into a score rather than relying on a conditional `say`.
+  //
+  // This assertion was itself vacuous until GPT's fail-closed change exposed it, which is a fair
+  // answer to OPEN-QUESTIONS Q1. It ran `execute if entity @s[advancements={...}] run say GRANTED`,
+  // which produces NO reply when the condition is false — so a passing run and an unreadable one
+  // were indistinguishable, and `!/GRANTED/.test('')` was true either way. It could not have failed
+  // if death had started granting the advancement.
+  //
+  // `execute store success` always writes a definite 0 or 1, so the read is unambiguous. This is the
+  // idiom test/selfcheck.mcfunction already uses for the same reason.
+  await cmd(bot, '/scoreboard players reset $castout ss_roll')
+  await cmd(
     bot,
-    '/execute if entity @s[advancements={shadowslave:test/cast_out=true}] run say GRANTED',
-    /GRANTED|Test failed|passed/i
+    '/execute store success score $castout ss_roll if entity @s[advancements={shadowslave:test/cast_out=true}]',
+    /score|set|Nothing changed|Test failed/i
   )
+  const castOutOnDeath = await score(bot, 'ss_roll', '$castout')
   assert(
     'death does not grant the Cast Out advancement',
-    !/GRANTED/.test(castOutOnDeath),
-    'Cast Out records ejections only'
+    castOutOnDeath === 0,
+    `store success returned ${castOutOnDeath} (1 = granted); Cast Out records ejections only`
   )
 
   // This cannot be graded reliably by Mineflayer: Nightmare chunks unload after exit, and the
@@ -372,8 +384,17 @@ async function run(bot) {
   )
 
   // Sleeping through one night IS recovery. It clears the cooldown and must return before entry.
+  // Assert on state, not on the copy.
+  //
+  // This waited on /nothing reaches/i, which the pack emits via `title @s actionbar` — that never
+  // arrives as a chat message, so mineflayer cannot see it and the assertion could ONLY fail. The
+  // inverse of the vacuous checks: unfalsifiable rather than unfailable, and equally useless.
+  //
+  // Matching on player-facing copy is fragile here for a second reason: two assertions have already
+  // been silently disarmed by rewording the strings they matched. The observable outcomes below —
+  // cooldown cleared, and still in the Overworld — are what the feature actually promises.
   await cmd(bot, '/scoreboard players set @s ss_cooldown 600')
-  await cmd(bot, '/function shadowslave:sleep', /nothing reaches/i)
+  await cmd(bot, '/function shadowslave:sleep', /returned|Running function/i)
   const cdAfterSleep = await score(bot, 'ss_cooldown')
   assert('sleeping clears the cooldown', cdAfterSleep === null || cdAfterSleep === 0, `ss_cooldown=${cdAfterSleep}`)
   const dimAfterRecovery = await dimension(bot)
