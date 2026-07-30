@@ -5,20 +5,17 @@
 // signal and then run the real progression/become_sleeper -> roll_aspect_flaw path. This proves the
 // selected family, generated identity band, mechanical burden and cleanup without duplicating runtime
 // generation logic in JavaScript.
-
-// STATUS (Claude, 0.7.0): NOT part of the release gate yet — order-dependent failure under
-// investigation. Running the main harness first, then this one, intermittently fails
-// `fled family applies the unsafe-footing burden` with safe_fall_distance stuck at 3. Run alone it
-// passes 39/39.
 //
-// The PACK is not at fault. A direct probe (testserver/probe_fled.mjs) shows test/flaw/fled applying
-// shadowslave:flaw_weightless_fall at -1 with the attribute reaching 2, and the main harness passes
-// 32/32 against the same build. Two of my fixes failed to resolve it — raising the timeout, and
-// driving upkeep directly — so the remaining hypothesis is state left on the player or in the world by
-// the preceding run that this file does not clear. Recorded as OPEN-QUESTIONS Q4 rather than patched
-// on a third guess.
+// Q4 candidate fix (GPT, after 0.7.0): this harness used one global chatLog but exactOneTag() launched
+// four command-reading helpers concurrently with Promise.all. cmd() was therefore not re-entrant: one
+// query could clear another query's reply window or let late replies bleed into a later command. All
+// command traffic is now serialized at the helper boundary, and exactOneTag() reads one tag-list reply
+// rather than launching four identical commands. The fled case also proves reset restored the vanilla
+// safe-fall baseline before applying the family, so any remaining failure identifies cleanup versus
+// application instead of collapsing both into the final timeout.
 //
-// Do not treat a green run of this file as release evidence until that is understood.
+// This is a proposed Q4 resolution, not release evidence until Claude reproduces the old sequence and
+// confirms repeated main-harness -> flaw-harness runs are stable.
 
 import mineflayer from 'mineflayer'
 
@@ -28,10 +25,11 @@ const USER = 'tester'
 const pass = []
 const fail = []
 let chatLog = []
+let commandTail = Promise.resolve()
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-async function cmd(bot, command, expect = null, timeoutMs = 4000) {
+async function runCommand(bot, command, expect = null, timeoutMs = 4000) {
   await sleep(120)
   chatLog = []
   bot.chat(command.startsWith('/') ? command : '/' + command)
@@ -46,14 +44,28 @@ async function cmd(bot, command, expect = null, timeoutMs = 4000) {
   return joined
 }
 
+// Every query below consumes the same chatLog. Queue commands here so a future Promise.all or helper
+// refactor cannot make two readers clear/consume the same reply window. The previous exactOneTag()
+// implementation did exactly that.
+function cmd(bot, command, expect = null, timeoutMs = 4000) {
+  const task = commandTail.then(() => runCommand(bot, command, expect, timeoutMs))
+  // Keep the queue usable after a failed command; the caller still receives the rejection from task.
+  commandTail = task.catch(() => {})
+  return task
+}
+
 async function score(bot, objective, holder = USER) {
   const out = await cmd(bot, `/scoreboard players get ${holder} ${objective}`, /has -?\d+ \[|Can't get|no score/i)
   const match = out.match(/has (-?\d+) \[/)
   return match ? parseInt(match[1], 10) : null
 }
 
+async function tagList(bot) {
+  return cmd(bot, `/tag ${USER} list`, /has \d+ tags?|has no tags/i)
+}
+
 async function hasTag(bot, tag) {
-  const out = await cmd(bot, `/tag ${USER} list`, /has \d+ tags?|has no tags/i)
+  const out = await tagList(bot)
   return out.includes(tag)
 }
 
@@ -64,9 +76,8 @@ async function attributeValue(bot, attribute) {
   return parseFloat(match[1])
 }
 
-// 10s rather than 4s. NOTE: this did NOT fix the known safe_fall_distance failure — see the STATUS
-// note at the top of this file. Raising it was my first guess and it was wrong; the failure recurs at
-// 10s, so the cause is not the budget. Kept only because a generous budget costs nothing on a pass.
+// 10s rather than 4s. Claude proved Q4 was not simply a short timeout, but a generous poll budget is
+// still useful on a real server and costs nothing on a passing run because the first matching read wins.
 async function waitAttribute(bot, attribute, predicate, timeoutMs = 10000) {
   const deadline = Date.now() + timeoutMs
   let seen = null
@@ -85,8 +96,11 @@ function assert(name, condition, detail = '') {
 }
 
 async function exactOneTag(bot, tags) {
-  const values = await Promise.all(tags.map((tag) => hasTag(bot, tag)))
-  return values.filter(Boolean).length === 1
+  // One authoritative tag-list read. The old Promise.all(tags.map(hasTag)) launched four commands
+  // concurrently against one shared chatLog, so the helper could not know which reply belonged to
+  // which request.
+  const out = await tagList(bot)
+  return tags.filter((tag) => out.includes(tag)).length === 1
 }
 
 const flawTags = [
@@ -100,6 +114,13 @@ const aspectTags = ['ss_aspect_shadow', 'ss_aspect_flame', 'ss_aspect_bone', 'ss
 async function forceFamily(bot, name, bandMin, bandMax, expectedTag) {
   await cmd(bot, '/function shadowslave:test/reset')
 
+  // Q4 discriminator: if fled later fails, first establish whether reset itself left the player's
+  // persistent attribute dirty. Vanilla 1.21.1 safe_fall_distance is 3.
+  if (name === 'fled') {
+    const cleanFall = await waitAttribute(bot, 'minecraft:generic.safe_fall_distance', (value) => value === 3)
+    assert('fled starts from a clean safe-fall baseline', cleanFall === 3, `safe_fall_distance=${cleanFall}`)
+  }
+
   // Distinguish success from refusal. test/flaw/* refuses with "Already a Sleeper" when rank is
   // already 1, and /Sleeper/i matches BOTH that refusal and the success line — so a silent refusal
   // would look like a pass and the whole run would assert against stale state.
@@ -108,13 +129,9 @@ async function forceFamily(bot, name, bandMin, bandMax, expectedTag) {
     throw new Error(`test/flaw/${name} refused: player was still a Sleeper after test/reset`)
   }
 
-  // Drive the upkeep once, deliberately, instead of waiting for its once-per-second tick.
-  //
-  // Every burden below is applied by upkeep, so these assertions were racing a scheduler. The result
-  // depended on what ran beforehand: main harness -> flaw harness failed on safe_fall_distance while
-  // the flaw harness alone passed, and a direct probe showed the attribute at 2 with the modifier not
-  // yet present. Raising the timeout did not fix it because the problem was never the budget.
-  // Calling upkeep directly makes modifier application deterministic and removes the race entirely.
+  // Drive upkeep once so these checks exercise the real family functions without depending on the
+  // once-per-second scheduler. Claude already proved this alone was not the Q4 fix; it remains useful
+  // here because scheduler timing is not what this harness is trying to test.
   await cmd(bot, '/execute as @s at @s run function shadowslave:upkeep')
   await sleep(200)
 
