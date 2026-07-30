@@ -1,0 +1,1152 @@
+name: One-shot admin documentation refresh
+
+on:
+  push:
+    branches:
+      - gpt/admin-docs-current-state
+    paths:
+      - .github/workflows/admin-doc-refresh.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out documentation branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Reconcile current administrative Markdown
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          BASELINE = "e0850193d52c85b4f81e1115f908f9dbdb67d419"
+          DATE = "2026-07-30"
+
+          def write(path: str, content: str) -> None:
+              p = Path(path)
+              p.parent.mkdir(parents=True, exist_ok=True)
+              p.write_text(content.rstrip() + "\n", encoding="utf-8")
+
+          def insert_after(path: str, needle: str, block: str, marker: str) -> None:
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              if marker in text:
+                  return
+              pos = text.index(needle) + len(needle)
+              text = text[:pos] + "\n\n" + block.rstrip() + text[pos:]
+              p.write_text(text, encoding="utf-8")
+
+          def replace_between(path: str, start: str, end: str, replacement: str) -> None:
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              left = text.index(start)
+              right = text.index(end, left)
+              text = text[:left] + replacement.rstrip() + "\n\n" + text[right:]
+              p.write_text(text, encoding="utf-8")
+
+          write("PROJECT-STATUS.md", f"""
+          # Shadow Slave project status
+
+          **Status date:** {DATE}  
+          **Documentation baseline:** `main@{BASELINE}`  
+          **Canonical repository:** `Spud0302/shadowslave`
+
+          This is the current-state document. Historical assumptions remain in the changelog, issue log,
+          testing history, review records and Git history, but they do not override this file.
+
+          ## Products
+
+          | Product | Current state | Public release |
+          | --- | --- | --- |
+          | Vanilla datapack | completed and frozen behavioural reference | `datapack-v1.0.0` |
+          | Standalone/shared Java core | `0.1.0-alpha.4`, CI-green, awaiting Claude verification | not released |
+          | Nightmare Spell modpack | design and dependency boundaries only | not released |
+
+          ## Datapack
+
+          The Minecraft Java 1.21.1 datapack is complete and released. Players install
+          `shadowslave-v1.0.0.zip` unchanged in `<world>/datapacks/`; no mod loader or client install is
+          required. Feature development is frozen. Datapack changes are now limited to genuine release
+          defects, compatibility corrections and documentation.
+
+          ## Java core implemented
+
+          - NeoForge 21.1.244 / Minecraft 1.21.1 / Java 21 workspace;
+          - committed Gradle wrapper and CI packaging;
+          - persistent, schema-versioned, server-authoritative `SoulData`;
+          - lore-aligned Uninfected -> Carrier -> Aspirant -> Dreamer model;
+          - optional Soul Rank before the First Nightmare and Dormant rank for Aspirants/Dreamers;
+          - independent Aspect Rank;
+          - server-to-client Soul snapshots and read-only O-key Soul screen;
+          - command-driven development transitions;
+          - alpha-schema migration;
+          - pure, fail-safe datapack migration translation and fixtures;
+          - physical-client and dedicated-server startup smoke gates.
+
+          ## Verification state
+
+          GitHub Actions passed compilation, unit tests, JAR packaging, client startup and dedicated-server
+          startup for PRs #14 and #15. That is not the final project gate. Under `docs/COLLABORATION.md`,
+          Claude independently reviews and tests GPT work.
+
+          **Blocking gate:** [Issue #16 — Claude verification gate: Java alpha.4](https://github.com/Spud0302/shadowslave/issues/16).
+
+          Until #16 is closed as verified or verified-with-fixes:
+
+          - `main` is CI-green but not Claude-verified for alpha.4;
+          - no further Java feature package should merge;
+          - no public Java release should be stamped;
+          - no claim should be made that the real O-key interaction has passed.
+
+          ## Not implemented yet
+
+          - live reading/writing of datapack scores and tags;
+          - persistence/read-back of full imported Aspect and Flaw instances;
+          - legacy cleanup after verified import;
+          - natural infection;
+          - persistent Nightmare registry and instance ownership;
+          - data-driven historical roles, central conflicts and resolutions;
+          - playable Java First Nightmare;
+          - appraisal/revelation beyond development fixtures;
+          - abilities, Memories, Echoes, Dream Realm progression, Gates or later ranks;
+          - modpack dependency manifest or compatibility adapters.
+
+          ## Next gated sequence
+
+          1. Claude reviews and independently tests alpha.4, including a real client session.
+          2. Record fixes/evidence and close Issue #16.
+          3. Add the live datapack reader and verified persistence writer without deleting legacy state.
+          4. Add persistent `NightmareRegistryData` and explicit instance ownership.
+          5. Implement one lore-shaped historical role, central conflict and valid resolution.
+          6. Build the same slice in the modpack track and compare with evidence.
+
+          ## Canon boundary
+
+          The novel is authoritative for mechanics and terminology. The manhwa is a secondary visual and
+          staging reference. Project generation/appraisal systems are labelled design rather than claimed
+          canon. The datapack is a compatibility baseline, not a constraint on Java architecture.
+          """)
+
+          write("README.md", """
+          # Shadow Slave for Minecraft
+
+          An unofficial fan project inspired by _Shadow Slave_ by Guiltythree.
+
+          The repository now contains three related products:
+
+          - a completed vanilla Minecraft 1.21.1 datapack;
+          - a shared/standalone NeoForge Java core in active alpha development;
+          - a planned Nightmare Spell modpack prototype using the same canonical Java state.
+
+          See [PROJECT-STATUS.md](PROJECT-STATUS.md) for the exact current gate and next action.
+
+          ## Datapack v1.0.0
+
+          The first public product is complete and frozen as `datapack-v1.0.0`.
+
+          Install the release ZIP without extracting it:
+
+          ```text
+          <world>/datapacks/shadowslave-v1.0.0.zip
+          ```
+
+          Reopen the world or run `/reload`. It requires Minecraft Java Edition 1.21.1 and difficulty
+          Easy or higher. A multiplayer server installs it once; joining players use ordinary vanilla
+          1.21.1 clients.
+
+          The datapack proves the playable reference loop:
+
+          ```text
+          untouched person -> Carrier -> First Nightmare prototype -> Sleeper/Dreamer
+                           -> persistent Aspect identity + persistent Flaw identity
+          ```
+
+          Its first-sleep trigger, safe ejection, global Nightmare ownership, finite mechanics catalogue
+          and timer/creature scenario are prototype behaviour—not universal canon or permanent Java design.
+
+          ## Java core
+
+          The Java project lives under [`mod/`](mod/). Current development version: `0.1.0-alpha.4`.
+
+          Implemented:
+
+          - persistent lore-aligned Soul state;
+          - Uninfected, Carrier, Aspirant and Dreamer stages;
+          - separate Soul Rank and Aspect Rank;
+          - server-authoritative mutations and read-only client snapshots;
+          - an O-key Soul screen;
+          - alpha-schema migration;
+          - pure datapack translation fixtures;
+          - client, server, unit-test and JAR CI gates.
+
+          Alpha.4 is **CI-green but awaiting Claude's independent review and real-client test**. Track the
+          gate in [Issue #16](https://github.com/Spud0302/shadowslave/issues/16). It is not a public mod
+          release and does not yet contain a playable Java Nightmare.
+
+          ### Development commands
+
+          ```text
+          /shadowslave soul
+          /shadowslave soul_screen
+          /shadowslave infect
+          /shadowslave begin_first_nightmare_test
+          /shadowslave complete_first_nightmare_test
+          /shadowslave reset
+          ```
+
+          These are architecture smoke commands, not final natural progression.
+
+          ### Build
+
+          Java 21 is required. From the repository root:
+
+          ```bash
+          ./mod/gradlew -p mod build
+          ./mod/gradlew -p mod runClientSmoke --no-daemon
+          ./mod/gradlew -p mod runServerSmoke --no-daemon
+          ```
+
+          ## Nightmare Spell modpack
+
+          [`modpack/`](modpack/) records Path A of the architecture comparison. Existing mods may provide
+          generic spells, creatures, equipment, loot or presentation. The Shadow Slave core still owns
+          Soul identity, progression, Aspect/Flaw identity, Nightmare lifecycle and migration.
+
+          No dependency manifest or public modpack exists yet.
+
+          ## Lore and design
+
+          - Novel mechanics and terminology are primary authority.
+          - The manhwa is a secondary visual/staging reference.
+          - Fan translations help access material but do not override the novel.
+          - Project appraisal and generation algorithms are explicitly game design where canon provides no
+            deterministic formula.
+          - Java preserves earned/imported identity while replacing datapack machinery.
+
+          Start with [`docs/JAVA-LORE-ALIGNMENT.md`](docs/JAVA-LORE-ALIGNMENT.md) and
+          [`docs/JAVA-HANDOFF.md`](docs/JAVA-HANDOFF.md).
+
+          ## Repository map
+
+          ```text
+          shadowslave/          frozen datapack source
+          testserver/           datapack deployment and Mineflayer harnesses
+          mod/                  shared/standalone NeoForge Java core
+          modpack/              dependency-led prototype plan
+          shared-test-spec/     implementation-neutral acceptance scenarios
+          docs/                 lore, architecture, workflow and historical records
+          ```
+
+          ## Administrative authority
+
+          | Need | Read |
+          | --- | --- |
+          | exact current state | [PROJECT-STATUS.md](PROJECT-STATUS.md) |
+          | agent workflow and merge gates | [docs/COLLABORATION.md](docs/COLLABORATION.md) |
+          | active defects and limitations | [ISSUES.md](ISSUES.md) |
+          | current test gate and historical test records | [TESTING.md](TESTING.md) |
+          | shipped history | [CHANGELOG.md](CHANGELOG.md) |
+          | GPT session checkpoint | [GPT_HANDOFF.md](GPT_HANDOFF.md) |
+          | Java implementation status | [mod/IMPLEMENTATION-STATUS.md](mod/IMPLEMENTATION-STATUS.md) |
+          | questions between agents | [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) |
+
+          ## Collaboration
+
+          GPT works on `gpt/*` branches and does not merge its own feature work. Claude independently
+          reviews/tests GPT work, records evidence, fixes or rejects defects, stamps versions and merges.
+          GitHub CI is evidence, not a replacement for Claude's verification or Andrew's playtest judgement.
+
+          ## Credit
+
+          _Shadow Slave_ is by Guiltythree. This project is unofficial and is not affiliated with the
+          author or publisher. It does not copy novel prose or official artwork.
+          """)
+
+          write("GPT_HANDOFF.md", f"""
+          # GPT handoff — living checkpoint
+
+          **Read first in a new GPT session.**  
+          **Repository:** `Spud0302/shadowslave`  
+          **Current main baseline used here:** `{BASELINE}`  
+          **Current GPT branch:** `gpt/admin-docs-current-state`
+
+          ## Project state
+
+          - Datapack `datapack-v1.0.0`: released, packaged and frozen.
+          - Java core: `0.1.0-alpha.4` on `main`.
+          - Java automated status: compile/tests/JAR/client/server CI green.
+          - Java human/agent status: **not yet Claude-verified**.
+          - Blocking gate: GitHub Issue #16.
+          - Modpack track: documented only; no manifest or dependencies committed.
+          - No active Java feature PR should merge before #16 closes.
+
+          Claude subsequently committed documentation reconciliation for the retired Weightless mechanic,
+          raised Q5 about the missing Java Nightmare lifecycle map, and removed an accidentally committed
+          root `server.log`. This branch starts after those commits.
+
+          ## What is implemented
+
+          1. NeoForge 1.21.1 / Java 21 workspace and wrapper.
+          2. Persistent schema-v2 `SoulData` attachment.
+          3. Lore-aligned Uninfected -> Carrier -> Aspirant -> Dreamer stages.
+          4. Independent Soul Rank and Aspect Rank.
+          5. Server-owned mutation service and client snapshot contract.
+          6. Read-only O-key Soul screen.
+          7. Schema-1-to-2 migration.
+          8. Pure fail-safe datapack translation for untouched, Carrier, generated and legacy completed identities.
+          9. Unit, client-startup, server-startup and JAR CI gates.
+
+          ## What is not implemented
+
+          - live scoreboard/tag reader;
+          - verified persistence/read-back writer for imported Aspect/Flaw records;
+          - legacy cleanup;
+          - natural infection;
+          - persistent Nightmare registry/instances;
+          - playable Java First Nightmare;
+          - appraisal service, abilities or Dream Realm systems;
+          - modpack manifest/integrations.
+
+          ## Blocking verification
+
+          Issue #16 requires Claude to independently run:
+
+          ```bash
+          ./mod/gradlew -p mod build
+          ./mod/gradlew -p mod runClientSmoke --no-daemon
+          ./mod/gradlew -p mod runServerSmoke --no-daemon
+          ```
+
+          and test in a real client:
+
+          ```text
+          O opens Soul screen
+          fresh -> Uninfected / no Rank
+          infect -> Carrier / no Rank
+          begin_first_nightmare_test -> Aspirant / Dormant
+          complete_first_nightmare_test -> Dreamer / Dormant + Aspect Rank + Flaw
+          reset -> Uninfected / no Rank
+          relog/restart -> persisted state
+          ```
+
+          Do not claim this interaction passed until Claude records evidence.
+
+          ## Lore rules now binding Java
+
+          - Mundane is descriptive, not Soul Rank zero.
+          - Carrier, Aspirant and Dreamer are separate states.
+          - Aspirant has a Dormant Soul Core but no permanent Aspect/Flaw before appraisal.
+          - Aspect Rank is independent of Soul Rank.
+          - a First Nightmare owns a historical role, situation, central conflict and valid resolutions;
+          - ordinary First-Nightmare failure is lethal; crash/admin recovery is technical;
+          - Aspect/Flaw appraisal algorithms are project design where canon gives no formula;
+          - novel mechanics outrank adaptation wording; manhwa visuals are secondary reference.
+
+          ## Q5 answer
+
+          The Nightmare lifecycle mapping was dropped accidentally while restructuring the Java handoff. It
+          remains a live contract and is restored by this branch:
+
+          - one eligibility choke point;
+          - one teardown path for every exit reason;
+          - scenario-specific objectives behind an abstraction;
+          - evidence owned by the active Nightmare instance.
+
+          ## Next action after #16
+
+          Build the live datapack migration reader/writer in a new `gpt/*` branch:
+
+          1. read immutable legacy evidence;
+          2. call the accepted pure translator;
+          3. persist Java Soul/Aspect/Flaw records;
+          4. read them back and verify identity;
+          5. mark import complete;
+          6. retain legacy values until all verification succeeds.
+
+          Then implement `NightmareRegistryData` and explicit per-player instance ownership.
+
+          ## Workflow reminders
+
+          - GPT does not write directly to or merge into `main`.
+          - Every GPT commit includes `Co-Authored-By: ChatGPT <gpt@openai.com>`.
+          - Claude independently reviews and tests before merge.
+          - CI is deliberately throttled; do not create per-commit workflow noise.
+          - Historical docs are annotated, not silently rewritten as though earlier beliefs never existed.
+          """)
+
+          write("MODDING.md", """
+          # From datapack to Java mod and modpack
+
+          The datapack phase is complete. Java-era development compares two delivery paths that share one
+          canonical Soul/Nightmare core.
+
+          See [PROJECT-STATUS.md](PROJECT-STATUS.md) for the current gate.
+
+          ## Frozen reference
+
+          - product: vanilla datapack;
+          - release: `datapack-v1.0.0`;
+          - asset: `shadowslave-v1.0.0.zip`;
+          - purpose: behavioural/import compatibility reference, not a Java architecture constraint.
+
+          ## Path B — standalone/shared Java core
+
+          Location: [`mod/`](mod/)
+
+          Current version: `0.1.0-alpha.4`.
+
+          Implemented: persistence, lore-aligned schema, networking, O-key Soul screen, schema migration and
+          pure datapack translation fixtures. CI is green. Claude's independent verification in Issue #16
+          remains the blocking gate.
+
+          ## Path A — Nightmare Spell modpack
+
+          Location: [`modpack/`](modpack/)
+
+          Current state: design only. No dependency JARs, manifest, adapters or public package have been
+          committed. The modpack will consume the same Java core; scripts and dependencies must never become
+          canonical Soul or Nightmare storage.
+
+          ## Current ordering
+
+          ```text
+          datapack-v1.0.0 released and frozen
+                  ↓
+          shared Java core alpha.4
+                  ↓
+          Claude verification gate (#16)
+                  ↓
+          live datapack import + persistence verification
+                  ↓
+          persistent Nightmare registry / instance ownership
+                  ↓
+          one lore-shaped playable Java First Nightmare
+                  ↓
+          modpack implementation of the same slice
+                  ↓
+          evidence-based standalone/modpack/hybrid decision
+          ```
+
+          ## Toolchain
+
+          - Minecraft Java Edition 1.21.1;
+          - NeoForge 21.1.244;
+          - Java 21;
+          - Gradle wrapper 9.2.1;
+          - dedicated-server compatibility from the beginning;
+          - server-authoritative state.
+
+          ## Product-qualified tags
+
+          ```text
+          datapack-v1.0.0
+          mod-v0.1.0
+          modpack-v0.1.0
+          ```
+
+          Historical ordinary `v1.x` prototype tags remain untouched.
+
+          ## Start here
+
+          1. [Current project status](PROJECT-STATUS.md)
+          2. [Lore-aligned Java model](docs/JAVA-LORE-ALIGNMENT.md)
+          3. [Datapack migration/lifecycle handoff](docs/JAVA-HANDOFF.md)
+          4. [Two-track transition plan](docs/MOD-TRANSITION-PLAN.md)
+          5. [Shared acceptance specification](shared-test-spec/VERTICAL-SLICE.md)
+          6. [Java implementation status](mod/IMPLEMENTATION-STATUS.md)
+          """)
+
+          write("mod/IMPLEMENTATION-STATUS.md", """
+          # Java core implementation status
+
+          ## Package identity
+
+          - Minecraft: `1.21.1`
+          - NeoForge: `21.1.244`
+          - Java: `21`
+          - ModDevGradle: `2.0.143`
+          - Gradle wrapper: `9.2.1`
+          - Development version: `0.1.0-alpha.4`
+          - Public Java release: none
+
+          ## Gate status
+
+          The alpha.4 head is GitHub-CI green for compilation, unit tests, JAR packaging, physical-client
+          startup and dedicated-server startup. It is **not yet Claude-verified**. Issue #16 blocks the next
+          Java feature merge and any public mod release until independent review and real-client interaction
+          evidence are recorded.
+
+          ## Implemented
+
+          - loadable common and physical-client mod entry points;
+          - persistent codec-backed `SoulData` player attachment copied across death;
+          - schema version 2 with legacy alpha decoding;
+          - Uninfected, Carrier, Aspirant and Dreamer stages;
+          - Nightmare Spell versus natural-awakening path field;
+          - optional Soul Rank before the First Nightmare;
+          - independent Aspect Rank;
+          - server-owned `SoulService` mutation boundary;
+          - server-to-client limited Soul snapshot;
+          - read-only Soul screen opened with O or `/shadowslave soul_screen`;
+          - login and mutation synchronization;
+          - command-driven development progression;
+          - pure datapack migration evidence snapshot, translator and validated plan;
+          - exact generated and legacy datapack Aspect/Flaw mappings;
+          - fail-closed rejection of active/inconsistent legacy state;
+          - deterministic/idempotent migration fixtures;
+          - wrapper validation, JUnit, JAR, client-smoke and server-smoke CI.
+
+          ## Development commands
+
+          ```text
+          /shadowslave soul
+          /shadowslave soul_screen
+          /shadowslave infect
+          /shadowslave begin_first_nightmare_test
+          /shadowslave complete_first_nightmare_test
+          /shadowslave reset
+          ```
+
+          ## Deliberately not implemented
+
+          - natural infection and exhaustion/sleep progression;
+          - live datapack scoreboard/tag reader;
+          - full imported `AspectInstance` and `FlawInstance` persistence/read-back;
+          - migration-complete marker and legacy cleanup;
+          - `NightmareRegistryData` / SavedData;
+          - active instance allocation, ownership, entry or teardown;
+          - historical-role/scenario/conflict resources;
+          - canonical death and technical recovery implementation;
+          - appraisal service or executable abilities;
+          - modpack adapters;
+          - public `mod-v0.1.0` release.
+
+          ## Next package after verification
+
+          Add live migration without destructive cleanup:
+
+          1. read legacy evidence from a real player;
+          2. produce the accepted pure migration plan;
+          3. persist Java data;
+          4. read back and verify every identity field;
+          5. mark migration complete;
+          6. keep legacy values until success is proven.
+
+          Nightmare registry work begins after that persistence boundary is accepted.
+
+          ## Local commands
+
+          ```bash
+          ./mod/gradlew -p mod build
+          ./mod/gradlew -p mod runClient
+          ./mod/gradlew -p mod runClientSmoke --no-daemon
+          ./mod/gradlew -p mod runServer --no-daemon
+          ./mod/gradlew -p mod runServerSmoke --no-daemon
+          ```
+          """)
+
+          write("mod/README.md", """
+          # Standalone/shared Shadow Slave Java core
+
+          This directory contains the canonical Java core used by the standalone track and, where practical,
+          by the Nightmare Spell modpack track.
+
+          ## Current state — `0.1.0-alpha.4`
+
+          Implemented:
+
+          - NeoForge 1.21.1 / Java 21 workspace and committed wrapper;
+          - persistent schema-v2 Soul attachment;
+          - lore-aligned Uninfected -> Carrier -> Aspirant -> Dreamer progression model;
+          - separate Soul Rank and Aspect Rank;
+          - server-authoritative mutation service;
+          - limited server-to-client snapshots;
+          - read-only O-key Soul screen;
+          - alpha-schema compatibility;
+          - pure fail-safe datapack migration translator and fixtures;
+          - unit, packaging, client-startup and dedicated-server gates.
+
+          **Status:** CI-green, but not yet independently verified by Claude. Issue #16 is the blocking gate.
+          This is not a public release and does not yet include a playable Java Nightmare.
+
+          ## Lore model
+
+          ```text
+          Uninfected — no Soul Rank
+            -> Carrier — no Soul Rank
+            -> Aspirant — Dormant Soul Rank, temporary role belongs to NightmareInstance
+            -> Dreamer/Sleeper — Dormant Soul Rank, permanent Aspect + Aspect Rank + Flaw
+          ```
+
+          Mundane is descriptive rather than Rank zero. Aspect Rank is independent of Soul Rank. Project
+          appraisal algorithms are design unless canon explicitly defines a rule.
+
+          ## Smoke commands
+
+          ```text
+          /shadowslave soul
+          /shadowslave soul_screen
+          /shadowslave infect
+          /shadowslave begin_first_nightmare_test
+          /shadowslave complete_first_nightmare_test
+          /shadowslave reset
+          ```
+
+          These bypass natural gameplay and exist only to test architecture.
+
+          ## Authority rules
+
+          - server owns every permanent mutation;
+          - client sends intent, never rank/identity values;
+          - UI is a snapshot, not save authority;
+          - commands, scenarios and integrations call services;
+          - one Nightmare service owns eligibility and teardown;
+          - external mods never become canonical identity storage;
+          - missing optional integrations cannot make Soul data undecodable.
+
+          ## Persistence ownership
+
+          - player attachment: progression, path, rank/core, Aspect, Flaw, Attributes and personal history;
+          - Overworld/server SavedData: Nightmare registry, instance ownership, role/conflict state, return and recovery records;
+          - data components: generated item/Memory identity and charges;
+          - data resources/codecs: roles, scenarios, conflicts and compatible content definitions.
+
+          ## First public target — `mod-v0.1.0`
+
+          The first public JAR requires:
+
+          1. Claude-verified current foundation;
+          2. safe live datapack import with read-back verification;
+          3. persistent per-player Nightmare instance ownership;
+          4. one historical role and central conflict;
+          5. one valid completion path and canonical death outcome;
+          6. appraisal revealing Aspect and Flaw;
+          7. real client and dedicated-server evidence;
+          8. no mandatory external content dependency.
+
+          ## Next order
+
+          1. close Issue #16 with evidence/fixes;
+          2. live migration reader/writer;
+          3. Nightmare registry and lifecycle;
+          4. data-driven role/conflict prototype;
+          5. appraisal boundary;
+          6. shared vertical-slice verification;
+          7. release only when the slice is genuinely playable.
+
+          ## Build
+
+          ```bash
+          ./mod/gradlew -p mod build
+          ./mod/gradlew -p mod runClientSmoke --no-daemon
+          ./mod/gradlew -p mod runServerSmoke --no-daemon
+          ```
+          """)
+
+          write("docs/COLLABORATION.md", f"""
+          # Collaboration protocol — Andrew, GPT and Claude through git
+
+          **Current protocol baseline:** `main@{BASELINE}`  
+          **Repository is the communication channel:** if a decision, test result or disagreement is not
+          committed, recorded in a PR/issue, or linked from an authoritative document, the other agent cannot
+          rely on it.
+
+          ## Roles
+
+          | Person/agent | Primary responsibility |
+          | --- | --- |
+          | Andrew | project owner, final decisions, player judgement and release approval |
+          | GPT | lore research, architecture, specs, code/docs on `gpt/*`, review and issue discovery |
+          | Claude | independent implementation review, all-agent testing, fixes, version stamping, merging and releases |
+
+          GPT may write Java, datapack content and documentation, but never directly to `main`. Claude is not
+          a ceremonial approver: automated CI does not replace Claude's independent inspection and test run.
+
+          ## Branch and merge rules
+
+          1. GPT branches from the current remote `main` and records the exact baseline SHA.
+          2. GPT branches use `gpt/*`.
+          3. GPT opens a focused PR and leaves it for Claude; GPT does not merge its own feature or admin PR.
+          4. Claude reviews the diff, runs the required independent gate, records evidence/fixes and merges.
+          5. `main` is the accepted/release line. Claude may commit review fixes there or update the GPT branch,
+             but must leave a durable explanation.
+          6. Andrew may override any design or release decision.
+
+          PRs #14 and #15 were incorrectly merged after CI without the separate Claude gate. Issue #16 records
+          the correction. No later Java feature package may merge until that issue closes.
+
+          ## Commit attribution
+
+          - GPT: `Co-Authored-By: ChatGPT <gpt@openai.com>`
+          - Claude: use Claude's co-author trailer consistently.
+
+          ## Test matrix
+
+          ### Documentation-only change
+
+          Claude checks factual state, links, baseline, historical annotations and agreement between current
+          authority files. Runtime tests are needed only if the documentation change exposes uncertainty about
+          behaviour or changes generated/runtime resources.
+
+          ### Frozen datapack touched
+
+          ```bash
+          python3 shadowslave/tools/validate.py
+          cd testserver && npm test
+          cd .. && python3 shadowslave/tools/build_release.py
+          ```
+
+          Claude confirms the deployed build/version before trusting a server result. A human fresh-world check
+          is required for presentation, balance, installation or dimension/worldgen changes.
+
+          ### Java source/resources touched
+
+          ```bash
+          ./mod/gradlew -p mod build
+          ./mod/gradlew -p mod runClientSmoke --no-daemon
+          ./mod/gradlew -p mod runServerSmoke --no-daemon
+          ```
+
+          Claude independently runs or inspects these rather than accepting GitHub's green badge alone.
+          Real-client interaction is additionally required for screens, key mappings, gameplay, persistence,
+          visual presentation or anything the smoke marker cannot demonstrate.
+
+          ### Migration touched
+
+          Required evidence includes untouched, Carrier, generated identity, legacy identity, inconsistent
+          state rejection and idempotency. A live importer must persist, read back and verify Java state before
+          it marks completion or removes/ignores legacy values.
+
+          ### Nightmare lifecycle touched
+
+          Tests must cover one eligibility choke point and one teardown service across victory, canonical death,
+          disconnect/restart recovery and administrator teardown. Multiplayer work also proves separate instance
+          ownership and no shared objective/entity/return state.
+
+          ## CI policy
+
+          CI is intentionally throttled to avoid an email for every development commit. Prepare a draft PR, make
+          the branch coherent, then mark ready for one intentional run. A correction should re-test the corrected
+          head, not merely rerun an old commit. Successful CI is evidence for Claude, not permission for GPT to merge.
+
+          ## File ownership and conflict avoidance
+
+          Natural strengths remain useful:
+
+          | GPT tends to own | Claude tends to own |
+          | --- | --- |
+          | canon/lore semantics, player-facing Spell copy, Aspect/Flaw definitions, architecture/specs | state-machine edge cases, test harnesses, live deployment, release/versioning, runtime verification |
+
+          This is not a fence. Cross-column edits are allowed when explicit in the PR and reviewed closely.
+          Prefer small packages and name every high-risk boundary touched.
+
+          ## Engineering invariants
+
+          - guard eligibility at the single service/choke point;
+          - one teardown path handles every exit reason;
+          - client sends intent, never authoritative progression values;
+          - tests fail closed and prove their preconditions;
+          - know exactly which build produced a result;
+          - comments explain the failure/constraint a guard protects against;
+          - optional dependencies never own canonical Soul identity;
+          - no live migration deletes legacy state before verified persistence/read-back.
+
+          Datapack-specific command invariants remain in `docs/ENGINEERING-NOTES.md` and bind any future
+          maintenance of the frozen pack.
+
+          ## Brief requirements
+
+          A handoff/spec includes:
+
+          - intent and owner goal;
+          - exact baseline commit;
+          - observable acceptance criteria;
+          - exact values/wording where they matter;
+          - what must not change;
+          - required automated and human evidence;
+          - known lore/design classification: bug, canon deviation, prototype compromise or preference.
+
+          Blocking implementation questions go in `docs/OPEN-QUESTIONS.md`. Concrete verification work may use
+          a GitHub issue, as with Issue #16.
+
+          ## Historical records
+
+          Changelog entries, old testing plans, review docs and superseded specs remain evidence of what was
+          believed at the time. Do not silently rewrite them into present tense. Add a status banner, correction
+          or pointer to the resolution. Current truth belongs in `PROJECT-STATUS.md`, current README/status files,
+          open issues and the latest accepted implementation.
+
+          ## Where to look
+
+          | Need | Authority |
+          | --- | --- |
+          | current state | `PROJECT-STATUS.md` |
+          | current GPT checkpoint | `GPT_HANDOFF.md` |
+          | canon/lore | `docs/lore-research/` and `docs/JAVA-LORE-ALIGNMENT.md` |
+          | Java migration/lifecycle contract | `docs/JAVA-HANDOFF.md` |
+          | current implementation | `mod/IMPLEMENTATION-STATUS.md` |
+          | active issues | `ISSUES.md` and GitHub issues |
+          | testing | `TESTING.md` |
+          | questions between agents | `docs/OPEN-QUESTIONS.md` |
+          """)
+
+          # Preserve the open-question record while answering Claude's Q5 and surfacing the current gate.
+          oq = Path("docs/OPEN-QUESTIONS.md")
+          text = oq.read_text(encoding="utf-8")
+          gate_marker = "<!-- java-alpha4-gate -->"
+          if gate_marker not in text:
+              insert = f"""{gate_marker}
+          ## Current blocking gate
+
+          GitHub Issue #16 owns Claude's independent verification of Java `0.1.0-alpha.4`. PRs #14 and
+          #15 are CI-green but were merged before that separate gate. No later Java feature package merges
+          until Claude records verified, verified-with-fixes or blocked.
+          """
+              text = text.replace("---\n\n## Open", f"---\n\n{insert.strip()}\n\n---\n\n## Open", 1)
+          q5_heading = "### Q5 — The Nightmare lifecycle mapping was dropped from the Java handoff. Intentional?"
+          text = text.replace(q5_heading, q5_heading + " — **ANSWERED**", 1)
+          answer_marker = "<!-- q5-answer -->"
+          if answer_marker not in text:
+              answer = f"""
+
+          {answer_marker}
+          **Answered by:** GPT on `gpt/admin-docs-current-state` · **Baseline:** `{BASELINE}`
+
+          It was collateral from restructuring, not a deliberate architectural change. The mapping is restored
+          in `docs/JAVA-HANDOFF.md` under **Nightmare lifecycle contract**. It remains binding because the Java
+          registry/lifecycle has not been implemented yet:
+
+          - every entry source calls one eligibility choke point;
+          - every exit reason calls one teardown service;
+          - scenario-specific objective logic stays behind a scenario/conflict abstraction;
+          - trial evidence belongs to the active `NightmareInstance`;
+          - victory orders objective completion -> exit -> appraisal/progression;
+          - ordinary death and technical recovery remain distinct outcomes.
+
+          Q5 is answered; future disagreement belongs in review against that restored section.
+          """
+              text = text.replace("\n### Q1 — Which harness assertions", answer + "\n\n### Q1 — Which harness assertions", 1)
+          oq.write_text(text, encoding="utf-8")
+
+          # Restore the lifecycle mapping Claude correctly identified as lost.
+          handoff = Path("docs/JAVA-HANDOFF.md")
+          text = handoff.read_text(encoding="utf-8")
+          status_marker = "<!-- java-handoff-current-status -->"
+          if status_marker not in text:
+              text = text.replace(
+                  "The port is not a line-by-line translation of mcfunctions. Preserve identity and tested contracts; replace prototype rules that exist because of datapack limits.",
+                  "The port is not a line-by-line translation of mcfunctions. Preserve identity and tested contracts; replace prototype rules that exist because of datapack limits.\n\n"
+                  + status_marker + "\n"
+                  + "**Implementation status:** Java alpha.4 contains the schema, Soul UI and pure translation fixtures. "
+                    "It does not yet read/write live legacy player state or own a real Nightmare instance. Issue #16 "
+                    "is the independent Claude verification gate before further feature work."
+              )
+          lifecycle_marker = "<!-- restored-nightmare-lifecycle-contract -->"
+          if lifecycle_marker not in text:
+              block = f"""
+          ## 6. Nightmare lifecycle contract
+
+          {lifecycle_marker}
+          The datapack machinery is not copied, but the failure-earned service boundaries remain binding:
+
+          | Datapack seam | Java contract |
+          | --- | --- |
+          | `nightmare/enter` | `NightmareService.tryEnter(player, source)`; every eligibility rule is enforced at one choke point |
+          | `nightmare/objective_tick` | scenario/conflict implementation; a boss kill is one prototype objective, not the definition of a Nightmare |
+          | `nightmare/leave` | `NightmareService.exit(instance, player, ExitReason)`; one teardown path owns every exit reason |
+          | `nightmare/eject` | consequences/presentation for a specific exit reason, never independent cleanup |
+          | `nightmare/survive` | conflict resolution -> exit -> appraisal/progression in an explicit order |
+          | `prototype/observe_trial` | evidence collection owned by the active `NightmareInstance`, not permanent Soul scratch state |
+
+          Required invariants:
+
+          - all entry sources call `tryEnter`; no caller owns a private cooldown/rank/infection bypass;
+          - victory, canonical death, disconnect recovery and administrator teardown all converge on `exit`;
+          - exit is idempotent and removes owned entities/objectives before releasing instance ownership;
+          - temporary historical role, conflict state, evidence and return data live on the instance;
+          - appraisal consumes accepted outcome/evidence after lifecycle completion rather than performing teardown;
+          - crash/admin recovery is technical and must not be described as ordinary mercy from the Spell.
+          """
+              text = text.replace("## 6. Datapack rules Java must replace", block.strip() + "\n\n## 7. Datapack rules Java must replace", 1)
+              text = text.replace("## 7. Import safety", "## 8. Import safety", 1)
+              text = text.replace("## 8. Resources to keep data-driven", "## 9. Resources to keep data-driven", 1)
+              text = text.replace("## 9. Definition of migration success", "## 10. Definition of migration success", 1)
+          handoff.write_text(text, encoding="utf-8")
+
+          # Completed historical roadmap/checklist/versioning files keep their original content under a status banner.
+          insert_after(
+              "docs/PRE1-ROADMAP.md",
+              "# Pre-1.0 datapack completion roadmap",
+              """<!-- completed-roadmap-status -->
+          > **COMPLETED / HISTORICAL.** The roadmap culminated in the released `datapack-v1.0.0`.
+          > Datapack feature development is frozen; current Java work is tracked in `PROJECT-STATUS.md`,
+          > `mod/IMPLEMENTATION-STATUS.md` and `docs/MOD-TRANSITION-PLAN.md`. The plan below is preserved as
+          > the record of the completion boundary, not a current to-do list.""",
+              "<!-- completed-roadmap-status -->",
+          )
+          insert_after(
+              "docs/RELEASE-CHECKLIST.md",
+              "# Datapack release checklist",
+              """<!-- completed-release-gate-status -->
+          > **DATAPACK GATE COMPLETED.** `datapack-v1.0.0` is released and frozen. Use this checklist only
+          > when rebuilding the frozen release or accepting a genuine datapack maintenance change. Java and
+          > modpack releases have separate gates; current Java verification is Issue #16 and `TESTING.md`.""",
+              "<!-- completed-release-gate-status -->",
+          )
+          insert_after(
+              "docs/VERSIONING.md",
+              "# Versioning policy — datapack completion and Java handoff",
+              """<!-- achieved-versioning-status -->
+          > **DECISION ACHIEVED.** The completed datapack is released as `datapack-v1.0.0`. The Java mod and
+          > Nightmare Spell modpack now use independent pre-1.0 Pride Versioning lines and product-qualified
+          > tags (`mod-v*`, `modpack-v*`). Historical ordinary `v1.x` prototype tags remain untouched.""",
+              "<!-- achieved-versioning-status -->",
+          )
+          insert_after(
+              "modpack/README.md",
+              "This directory is reserved for Path A: a curated NeoForge modpack that reuses mature mods for generic content while a custom Shadow Slave Java core owns identity, progression and Nightmare lifecycle.",
+              """<!-- modpack-current-status -->
+          ## Current status
+
+          Design only. No manifest, dependency lockfile, compatibility adapter, downloaded JAR or public package
+          exists yet. Path A waits for Claude verification of Java alpha.4 and the accepted live migration plus
+          Nightmare-instance boundaries. Dependency research may continue, but no external mod may become the
+          canonical owner of Soul identity or Nightmare lifecycle.""",
+              "<!-- modpack-current-status -->",
+          )
+          insert_after(
+              "shared-test-spec/VERTICAL-SLICE.md",
+              "# Shared vertical-slice acceptance specification",
+              """<!-- shared-slice-current-status -->
+          > **CURRENT STATUS:** neither Path A nor Path B has completed this slice. The shared Java foundation
+          > covers persistence, snapshots, UI and pure migration translation; natural infection, real instance
+          > ownership, a playable historical conflict and appraisal remain outstanding. Issue #16 must close
+          > before new feature packages merge.""",
+              "<!-- shared-slice-current-status -->",
+          )
+
+          # Add current progress to the transition plan and replace its now-completed immediate sequence.
+          plan = Path("docs/MOD-TRANSITION-PLAN.md")
+          text = plan.read_text(encoding="utf-8")
+          plan_marker = "<!-- transition-current-status -->"
+          if plan_marker not in text:
+              anchor = "This is a controlled comparison, not a commitment to maintain two permanent products feature-for-feature."
+              block = f"""
+
+          {plan_marker}
+          ## Current implementation status
+
+          - datapack `datapack-v1.0.0`: released and frozen;
+          - shared/standalone Java core: `0.1.0-alpha.4` on `main`;
+          - implemented: Soul persistence, lore schema, networking/UI, schema migration and pure datapack translation;
+          - blocking gate: Claude verification Issue #16;
+          - not implemented: live import, Nightmare SavedData/instances, playable conflict/appraisal;
+          - modpack track: design only.
+          """
+              text = text.replace(anchor, anchor + block, 1)
+          immediate = """## 11. Immediate sequence
+
+          1. close Claude verification Issue #16 with evidence or fixes;
+          2. implement live datapack reading, Java persistence and read-back verification;
+          3. retain legacy state until the import is confirmed and idempotent;
+          4. implement `NightmareRegistryData` and explicit per-player instance ownership;
+          5. implement one data-driven historical role, central conflict and valid resolution;
+          6. add appraisal revealing one Aspect and Flaw through the shared core;
+          7. build the same accepted slice in the modpack track;
+          8. score both paths and choose standalone-led, modpack-led or hybrid.
+
+          """
+          text = re.sub(r"## 11\. Immediate sequence\n.*?(?=## 12\.)", immediate, text, flags=re.S)
+          plan.write_text(text, encoding="utf-8")
+
+          # Insert current multi-product entries without disturbing the preserved datapack history.
+          changelog = Path("CHANGELOG.md")
+          text = changelog.read_text(encoding="utf-8")
+          ch_marker = "<!-- current-java-transition-changelog -->"
+          if ch_marker not in text:
+              block = f"""
+
+          {ch_marker}
+          ## `0.1.0-alpha.4` — fail-safe datapack translation foundation
+
+          - immutable legacy evidence snapshot and pure translator;
+          - exact generated and legacy Aspect/Flaw mappings;
+          - fail-closed rejection of active/inconsistent state;
+          - deterministic imported IDs and idempotency fixtures;
+          - corrected-head CI passed build, tests, JAR, client and server smoke;
+          - **Claude verification remains pending in Issue #16.**
+
+          ## `0.1.0-alpha.3` — lore-aligned Java schema
+
+          - removed Mundane from the Soul Rank ladder;
+          - added explicit Aspirant and Dreamer stages plus awakening path;
+          - separated Aspect Rank from Soul Rank;
+          - updated Soul snapshot/screen and schema-1 migration;
+          - documented novel/manhwa/design authority boundaries.
+
+          ## `0.1.0-alpha.2` — server-synchronised Soul screen
+
+          - limited server-owned Soul snapshots;
+          - O-key read-only screen and command fallback;
+          - login/mutation synchronization;
+          - physical-client and dedicated-server side-separation gates.
+
+          ## `0.1.0-alpha.1` — persistent Java Soul core
+
+          - NeoForge 1.21.1 / Java 21 workspace;
+          - codec-backed player Soul attachment and mutation service;
+          - unit tests, JAR packaging and dedicated-server load smoke.
+
+          ## `datapack-v1.0.0` — completed vanilla datapack reference
+
+          The tested `0.7.3` behaviour was stamped and frozen as the public `1.0.0` datapack baseline. The
+          GitHub Release contains `shadowslave-v1.0.0.zip` and `SHA256SUMS.txt`. Datapack feature development
+          ended; Java preserves earned identity/contracts while replacing command-era machinery.
+          """
+              sep = text.index("---") + len("---")
+              text = text[:sep] + block + text[sep:]
+          changelog.write_text(text, encoding="utf-8")
+
+          # Replace only the stale current-status preface; keep the historical issue log untouched.
+          issues_current = """## Current release status
+
+          **Canonical status:** see `PROJECT-STATUS.md`.
+
+          ### Datapack
+
+          `datapack-v1.0.0` is released and frozen. There is no known datapack-fixable blocker requiring
+          more command architecture. Q4's remaining real-client judgement of the burdened-movement feel is an
+          evidence gap, not evidence that the released mechanic is broken; Slowness presence/removal is covered
+          by the accepted automated gate.
+
+          ### Java core
+
+          Current development version is `0.1.0-alpha.4`.
+
+          - GitHub CI: build/tests/JAR/client/server smoke passed;
+          - independent Claude verification: pending;
+          - blocking tracker: GitHub Issue #16;
+          - no public Java release exists;
+          - no further Java feature package should merge until #16 closes.
+
+          Current implementation limits—not bugs disguised as finished features:
+
+          - no live datapack reader/writer or legacy cleanup;
+          - no persistent Nightmare registry/instance ownership;
+          - no natural infection or playable Java Nightmare;
+          - no appraisal/abilities/Memories/Dream Realm systems;
+          - no modpack manifest or external adapters.
+
+          ### Current low-risk datapack uncertainties
+
+          - ravager roar damage is assumed rather than isolated;
+          - integer return coordinates can move a negative fractional position by roughly one block;
+          - death-screen presentation and the final human judgement of Slowness feel remain human-only;
+          - these do not justify expanding the frozen datapack unless a real defect is observed.
+
+          ### Administrative correction
+
+          PRs #14 and #15 were merged after CI without the separate Claude gate required by collaboration
+          policy. Issue #16 restores that gate. The code is not being reverted merely for process; it is being
+          held from further feature stacking until independently reviewed and tested.
+
+          """
+          replace_between(
+              "ISSUES.md",
+              "## Current release status",
+              "Everything below this line is the **historical issue log**.",
+              issues_current,
+          )
+
+          # Replace only the stale bottom current section; preserve all historical test plans above it.
+          testing = Path("TESTING.md")
+          text = testing.read_text(encoding="utf-8")
+          current_heading = "# Current release-candidate checks"
+          if current_heading in text:
+              current = """# Current test gates
+
+          ## Frozen datapack
+
+          The public datapack is `datapack-v1.0.0`. Re-run its full gate only when the frozen datapack or
+          packaging changes:
+
+          ```bash
+          python3 shadowslave/tools/validate.py
+          cd testserver && npm test
+          cd .. && python3 shadowslave/tools/build_release.py
+          ```
+
+          A dimension/worldgen/install change additionally requires the generated ZIP in a fresh Minecraft
+          1.21.1 world. Historical datapack sweeps above remain evidence, not current Java expectations.
+
+          ## Java alpha.4 automated gate
+
+          GitHub CI passed build, unit tests, JAR packaging, physical-client startup and dedicated-server
+          startup. Claude must independently review and run:
+
+          ```bash
+          ./mod/gradlew -p mod build
+          ./mod/gradlew -p mod runClientSmoke --no-daemon
+          ./mod/gradlew -p mod runServerSmoke --no-daemon
+          ```
+
+          Record exact results in Issue #16. A green GitHub workflow alone does not close the gate.
+
+          ## Java alpha.4 real-client interaction
+
+          In a Minecraft 1.21.1 NeoForge development client:
+
+          1. join a world and press **O**; the Soul screen opens;
+          2. fresh player: Uninfected, Undecided path, no Soul Rank/Aspect Rank/Aspect/Flaw;
+          3. `/shadowslave infect`: Carrier, Nightmare Spell path, still no Soul Rank;
+          4. `/shadowslave begin_first_nightmare_test`: Aspirant with Dormant Soul Rank, no permanent identity;
+          5. `/shadowslave complete_first_nightmare_test`: Dreamer with Dormant Soul Rank, Aspect, separate Aspect Rank and Flaw;
+          6. `/shadowslave reset`: Uninfected with no Rank;
+          7. relog/restart at practical stages and confirm persistence.
+
+          Do not claim this passed until a real client was used.
+
+          ## Migration review
+
+          Confirm the pure translator:
+
+          - leaves untouched players alone;
+          - imports Carrier without inventing rank or identity;
+          - imports completed datapack state as Dreamer/Dormant;
+          - preserves exact generated names;
+          - requires compatibility tags for old `1..4` identities;
+          - maps `ss_flaw_weightless` to burdened movement, not retired fall-distance behaviour;
+          - rejects active-Nightmare and inconsistent state before any write;
+          - produces no second plan after migration is marked complete.
+
+          The current package does **not** read or mutate a live player. The next package must persist and
+          read back Java data before any legacy cleanup is allowed.
+
+          ## Merge gate
+
+          No new Java feature package merges until Issue #16 records **verified**, **verified with fixes** or
+          **blocked**. Documentation-only reconciliation may be reviewed separately but does not waive that gate.
+          """
+              text = text[:text.index(current_heading)] + current
+          testing.write_text(text, encoding="utf-8")
+
+          # Remove the one-shot workflow from the resulting documentation commit.
+          Path(".github/workflows/admin-doc-refresh.yml").unlink()
+          PY
+
+      - name: Commit refreshed documentation
+        shell: bash
+        run: |
+          git config user.name "ChatGPT documentation agent"
+          git config user.email "gpt@openai.com"
+          git add -A
+          git commit -m "docs: reconcile project administration after Java alpha.4" -m "Co-Authored-By: ChatGPT <gpt@openai.com>"
+          git push origin HEAD:${{ github.ref_name }}
