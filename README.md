@@ -50,16 +50,35 @@ first journey into the Dream Realm, which Phase 1 does not have. The ladder is
 
 `/trigger soul` shows where you stand.
 
-|             |                                             |
-| ----------- | ------------------------------------------- |
-| **Aspects** | Shadow, Flame, Bone, Wind                   |
-| **Flaws**   | Shadow Slave, Fragile, Ravenous, Weightless |
+### Generated Aspect identity
 
-Rolled independently, so Shadow + Shadow Slave is possible — and thematically apt.
+A new Sleeper receives one of **16 generated Aspect identities** such as _Veiled Witness_,
+_Ember Bearer_, _Pale Bastion_, or _Stray Gale_. The identity is broader than a literal spell name,
+while its current Dormant expression is drawn from four mechanics a vanilla datapack can honestly
+execute: darkness, ember/fire, hardened body, or unnatural movement.
 
-> These eight are **placeholders**. The novel is explicit that every Aspect is unique and that
-> Flaws are never random, so the plan is to generate Aspects and derive Flaws from how you
-> actually survived the trial. See the design spec.
+That finite mechanical vocabulary is deliberate. The pack can compose names and state at runtime; it
+cannot invent a brand-new command implementation out of thin air. Java can later replace the four
+roots without changing what an Aspect is meant to represent.
+
+### Flaws remember the trial
+
+Flaws are no longer rolled as an unrelated second class. The successful First Nightmare records only
+strong behavior the pack can actually observe:
+
+- being driven into the **5–8 HP** near-collapse window biases the reduced-health burden family;
+- consuming **6+ food points** during the creature fight biases the hunger burden family;
+- opening **40+ blocks** of distance from the creature biases the unstable-footing/fall family;
+- if none of those strong signals happened, the burden family falls back to random rather than
+  pretending the game measured personality it cannot see.
+
+Randomness then chooses one of four personal names **inside** that family. Two people can therefore
+survive in the same way, carry the same kind of price, and still receive different Flaw identities.
+The old player-facing **Shadow Slave Flaw** is gone — _Shadow Slave_ is canonically an Aspect name.
+
+> The generated names and selection rules are fan-created game systems constrained by the verified
+> lore; they are **not** presented as the Nightmare Spell's canonical algorithm. Canon establishes
+> influences and examples, but no deterministic formula.
 
 ---
 
@@ -69,14 +88,14 @@ Rolled independently, so Shadow + Shadow Slave is possible — and thematically 
 /function shadowslave:test/help
 ```
 
-| Command          | Does                                |
-| ---------------- | ----------------------------------- |
-| `test/selfcheck` | Asserts the pack loaded correctly   |
-| `test/infect`    | Become a Carrier now                |
-| `test/cure`      | Back to untouched                   |
-| `test/nightmare` | Enter the trial immediately, no bed |
-| `test/awaken`    | Skip the trial, roll an Aspect      |
-| `test/reset`     | Wipe everything and start over      |
+| Command          | Does                                         |
+| ---------------- | -------------------------------------------- |
+| `test/selfcheck` | Asserts the pack loaded correctly            |
+| `test/infect`    | Become a Carrier now                         |
+| `test/cure`      | Back to untouched                            |
+| `test/nightmare` | Enter the trial immediately, no bed          |
+| `test/awaken`    | Skip the trial; generate a Sleeper identity  |
+| `test/reset`     | Wipe everything and start over               |
 
 Skip the countdown mid-trial with `/scoreboard players set @s ss_timer 1`.
 
@@ -85,6 +104,9 @@ cooldown and the weakness gate via a single-use `ss_test_bypass` tag that entry 
 otherwise the command for entering the trial refuses to enter the trial. The rank gate has no
 bypass on purpose: a Sleeper in a First Nightmare is a state nothing handles. Use
 `test/reset`.
+
+`test/awaken` deliberately clears any observations left by a failed trial before generating the
+identity, so it exercises the no-trial/random-family path rather than inheriting an earned Flaw.
 
 There is also a **Shadow Slave — Verification** advancement tab. Each entry is granted at the
 exact line a mechanic executes, so it records what actually ran rather than what you think
@@ -100,10 +122,12 @@ ran. An incomplete branch tells you where the loop stopped.
 shadowslave/            the datapack itself
   data/shadowslave/
     function/           all logic, grouped by responsibility
-      nightmare/          the trial lifecycle
-      aspect/  flaw/      recurring per-second effects
-      awaken/             the one-time rank transition
-      test/               testing commands
+      nightmare/        the trial lifecycle
+      progression/      First Nightmare -> Sleeper transition
+      prototype/        generated identity + trial observation seam
+      aspect/  flaw/    finite Dormant mechanics / burden families
+      awaken/           historical compatibility alias
+      test/             testing commands
     dimension_type/  dimension/  worldgen/biome/
     advancement/  predicate/
   tools/validate.py     offline structure and reference checker
@@ -173,7 +197,7 @@ for each round of fixes; holding a release back until it is clean makes the numb
 | [docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) | Why the code is like this — each convention with the bug that caused it |
 | [docs/COLLABORATION.md](docs/COLLABORATION.md) | How the two AI agents work through this repo |
 | [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) | Questions between agents, and the answers that settled them |
-| `docs/superpowers/specs/`    | Design spec, including the direction for generated Aspects          |
+| [Aspect/Flaw rework spec](docs/superpowers/specs/2026-07-30-aspect-flaw-rework.md) | Generated identity, trial observations, compatibility and acceptance criteria |
 
 ## Credit
 
