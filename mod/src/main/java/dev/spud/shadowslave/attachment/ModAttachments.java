@@ -14,7 +14,7 @@ public final class ModAttachments {
             DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, ShadowSlaveMod.MOD_ID);
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<SoulData>> SOUL =
-            ATTACHMENTS.register("soul", () -> AttachmentType.builder(SoulData::mundane)
+            ATTACHMENTS.register("soul", () -> AttachmentType.builder(SoulData::uninfected)
                     .serialize(SoulData.CODEC.codec())
                     .copyOnDeath()
                     .build());
