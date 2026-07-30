@@ -1,6 +1,6 @@
 # Java handoff contract — datapack `1.0.0` baseline
 
-**Maintained through:** `0.7.2` plus `gpt/replace-weightless-flaw`; Claude must stamp the final verified `1.0.0` baseline before Java import work begins.
+**Maintained through:** `0.7.3` — `gpt/replace-weightless-flaw` is merged, stamped and tagged, so the retreat family's contract here is current. Claude must still stamp the final verified `1.0.0` baseline before Java import work begins; `0.7.3` is not that baseline.
 
 **Purpose:** this is not a Java implementation plan. It is the behavioural and persistence contract the Java mod must preserve when the datapack is frozen at `1.0.0`.
 
@@ -26,14 +26,14 @@ First-Nightmare completion is **not Awakening**. Actual Awakening belongs after 
 
 Datapack seams map cleanly to Java responsibilities:
 
-| Datapack | Java contract |
-| --- | --- |
-| `nightmare/enter` | `NightmareService.tryEnter(player, source)` — every eligibility invariant in one choke point |
+| Datapack                   | Java contract                                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `nightmare/enter`          | `NightmareService.tryEnter(player, source)` — every eligibility invariant in one choke point                 |
 | `nightmare/objective_tick` | scenario/objective implementation; boss kill is one Phase-1 objective, not the definition of every Nightmare |
-| `nightmare/leave` | `NightmareService.exit(instance, player, ExitReason)` — one teardown path |
-| `nightmare/eject` | exit reason + consequences/presentation, not separate cleanup |
-| `nightmare/survive` | objective completion -> exit -> progression |
-| `prototype/observe_trial` | behaviour/evidence collection owned by the active Nightmare instance |
+| `nightmare/leave`          | `NightmareService.exit(instance, player, ExitReason)` — one teardown path                                    |
+| `nightmare/eject`          | exit reason + consequences/presentation, not separate cleanup                                                |
+| `nightmare/survive`        | objective completion -> exit -> progression                                                                  |
+| `prototype/observe_trial`  | behaviour/evidence collection owned by the active Nightmare instance                                         |
 
 The Java implementation must add explicit Nightmare instance ownership. Do **not** port the datapack's global creature selector, shared bossbar or shared command storage as architecture.
 
@@ -47,7 +47,7 @@ Only state that represents player identity/progression belongs in the importer. 
 - `ss_rank >= 1` -> `spellState = DREAMER` and `soulRank = DORMANT` under the completed datapack contract.
 - neither -> `spellState = UNTOUCHED`.
 
-The historical prototype once *called* `ss_rank=1` Awakened, but current runtime semantics intentionally reinterpret that same stored value as Sleeper/Dormant. There is no reliable version marker on old player state that can reconstruct which label a player saw years earlier; the Java importer follows the frozen datapack behaviour rather than resurrecting the superseded label.
+The historical prototype once _called_ `ss_rank=1` Awakened, but current runtime semantics intentionally reinterpret that same stored value as Sleeper/Dormant. There is no reliable version marker on old player state that can reconstruct which label a player saw years earlier; the Java importer follows the frozen datapack behaviour rather than resurrecting the superseded label.
 
 ### Aspect identity
 

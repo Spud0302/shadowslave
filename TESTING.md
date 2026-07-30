@@ -88,12 +88,22 @@ Force one instead of rolling: `/function shadowslave:test/awaken` then
 
 ## F. Flaws
 
-| #   | Flaw         | Command                            | Expect                                                                                                                                                                 |
-| --- | ------------ | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| F1  | Shadow Slave | `/tag @s add ss_flaw_shadow_slave` | Steady damage outdoors in daylight; stops in shade or at night. **Also try it with Flame active** — it should still hurt you, since it deals magic damage now.         |
-| F2  | Fragile      | `/tag @s add ss_flaw_fragile`      | Max health drops to 14 (7 hearts). Wait a minute — must **stay** at 14.                                                                                                |
-| F3  | Ravenous     | `/tag @s add ss_flaw_ravenous`     | Hunger drains noticeably faster.                                                                                                                                       |
-| F4  | Weightless   | `/tag @s add ss_flaw_weightless`   | **Retuned in `v1.1.2`.** Jumping on the spot: no damage. Walking off 1 block: no damage. Hopping down 1 block: about half a heart. Longer falls hurt more than normal. |
+| #   | Flaw         | Command                            | Expect                                                                                                                                                                                                                                                        |
+| --- | ------------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F1  | Shadow Slave | `/tag @s add ss_flaw_shadow_slave` | Steady damage outdoors in daylight; stops in shade or at night. **Also try it with Flame active** — it should still hurt you, since it deals magic damage now.                                                                                                |
+| F2  | Fragile      | `/tag @s add ss_flaw_fragile`      | Max health drops to 14 (7 hearts). Wait a minute — must **stay** at 14.                                                                                                                                                                                       |
+| F3  | Ravenous     | `/tag @s add ss_flaw_ravenous`     | Hunger drains noticeably faster.                                                                                                                                                                                                                              |
+| F4  | Burdened     | `/tag @s add ss_flaw_weightless`   | **Reimplemented in `v0.7.3`** — the old fall-damage version was retired (see below). Walking is visibly slower and stays slower. Drink milk: the slowness clears, then returns within about a second. `/function shadowslave:test/reset` removes it for good. |
+
+**F4's tag name does not match its Flaw name, deliberately.** `ss_flaw_weightless` is kept as the
+save/import identifier so existing worlds and the Java importer need no migration; `v0.7.3` retired the
+mechanic it was named after. The old version reduced `safe_fall_distance`, which Minecraft 1.21.1
+intermittently ignored even when the command succeeded — a player could carry the Flaw and receive no
+penalty at all. It is now Slowness I, refreshed once per second by upkeep.
+
+**Still an open judgement call:** is the slowness _noticeable but not obnoxious_? The harness can only
+prove the effect is present and that reset clears it — whether it feels like a fair price for the trial
+is a human call. If it reads as obnoxious, say so; that is legitimate `0.8.x` work per the roadmap.
 
 ## G. Edge cases
 
@@ -156,30 +166,30 @@ importance. Start with a clean state: `/function shadowslave:test/reset`.
 
 ## Highest risk — new mechanisms, never run
 
-| # | Do this | Expect |
-| --- | --- | --- |
-| R1 | **Die in the trial with a full inventory.** `test/nightmare`, fill your hotbar, then `/kill @s`. | **Your items are at your bed**, not stranded in the nightmare. This is the most speculative code in the batch: it drags item entities across a dimension boundary using a temporary marker as the teleport destination, because selectors cannot cross dimensions with coordinates. If the items are missing, say so — the fallback is a different approach entirely. |
-| R2 | **Read your soul, then enter.** `/trigger soul`, then immediately `test/nightmare`. | You enter and **stay in**. This was the lockout: the readout was writing your armour into the score the ejection check reads. Try it a few times — it used to fire on every attempt. |
-| R3 | **Fight it at wooden sword, no armour.** | 60 health = 15 hits. Should be a real fight you can actually win, rather than 40 hits you never survive. Tell me if it is now trivial — that is a one-number change either way. |
+| #   | Do this                                                                                          | Expect                                                                                                                                                                                                                                                                                                                                                                |
+| --- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | **Die in the trial with a full inventory.** `test/nightmare`, fill your hotbar, then `/kill @s`. | **Your items are at your bed**, not stranded in the nightmare. This is the most speculative code in the batch: it drags item entities across a dimension boundary using a temporary marker as the teleport destination, because selectors cannot cross dimensions with coordinates. If the items are missing, say so — the fallback is a different approach entirely. |
+| R2  | **Read your soul, then enter.** `/trigger soul`, then immediately `test/nightmare`.              | You enter and **stay in**. This was the lockout: the readout was writing your armour into the score the ejection check reads. Try it a few times — it used to fire on every attempt.                                                                                                                                                                                  |
+| R3  | **Fight it at wooden sword, no armour.**                                                         | 60 health = 15 hits. Should be a real fight you can actually win, rather than 40 hits you never survive. Tell me if it is now trivial — that is a one-number change either way.                                                                                                                                                                                       |
 
 ## Fixes to specific reported bugs
 
-| # | Do this | Expect |
-| --- | --- | --- |
-| R4 | `test/cure`, then sleep at night as an **untouched** player | *"Something noticed you while you slept"* and you **wake up normally**. You should NOT be pulled in on that first sleep. |
-| R5 | Sleep again as a **Carrier** | Now you are pulled in. |
-| R6 | Inside the trial, wait 30+ seconds | **No** nausea, **no** *"Your eyelids are heavy"*. The Spell should not call someone already in its trial. |
-| R7 | Die in the trial, watch the death screen | **No** portal warp, no view of your bed behind it. Just a normal death screen. |
-| R8 | `test/awaken`, note the Aspect, then `test/reset` and `test/awaken` again | Old Aspect and Flaw fully gone. Check `/trigger soul` — Vitality should read 20 unless the NEW roll is Fragile, and Endurance 0 unless it is Bone. Previously modifiers outlived their Aspect. |
-| R9 | Sleep at night as an **Awakened** player | Sleeps normally, and grants **Sleep Undisturbed** — the advancement was unreachable before. |
-| R10 | `test/cure` while Awakened | Refuses, and points you at `test/reset`. It used to claim the Spell had lost interest, which was untrue. |
-| R11 | As a Carrier, sneak on a bed | *"The Spell reaches for you..."* appears **immediately** on the actionbar, before the hold completes. |
-| R12 | Watch the creature chase you | Should move noticeably faster than before — its speed now comes from an effect, since a ravager overwrites its own speed attribute. |
+| #   | Do this                                                                   | Expect                                                                                                                                                                                         |
+| --- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R4  | `test/cure`, then sleep at night as an **untouched** player               | _"Something noticed you while you slept"_ and you **wake up normally**. You should NOT be pulled in on that first sleep.                                                                       |
+| R5  | Sleep again as a **Carrier**                                              | Now you are pulled in.                                                                                                                                                                         |
+| R6  | Inside the trial, wait 30+ seconds                                        | **No** nausea, **no** _"Your eyelids are heavy"_. The Spell should not call someone already in its trial.                                                                                      |
+| R7  | Die in the trial, watch the death screen                                  | **No** portal warp, no view of your bed behind it. Just a normal death screen.                                                                                                                 |
+| R8  | `test/awaken`, note the Aspect, then `test/reset` and `test/awaken` again | Old Aspect and Flaw fully gone. Check `/trigger soul` — Vitality should read 20 unless the NEW roll is Fragile, and Endurance 0 unless it is Bone. Previously modifiers outlived their Aspect. |
+| R9  | Sleep at night as an **Awakened** player                                  | Sleeps normally, and grants **Sleep Undisturbed** — the advancement was unreachable before.                                                                                                    |
+| R10 | `test/cure` while Awakened                                                | Refuses, and points you at `test/reset`. It used to claim the Spell had lost interest, which was untrue.                                                                                       |
+| R11 | As a Carrier, sneak on a bed                                              | _"The Spell reaches for you..."_ appears **immediately** on the actionbar, before the hold completes.                                                                                          |
+| R12 | Watch the creature chase you                                              | Should move noticeably faster than before — its speed now comes from an effect, since a ravager overwrites its own speed attribute.                                                            |
 
 ## Regression
 
-| # | Do this | Expect |
-| --- | --- | --- |
+| #   | Do this                   | Expect                                                                                                                                        |
+| --- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | R13 | The full loop once, clean | infect → sleep → survive → kill → Awakened, with the right Aspect and Flaw. Eleven things changed; this confirms none of them broke the loop. |
 
 ---
