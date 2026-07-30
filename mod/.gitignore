@@ -1,0 +1,7 @@
+.gradle/
+build/
+run/
+run-*/
+src/generated/resources/
+.idea/
+*.iml
