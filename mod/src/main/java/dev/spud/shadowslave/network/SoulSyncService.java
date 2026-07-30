@@ -4,6 +4,7 @@ import dev.spud.shadowslave.network.payload.SoulSnapshot;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
+import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -27,7 +28,10 @@ public final class SoulSyncService {
         Objects.requireNonNull(soul, "soul");
         PacketDistributor.sendToPlayer(
                 player,
-                new SoulSnapshotPayload(SoulSnapshot.from(soul), openScreen)
+                new SoulSnapshotPayload(
+                        SoulSnapshot.from(soul, SoulIdentityService.get(player)),
+                        openScreen
+                )
         );
     }
 }

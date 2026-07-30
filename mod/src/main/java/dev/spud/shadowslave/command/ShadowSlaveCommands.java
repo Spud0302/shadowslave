@@ -2,14 +2,22 @@ package dev.spud.shadowslave.command;
 
 import com.mojang.brigadier.Command;
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.migration.DatapackMigrationOutcome;
 import dev.spud.shadowslave.migration.DatapackMigrationService;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
 import dev.spud.shadowslave.migration.ImportedIdentityService;
 import dev.spud.shadowslave.network.SoulSyncService;
+import dev.spud.shadowslave.nightmare.NightmareInstance;
+import dev.spud.shadowslave.nightmare.NightmareService;
+import dev.spud.shadowslave.preview.PreviewPowerData;
+import dev.spud.shadowslave.preview.PreviewPowerService;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
+import dev.spud.shadowslave.soul.SpellState;
+import dev.spud.shadowslave.soul.identity.SoulIdentityData;
+import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -17,7 +25,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
-/** Operator-facing commands for Java architecture and migration smoke tests. */
+/** Player preview controls plus operator-facing architecture and migration commands. */
 public final class ShadowSlaveCommands {
     private static final ResourceLocation TEST_ASPECT =
             ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "prototype/veiled_witness");
@@ -33,6 +41,18 @@ public final class ShadowSlaveCommands {
                         .executes(context -> showSoul(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("soul_screen")
                         .executes(context -> openSoulScreen(context.getSource().getPlayerOrException())))
+                .then(Commands.literal("preview_begin")
+                        .executes(context -> previewBegin(context.getSource().getPlayerOrException())))
+                .then(Commands.literal("preview_reset")
+                        .executes(context -> previewReset(context.getSource().getPlayerOrException())))
+                .then(Commands.literal("nightmare_enter")
+                        .executes(context -> enterNightmare(context.getSource().getPlayerOrException())))
+                .then(Commands.literal("nightmare_status")
+                        .executes(context -> nightmareStatus(context.getSource().getPlayerOrException())))
+                .then(Commands.literal("nightmare_recover")
+                        .executes(context -> recoverNightmare(context.getSource().getPlayerOrException())))
+                .then(Commands.literal("kindle")
+                        .executes(context -> kindle(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("migrate_datapack")
                         .requires(source -> source.hasPermission(2))
                         .executes(context -> migrateDatapack(context.getSource().getPlayerOrException())))
@@ -47,18 +67,23 @@ public final class ShadowSlaveCommands {
                         .executes(context -> completeFirstNightmare(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("reset")
                         .requires(source -> source.hasPermission(2))
-                        .executes(context -> reset(context.getSource().getPlayerOrException()))));
+                        .executes(context -> previewReset(context.getSource().getPlayerOrException()))));
     }
 
     private static int showSoul(ServerPlayer player) {
         SoulData soul = SoulService.get(player);
+        SoulIdentityData identity = SoulIdentityService.get(player);
         ImportedIdentityData importedIdentity = ImportedIdentityService.get(player);
-        String aspect = importedIdentity.aspect()
+        String aspect = identity.aspect()
                 .map(value -> value.formalName() + " [" + value.instanceId() + "]")
-                .orElseGet(() -> soul.aspectId().map(ResourceLocation::toString).orElse("—"));
-        String flaw = importedIdentity.flaw()
+                .orElseGet(() -> importedIdentity.aspect()
+                        .map(value -> value.formalName() + " [" + value.instanceId() + "]")
+                        .orElseGet(() -> soul.aspectId().map(ResourceLocation::toString).orElse("—")));
+        String flaw = identity.flaw()
                 .map(value -> value.formalName() + " [" + value.instanceId() + "]")
-                .orElseGet(() -> soul.flawId().map(ResourceLocation::toString).orElse("—"));
+                .orElseGet(() -> importedIdentity.flaw()
+                        .map(value -> value.formalName() + " [" + value.instanceId() + "]")
+                        .orElseGet(() -> soul.flawId().map(ResourceLocation::toString).orElse("—")));
 
         player.sendSystemMessage(Component.literal("— Soul —").withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));
         player.sendSystemMessage(Component.literal("Status: ").withStyle(ChatFormatting.DARK_GRAY)
@@ -83,6 +108,73 @@ public final class ShadowSlaveCommands {
     private static int openSoulScreen(ServerPlayer player) {
         SoulSyncService.openScreen(player);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int previewBegin(ServerPlayer player) {
+        try {
+            SoulData soul = SoulService.get(player);
+            if (soul.spellState() == SpellState.UNINFECTED) {
+                SoulService.infect(player);
+                player.sendSystemMessage(Component.literal(
+                        "DEVELOPMENT PREVIEW: infection is granted by this command. The command is not a canonical infection cause."
+                ).withStyle(ChatFormatting.YELLOW));
+            }
+            NightmareService.tryEnter(player);
+            return Command.SINGLE_SUCCESS;
+        } catch (RuntimeException exception) {
+            player.sendSystemMessage(Component.literal(exception.getMessage()).withStyle(ChatFormatting.RED));
+            return 0;
+        }
+    }
+
+    private static int previewReset(ServerPlayer player) {
+        NightmareService.activeFor(player).ifPresent(instance -> NightmareService.adminAbort(player));
+        SoulService.reset(player);
+        SoulIdentityService.replace(player, SoulIdentityData.empty());
+        ImportedIdentityService.replace(player, ImportedIdentityData.empty());
+        player.setData(ModAttachments.PREVIEW_POWER, PreviewPowerData.empty());
+        player.sendSystemMessage(Component.literal("Preview state reset to uninfected (Mundane description).")
+                .withStyle(ChatFormatting.GRAY));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int enterNightmare(ServerPlayer player) {
+        try {
+            NightmareService.tryEnter(player);
+            return Command.SINGLE_SUCCESS;
+        } catch (RuntimeException exception) {
+            player.sendSystemMessage(Component.literal(exception.getMessage()).withStyle(ChatFormatting.RED));
+            return 0;
+        }
+    }
+
+    private static int nightmareStatus(ServerPlayer player) {
+        NightmareInstance instance = NightmareService.activeFor(player).orElse(null);
+        if (instance == null) {
+            player.sendSystemMessage(Component.literal("No active Nightmare instance.").withStyle(ChatFormatting.GRAY));
+            return Command.SINGLE_SUCCESS;
+        }
+        player.sendSystemMessage(Component.literal("Active Nightmare: " + instance.scenarioId())
+                .withStyle(ChatFormatting.LIGHT_PURPLE));
+        player.sendSystemMessage(Component.literal("Historical role: " + instance.historicalRoleId())
+                .withStyle(ChatFormatting.GRAY));
+        player.sendSystemMessage(Component.literal("Instance: " + instance.instanceId() + " / slot " + instance.slot())
+                .withStyle(ChatFormatting.DARK_GRAY));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int recoverNightmare(ServerPlayer player) {
+        try {
+            NightmareService.technicalRecover(player);
+            return Command.SINGLE_SUCCESS;
+        } catch (RuntimeException exception) {
+            player.sendSystemMessage(Component.literal(exception.getMessage()).withStyle(ChatFormatting.RED));
+            return 0;
+        }
+    }
+
+    private static int kindle(ServerPlayer player) {
+        return PreviewPowerService.activateKindle(player) ? Command.SINGLE_SUCCESS : 0;
     }
 
     private static int migrateDatapack(ServerPlayer player) {
@@ -138,13 +230,5 @@ public final class ShadowSlaveCommands {
             player.sendSystemMessage(Component.literal(exception.getMessage()).withStyle(ChatFormatting.RED));
             return 0;
         }
-    }
-
-    private static int reset(ServerPlayer player) {
-        SoulService.reset(player);
-        ImportedIdentityService.replace(player, ImportedIdentityData.empty());
-        player.sendSystemMessage(Component.literal("Soul state reset to uninfected (Mundane description).")
-                .withStyle(ChatFormatting.GRAY));
-        return Command.SINGLE_SUCCESS;
     }
 }

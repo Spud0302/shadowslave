@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 
 import java.util.Locale;
 
-/** First client presentation of server-authoritative Soul state. */
+/** Read-only presentation of server-authoritative Soul and revealed identity state. */
 public final class SoulScreen extends Screen {
     private static final int PANEL_BACKGROUND = 0xE6120F1C;
     private static final int PANEL_BORDER = 0xFF6E4A8E;
@@ -28,8 +28,8 @@ public final class SoulScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(graphics, mouseX, mouseY, partialTick);
 
-        int panelWidth = Math.min(400, Math.max(250, this.width - 32));
-        int panelHeight = 236;
+        int panelWidth = Math.min(500, Math.max(300, this.width - 32));
+        int panelHeight = Math.min(330, Math.max(286, this.height - 28));
         int left = (this.width - panelWidth) / 2;
         int top = (this.height - panelHeight) / 2;
         int right = left + panelWidth;
@@ -37,28 +37,38 @@ public final class SoulScreen extends Screen {
 
         graphics.fill(left - 1, top - 1, right + 1, bottom + 1, PANEL_BORDER);
         graphics.fill(left, top, right, bottom, PANEL_BACKGROUND);
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, top + 14, TITLE_COLOR);
+        graphics.drawCenteredString(this.font, this.title, this.width / 2, top + 12, TITLE_COLOR);
 
-        int labelX = left + 22;
-        int valueX = left + 126;
-        int lineY = top + 44;
+        int labelX = left + 20;
+        int valueX = left + 132;
+        int lineY = top + 38;
+        int step = 20;
 
         drawRow(graphics, "Status", humanize(snapshot.spellState()), labelX, valueX, lineY, VALUE_COLOR);
-        drawRow(graphics, "Path", humanize(snapshot.awakeningPath()), labelX, valueX, lineY + 22, VALUE_COLOR);
-        drawRow(graphics, "Soul Rank", humanize(snapshot.displayedSoulRank()), labelX, valueX, lineY + 44, VALUE_COLOR);
-        drawRow(graphics, "Aspect", snapshot.displayedAspect(), labelX, valueX, lineY + 66, ASPECT_COLOR);
-        drawRow(graphics, "Aspect Rank", humanize(snapshot.displayedAspectRank()), labelX, valueX, lineY + 88, ASPECT_COLOR);
-        drawRow(graphics, "Flaw", snapshot.displayedFlaw(), labelX, valueX, lineY + 110, FLAW_COLOR);
+        drawRow(graphics, "Path", humanize(snapshot.awakeningPath()), labelX, valueX, lineY + step, VALUE_COLOR);
+        drawRow(graphics, "Soul Rank", humanize(snapshot.displayedSoulRank()), labelX, valueX, lineY + step * 2, VALUE_COLOR);
+        drawRow(graphics, "Aspect", snapshot.displayedAspect(), labelX, valueX, lineY + step * 3, ASPECT_COLOR);
+        drawRow(graphics, "Aspect Rank", humanize(snapshot.displayedAspectRank()), labelX, valueX, lineY + step * 4, ASPECT_COLOR);
+        drawRow(graphics, "Ability", compactId(snapshot.displayedAbility()), labelX, valueX, lineY + step * 5, ASPECT_COLOR);
+        drawRow(graphics, "Flaw", snapshot.displayedFlaw(), labelX, valueX, lineY + step * 6, FLAW_COLOR);
+        drawRow(graphics, "Flaw Effect", compactId(snapshot.displayedFlawEffect()), labelX, valueX, lineY + step * 7, FLAW_COLOR);
         drawRow(
                 graphics,
                 "Origin",
-                snapshot.importedFromDatapack() ? "Imported legacy identity" : "Native Java soul",
+                snapshot.importedFromDatapack() ? "Imported datapack identity" : "Native Java identity",
                 labelX,
                 valueX,
-                lineY + 132,
+                lineY + step * 8,
                 VALUE_COLOR
         );
 
+        graphics.drawCenteredString(
+                this.font,
+                Component.literal("Preview controls: /shadowslave preview_begin · /shadowslave kindle"),
+                this.width / 2,
+                bottom - 38,
+                LABEL_COLOR
+        );
         graphics.drawCenteredString(
                 this.font,
                 Component.translatable("screen.shadowslave.soul.close_hint"),
@@ -87,9 +97,18 @@ public final class SoulScreen extends Screen {
         if (value.isBlank() || "—".equals(value)) {
             return "—";
         }
-
         String spaced = value.replace('_', ' ');
         return spaced.substring(0, 1).toUpperCase(Locale.ROOT) + spaced.substring(1);
+    }
+
+    private static String compactId(String value) {
+        if (value.isBlank() || "—".equals(value)) {
+            return "—";
+        }
+        int slash = value.lastIndexOf('/');
+        int colon = value.indexOf(':');
+        int start = Math.max(slash, colon);
+        return humanize(start >= 0 ? value.substring(start + 1) : value);
     }
 
     @Override

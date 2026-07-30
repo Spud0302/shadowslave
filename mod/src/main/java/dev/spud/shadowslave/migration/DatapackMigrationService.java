@@ -1,8 +1,14 @@
 package dev.spud.shadowslave.migration;
 
+import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.SpellState;
+import dev.spud.shadowslave.soul.identity.AspectInstanceData;
+import dev.spud.shadowslave.soul.identity.FlawInstanceData;
+import dev.spud.shadowslave.soul.identity.SoulIdentityData;
+import dev.spud.shadowslave.soul.identity.SoulIdentityService;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Objects;
@@ -21,7 +27,8 @@ public final class DatapackMigrationService {
         Objects.requireNonNull(player, "player");
 
         SoulData beforeSoul = SoulService.get(player);
-        ImportedIdentityData beforeIdentity = ImportedIdentityService.get(player);
+        SoulIdentityData beforeIdentity = SoulIdentityService.get(player);
+        ImportedIdentityData beforeImportedIdentity = ImportedIdentityService.get(player);
 
         if (beforeSoul.importedFromDatapack()
                 && beforeSoul.migrationVersion() >= DatapackMigrationTranslator.CURRENT_MIGRATION) {
@@ -32,7 +39,8 @@ public final class DatapackMigrationService {
         }
         if (beforeSoul.spellState() != SpellState.UNINFECTED
                 || beforeSoul.importedFromDatapack()
-                || beforeIdentity.hasIdentity()) {
+                || beforeIdentity.isRevealed()
+                || beforeImportedIdentity.hasIdentity()) {
             throw new IllegalStateException(
                     "Refusing to overwrite established Java Soul or identity state with datapack evidence"
             );
@@ -48,28 +56,21 @@ public final class DatapackMigrationService {
         }
 
         DatapackMigrationPlan plan = optionalPlan.orElseThrow();
-        ImportedIdentityData plannedIdentity = ImportedIdentityData.fromPlan(plan);
+        ImportedIdentityData plannedImportedIdentity = ImportedIdentityData.fromPlan(plan);
+        SoulIdentityData plannedIdentity = toSoulIdentity(plannedImportedIdentity);
         SoulData provisionalSoul = withoutMigrationMarker(plan.soulData());
 
         try {
-            ImportedIdentityService.replace(player, plannedIdentity);
+            ImportedIdentityService.replace(player, plannedImportedIdentity);
+            SoulIdentityService.replace(player, plannedIdentity);
             SoulService.replace(player, provisionalSoul);
-            DatapackMigrationPersistenceVerifier.verify(
-                    provisionalSoul,
-                    plannedIdentity,
-                    SoulService.get(player),
-                    ImportedIdentityService.get(player)
-            );
+            verifyAll(player, provisionalSoul, plannedIdentity, plannedImportedIdentity);
 
             SoulService.replace(player, plan.soulData());
-            DatapackMigrationPersistenceVerifier.verify(
-                    plan.soulData(),
-                    plannedIdentity,
-                    SoulService.get(player),
-                    ImportedIdentityService.get(player)
-            );
+            verifyAll(player, plan.soulData(), plannedIdentity, plannedImportedIdentity);
         } catch (RuntimeException exception) {
-            ImportedIdentityService.replace(player, beforeIdentity);
+            ImportedIdentityService.replace(player, beforeImportedIdentity);
+            SoulIdentityService.replace(player, beforeIdentity);
             SoulService.replace(player, beforeSoul);
             throw new IllegalStateException("Datapack migration failed; Java state was rolled back", exception);
         }
@@ -86,6 +87,46 @@ public final class DatapackMigrationService {
         );
     }
 
+    private static void verifyAll(
+            ServerPlayer player,
+            SoulData expectedSoul,
+            SoulIdentityData expectedIdentity,
+            ImportedIdentityData expectedImportedIdentity
+    ) {
+        DatapackMigrationPersistenceVerifier.verify(
+                expectedSoul,
+                expectedImportedIdentity,
+                SoulService.get(player),
+                ImportedIdentityService.get(player)
+        );
+        if (!expectedIdentity.equals(SoulIdentityService.get(player))) {
+            throw new IllegalStateException("Persisted revealed identity did not match the migration plan");
+        }
+    }
+
+    private static SoulIdentityData toSoulIdentity(ImportedIdentityData imported) {
+        if (!imported.hasIdentity()) {
+            return SoulIdentityData.empty();
+        }
+        ImportedAspect aspect = imported.aspect().orElseThrow();
+        ImportedFlaw flaw = imported.flaw().orElseThrow();
+        AspectInstanceData persistentAspect = new AspectInstanceData(
+                aspect.instanceId(),
+                aspect.formalName(),
+                aspect.aspectRank(),
+                aspect.legacyMechanicalRoot(),
+                id("compat/datapack/" + aspect.legacyNature()),
+                "datapack-v1.0.0"
+        );
+        FlawInstanceData persistentFlaw = new FlawInstanceData(
+                flaw.instanceId(),
+                flaw.formalName(),
+                flaw.effectId(),
+                "datapack-v1.0.0"
+        );
+        return new SoulIdentityData(Optional.of(persistentAspect), Optional.of(persistentFlaw));
+    }
+
     private static SoulData withoutMigrationMarker(SoulData soul) {
         return new SoulData(
                 soul.schemaVersion(),
@@ -98,5 +139,9 @@ public final class DatapackMigrationService {
                 false,
                 SoulData.NO_MIGRATION
         );
+    }
+
+    private static ResourceLocation id(String path) {
+        return ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, path);
     }
 }
