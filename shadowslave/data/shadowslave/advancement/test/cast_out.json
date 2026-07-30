@@ -4,7 +4,7 @@
     "icon": { "id": "minecraft:wither_rose" },
     "title": { "text": "Cast Out", "color": "dark_red" },
     "description": {
-      "text": "Near-death ejection returned you with gear intact and no Awakening."
+      "text": "Be thrown from a First Nightmare alive, without earning its reward."
     },
     "frame": "task",
     "show_toast": true,
