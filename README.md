@@ -133,15 +133,25 @@ wrong. Almost every way a datapack breaks is silent.
 
 ### Conventions
 
+The rules below are the *what*. **[docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) is the
+*why*** — each convention paired with the bug that produced it. Read it before changing code;
+a bare rule tends to get "improved" away by someone who cannot see what it was protecting.
+
 - **Namespace everything** `shadowslave`; objectives and tags carry an `ss_` prefix.
 - **Singular directory names** — plurals silently do nothing in 1.21.
 - **Comments explain why, not what.** A command says what it does; a comment should say what
   it protects against, or what was tried first and failed.
-- **`ponytail:` comments** mark deliberate shortcuts, naming the ceiling and the upgrade path.
+- **`ponytail:` and `PROTOTYPE-LIMIT:` comments** mark deliberate shortcuts and placeholder
+  systems. Either is fine; always name the ceiling **and** the upgrade path, never just
+  "temporary".
+- **Guard at the choke point, never in the callers.** An invariant about a state transition
+  belongs in the function that performs it. Three bugs came from caller-side guards, most
+  recently an uninfected player being able to enter a nightmare.
 - **`remove` before every `add`** on attribute modifiers. The upkeep runs once a second
   forever; without it modifiers stack until the player is unkillable.
-- **Never guard on a score with `matches 0`.** An absent score fails `matches` outright, and
-  nothing writes 0 — use `unless ... matches 1..`. This has caused two separate bugs.
+- **Never guard on a score with `matches 0`**, and never filter a selector with `scores={x=..0}`.
+  An absent score fails `matches` outright, and nothing writes 0 — use `unless ... matches 1..`.
+  This has caused **three** bugs, one of which killed sneak-to-enter for five releases.
 - **Player NBT is read-only.** `data merge|modify entity <player>` and
   `execute store ... entity <player>` are refused. Dynamic teleports go through command
   storage and a macro.

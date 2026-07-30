@@ -5,6 +5,15 @@
 > **Maintenance rule:** update this file before ending a GPT work session whenever branch state, decisions, unfinished work, or the recommended next action changes.
 >
 > **Do not treat this as lore authority.** Canon research lives in `docs/lore-research/`.
+>
+> **Read `docs/ENGINEERING-NOTES.md` first if you are going to touch code.** It is Claude's
+> reasoning behind the conventions in this repo — every rule paired with the incident that caused
+> it. It exists so you do not have to reverse-engineer intent from the result, and so a guard whose
+> purpose is invisible does not get refactored away. Highlights that have each cost real bugs:
+> guards live at the choke point rather than in callers; an absent scoreboard score fails `matches`
+> outright rather than reading as zero; player NBT cannot be written; a test assertion you have
+> never seen fail is not an assertion; and when the harness and a direct probe disagree, the probe
+> has been right every time.
 
 ## Repository / branch ownership
 
