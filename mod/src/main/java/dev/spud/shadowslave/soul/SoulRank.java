@@ -6,12 +6,13 @@ import com.mojang.serialization.DataResult;
 import java.util.Arrays;
 
 /**
- * Soul Rank is separate from {@link SpellState}. The Java foundation records
- * the full ladder now, while only Mundane and Dormant are reachable in the
- * first comparison slice.
+ * The seven canonical qualities of a soul core.
+ *
+ * <p>An ordinary human can be described as mundane, but Mundane is not an
+ * eighth Rank below Dormant. Players without a ranked core represent that fact
+ * with an absent Soul Rank in {@link SoulData}.</p>
  */
 public enum SoulRank {
-    MUNDANE("mundane"),
     DORMANT("dormant"),
     AWAKENED("awakened"),
     ASCENDED("ascended"),
@@ -21,11 +22,7 @@ public enum SoulRank {
     DIVINE("divine");
 
     public static final Codec<SoulRank> CODEC = Codec.STRING.comapFlatMap(
-            serialized -> Arrays.stream(values())
-                    .filter(value -> value.serializedName.equals(serialized))
-                    .findFirst()
-                    .map(DataResult::success)
-                    .orElseGet(() -> DataResult.error(() -> "Unknown Soul Rank: " + serialized)),
+            SoulRank::decode,
             SoulRank::serializedName
     );
 
@@ -37,5 +34,13 @@ public enum SoulRank {
 
     public String serializedName() {
         return serializedName;
+    }
+
+    public static DataResult<SoulRank> decode(String serialized) {
+        return Arrays.stream(values())
+                .filter(value -> value.serializedName.equals(serialized))
+                .findFirst()
+                .map(DataResult::success)
+                .orElseGet(() -> DataResult.error(() -> "Unknown Soul Rank: " + serialized));
     }
 }
