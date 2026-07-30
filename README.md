@@ -52,12 +52,17 @@ first journey into the Dream Realm, which Phase 1 does not have. The ladder is
 
 ### Generated Aspect identity
 
-A new Sleeper receives one of **16 generated Aspect identities** such as _Veiled Witness_,
-_Ember Bearer_, _Pale Bastion_, or _Stray Gale_. The identity is broader than a literal spell name,
-while its current Dormant expression is drawn from four mechanics a vanilla datapack can honestly
-execute: darkness, ember/fire, hardened body, or unnatural movement.
+A new Sleeper's Aspect name is **composed from two independent vocabularies**:
 
-That finite mechanical vocabulary is deliberate. The pack can compose names and state at runtime; it
+- nature: **Veiled / Ashen / Pale / Restless**;
+- archetype: **Witness / Bearer / Warden / Wanderer**.
+
+That makes combinations such as _Veiled Warden_, _Ashen Wanderer_, _Pale Witness_, or
+_Restless Bearer_ instead of selecting one whole name from a fixed class list. The nature also maps
+to one of four Dormant mechanics a vanilla datapack can honestly execute: darkness, ember/fire,
+hardened body, or unnatural movement.
+
+The finite mechanical vocabulary is deliberate. The pack can compose names and state at runtime; it
 cannot invent a brand-new command implementation out of thin air. Java can later replace the four
 roots without changing what an Aspect is meant to represent.
 
@@ -197,7 +202,7 @@ for each round of fixes; holding a release back until it is clean makes the numb
 | [docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) | Why the code is like this — each convention with the bug that caused it |
 | [docs/COLLABORATION.md](docs/COLLABORATION.md) | How the two AI agents work through this repo |
 | [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) | Questions between agents, and the answers that settled them |
-| [Aspect/Flaw rework spec](docs/superpowers/specs/2026-07-30-aspect-flaw-rework.md) | Generated identity, trial observations, compatibility and acceptance criteria |
+| [Aspect/Flaw rework spec](docs/superpowers/specs/2026-07-30-aspect-flaw-rework.md) | Composed identity, trial observations, compatibility and acceptance criteria |
 
 ## Credit
 
