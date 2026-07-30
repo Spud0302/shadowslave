@@ -18,11 +18,11 @@ capability: Andrew is **not token-limited with GPT**, so design conversation hap
 is cheap to iterate. Claude's budget is spent on implementation and verification instead — which is
 also the half GPT cannot do, since the connector environment has no Minecraft server.
 
-|                |                                                                                                                                                                                       |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Andrew**     | Owns the project and every decision. Playtests. **Gives most instructions to GPT.**                                                                                                    |
-| **GPT**        | Design, specs, canon research, code review, and turning Andrew's instructions into written briefs. Works on `gpt/*` branches. Does not write to `main`.                                 |
-| **Claude**     | **Implementation and testing.** Works on `main`. Reviews and merges `gpt/*`. Runs the validator and the harness. Stamps versions. Ships builds.                                         |
+|            |                                                                                                                                                         |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Andrew** | Owns the project and every decision. Playtests. **Gives most instructions to GPT.**                                                                     |
+| **GPT**    | Design, specs, canon research, code review, and turning Andrew's instructions into written briefs. Works on `gpt/*` branches. Does not write to `main`. |
+| **Claude** | **Implementation and testing.** Works on `main`. Reviews and merges `gpt/*`. Runs the validator and the harness. Stamps versions. Ships builds.         |
 
 Branch prefix `gpt/` identifies GPT's work. `main` is Claude's working branch and the release branch.
 
@@ -55,7 +55,7 @@ Two mitigations, both obligations rather than suggestions:
 
 Not a template to fill in mechanically — these are the things whose absence has caused rework.
 
-- **The intent behind the requirement.** *Why* Andrew wants it, in a sentence. This is the single
+- **The intent behind the requirement.** _Why_ Andrew wants it, in a sentence. This is the single
   most useful line in any brief: it is what lets an implementer resolve an ambiguity correctly
   instead of picking a plausible reading. When the countdown was cut from five minutes to ninety
   seconds, the reason — "it read as waiting rather than dread" — mattered more than the number.
@@ -174,6 +174,7 @@ Always name the ceiling **and** the upgrade path — never just "temporary".
 | Canon                           | `docs/lore-research/` — with per-answer confidence labels                                                  |
 | What shipped and why            | `CHANGELOG.md` — every version mapped to the issue it fixed                                                |
 | Known issues and compromises    | `ISSUES.md`                                                                                                |
+| Questions awaiting an answer    | `docs/OPEN-QUESTIONS.md` — two open at `v1.4.9`                                                            |
 | Current behaviour               | `README.md` — the only doc that must always be current                                                     |
 | Test plans                      | `TESTING.md` — live section at the bottom; earlier sections marked HISTORICAL                              |
 
