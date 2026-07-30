@@ -23,7 +23,7 @@ never appears in `/datapack list`, a wrapper folder is usually why.
 
 **No client install.** Datapacks are server-side, so anyone can join a server running this
 with a completely vanilla client and everything works: the dimension, the trial, Aspects,
-advancements. That is a deliberate reason to stay a datapack through the completed Phase 1.
+advancements. That is a deliberate reason to stay a datapack through Phase 1.
 
 **Requirements:** Minecraft **1.21.1** exactly (`pack_format` 48), difficulty **Easy or
 higher** (Peaceful strips hostile mobs and the trial is empty), and **cheats on** if you want
@@ -55,12 +55,13 @@ first journey into the Dream Realm, which Phase 1 does not have. The ladder is
 | **Aspects** | Shadow, Flame, Bone, Wind                   |
 | **Flaws**   | Shadow Slave, Fragile, Ravenous, Weightless |
 
-Rolled independently in the Phase 1 prototype.
+Rolled independently in the current Phase 1 prototype.
 
 > These eight are **placeholders**. The novel is explicit that every Aspect is unique and that
-> Flaws are personal rather than an independent random penalty. The completed datapack keeps this
-> small catalogue as a visible prototype seam; the Java/data-driven system replaces it instead of
-> extending one-tag-per-power indefinitely.
+> Flaws are personal rather than an independent random penalty. A dedicated pre-Java datapack
+> redesign is tracked in `docs/OPEN-QUESTIONS.md` Q2: generated Aspect identity and
+> behaviour-influenced Flaws, within what vanilla commands can honestly support. Java later replaces
+> the remaining finite/predeclared effect machinery with a proper data model.
 
 ---
 
@@ -179,20 +180,21 @@ Version stamping happens on `main` after review. `pack.mcmeta`, `init.mcfunction
 
 ---
 
-## Phase 1 completion boundary
+## Phase 1 datapack boundary
 
-The datapack is the **completed Phase 1 reference implementation**, not the permanent architecture
-for every future system. These known ceilings are deliberately left for the Java port rather than
-papered over with increasingly fragile command machinery:
+The datapack is the Phase 1 reference implementation, not the permanent architecture for every
+future system. These known ceilings should not be papered over with increasingly fragile command
+machinery:
 
 - one active Nightmare at a time through a shared creature and bossbar;
 - broad item recovery on death inside the single-player Nightmare instance;
 - a shallow `ss_rank` flag rather than a full Soul data model;
-- four fixed placeholder Aspects and four fixed placeholder Flaws;
+- the current four fixed Aspects/four fixed Flaws **pending the dedicated Q2 datapack rework**;
 - a ravager stand-in, Overworld-noise Nightmare terrain, no custom GUI and no custom AI.
 
-Those limits are documented migration seams. Phase 2+ should preserve the proven entry/teardown and
-testing ideas while replacing the state/ownership systems in Java.
+The ownership/state/entity/data-model ceilings are Java migration seams. The Aspect/Flaw placeholder
+catalogue is the remaining explicit pre-Java design task, kept separate from release hardening so it
+can be reviewed and tested as a focused gameplay change.
 
 ---
 
@@ -205,6 +207,7 @@ testing ideas while replacing the state/ownership systems in Java.
 | [TESTING.md](TESTING.md)     | Full in-game test plans                                             |
 | [docs/ENGINEERING-NOTES.md](docs/ENGINEERING-NOTES.md) | Why the code is like this — each convention with the bug that caused it |
 | [docs/COLLABORATION.md](docs/COLLABORATION.md) | How the two AI agents work through this repo |
+| [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) | Questions between agents and the answers that settled them |
 | [docs/lore-research/](docs/lore-research/) | Canon evidence and migration research |
 | `docs/superpowers/specs/`    | Historical design specs; read status banners before relying on them |
 
