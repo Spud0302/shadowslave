@@ -1,6 +1,6 @@
 # Java handoff contract — datapack `1.0.0` baseline
 
-**Written against:** `0.5.0` main plus the stacked `gpt/v0.6-experience` and `gpt/v0.7-hardening` completion branches.
+**Maintained through:** `0.7.2` plus `gpt/replace-weightless-flaw`; Claude must stamp the final verified `1.0.0` baseline before Java import work begins.
 
 **Purpose:** this is not a Java implementation plan. It is the behavioural and persistence contract the Java mod must preserve when the datapack is frozen at `1.0.0`.
 
@@ -90,8 +90,10 @@ Current generated `ss_flaw` values are also two digits:
   - `1x` = daylight burden -> internal compatibility tag `ss_flaw_shadow_slave`
   - `2x` = reduced-health burden -> `ss_flaw_fragile`
   - `3x` = hunger burden -> `ss_flaw_ravenous`
-  - `4x` = unsafe-footing/fall burden -> `ss_flaw_weightless`
+  - `4x` = retreat/burdened-movement family -> historical compatibility tag `ss_flaw_weightless`
 - ones digit selects the personal formal name within that family.
+
+The `ss_flaw_weightless` tag is **only an import/save identifier now**. The unsafe-footing implementation was retired after `0.7.2` proved Minecraft could intermittently ignore its `safe_fall_distance` modifier. The completed datapack uses a reliable movement burden instead. Java should import the semantic family (trial behaviour -> personal Flaw -> real drawback), not the old command mechanism or internal tag name.
 
 Import into a `FlawInstance` with the **player-facing generated name**, family and parameters. Never expose the internal compatibility id `shadow_slave` as the Flaw name; Shadow Slave is canonically an Aspect.
 
