@@ -19,9 +19,7 @@ execute if score $check ss_roll matches 0 run tellraw @s {"text":"FAIL trial bos
 
 # Probing the Aspect and Flaw functions means actually RUNNING them, and some of them have
 # real effects — flaw/shadow_slave deals damage in daylight, flaw/fragile lowers max health.
-# Resistance V blocks all of it, so running a diagnostic never costs the operator anything.
-# (This used to work by accident: aspect/flame's fire resistance absorbed the sun damage back
-#  when that flaw dealt fire damage. Changing it to magic damage removed that cover.)
+# Resistance V blocks damage; the cleanup below removes modifiers/effects applied by every probe.
 effect give @s minecraft:resistance 3 4 true
 
 # Every Aspect and Flaw function resolves.
@@ -47,9 +45,9 @@ execute if score $check ss_roll matches 0 run tellraw @s {"text":"FAIL flaw/frag
 execute store success score $check ss_roll run function shadowslave:flaw/ravenous
 execute if score $check ss_roll matches 1 run scoreboard players add $ok ss_roll 1
 execute if score $check ss_roll matches 0 run tellraw @s {"text":"FAIL flaw/ravenous missing","color":"red"}
-execute store success score $check ss_roll run function shadowslave:flaw/weightless
+execute store success score $check ss_roll run function shadowslave:flaw/burdened
 execute if score $check ss_roll matches 1 run scoreboard players add $ok ss_roll 1
-execute if score $check ss_roll matches 0 run tellraw @s {"text":"FAIL flaw/weightless missing","color":"red"}
+execute if score $check ss_roll matches 0 run tellraw @s {"text":"FAIL flaw/burdened missing","color":"red"}
 
 # Say so on success too — a silent pass is indistinguishable from a check that never ran.
 execute if score $ok ss_roll matches 8 run tellraw @s [{"text":"PASS all 8 Aspect/Flaw functions resolve","color":"green"}]
@@ -59,6 +57,7 @@ execute unless score $ok ss_roll matches 8 run tellraw @s [{"text":"FAIL only ",
 attribute @s minecraft:generic.armor modifier remove shadowslave:aspect_bone_armor
 attribute @s minecraft:generic.movement_speed modifier remove shadowslave:aspect_wind_speed
 attribute @s minecraft:generic.max_health modifier remove shadowslave:flaw_fragile_health
+# Migration cleanup for anyone carrying the retired pre-0.7.3 Weightless modifier.
 attribute @s minecraft:generic.safe_fall_distance modifier remove shadowslave:flaw_weightless_fall
 # The fragile probe clamped current health when it lowered the max; give it back.
 effect give @s minecraft:instant_health 1 4 true
