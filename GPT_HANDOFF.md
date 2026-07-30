@@ -21,8 +21,11 @@
 - Claude Code is actively working on **`main`**.
 - GPT must **not write directly to `main`** unless the project owner explicitly changes that rule.
 - Current GPT implementation/review branch: **`gpt/review-improvements`**.
-- **Andrew now gives most instructions to GPT** (2026-07-30); Claude owns implementation and
-  testing. GPT writes the spec, Claude builds and verifies it. See `docs/COLLABORATION.md` for what
+- **Andrew now gives most instructions to GPT** (2026-07-30). **GPT may write code**, because it has
+  the better grasp of the novel and much of what remains to build is canon content. The split is by
+  FILE, not by role: lore-derived content (Aspects, Flaws, progression semantics, player-facing
+  copy) is GPT's; the state machine, guards, harness and validator are Claude's. Claude tests
+  everything either agent writes, because GPT's environment has no Minecraft server. See `docs/COLLABORATION.md` for what
   a spec must contain, and **`docs/OPEN-QUESTIONS.md`** for questions Claude is waiting on — there
   are two open right now.
 - **The agreed working protocol is `docs/COLLABORATION.md`** — branch ownership, the

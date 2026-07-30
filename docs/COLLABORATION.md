@@ -18,42 +18,87 @@ capability: Andrew is **not token-limited with GPT**, so design conversation hap
 is cheap to iterate. Claude's budget is spent on implementation and verification instead — which is
 also the half GPT cannot do, since the connector environment has no Minecraft server.
 
-|            |                                                                                                                                                         |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Andrew** | Owns the project and every decision. Playtests. **Gives most instructions to GPT.**                                                                     |
-| **GPT**    | Design, specs, canon research, code review, and turning Andrew's instructions into written briefs. Works on `gpt/*` branches. Does not write to `main`. |
-| **Claude** | **Implementation and testing.** Works on `main`. Reviews and merges `gpt/*`. Runs the validator and the harness. Stamps versions. Ships builds.         |
+|            |                                                                                                                                              |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Andrew** | Owns the project and every decision. Playtests. **Gives most instructions to GPT.**                                                          |
+| **GPT**    | Design, specs, canon research, code review, **and writing code** — see the split below. Works on `gpt/*` branches. Does not write to `main`. |
+| **Claude** | Implementation, **and testing everything either agent writes**. Works on `main`. Reviews and merges `gpt/*`. Stamps versions. Ships builds.  |
 
 Branch prefix `gpt/` identifies GPT's work. `main` is Claude's working branch and the release branch.
 
-### What this changes
+### GPT writes code too — split by file, not by role
 
-- **GPT should stop writing pack code.** Write the spec instead; Claude implements it. GPT's earlier
-  branches did write working code and it was good code — but two agents implementing the same files
-  is how conflicts and duplicated effort start, and only one of them can run the tests.
-- **Reviewing is still GPT's job**, and remains valuable. GPT's first review found a bug from
-  Andrew's very first play session that had survived nine releases.
-- **Prototyping is still allowed** on a `gpt/*` branch when a spec is easier to demonstrate than to
-  describe. Mark it as illustrative, not as the implementation.
+**Andrew's call, 2026-07-30, with a reason worth recording: GPT has the better grasp of the novel.**
+That is true and it matters, because a large part of what remains to build _is_ canon — Aspects,
+Flaws, ranks, Memories, the wording the Spell uses. An agent that has read the source should write
+that content rather than describe it to one that hasn't.
+
+An earlier draft of this document said GPT should stop writing pack code. That was overruled, and the
+concern behind it — two agents editing the same files — is better solved by splitting the **files**
+than the roles:
+
+| Belongs to GPT                                                                  | Belongs to Claude                                                                        |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Lore-derived content: Aspect and Flaw definitions, names, effects, descriptions | The state machine: `nightmare/enter`, `leave`, `eject`, `survive`, `tick`, `tick_player` |
+| `prototype/roll_aspect_flaw.mcfunction` and whatever replaces it                | Guards, choke points, teardown ordering, cooldown and threshold logic                    |
+| Player-facing copy and the Spell's voice                                        | `testserver/harness.mjs`, `shadowslave/tools/validate.py`                                |
+| Progression semantics (`progression/`), rank meaning, canon naming              | Dimension, worldgen, macro/storage plumbing                                              |
+| Canon research and design docs                                                  | Version stamping, packaging, release                                                     |
+
+Neither list is a fence. It is about where each agent's advantage lies, and it exists so that a
+change arriving from the other side is a surprise about _content_, not a merge conflict in a file
+someone else was mid-way through.
+
+**Two things do not move, regardless of who is writing:**
+
+1. **Claude runs the validator and the harness before anything merges.** Not a status thing — GPT's
+   environment has no Minecraft server, so it cannot test what it writes. This has already mattered:
+   GPT's review branch was correct, but verifying it turned up a harness assertion that had been
+   passing for the wrong reason.
+2. **The invariants in `ENGINEERING-NOTES.md` bind both agents.** Guard at the choke point; absent
+   scores fail `matches`; player NBT is read-only; an assertion you have never seen fail is not an
+   assertion. Those came from bugs, not preference, and three separate bugs have come from the
+   choke-point rule alone.
+
+**Reviewing remains GPT's job as well.** It found a bug from Andrew's very first play session that
+had survived nine releases.
+
+### Practical conflict avoidance
+
+- Check `origin/main` before starting and say which commit you branched from — see rule 2.
+- Prefer small, focused branches over one branch that touches everything.
+- Name the files you touched in the branch description, so Claude can tell a content change from a
+  machinery change without reading the whole diff.
+- If work genuinely needs a file from the other agent's column, say so explicitly in the branch
+  rather than editing it quietly.
 
 ### The risk this introduces, and the mitigation
 
-If Andrew's instructions go to GPT, Claude implements from a written brief **without having heard the
-conversation that produced it.** Ambiguities that would have been a ten-second question become
-guesses, and a confident wrong guess in this codebase is invisible — see `ENGINEERING-NOTES.md`.
+Andrew's instructions now reach Claude **second-hand**. Where GPT writes the code, that is fine —
+GPT heard the conversation. Where GPT writes a brief for Claude to build, the ambiguities that would
+have been a ten-second question become guesses instead, and a confident wrong guess in this codebase
+is invisible: see `ENGINEERING-NOTES.md`.
 
 Two mitigations, both obligations rather than suggestions:
 
-1. **A spec must carry intent, not just requirements** — see the next section.
-2. **`docs/OPEN-QUESTIONS.md`** is where Claude logs questions that block or shape implementation.
-   Andrew's instructions now reach Claude second-hand, so Claude's questions need a route back that
-   does not depend on being relayed through a chat. GPT and Andrew answer there.
+1. **A brief must carry intent, not just requirements** — see the next section.
+2. **`docs/OPEN-QUESTIONS.md`** is where Claude logs questions that block or shape implementation,
+   because Claude's questions need a route back that does not depend on being relayed through a chat.
+   GPT and Andrew answer there.
+
+There is a second-order version of this now that both agents write code: **whoever did not write a
+change cannot see the reasoning behind it.** That is what the commenting standard is for. A comment
+saying what a line does is close to worthless; one saying what it protects against, or what was tried
+first and failed, is the only durable way to stop the other agent "simplifying" a guard whose purpose
+is invisible. It has already happened once — a rule against absent-score filters was written in the
+README _and_ two lines above the offending selector, and the bug still shipped.
 
 ---
 
-## What a spec needs for Claude to implement it without guessing
+## What a brief needs for Claude to implement it without guessing
 
-Not a template to fill in mechanically — these are the things whose absence has caused rework.
+Applies when GPT is specifying work for Claude rather than writing it directly. Not a template to
+fill in mechanically — these are the things whose absence has caused rework.
 
 - **The intent behind the requirement.** _Why_ Andrew wants it, in a sentence. This is the single
   most useful line in any brief: it is what lets an implementer resolve an ambiguity correctly

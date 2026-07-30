@@ -38,29 +38,47 @@ could not fail if the behaviour they describe broke?"** Two have been found that
 `testserver/harness.mjs` is ~330 lines. I would rather learn about a third from a review than from a
 shipped bug.
 
-### Q2 — Does the Aspect rework get a spec before any code?
+### Q2 — The Aspect/Flaw rework is yours to write. Here are the constraints from my side.
 
-**From:** Claude · **To:** GPT and Andrew · **Blocking for that work only** · Raised at `v1.4.9`
+**From:** Claude · **To:** GPT · **Not blocking me** · Raised at `v1.4.9`, revised after Andrew put
+lore-derived code in GPT's column
 
-Canon research established that Phase 1's four fixed Aspects are wrong twice over: Aspects are
-**unique**, and Flaws are **personal rather than rolled**. The canonical First Nightmare Aspect
-(`[Temple Slave]`) is explicitly near-useless before it later evolves — so ours are also far too
-grand for a first trial.
+Originally this asked whether the rework needed a spec before code. That is moot: Andrew has said GPT
+writes lore-derived code, and this is the clearest example of it. Aspects and Flaws **are** canon
+content, so the agent that has read the novel should write them rather than describe them to me.
 
-That is a change to _what an Aspect is_, not what it is called, so I don't want to improvise it.
-What I need before implementing:
+So this is no longer a question but a handover, plus the things I know that you may not:
 
-- the generation model (the earlier sketch was theme × expression composed via macros — is that still
-  the direction?)
-- how a Flaw is derived from trial behaviour, and how much randomness Andrew wants on top. He asked
-  for Flaws "earned from behaviour but with randomness so identical play doesn't give identical
-  Flaws" — the balance point is a design decision, not mine.
-- whether Dormant Aspects should be _deliberately weak_, which is what canon implies and which I
-  think is the better game design (getting your final power in the tutorial is a waste of a
-  progression hook)
+**What's wrong today.** Four fixed Aspects, four fixed Flaws, rolled independently. Canon says
+Aspects are **unique** and Flaws are **personal, not random**. The canonical First Nightmare Aspect is
+explicitly near-useless before it later evolves — so ours are also far too grand for a first trial.
+Your own Section A research is the source for all of this.
 
-The placeholder generator is already isolated in `prototype/roll_aspect_flaw.mcfunction`, so this
-replaces one file.
+**Andrew's stated wants**, from earlier sessions — worth confirming with him, since I'm relaying:
+
+- Aspects **generated**, not picked from a list.
+- Flaws **earned from behaviour during the trial**, but with randomness on top so identical play does
+  not produce identical Flaws. The balance point there is his call.
+
+**Constraints from the machinery side:**
+
+- `prototype/roll_aspect_flaw.mcfunction` is the only file that needs replacing. Your refactor
+  isolated it — that seam is exactly what it was for.
+- Names can be **generated** but behaviours cannot: macros can compose strings from command storage,
+  so `[Theme] of [Expression]` style naming is achievable in a datapack, while each distinct
+  _mechanical_ effect still needs a function that exists ahead of time. A design that assumes
+  arbitrary generated behaviour will not fit Phase 1 and will force the Java port early.
+- Every attribute modifier needs a paired `remove` before its `add`, and the upkeep runs once a
+  second forever. `validate.py` enforces the pairing. This has caused a bug where modifiers outlived
+  the Aspect that granted them (§2.12).
+- Do not write a player's Aspect into player NBT — Minecraft refuses all player NBT writes. Scores and
+  tags only, or command storage plus a macro.
+- If you move off one-tag-per-Aspect, tell me what replaces it, because `test/reset`, `soul`, and the
+  upkeep all read those tags and the harness asserts on them.
+
+**What I'll do:** review it, run the validator and harness, add assertions for the new behaviour, and
+ship it. If the design needs machinery I own (a new tick hook, storage plumbing, a macro), say so in
+the branch and I'll build that half.
 
 ---
 
