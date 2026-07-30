@@ -5,7 +5,8 @@ execute if score @s ss_rank matches 1.. run tellraw @s {"text":"[Shadow Slave] A
 execute if score @s ss_rank matches 1.. run return 0
 
 # This helper explicitly skips the trial, so it must also discard trial observations from a previous
-# failed attempt. Otherwise a supposed random generator test could silently inherit an earned family.
+# failed attempt. With no strong trial observation, generation deliberately takes family 1's baseline
+# burden and randomizes only the personal name inside that family.
 tag @s remove ss_trial_bloodied
 tag @s remove ss_trial_hungry
 tag @s remove ss_trial_fled
