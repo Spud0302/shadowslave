@@ -63,17 +63,17 @@ execute if score @s ss_flaw matches 31 run tellraw @s [{"text":"Flaw: ","color":
 execute if score @s ss_flaw matches 32 run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Bottomless Hunger","color":"red"},{"text":" — hunger drains faster","color":"dark_gray","italic":true}]
 execute if score @s ss_flaw matches 33 run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Empty Feast","color":"red"},{"text":" — hunger drains faster","color":"dark_gray","italic":true}]
 execute if score @s ss_flaw matches 34 run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Gnawing Soul","color":"red"},{"text":" — hunger drains faster","color":"dark_gray","italic":true}]
-execute if score @s ss_flaw matches 41 run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Rootless","color":"red"},{"text":" — the ground is less forgiving","color":"dark_gray","italic":true}]
-execute if score @s ss_flaw matches 42 run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"False Wings","color":"red"},{"text":" — the ground is less forgiving","color":"dark_gray","italic":true}]
-execute if score @s ss_flaw matches 43 run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Unsteady Ground","color":"red"},{"text":" — the ground is less forgiving","color":"dark_gray","italic":true}]
-execute if score @s ss_flaw matches 44 run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Falling Debt","color":"red"},{"text":" — the ground is less forgiving","color":"dark_gray","italic":true}]
+execute if score @s ss_flaw matches 41 run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Leadbound","color":"red"},{"text":" — movement is slowed; distance is harder won","color":"dark_gray","italic":true}]
+execute if score @s ss_flaw matches 42 run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Heavy Step","color":"red"},{"text":" — movement is slowed; distance is harder won","color":"dark_gray","italic":true}]
+execute if score @s ss_flaw matches 43 run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Shackled Pace","color":"red"},{"text":" — movement is slowed; distance is harder won","color":"dark_gray","italic":true}]
+execute if score @s ss_flaw matches 44 run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Burdened Road","color":"red"},{"text":" — movement is slowed; distance is harder won","color":"dark_gray","italic":true}]
 
-# Legacy Flaw scores retain the old mechanics but use neutral replacement identities rather than
-# re-exposing Shadow Slave as a Flaw. A reset/re-roll assigns the full generated identity.
+# Legacy Flaw scores retain the current family mechanics but use neutral replacement identities rather
+# than exposing internal ids. A reset/re-roll assigns the full generated identity.
 execute if score @s ss_flaw matches 1 if entity @s[tag=ss_flaw_shadow_slave] run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Nightbound","color":"red"},{"text":"  (legacy prototype)","color":"dark_gray","italic":true}]
 execute if score @s ss_flaw matches 2 if entity @s[tag=ss_flaw_fragile] run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Brittle Vessel","color":"red"},{"text":"  (legacy prototype)","color":"dark_gray","italic":true}]
 execute if score @s ss_flaw matches 3 if entity @s[tag=ss_flaw_ravenous] run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Hollow Maw","color":"red"},{"text":"  (legacy prototype)","color":"dark_gray","italic":true}]
-execute if score @s ss_flaw matches 4 if entity @s[tag=ss_flaw_weightless] run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Rootless","color":"red"},{"text":"  (legacy prototype)","color":"dark_gray","italic":true}]
+execute if score @s ss_flaw matches 4 if entity @s[tag=ss_flaw_weightless] run tellraw @s [{"text":"Flaw: ","color":"gray"},{"text":"Leadbound","color":"red"},{"text":"  (legacy prototype)","color":"dark_gray","italic":true}]
 
 # PROTOTYPE-LIMIT: these are ordinary Minecraft combat stats, NOT Shadow Slave Attributes.
 # Canon Attributes are named supernatural traits such as [Fated] or [Child of Shadows]. Keep
