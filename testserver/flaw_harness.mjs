@@ -6,40 +6,11 @@
 // selected family, generated identity band, mechanical burden and cleanup without duplicating runtime
 // generation logic in JavaScript.
 //
-// Q4 candidate fix (GPT, after 0.7.0): this harness used one global chatLog but exactOneTag() launched
-// four command-reading helpers concurrently with Promise.all. cmd() was therefore not re-entrant: one
-// query could clear another query's reply window or let late replies bleed into a later command. All
-// command traffic is now serialized at the helper boundary, and exactOneTag() reads one tag-list reply
-// rather than launching four identical commands. The fled case also proves reset restored the vanilla
-// safe-fall baseline before applying the family, so any remaining failure identifies cleanup versus
-// application instead of collapsing both into the final timeout.
-//
-// This is a proposed Q4 resolution, not release evidence until Claude reproduces the old sequence and
-// confirms repeated main-harness -> flaw-harness runs are stable.
-
-// STATUS (Claude, 0.7.1): still OUT of the release gate. `npm test` runs harness.mjs only;
-// `npm run test:flaw` runs this file.
-//
-// The Q4 order-dependent failure is NOT resolved. Running harness.mjs then this file fails
-// `fled family applies the unsafe-footing burden` roughly one cycle in three, with
-// safe_fall_distance stuck at 3. Run alone it passes.
-//
-// The datapack is not at fault, and this has been established repeatedly: probes show
-// shadowslave:flaw_weightless_fall applied at -1 over a base of 3, resolving to 2, and harness.mjs
-// passes 32/32 on the same build every time.
-//
-// FOUR hypotheses have now been eliminated. Do not retry them:
-//   1. waitAttribute's budget was too short (4s -> 10s). Failure recurs at 10s.
-//   2. Waiting on scheduled upkeep. Invoking shadowslave:upkeep inside forceFamily did not fix it.
-//   3. Non-re-entrant cmd()/chatLog via Promise.all in exactOneTag. A REAL bug, fixed on this branch
-//      and worth keeping — but not the cause of this failure.
-//   4. Driving upkeep on every waitAttribute poll. Still fails ~1 in 4.
-//
-// A diagnostic that ran upkeep and printed state immediately before the read passed 2/2, which is
-// suggestive but was itself perturbing the timing, so it is evidence about observation rather than a
-// fix. Next step is instrumenting from inside the datapack (e.g. a counter the upkeep increments) so
-// the question "did upkeep run for this player in this window" can be answered without adding chat
-// traffic that changes the timing.
+// STATUS (GPT after 0.7.1): Q4 remains diagnostic, not a release gate. Claude eliminated four guesses
+// and showed that adding chat-based diagnostics changes the timing. The fled case now enables a
+// TEST-ONLY server-side trace in flaw/weightless: ss_scratch_a counts executions and ss_scratch_b stores
+// safe_fall_distance * 1000 immediately after the modifier command. The trace is read only AFTER the
+// normal attribute assertion succeeds or fails, so observation cannot perturb the state being measured.
 
 import mineflayer from 'mineflayer'
 
@@ -68,12 +39,10 @@ async function runCommand(bot, command, expect = null, timeoutMs = 4000) {
   return joined
 }
 
-// Every query below consumes the same chatLog. Queue commands here so a future Promise.all or helper
-// refactor cannot make two readers clear/consume the same reply window. The previous exactOneTag()
-// implementation did exactly that.
+// Every query below consumes the same chatLog. Queue commands so no two callers can own the reply
+// window at once. This fixed a real independent harness bug in 0.7.1 even though it was not Q4.
 function cmd(bot, command, expect = null, timeoutMs = 4000) {
   const task = commandTail.then(() => runCommand(bot, command, expect, timeoutMs))
-  // Keep the queue usable after a failed command; the caller still receives the rejection from task.
   commandTail = task.catch(() => {})
   return task
 }
@@ -100,8 +69,7 @@ async function attributeValue(bot, attribute) {
   return parseFloat(match[1])
 }
 
-// 10s rather than 4s. Claude proved Q4 was not simply a short timeout, but a generous poll budget is
-// still useful on a real server and costs nothing on a passing run because the first matching read wins.
+// Claude proved Q4 is not a short timeout, but a generous budget costs nothing on a passing poll.
 async function waitAttribute(bot, attribute, predicate, timeoutMs = 10000) {
   const deadline = Date.now() + timeoutMs
   let seen = null
@@ -120,9 +88,6 @@ function assert(name, condition, detail = '') {
 }
 
 async function exactOneTag(bot, tags) {
-  // One authoritative tag-list read. The old Promise.all(tags.map(hasTag)) launched four commands
-  // concurrently against one shared chatLog, so the helper could not know which reply belonged to
-  // which request.
   const out = await tagList(bot)
   return tags.filter((tag) => out.includes(tag)).length === 1
 }
@@ -138,24 +103,25 @@ const aspectTags = ['ss_aspect_shadow', 'ss_aspect_flame', 'ss_aspect_bone', 'ss
 async function forceFamily(bot, name, bandMin, bandMax, expectedTag) {
   await cmd(bot, '/function shadowslave:test/reset')
 
-  // Q4 discriminator: if fled later fails, first establish whether reset itself left the player's
-  // persistent attribute dirty. Vanilla 1.21.1 safe_fall_distance is 3.
+  // Q4 discriminator: reset must first restore vanilla safe_fall_distance=3.
   if (name === 'fled') {
     const cleanFall = await waitAttribute(bot, 'minecraft:generic.safe_fall_distance', (value) => value === 3)
     assert('fled starts from a clean safe-fall baseline', cleanFall === 3, `safe_fall_distance=${cleanFall}`)
+
+    // Enable an IN-SERVER observation before generation. No chat query reads these values until after
+    // the normal attribute assertion, so the trace cannot make the intermittent timing disappear.
+    await cmd(bot, '/tag @s add ss_test_trace_weightless')
+    await cmd(bot, '/scoreboard players set @s ss_scratch_a 0')
+    await cmd(bot, '/scoreboard players set @s ss_scratch_b -9999')
   }
 
-  // Distinguish success from refusal. test/flaw/* refuses with "Already a Sleeper" when rank is
-  // already 1, and /Sleeper/i matches BOTH that refusal and the success line — so a silent refusal
-  // would look like a pass and the whole run would assert against stale state.
   const applied = await cmd(bot, `/function shadowslave:test/flaw/${name}`, /Sleeper/i)
   if (/Already a Sleeper/i.test(applied)) {
     throw new Error(`test/flaw/${name} refused: player was still a Sleeper after test/reset`)
   }
 
-  // Drive upkeep once so these checks exercise the real family functions without depending on the
-  // once-per-second scheduler. Claude already proved this alone was not the Q4 fix; it remains useful
-  // here because scheduler timing is not what this harness is trying to test.
+  // Drive upkeep once so family mechanics are exercised directly. Claude already established that
+  // this does not itself resolve Q4; it simply removes the once-per-second scheduler from the test.
   await cmd(bot, '/execute as @s at @s run function shadowslave:upkeep')
   await sleep(200)
 
@@ -215,8 +181,39 @@ async function run(bot) {
   assert('reset clears transient Hunger', hungerAfterReset === 0, `effect-clear success=${hungerAfterReset}`)
 
   await forceFamily(bot, 'fled', 41, 44, 'ss_flaw_weightless')
-  const reducedFall = await waitAttribute(bot, 'minecraft:generic.safe_fall_distance', (value) => value === 2)
+
+  let reducedFall = null
+  let fallError = null
+  try {
+    reducedFall = await waitAttribute(bot, 'minecraft:generic.safe_fall_distance', (value) => value === 2)
+  } catch (error) {
+    fallError = error
+  }
+
+  // Read the trace only after the observation window. These commands therefore cannot change whether
+  // the ordinary attribute poll saw 2 or got stuck at 3.
+  const traceRuns = await score(bot, 'ss_scratch_a')
+  const traceFallMilli = await score(bot, 'ss_scratch_b')
+  assert(
+    'Weightless server-side trace executed',
+    traceRuns !== null && traceRuns > 0,
+    `executions=${traceRuns}`
+  )
+  assert(
+    'server saw safe-fall distance 2 immediately after Weightless add',
+    traceFallMilli === 2000,
+    `safe_fall_distance*1000=${traceFallMilli}`
+  )
+
+  if (fallError) {
+    throw new Error(
+      `${fallError instanceof Error ? fallError.message : String(fallError)}; ` +
+      `server trace executions=${traceRuns}, immediate safe_fall_distance*1000=${traceFallMilli}`
+    )
+  }
+
   assert('fled family applies the unsafe-footing burden', reducedFall === 2, `safe_fall_distance=${reducedFall}`)
+  await cmd(bot, '/tag @s remove ss_test_trace_weightless')
   await cmd(bot, '/function shadowslave:test/reset')
   const restoredFall = await waitAttribute(bot, 'minecraft:generic.safe_fall_distance', (value) => value === 3)
   assert('reset removes the fall-distance modifier', restoredFall === 3, `safe_fall_distance=${restoredFall}`)
