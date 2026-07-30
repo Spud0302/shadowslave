@@ -1,14 +1,16 @@
 # The Spell calling a Carrier. Runs once every 30 seconds, as each player.
 #
-# Lore: "Once infected by the Nightmare Spell, that person will experience constant fatigue
-# and sleepiness and eventually will fall into an unnatural slumber." The fatigue is the
-# Spell pulling them under — so it is a Sleeper-only condition that stops at Awakening.
+# Lore: once infected by the Nightmare Spell, a Carrier experiences increasing fatigue and
+# sleepiness until the First Nightmare takes them. This is a pre-Sleeper condition: surviving
+# that Nightmare is what produces the Dormant Sleeper/Dreamer state.
 
-# Only Carriers hear it. The untouched are left alone, and the Awakened have answered.
+# Only Carriers hear the call. Untouched players are left alone; Sleepers have already completed
+# their First Nightmare and Phase 1 has no later Dream Realm sleep behavior yet.
 execute unless entity @s[tag=ss_carrier] run return 0
 execute if score @s ss_rank matches 1.. run return 0
-# Already inside a trial — they have answered the call. Nausea during the boss fight
-# is a real handicap, and being summoned while already there makes no sense.
+
+# Already inside a trial — they have answered the call. Nausea during the boss fight is a real
+# handicap, and calling someone who is already inside their Nightmare makes no sense.
 execute if entity @s[tag=ss_in_nightmare] run return 0
 
 effect give @s minecraft:nausea 4 0 true
