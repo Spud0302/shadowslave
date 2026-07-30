@@ -18,26 +18,26 @@ execute unless score @s ss_rank matches 1.. unless entity @s[tag=ss_carrier] run
 execute unless score @s ss_rank matches 1.. if entity @s[tag=ss_carrier] run tellraw @s [{"text":"Rank: ","color":"gray"},{"text":"Carrier","color":"dark_gray"},{"text":"  (marked)","color":"dark_purple","italic":true}]
 execute if score @s ss_rank matches 1 run tellraw @s [{"text":"Rank: ","color":"gray"},{"text":"Sleeper","color":"aqua"},{"text":"  (Dormant)","color":"dark_gray","italic":true}]
 
-# Generated Aspect identities. Canon does not give a universal naming grammar or generation formula;
-# these are fan-created personal archetypes built over four finite Dormant mechanics that a datapack
-# can actually execute. The name is the identity; the muted suffix tells the player what its current
-# Dormant expression does without pretending that one mechanic defines the whole Aspect forever.
+# Generated Aspect identities. Nature and archetype are independent vocabularies encoded into one
+# score: Veiled/Ashen/Pale/Restless × Witness/Bearer/Warden/Wanderer. Canon does not give a universal
+# naming grammar or generation formula; these are fan-created supernatural archetypes built over four
+# finite Dormant mechanics the datapack can actually execute.
 execute if score @s ss_aspect matches 11 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Veiled Witness","color":"dark_purple"},{"text":" — darkness lends sight and a little speed","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 12 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Dusk Wanderer","color":"dark_purple"},{"text":" — darkness lends sight and a little speed","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 13 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Silent Shade","color":"dark_purple"},{"text":" — darkness lends sight and a little speed","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 14 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Nightbound Pilgrim","color":"dark_purple"},{"text":" — darkness lends sight and a little speed","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 21 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Ember Bearer","color":"gold"},{"text":" — fire recoils from you; your blows carry embers","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 22 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Ashen Heart","color":"gold"},{"text":" — fire recoils from you; your blows carry embers","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 23 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Cinder Warden","color":"gold"},{"text":" — fire recoils from you; your blows carry embers","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 24 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Hearth Exile","color":"gold"},{"text":" — fire recoils from you; your blows carry embers","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 31 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Pale Bastion","color":"white"},{"text":" — the body hardens beneath the skin","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 32 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Iron Husk","color":"white"},{"text":" — the body hardens beneath the skin","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 33 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Gravebound Frame","color":"white"},{"text":" — the body hardens beneath the skin","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 34 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Stone Vessel","color":"white"},{"text":" — the body hardens beneath the skin","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 41 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Stray Gale","color":"green"},{"text":" — movement becomes unnaturally light and quick","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 42 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Skybound Drifter","color":"green"},{"text":" — movement becomes unnaturally light and quick","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 43 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Restless Horizon","color":"green"},{"text":" — movement becomes unnaturally light and quick","color":"dark_gray","italic":true}]
-execute if score @s ss_aspect matches 44 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Wayward Step","color":"green"},{"text":" — movement becomes unnaturally light and quick","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 12 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Veiled Bearer","color":"dark_purple"},{"text":" — darkness lends sight and a little speed","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 13 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Veiled Warden","color":"dark_purple"},{"text":" — darkness lends sight and a little speed","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 14 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Veiled Wanderer","color":"dark_purple"},{"text":" — darkness lends sight and a little speed","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 21 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Ashen Witness","color":"gold"},{"text":" — fire recoils from you; your blows carry embers","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 22 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Ashen Bearer","color":"gold"},{"text":" — fire recoils from you; your blows carry embers","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 23 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Ashen Warden","color":"gold"},{"text":" — fire recoils from you; your blows carry embers","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 24 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Ashen Wanderer","color":"gold"},{"text":" — fire recoils from you; your blows carry embers","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 31 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Pale Witness","color":"white"},{"text":" — the body hardens beneath the skin","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 32 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Pale Bearer","color":"white"},{"text":" — the body hardens beneath the skin","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 33 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Pale Warden","color":"white"},{"text":" — the body hardens beneath the skin","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 34 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Pale Wanderer","color":"white"},{"text":" — the body hardens beneath the skin","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 41 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Restless Witness","color":"green"},{"text":" — movement becomes unnaturally light and quick","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 42 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Restless Bearer","color":"green"},{"text":" — movement becomes unnaturally light and quick","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 43 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Restless Warden","color":"green"},{"text":" — movement becomes unnaturally light and quick","color":"dark_gray","italic":true}]
+execute if score @s ss_aspect matches 44 run tellraw @s [{"text":"Aspect: ","color":"gray"},{"text":"Restless Wanderer","color":"green"},{"text":" — movement becomes unnaturally light and quick","color":"dark_gray","italic":true}]
 
 # Legacy fallback for worlds that rolled the old 1..4 score values before this rework. Mechanics
 # already live on tags, so those players continue working until reset/re-roll instead of losing their
