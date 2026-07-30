@@ -1,13 +1,12 @@
 // Shadow Slave — automated assertion harness.
 //
 // A mineflayer bot joins the local test server as a normal player, runs commands, and reads
-// the chat replies back. That is the whole trick: Minecraft answers most `/scoreboard`,
-// `/data` and `/execute` queries in chat, so a bot that can read chat can assert on game
-// state without a client.
+// command replies back from chat. It covers the MECHANICAL half only — state transitions,
+// guards, thresholds and teardown. Anything requiring judgement stays on the human list.
 //
-// It covers the MECHANICAL half only — state transitions, guards, thresholds, teardown.
-// Everything requiring judgement (does the fight feel fair, is the darkness right, does the
-// bossbar render) is collected into a "needs a human" list and printed at the end.
+// Release-gate rule: an unreadable state is a TEST ERROR, not evidence that the state is absent.
+// This file has previously produced false confidence from stale dimension caches, late replies,
+// permissive negative assertions and checks that could not actually fail.
 //
 // Usage: node harness.mjs
 
@@ -23,85 +22,110 @@ const human = []
 
 let chatLog = []
 
-/** Wait ms. */
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 /**
- * Run a command and return everything the server said in reply.
- * Commands answer asynchronously, so we clear the log, send, and wait a beat.
+ * Run a command and return the server reply window.
+ *
+ * When `expect` is supplied, timing out is an error. Returning an empty/unmatched string used to
+ * let helpers such as hasTag() turn "the query failed" into false, so negative assertions could
+ * pass without observing the state they claimed to verify.
  */
 async function cmd(bot, command, expect = null, timeoutMs = 4000) {
-  // Drain first. A reply that arrives after the previous cmd() gave up still lands in the next
-  // command's window, where a loose pattern happily matches it — that is how `/tag list`'s
-  // "tester has 2 tags:" was read as ss_timer=2, failing entry assertions on a pack that was
-  // working correctly. Settle, then clear, then send.
+  // Drain first. A late reply from the previous command once made `/tag list`'s
+  // "tester has 2 tags:" get parsed as ss_timer=2.
   await sleep(120)
   chatLog = []
   bot.chat(command.startsWith('/') ? command : '/' + command)
-  // Fixed sleeps do not work here. After a dimension change the server's replies lag, and a
-  // query's answer lands in the NEXT query's window — which made entry look broken when it
-  // was fine. Poll for a reply that matches instead, and only fall back to a timeout.
+
   const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) {
     await sleep(60)
     const joined = chatLog.join('\n')
     if (expect ? expect.test(joined) : joined.length > 0) return joined
   }
-  return chatLog.join('\n')
+
+  const joined = chatLog.join('\n')
+  if (expect) {
+    const seen = joined.length ? joined.slice(0, 300) : '<no reply>'
+    throw new Error(`Timed out waiting for ${expect} after ${command}; saw ${seen}`)
+  }
+  return joined
 }
 
-/** Read a scoreboard value for the bot. Returns a number, or null if the score is absent. */
-async function score(bot, objective) {
-  const out = await cmd(bot, `/scoreboard players get ${USER} ${objective}`, /has -?\d+ \[|Can't get|no score/i)
-  const m = out.match(/has (-?\d+) \[/)
-  return m ? parseInt(m[1], 10) : null
+/** Read a scoreboard value. null means Minecraft explicitly reported that no score exists. */
+async function score(bot, objective, holder = USER) {
+  const out = await cmd(
+    bot,
+    `/scoreboard players get ${holder} ${objective}`,
+    /has -?\d+ \[|Can't get|no score/i
+  )
+  const match = out.match(/has (-?\d+) \[/)
+  return match ? parseInt(match[1], 10) : null
 }
 
-/** True if the bot currently has the given tag. */
+/** True/false only after a valid tag-list reply has been observed. */
 async function hasTag(bot, tag) {
   const out = await cmd(bot, `/tag ${USER} list`, /has \d+ tags?|has no tags/i)
   return out.includes(tag)
 }
 
 /**
- * The dimension the bot is in, read from the server.
+ * Ask the SERVER for the dimension every time.
  *
- * Ask the server, every time. This used to return `bot.game.dimension` first, on a comment
- * claiming it was "instant and authoritative" — the second half was never verified and is
- * false. mineflayer updates that field from the respawn packet, and a cross-dimension /tp does
- * not reliably produce one, so the cached value goes stale and reports the nightmare after the
- * player is back in the Overworld. It cost three false failures: ejection, cooldown re-entry
- * and the recovery sleep all "broke" while direct probes showed the pack behaving correctly.
- *
- * A chat round-trip per call is slower. In a test harness, wrong is more expensive than slow.
+ * Never fall back to bot.game.dimension. Mineflayer updates that cache from respawn packets, and
+ * cross-dimension command teleports do not reliably emit one. The stale cache has already caused
+ * three false failures against a correct pack.
  */
 async function dimension(bot) {
-  const out = await cmd(bot, `/data get entity ${USER} Dimension`, /entity data|failed/i)
-  const m = out.match(/"([^"]+)"/)
-  return m ? m[1] : bot.game?.dimension ?? null
+  const out = await cmd(bot, `/data get entity ${USER} Dimension`, /"[^\"]+:[^\"]+"/)
+  const match = out.match(/"([^\"]+)"/)
+  if (!match) throw new Error(`Could not parse dimension from: ${out}`)
+  return match[1]
 }
 
-/**
- * Wait until the bot's dimension satisfies `pred`, or give up. Returns the last value seen.
- *
- * Fixed sleeps are the single largest source of false failures in this harness. They have now
- * misreported entry, ejection, cooldown re-entry, the recovery sleep and the item sweep — every
- * one of them against a pack that was behaving correctly. A duration that looks generous is still
- * a guess about someone else's scheduler; polling for the state you actually care about is not.
- */
-async function waitDimension(bot, pred, timeoutMs = 6000) {
+async function attributeValue(bot, attribute) {
+  const out = await cmd(bot, `/attribute @s ${attribute} get`, / is -?\d+(?:\.\d+)?/i)
+  const match = out.match(/is (-?\d+(?:\.\d+)?)/i)
+  if (!match) throw new Error(`Could not parse ${attribute} from: ${out}`)
+  return parseFloat(match[1])
+}
+
+async function hasAdvancement(bot, advancement) {
+  const out = await cmd(
+    bot,
+    `/execute if entity @s[advancements={${advancement}=true}] run say GRANTED`,
+    /GRANTED|Test failed|passed/i
+  )
+  return /GRANTED/.test(out)
+}
+
+const inNightmare = (value) => value === 'shadowslave:nightmare'
+const notNightmare = (value) => typeof value === 'string' && value !== 'shadowslave:nightmare'
+
+/** Poll dimension until the requested state is actually observed. Timeout is a test error. */
+async function waitDimension(bot, predicate, timeoutMs = 6000) {
   let seen = null
   const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) {
     seen = await dimension(bot)
-    if (pred(seen)) return seen
+    if (predicate(seen)) return seen
     await sleep(200)
   }
-  return seen
+  throw new Error(`Timed out waiting for dimension transition; last dimension=${seen}`)
 }
 
-const inNightmare = (d) => d === 'shadowslave:nightmare'
-const notNightmare = (d) => d !== null && d !== 'shadowslave:nightmare'
+/** Poll an attribute rather than guessing when the once-per-second upkeep has run. */
+async function waitAttribute(bot, attribute, predicate, timeoutMs = 4000) {
+  let seen = null
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    seen = await attributeValue(bot, attribute)
+    if (predicate(seen)) return seen
+    await sleep(200)
+  }
+  throw new Error(`Timed out waiting for ${attribute}; last value=${seen}`)
+}
 
 function assert(name, condition, detail = '') {
   const line = detail ? `${name} — ${detail}` : name
@@ -121,261 +145,317 @@ async function run(bot) {
   await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')
   await sleep(300)
 
-  // --- infection lifecycle -------------------------------------------------
+  // --- clean state + infection lifecycle -----------------------------------
   assert('untouched has no carrier tag', !(await hasTag(bot, 'ss_carrier')))
+
+  // v1.4.9 regression: eligibility belongs at the entry choke point, not only in callers.
+  const untouchedEntry = await cmd(bot, '/function shadowslave:nightmare/enter', /not marked/i)
+  const dimUntouched = await dimension(bot)
+  assert(
+    'untouched direct entry is refused at the choke point',
+    /not marked/i.test(untouchedEntry) && notNightmare(dimUntouched),
+    `dimension=${dimUntouched}`
+  )
+
+  // v1.4.9 regression: reset promises fresh state, including hidden cooldown state.
+  await cmd(bot, '/scoreboard players set @s ss_cooldown 123')
+  await cmd(bot, '/function shadowslave:test/reset')
+  const cooldownAfterCleanReset = await score(bot, 'ss_cooldown')
+  assert(
+    'test/reset clears transient cooldown state',
+    cooldownAfterCleanReset === null || cooldownAfterCleanReset === 0,
+    `ss_cooldown=${cooldownAfterCleanReset}`
+  )
 
   await cmd(bot, '/function shadowslave:test/infect')
   assert('infect marks a Carrier', await hasTag(bot, 'ss_carrier'))
 
-  const reInfect = await cmd(bot, '/function shadowslave:test/infect')
+  const reInfect = await cmd(bot, '/function shadowslave:test/infect', /already a Carrier/i)
   assert('infect refuses twice', /already a Carrier/i.test(reInfect), 'guard on existing state')
 
-  const cureAsCarrier = await cmd(bot, '/function shadowslave:test/cure')
+  const cureAsCarrier = await cmd(bot, '/function shadowslave:test/cure', /lost interest|cannot lose|not noticed/i)
   assert('cure removes the mark', !(await hasTag(bot, 'ss_carrier')))
-  // Match the CURRENT refusal wording. 1.4.8 reworded it from "You are Awakened" to
-  // "You are a Sleeper", which would have left this searching for a string the pack can no
-  // longer emit — passing whatever happened, which is worse than failing.
   assert('cure on a Carrier does not refuse', !/Sleeper|cannot lose interest/i.test(cureAsCarrier))
 
-  // --- the weakness gate (v1.4.1) -----------------------------------------
-  // Call the real entry function, not test/nightmare — as of 1.4.4 the wrapper carries
-  // ss_test_bypass and is meant to walk straight through this gate. Asserting on the wrapper
-  // would test the bypass while claiming to test the gate.
+  // --- weakness gate + explicit test bypass --------------------------------
   await cmd(bot, '/function shadowslave:test/infect')
-  await cmd(bot, '/damage @s 12')  // -> 8 HP, under the 1.4.5 entry gate of 10
+  await cmd(bot, '/damage @s 12') // -> 8 HP, under the 10 HP entry gate
   await sleep(400)
-  const hurtHealth = await score(bot, 'ss_scratch_a')
-  const weakEntry = await cmd(bot, '/function shadowslave:nightmare/enter')
+
+  const weakEntry = await cmd(bot, '/function shadowslave:nightmare/enter', /too weak/i)
   const dimAfterWeak = await dimension(bot)
+  const hurtHealth = await score(bot, 'ss_scratch_a')
+  // BOTH halves matter. The old OR would pass if the function printed the refusal and then
+  // accidentally fell through into the Nightmare anyway.
   assert(
     'entry refused while too weak',
-    /too weak/i.test(weakEntry) || dimAfterWeak !== 'shadowslave:nightmare',
-    `dimension=${dimAfterWeak}`
+    /too weak/i.test(weakEntry) && notNightmare(dimAfterWeak),
+    `health=${hurtHealth}, dimension=${dimAfterWeak}`
   )
 
-  // ...and the bypass gets the tester in at the same health that just refused everyone else.
   await cmd(bot, '/function shadowslave:test/nightmare')
-  const dimAfterBypass = await dimension(bot)
+  const dimAfterBypass = await waitDimension(bot, inNightmare)
   assert(
     'test/nightmare bypasses the weakness gate',
-    dimAfterBypass === 'shadowslave:nightmare',
-    `hurt to ${hurtHealth}, dimension=${dimAfterBypass}`
+    inNightmare(dimAfterBypass),
+    `health=${hurtHealth}, dimension=${dimAfterBypass}`
   )
   assert('the bypass tag is consumed by entry', !(await hasTag(bot, 'ss_test_bypass')))
+
+  // Leaving sets cooldown. Heal, then prove the test wrapper bypasses that gate too.
   await cmd(bot, '/function shadowslave:nightmare/leave')
+  await waitDimension(bot, notNightmare)
+  await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')
+  await sleep(200)
+  await cmd(bot, '/function shadowslave:test/nightmare')
+  const dimAfterCooldownBypass = await waitDimension(bot, inNightmare)
+  assert(
+    'test/nightmare bypasses the cooldown gate',
+    inNightmare(dimAfterCooldownBypass),
+    `dimension=${dimAfterCooldownBypass}`
+  )
+  await cmd(bot, '/function shadowslave:nightmare/leave')
+  await waitDimension(bot, notNightmare)
   await cmd(bot, '/scoreboard players reset @s ss_cooldown')
 
   // --- entry ---------------------------------------------------------------
   await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')
-  await sleep(400)
+  await sleep(200)
   await cmd(bot, '/function shadowslave:test/nightmare')
-  const dimIn = await dimension(bot)
-  assert('test/nightmare enters the dimension', dimIn === 'shadowslave:nightmare', `dimension=${dimIn}`)
+  const dimIn = await waitDimension(bot, inNightmare)
+  assert('test/nightmare enters the dimension', inNightmare(dimIn), `dimension=${dimIn}`)
   assert('entry sets the in-nightmare tag', await hasTag(bot, 'ss_in_nightmare'))
+
   const timer = await score(bot, 'ss_timer')
-  // 1800 ticks = the 90s countdown set in enter.mcfunction. Pinned near the exact value rather
-  // than a loose upper bound: the old `<= 6000` would have passed for any countdown from 1 tick
-  // to five minutes, so it could never have caught this being retuned wrongly. A few ticks of
-  // slack for the polling round-trip.
   const COUNTDOWN = 1800
+  // Pinned near the exact 90-second value. The old `<= 6000` assertion could not catch a bad retune.
   assert(
     'entry starts the countdown',
     timer !== null && timer > COUNTDOWN - 60 && timer <= COUNTDOWN,
     `ss_timer=${timer}, expected ~${COUNTDOWN}`
   )
 
-  const reEnter = await cmd(bot, '/function shadowslave:test/nightmare')
+  const reEnter = await cmd(bot, '/function shadowslave:test/nightmare', /already in a nightmare/i)
   assert('re-entry refused while inside', /already in a nightmare/i.test(reEnter))
 
-  // --- the soul-readout collision (1.7) -----------------------------------
-  // The readout used to write armour into ss_health, which the ejection check reads.
+  // --- soul-readout collision regression ----------------------------------
   await cmd(bot, '/trigger soul')
   await sleep(1200)
   const stillIn = await dimension(bot)
-  assert('reading the soul does not eject you', stillIn === 'shadowslave:nightmare', `dimension=${stillIn}`)
+  assert('reading the soul does not eject you', inNightmare(stillIn), `dimension=${stillIn}`)
 
-  // --- death teardown and item recovery (1.6, 1.8) ------------------------
-  await cmd(bot, '/give @s minecraft:diamond 7')
-  await sleep(400)
-  await cmd(bot, '/kill @s')
-  await sleep(2000)
-  const dimAfterDeath = await dimension(bot)
-  assert('death clears the in-nightmare tag', !(await hasTag(bot, 'ss_in_nightmare')))
-  assert('death does not strand you in the nightmare', dimAfterDeath !== 'shadowslave:nightmare', `dimension=${dimAfterDeath}`)
-
-  // 1.4.6: dying is not being cast out. A death (0 HP) also satisfies the <=4 ejection check,
-  // so it used to run the whole cast-out ceremony and grant its advancement.
-  const castOutOnDeath = await cmd(
-    bot,
-    '/execute if entity @s[advancements={shadowslave:test/cast_out=true}] run say GRANTED',
-    /GRANTED|Test failed|passed/i
+  // v1.4.9 regression: reset invoked from INSIDE must tear down first, then clear the cooldown
+  // that leave.mcfunction deliberately creates.
+  await cmd(bot, '/function shadowslave:test/reset')
+  const dimAfterInsideReset = await waitDimension(bot, notNightmare)
+  const insideResetTag = await hasTag(bot, 'ss_in_nightmare')
+  const cooldownAfterInsideReset = await score(bot, 'ss_cooldown')
+  assert(
+    'test/reset inside a Nightmare performs teardown',
+    notNightmare(dimAfterInsideReset) && !insideResetTag,
+    `dimension=${dimAfterInsideReset}, tagged=${insideResetTag}`
   )
   assert(
-    'death does not grant the Cast Out advancement',
-    !/GRANTED/.test(castOutOnDeath),
-    'Cast Out records ejections only'
+    'test/reset inside a Nightmare leaves no cooldown behind',
+    cooldownAfterInsideReset === null || cooldownAfterInsideReset === 0,
+    `ss_cooldown=${cooldownAfterInsideReset}`
   )
 
-  // Item recovery on death is NOT asserted here, deliberately.
+  // --- death teardown and item recovery -----------------------------------
+  await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')
+  await cmd(bot, '/function shadowslave:test/infect')
+  await cmd(bot, '/function shadowslave:test/nightmare')
+  await waitDimension(bot, inNightmare)
+  await cmd(bot, '/give @s minecraft:diamond 7')
+  await sleep(300)
+  await cmd(bot, '/kill @s')
+  // Mineflayer needs time to respawn before command queries are reliable.
+  await sleep(2000)
+
+  const dimAfterDeath = await dimension(bot)
+  assert('death clears the in-nightmare tag', !(await hasTag(bot, 'ss_in_nightmare')))
+  assert('death does not strand you in the nightmare', notNightmare(dimAfterDeath), `dimension=${dimAfterDeath}`)
+
+  // Read the condition into a score rather than relying on a conditional `say`.
   //
-  // Three different assertions "failed" this feature while it worked, and the probes finally
-  // showed why: after the player leaves, the nightmare chunks unload, so `execute in
-  // shadowslave:nightmare run data get entity @e[type=item]` reports nothing whether or not
-  // items are there. Force-loading the area makes them appear — and then the overworld query
-  // returns the SAME coordinates as the nightmare query, so the check cannot even tell the two
-  // dimensions apart. A test that returns the same answer for pass and fail is worse than none.
+  // This assertion was itself vacuous until GPT's fail-closed change exposed it, which is a fair
+  // answer to OPEN-QUESTIONS Q1. It ran `execute if entity @s[advancements={...}] run say GRANTED`,
+  // which produces NO reply when the condition is false — so a passing run and an unreadable one
+  // were indistinguishable, and `!/GRANTED/.test('')` was true either way. It could not have failed
+  // if death had started granting the advancement.
   //
-  // Confirmed in-game instead, twice, by the playtester: after dying in the trial the drops
-  // land around the bed, most within pickup range, a few a couple of blocks out.
+  // `execute store success` always writes a definite 0 or 1, so the read is unambiguous. This is the
+  // idiom test/selfcheck.mcfunction already uses for the same reason.
+  await cmd(bot, '/scoreboard players reset $castout ss_roll')
+  await cmd(
+    bot,
+    '/execute store success score $castout ss_roll if entity @s[advancements={shadowslave:test/cast_out=true}]',
+    /score|set|Nothing changed|Test failed/i
+  )
+  const castOutOnDeath = await score(bot, 'ss_roll', '$castout')
+  assert(
+    'death does not grant the Cast Out advancement',
+    castOutOnDeath === 0,
+    `store success returned ${castOutOnDeath} (1 = granted); Cast Out records ejections only`
+  )
+
+  // This cannot be graded reliably by Mineflayer: Nightmare chunks unload after exit, and the
+  // earlier automated checks returned the same answer for pass and fail. Keep the honest manual check.
   needsHuman(
     'item recovery on death (CONFIRMED v1.4.5 — re-check only if the sweep changes)',
     'not machine-checkable: nightmare chunks unload before the query runs'
   )
 
-  // The win path stays a human check by nature — killing the creature needs a real fight, so
-  // every automated assertion above ends in a failure state (ejection, death, refusal).
-  // Confirmed by hand on v1.4.6: Awakened with an Aspect, a Flaw and the tree filled in.
+  // The bot cannot conduct a real fight. This path was confirmed by hand on v1.4.6.
   needsHuman(
     'the whole loop, won (CONFIRMED v1.4.6)',
-    're-run after any change to survive/ or awaken/ — no bot can fight the creature'
+    're-run after any change to survive/ or progression/ — no bot can fight the creature'
   )
 
-  // --- T5: an untouched player is Mundane, not a Sleeper ------------------
+  // --- soul labels + Sleeper rank gate ------------------------------------
   await cmd(bot, '/function shadowslave:test/reset')
-  // Wait for `Rank:` specifically. /Soul/ also matches the "Triggered [Soul]" receipt,
-  // which arrives a tick before the readout itself.
   const soulUntouched = await cmd(bot, '/trigger soul', /Rank:/)
   assert('untouched reads as Mundane', /Mundane/i.test(soulUntouched), soulUntouched.match(/Rank:[^\n]*/)?.[0] || '')
 
-  // --- T9: cure refuses on an Awakened ------------------------------------
   await cmd(bot, '/function shadowslave:test/awaken', /Sleeper/i)
-  const cureAwakened = await cmd(bot, '/function shadowslave:test/cure', /Sleeper|lost interest/i)
-  assert('cure refuses on a Sleeper', /cannot lose interest|test\/reset/i.test(cureAwakened), cureAwakened.slice(0, 80))
+  const cureSleeper = await cmd(bot, '/function shadowslave:test/cure', /Sleeper|lost interest/i)
+  assert('cure refuses on a Sleeper', /cannot lose interest|test\/reset/i.test(cureSleeper), cureSleeper.slice(0, 80))
 
-  // --- T7: re-rolling clears the previous Aspect's modifiers --------------
-  // Force Bone so there is definitely an armour modifier to leave behind.
+  // A Sleeper is terminal for Phase 1: ordinary sleep should stay in the Overworld and grant
+  // the historical test/bypass id whose display title is Sleep Undisturbed.
+  await cmd(bot, '/function shadowslave:sleep')
+  const dimAfterSleeperSleep = await dimension(bot)
+  assert(
+    'a Sleeper sleeps without re-entering a First Nightmare',
+    notNightmare(dimAfterSleeperSleep),
+    `dimension=${dimAfterSleeperSleep}`
+  )
+  assert(
+    'Sleeper sleep grants Sleep Undisturbed',
+    await hasAdvancement(bot, 'shadowslave:test/bypass')
+  )
+
+  // --- re-roll modifier cleanup -------------------------------------------
+  // Force Bone so there is definitely a persistent armour modifier to leave behind.
   await cmd(bot, '/tag @s remove ss_aspect_shadow')
   await cmd(bot, '/tag @s remove ss_aspect_flame')
   await cmd(bot, '/tag @s remove ss_aspect_wind')
   await cmd(bot, '/tag @s add ss_aspect_bone')
-  await sleep(1400)  // upkeep runs once a second
-  const armourWithBone = await cmd(bot, '/attribute @s minecraft:generic.armor get', /Value of|attribute/i)
+  const boneVal = await waitAttribute(bot, 'minecraft:generic.armor', (value) => value >= 6)
+
   await cmd(bot, '/function shadowslave:test/reset')
   await cmd(bot, '/function shadowslave:test/awaken', /Sleeper/i)
-  await sleep(1400)
-  const armourAfterReroll = await cmd(bot, '/attribute @s minecraft:generic.armor get', /Value of|attribute/i)
-  const boneVal = parseFloat(armourWithBone.match(/is ([\d.]+)/)?.[1] ?? '0')
-  const afterVal = parseFloat(armourAfterReroll.match(/is ([\d.]+)/)?.[1] ?? '-1')
-  const rerolledBone = /ss_aspect_bone/.test(await cmd(bot, `/tag ${USER} list`, /has \d+ tags?|has no tags/i))
+  const rerolledBone = await hasTag(bot, 'ss_aspect_bone')
+  const afterVal = rerolledBone
+    ? await waitAttribute(bot, 'minecraft:generic.armor', (value) => value >= 6)
+    : await attributeValue(bot, 'minecraft:generic.armor')
   assert(
     'a re-roll does not leave the old Aspect modifier behind',
     rerolledBone ? afterVal === boneVal : afterVal < boneVal,
     `bone=${boneVal} after=${afterVal}${rerolledBone ? ' (rerolled Bone again)' : ''}`
   )
 
-  // --- T2/T3: a real ejection sets the cooldown and locks you out ---------
+  // --- real ejection, cooldown and recovery sleep -------------------------
   await cmd(bot, '/function shadowslave:test/reset')
   await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')
   await cmd(bot, '/function shadowslave:test/infect')
   await cmd(bot, '/function shadowslave:test/nightmare')
   await waitDimension(bot, inNightmare)
-  // drop below the ejection threshold without dying
-  await cmd(bot, '/damage @s 16')  // -> 4 HP, at the 1.4.5 ejection threshold
+  await cmd(bot, '/damage @s 16') // -> 4 HP, the ejection threshold
+
   const dimAfterEject = await waitDimension(bot, notNightmare)
-  assert('low health ejects you from the trial', dimAfterEject !== 'shadowslave:nightmare', `dimension=${dimAfterEject}`)
+  assert('low health ejects you from the trial', notNightmare(dimAfterEject), `dimension=${dimAfterEject}`)
 
   const cooldown = await score(bot, 'ss_cooldown')
   assert('ejection starts the cooldown', cooldown !== null && cooldown > 0, `ss_cooldown=${cooldown}`)
 
   await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')
-  await sleep(400)
-  // Call the real entry function, not the test wrapper — the wrapper clears the cooldown on
-  // purpose, so it would prove nothing.
-  const entryDuringCooldown = await cmd(bot, '/execute as @s at @s run function shadowslave:nightmare/enter')
+  await sleep(200)
+  const entryDuringCooldown = await cmd(
+    bot,
+    '/execute as @s at @s run function shadowslave:nightmare/enter',
+    /Spell is spent/i
+  )
   const dimDuringCooldown = await dimension(bot)
   assert(
     'you cannot re-enter during the cooldown',
-    dimDuringCooldown !== 'shadowslave:nightmare',
+    /Spell is spent/i.test(entryDuringCooldown) && notNightmare(dimDuringCooldown),
     `dimension=${dimDuringCooldown}`
   )
 
-  // --- 1.4.5: sleeping ends the cooldown, rather than 600s of wall clock ---
+  // Sleeping through one night IS recovery. It clears the cooldown and must return before entry.
+  // Assert on state, not on the copy.
+  //
+  // This waited on /nothing reaches/i, which the pack emits via `title @s actionbar` — that never
+  // arrives as a chat message, so mineflayer cannot see it and the assertion could ONLY fail. The
+  // inverse of the vacuous checks: unfalsifiable rather than unfailable, and equally useless.
+  //
+  // Matching on player-facing copy is fragile here for a second reason: two assertions have already
+  // been silently disarmed by rewording the strings they matched. The observable outcomes below —
+  // cooldown cleared, and still in the Overworld — are what the feature actually promises.
   await cmd(bot, '/scoreboard players set @s ss_cooldown 600')
-  await cmd(bot, '/function shadowslave:sleep')
+  await cmd(bot, '/function shadowslave:sleep', /returned|Running function/i)
   const cdAfterSleep = await score(bot, 'ss_cooldown')
   assert('sleeping clears the cooldown', cdAfterSleep === null || cdAfterSleep === 0, `ss_cooldown=${cdAfterSleep}`)
-  // The recovery sleep must NOT also pull you in — clearing the score and testing it for the
-  // return on the next line would read the value just erased and fall through into the trial.
   const dimAfterRecovery = await dimension(bot)
-  assert(
-    'the recovery sleep does not pull you in',
-    dimAfterRecovery !== 'shadowslave:nightmare',
-    `dimension=${dimAfterRecovery}`
-  )
+  assert('the recovery sleep does not pull you in', notNightmare(dimAfterRecovery), `dimension=${dimAfterRecovery}`)
 
-  // --- 1.4.5: ejection must not vacuum the nightmare onto the player -------
+  // --- ejection must not vacuum unrelated Nightmare loot ------------------
   await cmd(bot, '/scoreboard players reset @s ss_cooldown')
   await cmd(bot, '/function shadowslave:test/nightmare')
+  await waitDimension(bot, inNightmare)
   await cmd(bot, '/summon item ~5 ~ ~5 {Item:{id:"minecraft:diamond_block",count:1}}')
   await sleep(300)
   await cmd(bot, '/damage @s 16')
-
-  // Wait for the ejection to actually land before looking. A fixed sleep made this flaky, and
-  // for a reason that inverted the test: until the teleport completes the player is still stood
-  // in the nightmare beside the block we just summoned, so "an item is near me" is TRUE and has
-  // nothing to do with the sweep. Poll for the dimension instead — the assertion is only
-  // meaningful once the player is home.
-  let ejectedTo = null
-  for (let i = 0; i < 20; i++) {
-    ejectedTo = await dimension(bot)
-    if (ejectedTo !== 'shadowslave:nightmare') break
-    await sleep(200)
-  }
+  const ejectedTo = await waitDimension(bot, notNightmare)
   const strayHere = await cmd(bot, '/execute as @e[type=item,distance=..6] run data get entity @s Item.id')
   assert(
     'ejection does not sweep loose items onto you',
-    ejectedTo !== 'shadowslave:nightmare' && !/diamond_block/.test(strayHere),
+    notNightmare(ejectedTo) && !/diamond_block/.test(strayHere),
     `ejected to ${ejectedTo}; items the player never dropped must stay in the nightmare`
   )
-  await cmd(bot, '/scoreboard players reset @s ss_cooldown')
-
-  // --- cooldown (1.4.0) ---------------------------------------------------
 
   // --- things only a person can judge -------------------------------------
-  // Keep this list honest. Everything below is genuinely unsettled; anything the playtester has
-  // already ruled on gets deleted, not left here. A list that re-asks answered questions wastes
-  // the one resource this harness cannot replace.
-  //
-  // Settled, do not re-add: the recovery sleep (1.4.6), the creature's chase speed (1.4.6),
-  // ejection at 2 hearts (1.4.5, "health drop out is good"), the fight (too hard at wood/no-armour -> drove the cooldown and the
-  // 1.4.5 threshold drop), the dark (ambient_light 0.1 fine), the bossbar (switches to the
-  // creature and tracks its health), spawn rates ("could go either way"), sneak-to-enter feel
-  // (tap does nothing, hold takes you, telegraph is immediate).
+  // Settled, do not re-add: recovery sleep, creature chase speed, 2-heart ejection threshold,
+  // fight at wood/no-armour, ambient_light 0.1, bossbar handover, spawn rate and sneak-hold feel.
 
   console.log('\n=== summary ===')
   console.log(`${pass.length} passed, ${fail.length} failed`)
   if (fail.length) {
     console.log('\nFAILED:')
-    fail.forEach((f) => console.log('  ' + f))
+    fail.forEach((item) => console.log('  ' + item))
   }
   console.log('\nNEEDS A HUMAN:')
-  human.forEach((h) => console.log('  ' + h))
+  human.forEach((item) => console.log('  ' + item))
   console.log()
 }
 
-const bot = mineflayer.createBot({ host: HOST, port: PORT, username: USER, auth: 'offline', version: '1.21.1' })
+const bot = mineflayer.createBot({
+  host: HOST,
+  port: PORT,
+  username: USER,
+  auth: 'offline',
+  version: '1.21.1'
+})
 
 bot.on('message', (msg) => chatLog.push(msg.toString()))
-bot.on('error', (e) => { console.error('bot error:', e.message); process.exit(1) })
-bot.on('kicked', (r) => { console.error('kicked:', r); process.exit(1) })
+bot.on('error', (error) => {
+  console.error('bot error:', error.message)
+  process.exit(1)
+})
+bot.on('kicked', (reason) => {
+  console.error('kicked:', reason)
+  process.exit(1)
+})
 
 bot.once('spawn', async () => {
   try {
     await sleep(1500)
     await run(bot)
-  } catch (e) {
-    console.error('harness error:', e)
-    process.exitCode = 1
+  } catch (error) {
+    console.error('harness error:', error)
+    // An exception must be indistinguishable from an assertion failure to the release gate.
+    fail.push(`harness exception — ${error instanceof Error ? error.message : String(error)}`)
   } finally {
     bot.quit()
     process.exit(fail.length ? 1 : 0)

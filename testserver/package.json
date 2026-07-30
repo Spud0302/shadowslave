@@ -1,13 +1,11 @@
 {
   "name": "testserver",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "Local Minecraft 1.21.1 integration harness for the Shadow Slave datapack",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node harness.mjs"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "mineflayer": "^4.37.1"
