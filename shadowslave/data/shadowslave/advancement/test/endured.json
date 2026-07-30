@@ -4,7 +4,7 @@
     "icon": { "id": "minecraft:clock" },
     "title": { "text": "Endured", "color": "dark_purple" },
     "description": {
-      "text": "The countdown expired and the Nightmare Creature spawned."
+      "text": "Endure the dark until the Nightmare shows its face."
     },
     "frame": "task",
     "show_toast": true,
