@@ -10,6 +10,49 @@ Issue numbers refer to [ISSUES.md](ISSUES.md).
 
 ---
 
+## `0.7.3` — Q4 closed: the unreliable mechanic is retired, not patched
+
+From `gpt/replace-weightless-flaw`, on Andrew's direction to replace the troublesome Flaw mechanic
+rather than spend pre-Java effort preserving it.
+
+`0.7.2` proved `safe_fall_distance` could stay at its vanilla value across 14 consecutive upkeep
+executions despite the `modifier add` succeeding. GPT's resolution keeps the **contract** and drops the
+**implementation**: the fled/retreat family still means "distance bought during the trial follows you
+home", but it is now Slowness I refreshed by upkeep instead of an attribute modifier that sometimes
+does nothing.
+
+- `flaw/weightless.mcfunction` and its diagnostic trace are **deleted**;
+- `flaw/burdened.mcfunction` replaces them; upkeep routes the historical `ss_flaw_weightless` tag to it,
+  so existing saves and the Java importer need no migration;
+- `ss_flaw` `41..44` still means the retreat-earned family — the behaviour-derived contract is unchanged;
+- generation, `test/reset` and `selfcheck` defensively strip the retired `flaw_weightless_fall` modifier
+  for players arriving from `0.7.2` or earlier;
+- player-facing identities become **Leadbound / Heavy Step / Shackled Pace / Burdened Road**;
+- `flaw_harness.mjs` returns to the release gate, its Q4 trace reads replaced by deterministic
+  effect-presence checks.
+
+**Verification:** validator clean, **32/32** lifecycle and **39/39** Flaw, stable across three runs.
+Q4 is answered. Still needs a human: confirm in a real client that the Slowness burden is noticeable
+without being obnoxious.
+
+### The gate was testing a stale pack
+
+While verifying the above I read a passing mechanic as broken, "fixed" it, and had to revert. The pack
+under test had never changed: the server loads `testserver/world/datapacks/ss-trace.zip`, not the
+working tree, so editing a `.mcfunction` and re-running `npm test` silently exercises the previously
+deployed build. GPT's branch passes **71/71 untouched** once actually deployed.
+
+The wrong change also misread `effect give`'s duration as ticks. It takes **seconds** — the pack's
+`2`/`4`/`15` values are a deliberate overlap against once-per-second upkeep, so `slowness 2` was correct
+as written and my `1200` would have been twenty minutes.
+
+`npm run deploy` now builds, installs, `/reload`s and **fails unless the server announces the version it
+just installed**. `docs/ENGINEERING-NOTES.md` gains the three rules this cost: know which build produced
+a result, treat failures spreading beyond the change as an environment problem, and learn what a value
+means before changing one that matches its siblings.
+
+The revert is left in history rather than squashed. Git is the channel GPT reads.
+
 ## `0.7.2` — Q4 root-caused: Weightless can fail to apply
 
 Diagnostic build. From `gpt/q4-server-trace`, which took the suggested approach of instrumenting the
@@ -19,11 +62,11 @@ datapack instead of probing over chat, because chat round-trips perturb the timi
 server-side and in the same tick, how many times it ran and what `safe_fall_distance` was immediately
 after its `modifier add`:
 
-| Cycle | executions | value after `add` (x1000) |
-| --- | --- | --- |
-| 1 pass | 4 | **2000** |
-| 2 **fail** | 14 | **3000** |
-| 3 pass | 3 | **2000** |
+| Cycle      | executions | value after `add` (x1000) |
+| ---------- | ---------- | ------------------------- |
+| 1 pass     | 4          | **2000**                  |
+| 2 **fail** | 14         | **3000**                  |
+| 3 pass     | 3          | **2000**                  |
 
 In the failing cycle the `add` ran and the attribute stayed at its base of 3, across **14** consecutive
 upkeep executions. Not a stale read and not a chat artifact — the server reports it from inside the pack.
@@ -35,7 +78,7 @@ receive **no penalty at all** while the soul readout still names the Flaw.
 
 **Not fixed here.** The failure is localised but not identified, and four hypotheses have already been
 eliminated. `docs/OPEN-QUESTIONS.md` Q4 records what is established, what is not, and the next probe:
-capture whether the modifier *exists* after the `add`, which separates "the add silently did nothing"
+capture whether the modifier _exists_ after the `add`, which separates "the add silently did nothing"
 from "the add worked and something removed it in the same tick" — different bugs, different fixes.
 
 Also: `validate.py` rejected the incoming branch because `ss_test_trace_weightless` was tested in the
@@ -86,7 +129,7 @@ summoning the conflict, the bossbar handover, the leash, and the victory test. `
 the player lifecycle — health, ejection, the timer, the bar.
 
 The reasoning is canon-led and worth keeping: a Nightmare resolves a **central conflict**, and
-wait-then-kill-one-creature is *this prototype's* scenario rather than the definition. Keeping it behind
+wait-then-kill-one-creature is _this prototype's_ scenario rather than the definition. Keeping it behind
 a seam means the Java port grows a scenario abstraction instead of having boss-kill assumptions baked
 into entry, teardown and player state. Behaviour is unchanged from `0.5.0`; the atmosphere beats at
 1200/600/200 ticks are new.
@@ -111,7 +154,7 @@ so I stopped rather than guess a third time and recorded it as **Q4** with the r
 dead ends. Two wrong diagnoses in a row is where this project's own notes say to stop patching and get
 data.
 
-One fix I did keep: `forceFamily` now throws when `test/flaw/*` replies *"Already a Sleeper"*. The
+One fix I did keep: `forceFamily` now throws when `test/flaw/*` replies _"Already a Sleeper"_. The
 `expect` matched both the success line and that refusal, so a silent refusal would have looked like a
 pass and the run would have asserted against stale state — the same class of fault as Q1.
 
@@ -129,20 +172,20 @@ Merged from three GPT branches, each verified before merge.
 
 - An Aspect name is now built from **two independent vocabularies** (nature x archetype) rather than
   picked from a list of four, because canon is explicit that every Aspect is unique. Confirmed live:
-  *Restless Bearer*, *Veiled Warden*, *Restless Warden*, *Pale Witness*.
+  _Restless Bearer_, _Veiled Warden_, _Restless Warden_, _Pale Witness_.
 - The four underlying Dormant mechanics stay finite and predeclared - correctly. A datapack can
   compose names and state at runtime but cannot invent a command implementation, so a design assuming
-  arbitrary generated *behaviour* would have forced the Java port early.
+  arbitrary generated _behaviour_ would have forced the Java port early.
 - **Flaws are no longer a second unrelated roll.** The trial is classified from behaviour the pack can
   actually observe - near-collapse, food consumed, distance opened from the creature - and the earned
   family decides the mechanical burden. Randomness only picks the personal name inside that family, so
   two players who survive the same way carry the same price under different names. That is what Andrew
   asked for: earned from behaviour, with randomness so identical play does not give identical Flaws.
-- *Shadow Slave* is no longer shown as a Flaw. Canonically it is an Aspect.
+- _Shadow Slave_ is no longer shown as a Flaw. Canonically it is an Aspect.
 
 ### The harness stopped lying, at some cost to my pride
 
-GPT's answer to `OPEN-QUESTIONS` Q1 - *which assertions could not fail if the behaviour broke* - found
+GPT's answer to `OPEN-QUESTIONS` Q1 - _which assertions could not fail if the behaviour broke_ - found
 several real false-confidence paths in code I wrote. It now **fails closed**: 25 -> 32 assertions,
 unreadable state is a test error rather than evidence of absence, `hasTag()` can no longer turn a
 failed query into confirmed absence, and the weakness gate requires refusal **and** confirmed
@@ -186,7 +229,7 @@ Merged from `gpt/review-improvements` after running the validator and the harnes
   drop an untouched player into a trial. This closes the **B2** report from the very first playtest
   — right-clicking a bed at night without being infected pulled you in — which had never actually
   been fixed, only worked around by the two player routes happening to guard themselves.
-- **`test/reset` clears transient state**, `ss_cooldown` included, ordered *after* `nightmare/leave`
+- **`test/reset` clears transient state**, `ss_cooldown` included, ordered _after_ `nightmare/leave`
   because leave is what sets it. Clearing before would have done nothing.
 - **Progression is split from the placeholder roll.** `progression/become_sleeper` owns the rank
   transition; `prototype/roll_aspect_flaw` holds the temporary four-Aspects-four-Flaws generator.
@@ -223,7 +266,7 @@ does not have. The trial's climax was announcing a rank the player cannot yet ho
 
 The corrected ladder is **Mundane → Carrier → Sleeper (Dormant) → Awakened**. Two labels moved:
 
-- Surviving the trial now says *"You are a Sleeper"*, and the soul readout reports
+- Surviving the trial now says _"You are a Sleeper"_, and the soul readout reports
   `Rank: Sleeper (Dormant)`.
 - A Carrier was previously labelled a Sleeper. Being marked is not a rank — you hold Dormant only
   after surviving. A Carrier now reads `Rank: Carrier (marked)`.
@@ -270,8 +313,8 @@ being retuned wrongly. **25/25 assertions pass.**
 
 ## `1.4.6` — dying is not being cast out
 
-Spotted in a playtest screenshot: the death screen had *"You were not ready"* and *"The Nightmare
-rejected you"* behind it. `tick_player` ejects at `Health <= 4` and a real death is `0`, which is
+Spotted in a playtest screenshot: the death screen had _"You were not ready"_ and _"The Nightmare
+rejected you"_ behind it. `tick_player` ejects at `Health <= 4` and a real death is `0`, which is
 also `<= 4` — so dying ran the entire ejection ceremony, title, blindness, nausea and the **Cast
 Out** advancement included. Being cast out is surviving; dying is not, and the verification tree
 was recording deaths as ejections.
@@ -288,19 +331,19 @@ sweep, and ejection at 2 hearts ("health drop out is good as well"). **25/25 ass
 
 - **Sneaking on a bed did nothing but show the telegraph.** The per-tick selector filtered on
   `scores={ss_cooldown=..0}`, and a player who has never been ejected has no `ss_cooldown`
-  entry at all — an absent score fails `matches` outright. So the filter excluded *everyone*,
+  entry at all — an absent score fails `matches` outright. So the filter excluded _everyone_,
   and the entire sneak path has been dead since `1.4.0` introduced it. This is the third bug of
   this exact shape, and the rule is written in the README and in a comment two lines above the
   offending selector. The filter is now gone: `1.4.3` already moved the cooldown guard into
   `enter.mcfunction`, where `matches 1..` behaves correctly on an absent score. Guard at the
   choke point, never in the caller.
 - **Being cast out vacuumed the nightmare into your pockets.** The sweep ran on every exit and
-  moves *every* item in the dimension — mob drops, the killed creature's loot, anything ever
+  moves _every_ item in the dimension — mob drops, the killed creature's loot, anything ever
   dropped in there — onto the return position. A player ejected alive still has their gear, so
   there is nothing to recover; they just got showered in loot they never earned. The sweep now
   runs only on death.
 - **The cooldown ends when you wake, not on a 600-second wall clock.** Sleeping through the
-  night *is* the recovery. That night passes untouched; from waking, the Spell can take you
+  night _is_ the recovery. That night passes untouched; from waking, the Spell can take you
   again. Andrew's call — going back to bed after losing and being told nothing reaches for you,
   twice, reads as the mod switching off.
 - **Ejection threshold dropped from 4 hearts to 2**, and the entry gate from 7 to 5. The fight
@@ -308,14 +351,14 @@ sweep, and ejection at 2 hearts ("health drop out is good as well"). **25/25 ass
   outright rather than ejecting, so death becomes the ordinary failure and ejection the near
   miss. Acceptable only because item recovery on death is confirmed working.
 
-Harness: the entry assertions were failing against a *correct* pack. `score()` matched
+Harness: the entry assertions were failing against a _correct_ pack. `score()` matched
 `has (-?\d+)`, and `/tag list` replies `"tester has 2 tags:"` — a late reply landed in the next
 command's window and was read as `ss_timer=2`. Replies are drained before each command now, and
 the scoreboard pattern requires the trailing `[Objective]`.
 
 The item-recovery assertion was **deleted**, not fixed. Probes showed it could never work: the
 nightmare's chunks unload once the player leaves, so the query reports nothing whether or not
-items are there — and with the area force-loaded, the Overworld query returns the *same*
+items are there — and with the area force-loaded, the Overworld query returns the _same_
 coordinates as the nightmare query. A check that gives the same answer for pass and fail is
 worse than no check. Confirmed by hand instead: drops land around the bed, most within pickup
 range. **24/24 mechanical assertions pass.**
@@ -332,6 +375,7 @@ range. **24/24 mechanical assertions pass.**
   disable the gates for a session, and `test/` still does not carry its own copy of the entry
   logic. The **rank** gate deliberately keeps no bypass: an Awakened inside a First Nightmare is
   a state nothing downstream handles, and `test/reset` is one command away.
+
 - `test/reset` announced "You are a Sleeper again" while clearing `ss_carrier`. Sleeper is the
   rank you hold once the Spell has marked you — it now says **Mundane**, matching
   `soul.mcfunction` and the same correction made there.

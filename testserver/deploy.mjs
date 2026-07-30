@@ -63,7 +63,13 @@ bot.once('spawn', async () => {
   await sleep(500)
   log.length = 0
   bot.chat('/reload')
-  await sleep(3000)
+
+  // Poll, don't sleep. A fixed 3s wait failed the FIRST reload after the pack content actually
+  // changed — Minecraft takes longer to re-register a changed pack than an identical one — and
+  // reported a good deploy as bad. ENGINEERING-NOTES already says never sleep where you can poll;
+  // this script broke that rule on its first real use.
+  const deadline = Date.now() + 20000
+  while (Date.now() < deadline && !log.join('\n').includes(`v${version}`)) await sleep(250)
 
   const replies = log.join('\n')
   bot.quit()
@@ -72,11 +78,10 @@ bot.once('spawn', async () => {
   // what we just installed is the whole point: it proves the server is running THIS build. A silent
   // reload that left the old pack in place is the exact failure this script exists to prevent.
   //
-  // ponytail: this branch is reasoned, not exercised. The copy above is unconditional, so producing a
-  // ponytail: real mismatch needs a server that ignores the installed pack, which is not cheap to fake.
-  // ponytail: the build-failure path above HAS been seen to fail correctly. Per ENGINEERING-NOTES
-  // ponytail: ("a check you have never seen fail is not a check"), treat this one as unproven until a
-  // ponytail: genuine stale-reload happens — at which point confirm it fires rather than assuming.
+  // Seen to fire: the first 0.7.3 deploy tripped it. That turned out to be this script's own fixed
+  // sleep expiring early rather than a stale pack, which is why the wait above polls now. The check
+  // itself is therefore exercised — but remember that a failure here means "cannot confirm", not
+  // "definitely stale". Confirm which build is loaded before concluding anything about the pack.
   if (!replies.includes(`v${version}`)) {
     console.error(`deploy: reloaded, but the server did not announce v${version}.`)
     console.error(replies || '<no reply>')
