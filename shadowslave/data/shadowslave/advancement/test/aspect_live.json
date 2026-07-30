@@ -2,8 +2,8 @@
   "parent": "shadowslave:test/awakened",
   "display": {
     "icon": { "id": "minecraft:ender_eye" },
-    "title": { "text": "Aspect Holds", "color": "aqua" },
-    "description": { "text": "Aspect upkeep ran on a live Sleeper." },
+    "title": { "text": "Dormant Power", "color": "aqua" },
+    "description": { "text": "Feel your Aspect take hold for the first time." },
     "frame": "task",
     "show_toast": true,
     "announce_to_chat": false
