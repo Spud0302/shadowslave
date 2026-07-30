@@ -2,8 +2,8 @@
 # player regardless of where the reset was invoked or what the previous test touched.
 #
 # BEST-PRACTICE: test reset helpers must clear hidden/transient state as well as visible state.
-# Leaving a cooldown, observation tag or scratch score behind makes later tests order-dependent and
-# can turn a correct feature into a false failure (or vice versa).
+# Leaving a cooldown, observation tag, scratch score, modifier or short-lived pack effect behind makes
+# later tests order-dependent and can turn a correct feature into a false failure (or vice versa).
 
 # Get out of the nightmare first if we are in it. This must happen before state is cleared:
 # nightmare/leave owns teardown of the bossbar, creature and return teleport.
@@ -47,6 +47,18 @@ tag @s remove ss_flaw_shadow_slave
 tag @s remove ss_flaw_fragile
 tag @s remove ss_flaw_ravenous
 tag @s remove ss_flaw_weightless
+
+# Upkeep effects expire naturally in ordinary gameplay, but a verification reset promises a genuinely
+# fresh observation window. Clear every transient effect this pack can apply so a test cannot inherit
+# the previous identity or an ejection presentation for even a few seconds.
+effect clear @s minecraft:night_vision
+effect clear @s minecraft:speed
+effect clear @s minecraft:fire_resistance
+effect clear @s minecraft:jump_boost
+effect clear @s minecraft:hunger
+effect clear @s minecraft:weakness
+effect clear @s minecraft:blindness
+effect clear @s minecraft:nausea
 
 # Tags alone are not enough: persistent attribute modifiers survive after their source tag is
 # removed, so every modifier owned by the finite Dormant mechanical vocabulary is stripped explicitly.
