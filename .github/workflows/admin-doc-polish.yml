@@ -1,0 +1,115 @@
+name: One-shot admin documentation polish
+
+on:
+  push:
+    branches:
+      - gpt/admin-docs-current-state
+    paths:
+      - .github/workflows/admin-doc-polish.yml
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Polish and validate Markdown
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          OLD = "e0850193d52c85b4f81e1115f908f9dbdb67d419"
+          NEW = "6a87991353480035f4fe6da08c775cd87d0e81df"
+
+          for name in ["PROJECT-STATUS.md", "GPT_HANDOFF.md", "docs/COLLABORATION.md"]:
+              p = Path(name)
+              text = p.read_text(encoding="utf-8").replace(OLD, NEW)
+              p.write_text(text.lstrip("\n"), encoding="utf-8")
+
+          for name in ["README.md", "MODDING.md", "mod/IMPLEMENTATION-STATUS.md", "mod/README.md"]:
+              p = Path(name)
+              p.write_text(p.read_text(encoding="utf-8").lstrip("\n"), encoding="utf-8")
+
+          status = Path("PROJECT-STATUS.md")
+          text = status.read_text(encoding="utf-8")
+          needle = "- pure, fail-safe datapack migration translation and fixtures;\n"
+          addition = "- validator cross-check ensuring all 16 imported Flaw names still match the frozen datapack;\n"
+          if addition not in text:
+              text = text.replace(needle, needle + addition)
+          status.write_text(text, encoding="utf-8")
+
+          changelog = Path("CHANGELOG.md")
+          text = changelog.read_text(encoding="utf-8")
+          needle = "- deterministic imported IDs and idempotency fixtures;\n"
+          addition = "- validator cross-check pins all 16 Java-imported Flaw names to the frozen datapack display names;\n"
+          if addition not in text:
+              text = text.replace(needle, needle + addition)
+          changelog.write_text(text, encoding="utf-8")
+
+          plan = Path("docs/MOD-TRANSITION-PLAN.md")
+          text = plan.read_text(encoding="utf-8")
+          current = """## 13. Current sequence
+
+          1. close Claude verification Issue #16 with evidence or fixes;
+          2. implement live datapack reading, Java persistence and read-back verification;
+          3. retain legacy state until import is confirmed and idempotent;
+          4. implement `NightmareRegistryData` and explicit per-player instance ownership;
+          5. implement one data-driven historical role, central conflict and valid resolution;
+          6. add appraisal revealing one Aspect and Flaw through the shared core;
+          7. build the same accepted slice in the modpack track;
+          8. score both paths and choose standalone-led, modpack-led or hybrid.
+
+          """
+          text = re.sub(r"## 13\. Current sequence\n.*?(?=## 14\.)", current, text, flags=re.S)
+          plan.write_text(text, encoding="utf-8")
+
+          oq = Path("docs/OPEN-QUESTIONS.md")
+          text = oq.read_text(encoding="utf-8")
+          marker = "## Answered\n\n### Q5"
+          if marker not in text:
+              text = text.replace("### Q5 — The Nightmare lifecycle mapping", "## Answered\n\n### Q5 — The Nightmare lifecycle mapping", 1)
+          oq.write_text(text, encoding="utf-8")
+
+          # Basic relative Markdown link check for the active administrative files.
+          active = [
+              "README.md", "PROJECT-STATUS.md", "GPT_HANDOFF.md", "MODDING.md", "ISSUES.md",
+              "TESTING.md", "docs/COLLABORATION.md", "docs/JAVA-HANDOFF.md",
+              "docs/MOD-TRANSITION-PLAN.md", "docs/OPEN-QUESTIONS.md",
+              "mod/README.md", "mod/IMPLEMENTATION-STATUS.md", "modpack/README.md",
+          ]
+          failures = []
+          link_re = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+          for filename in active:
+              source = Path(filename)
+              text = source.read_text(encoding="utf-8")
+              for target in link_re.findall(text):
+                  if target.startswith(("http://", "https://", "#", "mailto:")):
+                      continue
+                  clean = target.split("#", 1)[0]
+                  if not clean:
+                      continue
+                  resolved = (source.parent / clean).resolve()
+                  if not resolved.exists():
+                      failures.append(f"{filename}: missing relative link {target}")
+          if failures:
+              raise SystemExit("\n".join(failures))
+
+          Path(".github/workflows/admin-doc-polish.yml").unlink()
+          PY
+
+      - name: Commit polished documentation
+        shell: bash
+        run: |
+          git config user.name "ChatGPT documentation agent"
+          git config user.email "gpt@openai.com"
+          git add -A
+          git commit -m "docs: polish current status and transition sequence" -m "Co-Authored-By: ChatGPT <gpt@openai.com>"
+          git push origin HEAD:${{ github.ref_name }}
