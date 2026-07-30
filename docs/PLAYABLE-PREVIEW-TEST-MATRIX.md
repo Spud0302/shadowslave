@@ -1,31 +1,33 @@
 # Playable preview bulk test matrix
 
 **Target:** `0.1.0-preview.1` on PR #19  
-**Review mode:** accumulated bulk Claude review after GPT's playable-preview checkpoint  
+**Source:** `460cd31f135ae7e98f66890b6bbf60414772d57b`  
+**Review mode:** accumulated bulk Claude review  
 **Human status:** Andrew has not yet played this build; deferred is not passed
 
-## Automated evidence already accumulated
+## Final GPT automated checkpoint
 
-| Area | Claim | Evidence/criterion | Status before final checkpoint |
-| --- | --- | --- | --- |
-| Java build | Sources compile on JDK 21 / NeoForge 21.1.244 | `./mod/gradlew -p mod build` | Passed at alpha.5 and alpha.6 checkpoints |
-| Unit tests | Domain, codecs, migration and snapshot rules pass | Gradle JUnit suite | Passed at alpha.5 and alpha.6 checkpoints |
-| Physical client | Client links without dedicated-server side leakage | marker-based workflow client smoke | Passed at alpha.5 and alpha.6 checkpoints |
-| Dedicated server | Server loads mod and bundled data without client classes | marker-based workflow server smoke | Passed at alpha.5 and alpha.6 checkpoints |
-| Packaging | Installable JAR is produced | workflow artifact upload | Passed at alpha.5 and alpha.6 checkpoints |
-| Legacy read | Absent score maps deliberately to sentinel; explicit zero fails | `LegacyDatapackReaderTest` | Covered |
-| Pure translation | Frozen Carrier/completed/legacy mappings remain exact and fail closed | existing `DatapackMigrationTranslatorTest` | Covered |
-| Imported metadata | Full imported Aspect/Flaw metadata round-trips | `ImportedIdentityDataTest` | Covered |
-| Transaction verification | Wrong Soul/metadata read-back is rejected | `DatapackMigrationPersistenceVerifierTest` | Covered |
-| Revealed identity | Aspect/Flaw records round-trip and cannot be half-present | `SoulIdentityDataTest` | Covered |
-| Network | Names, independent ranks, ability and Flaw effect round-trip in bounded payload | `SoulSnapshotTest` | Covered |
-| Nightmare persistence record | Owner, role, conflict IDs, return data and pursuer ID round-trip through NBT | `NightmareInstanceTest` | Covered |
-| Per-player layout | Different slots do not share the same origin | `NightmareInstanceTest` | Covered |
-| Ability state | Kindle cooldown codec and negative guard | `PreviewPowerDataTest` | Covered |
+GitHub Actions `Java core` run **33** / ID **30555343642** completed **successfully**.
 
-## Final automated checkpoint
+| Area | Evidence | Result |
+| --- | --- | --- |
+| Wrapper | Gradle wrapper validation | passed |
+| Java build and unit tests | `./mod/gradlew -p mod build --stacktrace` in workflow | passed |
+| Physical client | accepted Shadow Slave client + GUI-atlas startup markers | passed |
+| Dedicated server | accepted Shadow Slave load + `Done (...)!` ready markers | passed |
+| Packaging | `shadowslave-0.1.0-preview.1.jar` | passed |
+| Artifact upload | artifact `shadow-slave-java-core`, ID `8764632229` | passed |
 
-Claude should reproduce rather than trust this document:
+Downloaded artifact verification:
+
+```text
+archive SHA-256  dd6315fd25ad50bbba09c53433e8b1840a2f70b344b18a425533c4856da3a8e8
+JAR SHA-256      600fa2143879f8f269aec6d048a0fa4b3150f808a091c1527fe34067d9cdd867
+```
+
+See `docs/PLAYABLE-PREVIEW-PROVENANCE.md` for exact sizes, timestamps and source linkage.
+
+Claude must reproduce rather than trust this record:
 
 ```bash
 ./mod/gradlew -p mod clean build
@@ -33,102 +35,101 @@ mod/verify-smoke.sh
 python3 shadowslave/tools/validate.py
 ```
 
-Expected artifact:
+## Automated domain coverage
 
-```text
-mod/build/libs/shadowslave-0.1.0-preview.1.jar
-```
-
-Verify that the final GitHub workflow:
-
-- compiles and runs all unit tests;
-- reaches the accepted physical-client GUI marker;
-- reaches the dedicated-server `Done (...)!` marker with Shadow Slave loaded;
-- uploads exactly the preview JAR;
-- contains the bundled Nightmare dimension, dimension type and biome resources.
+| Rule | Test/evidence |
+| --- | --- |
+| Absent legacy score is distinguished from explicit stored zero | `LegacyDatapackReaderTest` |
+| Frozen Carrier/completed/legacy mappings remain exact and fail closed | `DatapackMigrationTranslatorTest` |
+| Imported Aspect/Flaw metadata codec round-trip | `ImportedIdentityDataTest` |
+| Wrong migration read-back is rejected | `DatapackMigrationPersistenceVerifierTest` |
+| General revealed identity codec and paired presence | `SoulIdentityDataTest` |
+| Independent ranks, names, ability and Flaw effect use bounded payload | `SoulSnapshotTest` |
+| Nightmare owner/role/return/layout/pursuer NBT round-trip | `NightmareInstanceTest` |
+| Different instance slots have different origins | `NightmareInstanceTest` |
+| Kindle cooldown codec and negative guard | `PreviewPowerDataTest` |
+| Bundled dimension resources load on a fresh dedicated-server smoke | workflow run 33 |
 
 ## Claude code-review matrix
 
 ### Live migration
 
-- Reader uses direct scoreboard API rather than parsing command/chat output.
-- Missing objective and missing player score are mapped to absence deliberately.
-- Explicit stored `0`, negative values, active Nightmare state and inconsistent identities fail closed.
-- Existing non-empty Java Soul/identity is never overwritten.
-- Writes happen provisionally; exact read-back precedes final migration marker.
-- All Java attachments roll back on failure.
-- Legacy scores/tags are never removed in this batch.
-- Imported formal names and IDs agree with frozen datapack mappings.
+- Reader uses direct scoreboard API, not command/chat parsing.
+- Missing objective and missing player score map to absence deliberately.
+- Explicit `0`, negative values, active Nightmare state and inconsistent identities fail closed.
+- Established Java Soul/identity is not overwritten.
+- Provisional writes and exact read-back precede the final migration marker.
+- Soul, general identity and imported metadata roll back together on failure.
+- Legacy scores/tags are not removed.
+- Imported names/IDs/ranks agree with frozen datapack mappings.
 
 ### Nightmare lifecycle
 
-- `NightmareService.tryEnter` is the only accepted preview entry choke point.
-- One active instance per player is enforced in persistent Overworld `SavedData`.
-- Temporary role, layout, pursuer and recovery data live on `NightmareInstance`, not `SoulData`.
-- Each player receives a separate slot.
-- The scenario conflict is lighting the signal; pursuer death is not the completion definition.
-- Success, technical recovery, admin abort and canonical death converge on owned-entity/registry teardown.
-- Return dimension/position are stored before entry.
+- `NightmareService.tryEnter` is the only preview entry choke point.
+- Persistent Overworld `SavedData` enforces one active instance per owner UUID.
+- Role, scenario, layout, pursuer and recovery state live on `NightmareInstance`.
+- Per-player slots do not share coordinates.
+- Lighting the signal resolves the conflict; pursuer death is not completion.
+- Success, technical recovery, admin abort and canonical death converge on one owned-entity/registry teardown.
+- Return dimension/position are captured before entry.
 - Technical recovery is labelled out of world.
-- Ordinary death does not masquerade as safe ejection.
-- Login with a valid active instance resumes instructions; dimension mismatch uses technical recovery.
+- Canonical death is not presented as safe ejection.
+- Reconnect resumes a valid in-dimension instance; mismatch invokes technical recovery.
 
-### Appraisal and powers
+### Appraisal, identity and powers
 
-- Fixed preview appraisal is visibly labelled DESIGN.
-- Dreamer Soul Rank remains Dormant while Aspect Rank is Awakened.
-- `SoulIdentityData` holds full permanent identity; `SoulData` holds authoritative IDs/ranks.
-- Appraisal failure cannot leave a half-identity; it recovers to Carrier after lifecycle teardown.
-- Kindle is server-authoritative and cooldown-backed.
-- Cold Ash is server-authoritative and mechanically applied in water/rain/bubbles.
+- Fixed preview appraisal is explicitly DESIGN.
+- Dreamer Soul Rank is Dormant while Aspect Rank is Awakened.
+- `SoulIdentityData` owns full permanent identity; `SoulData` owns authoritative IDs/ranks.
+- Appraisal failure cannot leave a half-identity and recovers to Carrier.
+- Kindle and its cooldown are server-authoritative.
+- Cold Ash is server-authoritative and applies Weakness in water/rain/bubbles.
 - Client payload cannot submit progression, identity or cooldown values.
 
 ### Side and multiplayer safety
 
-- No common/server class imports client GUI classes.
-- Every instance lookup is by owner UUID; selectors/tags are not global ownership.
-- Owned pursuer cleanup targets the stored UUID only.
-- Slot allocation remains unique after SavedData reload.
-- Two players entering concurrently cannot share registry ownership or scenario coordinates.
+- Common/server classes do not import client GUI classes.
+- Ownership lookup is by player/instance UUID rather than global tags/selectors.
+- Pursuer cleanup targets only the stored entity UUID.
+- Slot allocation remains unique after SavedData load.
+- Concurrent players cannot share registry ownership or coordinates.
 
 ## Manual play matrix — not yet performed
 
-Use a disposable Minecraft 1.21.1 NeoForge world.
+Use a disposable Minecraft 1.21.1 NeoForge 21.1.244 world.
 
-1. Install only the preview JAR and confirm the Mods screen lists Shadow Slave.
-2. Join without cheats and press **O**; confirm fresh Uninfected state.
-3. Run `/shadowslave preview_begin`; confirm the command clearly labels itself a development shortcut.
-4. Confirm Carrier transitions to Aspirant/Dormant on entry.
-5. Confirm The Last Signal builds around the player without obvious suffocation or void placement.
-6. Confirm role and objective text is understandable.
-7. Confirm the pursuer applies pressure but killing it is not required.
-8. Right-click the unlit soul campfire; confirm return to the exact original dimension/location.
-9. Confirm Dreamer/Dormant, Last Light/Awakened and Cold Ash appear in the Soul screen.
-10. Run `/shadowslave kindle`; confirm visibility/speed, cooldown refusal and later reuse.
-11. Enter water/rain; confirm Cold Ash applies Weakness and clears naturally after leaving.
-12. Quit and reload after Carrier, Aspirant and Dreamer stages where practical; confirm persistence.
-13. Use `/shadowslave nightmare_recover`; confirm Carrier recovery and explicit technical wording.
-14. Die in the Nightmare; confirm normal Minecraft death presentation, instance cleanup and explicit non-canon accommodation wording.
-15. Run `/shadowslave preview_reset`; confirm Soul and identity clear on the next O-screen open.
-16. With two players, enter simultaneously and confirm separate slots and independent completion.
-17. On a backed-up legacy datapack world, run `/shadowslave migrate_datapack` as operator and verify names, ranks, retained legacy evidence and idempotent second invocation.
+1. Install only the preview JAR and confirm Shadow Slave is listed.
+2. Join without cheats and press **O**; confirm Uninfected state.
+3. Run `/shadowslave preview_begin`; confirm explicit development-shortcut wording.
+4. Confirm Carrier -> Aspirant/Dormant on entry.
+5. Confirm The Last Signal builds without suffocation/void placement.
+6. Confirm role and conflict are understandable in game.
+7. Confirm the pursuer creates pressure but is not required for completion.
+8. Right-click the unlit soul campfire; confirm exact return dimension/location.
+9. Confirm Dreamer/Dormant, Last Light/Awakened, Kindle and Cold Ash on the Soul screen.
+10. Run `/shadowslave kindle`; confirm effect, cooldown refusal and later reuse.
+11. Enter water/rain; confirm Weakness applies and expires after leaving.
+12. Quit/reload at practical Carrier, Aspirant and Dreamer points; confirm persistence.
+13. Test `/shadowslave nightmare_recover` and its technical wording.
+14. Die in the Nightmare; confirm cleanup and explicit development accommodation wording.
+15. Run `/shadowslave preview_reset`; reopen O-screen and confirm cleared state.
+16. With two players, confirm separate slots and independent completion.
+17. On a backup legacy world, test `/shadowslave migrate_datapack`, retained evidence and idempotency.
 
 ## Known deferred risks
 
-- The complete interaction loop has not been run by a human.
-- No GameTest currently simulates a real player logout/login round trip.
-- `SavedData` persistence is exercised through record NBT tests and dedicated-server loading, not a full
-  active-instance server restart scenario.
-- A vanilla Husk is a pressure placeholder, not custom Nightmare Creature AI.
-- Imported identities persist, but all imported mechanics are not yet implemented.
-- Visual layout, pacing, balance and readability require Andrew's play feedback.
+- No human has run the complete interaction loop.
+- No GameTest simulates a real player logout/login round trip.
+- Active-instance restart recovery is not end-to-end automated.
+- The pursuer is a vanilla Husk placeholder.
+- Full mechanics for every imported identity are not implemented.
+- Visual layout, pacing, balance and readability need Andrew's feedback.
 
-## Verdict vocabulary
+## Bulk verdict vocabulary
 
-Claude should finish the bulk review with exactly one:
+Claude should record exactly one:
 
-- **verified** — accepted as built;
-- **verified with fixes** — fixes committed and evidence repeated;
-- **blocked** — exact defects or missing evidence recorded;
-- **verified machine-checkably; human feedback pending** — permitted only if every machine gate passes and
-  unperformed play criteria remain stated as unperformed.
+- **verified**;
+- **verified with fixes**;
+- **blocked**;
+- **verified machine-checkably; human feedback pending**.

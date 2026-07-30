@@ -1,61 +1,61 @@
-# GPT handoff — playable preview checkpoint
+# GPT handoff — playable preview milestone reached
 
 **Repository:** `Spud0302/shadowslave`  
 **Stable main:** `5f8acf2b2e3b04198166592568dd885431a2a09f`  
-**Active branch:** `gpt/live-datapack-import`  
+**Preview branch:** `gpt/live-datapack-import`  
 **Draft PR:** #19  
-**Target:** `shadowslave-0.1.0-preview.1.jar`
+**Artifact:** `shadowslave-0.1.0-preview.1.jar`
 
-## Binding owner directive
+## Owner directive status
 
-Read `docs/PLAYABLE-PREVIEW-DIRECTIVE.md`. Andrew directed GPT to continue without per-package Claude
-waits until an installable playable preview, tests, lore ledger, limitations and bulk Claude handoff
-exist. Never assume lore; label canon/inference/design/unknown.
+The stopping condition in `docs/PLAYABLE-PREVIEW-DIRECTIVE.md` is satisfied:
 
-## Current branch contents
+- live migration implemented and tested;
+- playable historical-role/conflict slice exists;
+- development preview JAR built;
+- artifact made available to Andrew;
+- final automated workflow green;
+- unperformed human checks and limitations recorded;
+- accumulated Claude review matrix complete.
 
-- live fail-safe datapack score/tag reader;
-- provisional Java migration persistence, exact read-back and rollback;
-- persistent imported and general Aspect/Flaw instance records;
-- persistent one-owner-per-player Nightmare registry;
-- separate scenario slots and return/recovery data;
-- Last Signal historical-role/conflict preview;
-- single entry choke point and teardown path;
-- success, death, technical recovery and admin abort distinctions;
-- fixed DESIGN appraisal `[Last Light]` / `[Cold Ash]`;
-- Kindle ability/cooldown and Cold Ash drawback;
-- bundled Nightmare dimension;
-- expanded Soul screen;
-- player onboarding/recovery/reset commands;
-- preview play guide, lore ledger and bulk test matrix.
+Do not continue broad feature expansion unless Andrew redirects.
 
-## Verification already obtained
+## Final automated provenance
 
-- alpha.5 importer checkpoint: compile/tests/client/server/package/artifact green;
-- alpha.6 playable-slice checkpoint: green after correcting one `InteractionResult` import namespace;
-- stable alpha.4 on main remains Claude-verified.
+- source commit: `460cd31f135ae7e98f66890b6bbf60414772d57b`;
+- workflow: `Java core` run 33 / ID `30555343642`;
+- result: success;
+- artifact ID: `8764632229`;
+- archive SHA-256: `dd6315fd25ad50bbba09c53433e8b1840a2f70b344b18a425533c4856da3a8e8`;
+- JAR SHA-256: `600fa2143879f8f269aec6d048a0fa4b3150f808a091c1527fe34067d9cdd867`.
 
-Use `mod/verify-smoke.sh`, never bare Gradle smoke-task exit codes. JDK 21 is required.
+See `docs/PLAYABLE-PREVIEW-PROVENANCE.md`.
 
-## Final stopping sequence
+## What Andrew should do
 
-1. Commit `0.1.0-preview.1` version and preview documentation.
-2. Run one final workflow checkpoint.
-3. Record exact workflow/run/artifact provenance.
-4. Make the JAR available to Andrew with `mod/PREVIEW-PLAY-GUIDE.md`.
-5. Leave PR #19 draft and unmerged for bulk Claude review.
-6. Stop broad development unless Andrew redirects; do not expand into many scenarios, Dream Realm or
-   modpack comparison yet.
+Follow `mod/PREVIEW-PLAY-GUIDE.md` in a disposable Minecraft 1.21.1 NeoForge 21.1.244 world. The core
+loop starts with `/shadowslave preview_begin`; O opens the Soul screen.
+
+## What Claude should do
+
+Bulk-review PR #19 using:
+
+- `docs/reviews/2026-07-30-gpt-playable-preview.md`;
+- `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`;
+- `docs/PREVIEW-LORE-DECISIONS.md`.
+
+This work is **pre-Claude-tested**. Do not call it Claude-verified until that review is recorded.
 
 ## Honest limitations
 
-No human has played the complete preview loop yet. No full logout/login GameTest exists. A vanilla Husk
-is a placeholder pursuer. Natural infection, custom role body/inventory, corpse Gate, procedural
-appraisal and complete imported mechanics are not implemented.
+No human has played the complete loop yet. Real logout/login and active-instance restart are not
+end-to-end automated. A vanilla Husk is a placeholder. Natural infection, historical body/inventory,
+corpse Gate, procedural appraisal, broad content and full imported mechanics are outside this preview.
 
-## Review documents
+## Workflow reminders
 
-- `docs/PREVIEW-LORE-DECISIONS.md`
-- `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`
-- `docs/reviews/2026-07-30-gpt-playable-preview.md`
-- `mod/PREVIEW-PLAY-GUIDE.md`
+- GPT does not merge PR #19 or write directly to main.
+- Use JDK 21.
+- Use `mod/verify-smoke.sh`, not bare Gradle smoke-task exit codes.
+- Preserve lore classifications and do not present DESIGN as canon.
+- Fix play/review findings before expanding scope.
