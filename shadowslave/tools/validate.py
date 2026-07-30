@@ -24,6 +24,7 @@ import sys
 from pathlib import Path
 
 PACK = Path(__file__).resolve().parent.parent
+REPO = PACK.parent
 DATA = PACK / "data"
 REQUIRED_PACK_FORMAT = 48
 NAMESPACE = "shadowslave"
@@ -452,6 +453,50 @@ def check_version_agreement() -> None:
         errors.append(f"version mismatch: {detail}")
 
 
+def check_java_import_names() -> None:
+    """The Java importer's Flaw names must match the ones the datapack actually shows.
+
+    `DatapackIdentityMappings` calls itself the exact mapping from the frozen pack and indexes names by
+    the ss_flaw variant digit, so a reordering or typo there silently renames a real player's Flaw on
+    import — no exception, no log, just the wrong identity kept forever. The mod's own JUnit tests pin
+    its constants against themselves and cannot see this.
+
+    Skipped when the mod is absent so the datapack stays independently validatable.
+    """
+    mappings = REPO / "mod" / "src" / "main" / "java" / "dev" / "spud" / "shadowslave" / "migration" / "DatapackIdentityMappings.java"
+    soul = DATA / NAMESPACE / "function" / "soul.mcfunction"
+    if not (mappings.is_file() and soul.is_file()):
+        return
+
+    pack: dict[int, str] = {}
+    for line in soul.read_text(encoding="utf-8").splitlines():
+        score = re.search(r"ss_flaw matches (\d\d) ", line)
+        if not score:
+            continue
+        shown = [n for n in re.findall(r'"text":"([A-Z][^"]*)"', line) if not n.startswith("Flaw")]
+        if shown:
+            pack[int(score.group(1))] = shown[0]
+
+    block = re.search(r"FLAW_NAMES = \{(.*?)\n    \};", mappings.read_text(encoding="utf-8"), re.S)
+    if not block:
+        errors.append("DatapackIdentityMappings.java: cannot find FLAW_NAMES to cross-check")
+        return
+
+    rows = [re.findall(r'"([^"]+)"', row) for row in block.group(1).strip().splitlines()]
+    rows = [row for row in rows if row]
+    if len(rows) != 4 or any(len(row) != 4 for row in rows):
+        errors.append(f"DatapackIdentityMappings.java: expected 4x4 FLAW_NAMES, got {[len(r) for r in rows]}")
+        return
+
+    java = {(family + 1) * 10 + (variant + 1): rows[family][variant] for family in range(4) for variant in range(4)}
+    for score in sorted(set(pack) | set(java)):
+        if pack.get(score) != java.get(score):
+            errors.append(
+                f"Java import name disagrees with the pack for ss_flaw={score}: "
+                f"pack={pack.get(score)!r}, java={java.get(score)!r}"
+            )
+
+
 def main() -> int:
     check_pack_mcmeta()
     check_no_plural_dirs()
@@ -468,6 +513,7 @@ def main() -> int:
     check_biomes()
     check_absent_score_filters()
     check_version_agreement()
+    check_java_import_names()
 
     if errors:
         for error in errors:
