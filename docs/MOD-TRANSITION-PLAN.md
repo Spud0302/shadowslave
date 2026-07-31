@@ -1,379 +1,197 @@
 # Shadow Slave — two-track mod transition plan
 
-**Owner decision:** test two Java-era paths against the same lore-aligned playable slice:
+**Owner decision:** test two Java-era delivery paths against the same lore-aligned playable slice:
 
-1. **Nightmare Spell modpack** — reuse mature mods for generic content and mechanics, with the Shadow Slave core filling the gaps;
+1. **Nightmare Spell modpack** — reuse mature mods for generic content and presentation while the Shadow Slave core owns identity and progression;
 2. **standalone Shadow Slave mod** — implement the important systems directly in Java.
 
 This is a controlled comparison, not a commitment to maintain two permanent products feature-for-feature.
 
-<!-- transition-current-status -->
 ## Current implementation status
 
 - datapack `datapack-v1.0.0`: released and frozen;
-- shared/standalone Java core: `0.1.0-alpha.4` on `main`;
-- implemented: Soul persistence, lore schema, networking/UI, schema migration and pure datapack translation;
-- no blocking gate: Claude verification complete, Issue #16 closed, human tests deferred per **D2**;
-- not implemented: live import, Nightmare SavedData/instances, playable conflict/appraisal;
+- stable Java main: `0.1.0-alpha.4`, Claude-verified;
+- active standalone preview: `0.1.0-preview.1` on draft PR #19;
+- final preview automated workflow: green;
+- Andrew play feedback: pending;
+- Claude bulk review: pending;
 - modpack track: design only.
 
+The standalone preview now implements the first complete vertical slice: live legacy import, persistent per-player Nightmare ownership, a bundled dimension, one historical-role/conflict scenario, fixed appraisal, one ability, one Flaw, and an expanded Soul screen.
 
-`docs/JAVA-LORE-ALIGNMENT.md` is the architecture gate for both paths. The frozen datapack is a migration and regression reference, not a limit on what Java may model.
+`docs/JAVA-LORE-ALIGNMENT.md` remains the lore gate. `docs/NIGHTMARE-SEED-ROADMAP.md` is binding for future completion and Seed architecture.
 
-## 1. Why both paths are worth testing
+## 1. Comparison purpose
 
-The modpack path tests how quickly strong atmosphere, spell presentation, creatures, equipment, structures and exploration can be assembled from existing ecosystems.
+The modpack path tests whether strong atmosphere, spells, creatures, equipment, structures, and exploration can be assembled faster from existing ecosystems.
 
-The standalone path tests whether owning the architecture produces a meaningfully better Shadow Slave experience: personal Soul identity, lore-correct progression, Aspect/Flaw revelation, Nightmare ownership, networking, GUI and multiplayer behaviour without dependency constraints.
+The standalone path tests whether owning the architecture produces a better Shadow Slave experience: personal Soul identity, lore-correct progression, Aspect/Flaw revelation, Nightmare ownership, networking, GUI, and multiplayer behaviour without dependency constraints.
 
-The expected long-term answer is probably a **hybrid**:
+The expected long-term answer may be hybrid:
 
-- Shadow Slave Java code owns identity, progression, appraisal and authoritative state;
-- selected dependencies provide generic capabilities where they are genuinely better and stable;
+- Shadow Slave Java code owns identity, progression, appraisal, migration, and Nightmare lifecycle;
+- selected dependencies provide generic execution or presentation where they are stable and genuinely better;
 - integrations remain optional where practical;
-- no third-party mod becomes the canonical storage authority for a player's Soul.
+- no dependency becomes canonical Soul storage.
 
 ## 2. Shared technical baseline
 
-Both prototypes target:
+Both paths target:
 
-- Minecraft Java Edition `1.21.1`;
-- NeoForge `21.1.x`;
-- Java `21`;
-- Gradle;
-- dedicated-server compatibility from the beginning;
+- Minecraft Java Edition 1.21.1;
+- NeoForge 21.1.x;
+- JDK 21;
+- dedicated-server compatibility;
 - server-authoritative gameplay state;
-- data-driven resources wherever Minecraft already has a strong JSON/resource system.
+- data-driven resources where Minecraft already has strong JSON/resource formats;
+- one shared domain implementation rather than duplicated progression logic.
 
-Do not start with a multi-loader abstraction. One functioning NeoForge implementation is more valuable than several empty platform modules.
+Do not add a multi-loader abstraction before one functioning NeoForge product exists.
 
-Official NeoForge references:
-
-- <https://docs.neoforged.net/docs/1.21.1/gettingstarted/>
-- <https://docs.neoforged.net/docs/1.21.1/networking/>
-- <https://docs.neoforged.net/docs/1.21.1/datastorage/saveddata/>
-
-## 3. Frozen datapack dependency
-
-The Java work begins from the published datapack baseline:
-
-- runtime version `1.0.0`;
-- Git tag `datapack-v1.0.0`;
-- release asset `shadowslave-v1.0.0.zip`;
-- checksum and recorded test evidence.
+## 3. Frozen datapack role
 
 The datapack contributes:
 
-- migration fixtures;
-- tested identity persistence;
-- server-authoritative drawback lessons;
+- migration fixtures and compatibility IDs;
+- persistence and lifecycle lessons;
+- tested drawback behaviour;
 - release/install expectations;
-- the broad uninfected -> Carrier -> First Nightmare -> Sleeper loop.
+- a broad progression reference.
 
-Java deliberately replaces datapack constraints such as score bands, four complete identity families, a shared boss, safe retry/ejection and command-specific mechanics.
+Java deliberately replaces datapack limitations such as score bands, global ownership, safe retry/ejection, finite identity catalogues, and universal timer/boss assumptions.
 
-## 4. Shared lore-aligned comparison slice
+## 4. Shared comparison slice
 
-Both Path A and Path B implement:
+Both paths must eventually implement the same accepted slice:
 
 ```text
-Uninfected / Mundane description
+Uninfected
   -> infection event
 Carrier
-  -> supernatural exhaustion / forced Nightmare trigger
+  -> First Nightmare trigger
 Aspirant with Dormant Soul Core
-  -> individually owned First Nightmare
+  -> individually owned reconstructed conflict
   -> assigned historical role/body
-  -> reconstructed situation and central conflict
-  -> meaningful choices and evidence
-  -> conflict resolution and appraisal
-Dreamer (Sleeper) with Dormant Soul Rank
-  -> permanent Aspect identity + independent Aspect Rank
-  -> permanent Flaw identity/effect
+  -> meaningful events and terminal resolution
+  -> per-challenger outcome
+  -> appraisal
+Dreamer/Sleeper with Dormant Soul Rank
+  -> permanent Aspect + independent Aspect Rank
+  -> permanent Flaw
   -> server-synchronised Soul screen
 ```
 
-The comparison is invalid if one path contains substantially more game than the other. Extra content can be disabled while measuring the shared slice.
+The comparison is invalid if one path is evaluated with substantially more content than the other.
 
-Required behaviours are defined in `shared-test-spec/VERTICAL-SLICE.md`.
+## 5. Shared domain ownership
 
-## 5. Shared canonical Java core
+The core owns:
 
-Both paths use one domain implementation.
+- `SoulData` and progression state;
+- `SoulIdentityData` and imported identity metadata;
+- Soul Rank and Aspect Rank;
+- migration and schema versions;
+- Nightmare definitions, instances, participants, roles, conflict state, outcomes, and recovery;
+- appraisal records and progression history;
+- networking and Soul UI snapshots.
 
-```text
-SoulData
-  schemaVersion
-  spellState/status
-  awakeningPath
-  soulRank?
-  aspect?
-  flaw?
-  attributes[]
-  memories[]
-  echoes[]
-  trueName?
-  dreamAnchor?
-  corruption
-  progressionHistory
+Temporary role/body/conflict state belongs to `NightmareInstance`, not permanent Soul data.
 
-AspectInstance
-  instanceId
-  formalName?              # unknown remains unknown
-  aspectRank               # independent from Soul Rank
-  nature/source
-  traits[]
-  abilities[]
-  evolutionHistory[]
-  legacy/import metadata
+Future Nightmare completion must distinguish:
 
-FlawInstance
-  instanceId
-  formalName?              # effect label is not automatically a formal name
-  effectDefinition
-  parameters
-  revelationEvidence[]
-  legacy/import metadata
+1. central conflict terminal resolution;
+2. per-challenger survival/eligibility and outcome;
+3. teardown/return;
+4. appraisal/progression;
+5. Seed post-resolution lifecycle.
 
-NightmareInstance
-  instanceId
-  scenarioId
-  participants
-  historicalRoles
-  provisionalTrialContext
-  lifecycleState
-  centralConflictState
-  possibleResolutions
-  return/recovery records
-  evidenceByPlayer
-  ownedEntities
-  createdAt
-  technicalRecoveryPolicy
-```
+## 6. Current standalone evidence
 
-Carrier and Aspirant are not Soul Ranks. Mundane is not Rank zero. Dreamer/Sleeper has Dormant Soul Rank. Human title, Soul Rank, Aspect Rank and creature Class are separate concepts.
+`0.1.0-preview.1` proves:
 
-Temporary historical roles, trial bodies and provisional abilities belong to `NightmareInstance`, not permanent `SoulData`.
+- loadable physical client and dedicated server;
+- persistent Soul and identity attachments;
+- transactional live datapack import;
+- persistent one-owner Nightmare registry;
+- separate per-player play-space slots;
+- one entry choke point and shared teardown ownership;
+- one bundled dimension and playable DESIGN scenario;
+- Carrier -> Aspirant -> Dreamer/Sleeper progression;
+- fixed DESIGN Aspect/Flaw appraisal;
+- server-owned ability cooldown and Flaw execution;
+- artifact packaging and install documentation.
 
-## 6. Shared service boundary
-
-```text
-SoulService
-ProgressionService
-AspectService
-FlawService
-AppraisalService
-NightmareService
-NightmareScenarioRegistry
-AbilityService
-MigrationService
-SoulSyncService
-```
-
-No public service exposes raw NBT, command score names or dependency-specific spell IDs as its main domain API.
-
-The client requests intent. The server validates ownership, state, cooldown and targets, mutates authoritative data and sends a deliberately limited snapshot.
+It does not yet prove human gameplay quality, full restart/reconnect behaviour, multiple endings, custom Nightmare Creatures, natural infection, or later Seeds.
 
 ## 7. Path A — Nightmare Spell modpack
 
-Path A is a curated modpack using the same Shadow Slave core JAR.
+Path A will use the same core JAR. Existing mods may provide:
 
-### The core must own
-
-- status and awakening path;
-- persistent `SoulData`;
-- Soul Rank and Aspect Rank;
-- Nightmare selection, creation, entry, conflict, appraisal, exit and recovery;
-- permanent Aspect and Flaw identity;
-- evidence collection without claiming a canon generation formula;
-- migration and progression history;
-- Soul UI data and networking;
-- compatibility adapters and server-side validation.
-
-### Existing mods may provide
-
-- spell visuals and generic spell execution;
+- spell visuals and generic execution;
 - equipment/accessory slots;
-- structures, creatures and world-generation content;
-- quest presentation;
-- recipes, loot tuning and rapid pack scripting;
-- animation, sound and visual libraries;
-- optional party or claims integration.
+- structures, creatures, and world generation;
+- quest/documentation presentation;
+- recipes, loot, animation, and sound;
+- optional party/claims integration.
 
-### Existing mods must not own
+They must not own:
 
-- the canonical Soul record;
+- canonical Soul state;
 - permanent Aspect or Flaw identity;
-- authoritative Soul Rank or Aspect Rank progression;
-- Nightmare instance lifecycle or appraisal;
+- authoritative ranks or progression;
+- Nightmare lifecycle or appraisal;
 - permanent character history.
 
-If a dependency is removed, the player's identity remains readable and migratable. A missing integration may disable an adapter; it must not erase the identity that granted it.
+No manifest or adapters are implemented yet. Dependency, licence, redistribution, and server-install review remains required.
 
-### Initial candidate stack
+## 8. Path B — standalone core
 
-This is a shortlist to evaluate, not a locked manifest:
+The standalone path currently owns persistence, migration, networking, UI, Nightmare ownership, preview scenario construction, appraisal, ability, and Flaw execution.
 
-| Role | Candidate | Reason to evaluate |
-| --- | --- | --- |
-| loader | NeoForge | 1.21.1 and dedicated client/server development |
-| rapid non-authoritative glue | KubeJS | recipes, pack events and fast iteration |
-| loot adaptation | LootJS | KubeJS-compatible loot modification |
-| generic spell execution/presentation | Iron's Spells 'n Spellbooks | mature spell visuals and content |
-| accessory slots | Curios API | configurable compatible equipment slots |
-| in-game documentation | Patchouli | data-driven guide presentation |
+Before a public `mod-v0.1.0`, it still needs evidence-backed polish and a product decision that the slice is worth releasing. The existence of `preview.1` does not itself authorise a public release.
 
-Every dependency requires compatibility, licence, redistribution and modpack-permission review. Do not vendor restricted JARs into the repository; published packs should use authorised manifests.
+## 9. Comparison scorecard
 
-### Path A first deliverable
+After both paths implement the same accepted slice, score 1–5 with evidence:
 
-`nightmare-spell-modpack-v0.1.0` contains:
-
-- the smallest dependency set needed for the shared slice;
-- the shared Shadow Slave core as a real Java mod;
-- scripts only for rapidly changing non-authoritative glue;
-- one external spell adapter for one Aspect ability;
-- one reliable Flaw effect;
-- one mod-provided encounter adapted into a historical central conflict;
-- a reproducible `.mrpack` or equivalent manifest;
-- a documented dedicated-server installation path.
-
-## 8. Path B — standalone Shadow Slave mod
-
-Path B owns gameplay implementation while still using vanilla/NeoForge resources for dimensions, tags, recipes, structures and world generation.
-
-### Persistence
-
-- player Soul state: codec-backed player attachment with explicit schema migration;
-- cross-dimensional Nightmare registry/recovery: server or Overworld `SavedData`;
-- item-specific state: vanilla data components;
-- scenario/role/conflict definitions: data-driven codecs/resources where practical;
-- every mutation: validated and synchronised through a service.
-
-### Package layout
-
-```text
-mod/
-  src/main/java/dev/spud/shadowslave/
-    api/
-    attachment/
-    command/
-    compat/
-    config/
-    content/
-    data/
-    migration/
-    network/
-    nightmare/
-    appraisal/
-    progression/
-    soul/
-    client/
-  src/main/resources/
-    assets/shadowslave/
-    data/shadowslave/
-```
-
-Client-only code remains isolated and must never load on a dedicated server.
-
-### Path B first deliverable
-
-`shadowslave-mod-v0.1.0` should:
-
-- boot on physical client and dedicated server;
-- persist lore-aligned schema-v2 Soul state;
-- display a server-synchronised Soul screen;
-- import datapack Carrier and Sleeper identities;
-- implement explicit Carrier -> Aspirant -> Dreamer transitions;
-- create and tear down a per-player test Nightmare instance;
-- assign a historical role owned by the instance;
-- resolve one central conflict and perform one appraisal;
-- keep Aspect/Flaw mechanics simple until persistence and lifecycle are proven.
-
-Do not begin with dozens of powers, custom mobs or full Dream Realm progression. The first Java release proves architecture, lore boundaries, migration and lifecycle.
-
-## 9. Shared repository layout
-
-```text
-shadowslave/              frozen datapack source
-mod/                      canonical Java core and standalone path
-modpack/                  Path A manifest, config and scripts
-integration-mod/          split only if dependency boundaries require it
-shared-test-spec/         black-box scenarios shared by both paths
-docs/
-```
-
-Start with one Java module under `mod/`. The modpack depends on that same JAR, preventing two competing implementations of Soul state.
-
-## 10. Comparison scorecard
-
-Score each path from 1–5 after completing the shared slice.
-
-| Category | What to measure |
+| Category | Measure |
 | --- | --- |
-| lore identity | Does it feel purpose-built and respect the accepted lore gate? |
-| development speed | Hours and code needed for the same accepted slice |
-| correctness | lifecycle leaks, duplication, lost state, invalid progression |
-| multiplayer | simultaneous Nightmares, reconnects, dedicated-server behaviour |
-| performance | tick impact, memory, load time and network traffic |
-| maintainability | ownership clarity, testability and upgrade effort |
-| content velocity | effort to add a role, conflict, Aspect, Flaw, creature or area |
-| dependency risk | abandoned mods, version lock, API churn and incompatibilities |
-| distribution | licences, permissions, manifests and server installation |
-| migration | preservation of datapack and future Java saves |
-| user experience | installation, UI consistency and configuration burden |
+| lore identity | purpose-built feel and lore alignment |
+| development speed | time and code for the accepted slice |
+| correctness | lifecycle leaks, duplication, lost state |
+| multiplayer | simultaneous instances, reconnects, dedicated server |
+| performance | tick, memory, load, and network cost |
+| maintainability | ownership clarity and testability |
+| content velocity | effort to add roles, conflicts, powers, creatures, areas |
+| dependency risk | API churn, abandonment, incompatibilities |
+| distribution | licences, manifests, client/server installation |
+| migration | preservation of datapack and future saves |
+| user experience | installation, UI consistency, clarity, configuration |
 
 Record evidence, not preference.
 
-## 11. Decision gate
+## 10. Current sequence
 
-After both prototypes pass the shared slice, choose:
+1. Andrew plays `0.1.0-preview.1` and records concrete feedback.
+2. Claude bulk-reviews PR #19 using the accumulated test matrix.
+3. Fix evidence-backed defects without broad feature expansion.
+4. Re-check primary lore for Nightmare endings, challenger outcomes, appraisal timing, and Seed consequences.
+5. Implement `ResolutionGraph`, named terminal resolutions, and separate per-challenger outcomes.
+6. Upgrade The Last Signal from direct campfire victory to a multi-step conflict with at least two valid DESIGN endings.
+7. Add restart/idempotency and multiplayer shared-resolution tests.
+8. Implement the same accepted slice in the modpack track.
+9. Score both paths and choose standalone-led, modpack-led, hybrid, or stop an experiment.
 
-- **Modpack-led** — dependencies provide most gameplay cleanly and glue stays small;
-- **Standalone-led** — integration compromises identity, stability or progression ownership;
-- **Hybrid** — expected default: core owns Soul/Nightmare/progression while selected dependencies provide generic capabilities;
-- **Stop an experiment** — a path cannot pass a hard gate without contradicting its premise.
-
-Do not maintain two paths merely to protect sunk effort.
-
-## 12. Version and package naming
-
-```text
-datapack-v1.0.0
-mod-v0.1.0
-modpack-v0.1.0
-```
-
-```text
-shadowslave-v1.0.0.zip
-shadowslave-mod-v0.1.0.jar
-nightmare-spell-modpack-v0.1.0.mrpack
-nightmare-spell-server-v0.1.0.zip
-```
-
-The datapack's `1.0.0` freezes a reference; it does not make the Java products complete.
-
-## 13. Current sequence
-
-1. close Claude verification Issue #16 with evidence or fixes;
-2. implement live datapack reading, Java persistence and read-back verification;
-3. retain legacy state until import is confirmed and idempotent;
-4. implement `NightmareRegistryData` and explicit per-player instance ownership;
-5. implement one data-driven historical role, central conflict and valid resolution;
-6. add appraisal revealing one Aspect and Flaw through the shared core;
-7. build the same accepted slice in the modpack track;
-8. score both paths and choose standalone-led, modpack-led or hybrid.
-
-## 14. Non-goals before the comparison gate
+## 11. Non-goals before the comparison gate
 
 - every canonical Aspect or Flaw;
 - full Dream Realm simulation;
-- all Soul Ranks and creature Classes;
+- all ranks and creature classes;
 - a giant public modpack;
-- copied novel prose or copyrighted artwork;
+- copied novel prose or official artwork;
 - multi-loader support;
 - perfect procedural generation;
-- treating a design algorithm as canon;
-- full parity with every selected dependency's progression system.
+- treating project design as canon;
+- broad content expansion before the completion engine is sound.
 
 The experiment exists to choose architecture with evidence. It is not the final content roadmap.
