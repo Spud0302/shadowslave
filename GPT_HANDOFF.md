@@ -46,6 +46,25 @@ Bulk-review PR #19 using:
 
 This work is **pre-Claude-tested**. Do not call it Claude-verified until that review is recorded.
 
+## Future Nightmare and Seed direction
+
+Read `docs/NIGHTMARE-SEED-ROADMAP.md` before changing Nightmare completion, scenario objectives,
+appraisal or later Seed behaviour.
+
+The binding direction is:
+
+- a Nightmare ends when its central conflict reaches a named terminal resolution;
+- boss deaths, objective interactions and timers are events, not universal completion conditions;
+- challenger survival/eligibility is evaluated separately from global scenario resolution;
+- appraisal happens after completion and may differ between challengers;
+- conquering a Seed follows resolution of its contained Nightmare rather than clicking or damaging the
+  external Seed;
+- First Nightmares and later Seeds share scenario machinery without erasing their lore differences;
+- all exact Seed lifecycle and edge-case rules require another primary-novel check before implementation.
+
+The roadmap includes the planned `ResolutionGraph`, per-challenger outcomes, Last Signal upgrade path,
+multiplayer direction, forbidden anti-patterns and required automated tests.
+
 ## Honest limitations
 
 No human has played the complete loop yet. Real logout/login and active-instance restart are not
