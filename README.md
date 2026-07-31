@@ -2,101 +2,96 @@
 
 An unofficial fan project inspired by _Shadow Slave_ by Guiltythree.
 
-The repository now contains three related products:
+## Current products
 
-- a completed vanilla Minecraft 1.21.1 datapack;
-- a shared/standalone NeoForge Java core in active alpha development;
-- a planned Nightmare Spell modpack prototype using the same canonical Java state.
+| Product | State |
+| --- | --- |
+| Vanilla datapack | completed and frozen as `datapack-v1.0.0` |
+| Standalone/shared NeoForge core | installable `0.1.0-preview.1` on draft PR #19 |
+| Nightmare Spell modpack | design only; no manifest or dependency package yet |
 
-See [PROJECT-STATUS.md](PROJECT-STATUS.md) for the exact current gate and next action.
+The Java preview is **not a public release and not Claude-verified**. Its final automated checkpoint passed compilation, unit tests, physical-client startup, dedicated-server startup, packaging, and artifact upload. Andrew's complete playthrough and Claude's bulk review remain pending.
+
+See [PROJECT-STATUS.md](PROJECT-STATUS.md) for the canonical current state and [docs/CURRENT-PREVIEW-SUMMARY.md](docs/CURRENT-PREVIEW-SUMMARY.md) for a compact preview summary.
+
+## Playable Java preview
+
+The Java project lives under [`mod/`](mod/). The current preview targets Minecraft Java Edition 1.21.1, NeoForge 21.1.244, and JDK 21.
+
+Implemented in `0.1.0-preview.1`:
+
+- persistent lore-aligned Uninfected, Carrier, Aspirant, and Dreamer/Sleeper states;
+- separate Soul Rank and Aspect Rank;
+- server-authoritative Soul and identity attachments;
+- expanded read-only O-key Soul screen;
+- transactional live datapack migration with exact read-back and rollback;
+- persistent per-player First Nightmare registry and separate play-space slots;
+- bundled Nightmare dimension;
+- the handcrafted DESIGN scenario **The Last Signal** and role **last watchkeeper**;
+- one central-conflict resolution path where combat is optional;
+- fixed DESIGN appraisal: Aspect **Last Light**, ability **Kindle**, and Flaw **Cold Ash**;
+- technical recovery, inspection, reset, and migration commands.
+
+Install and play using [`mod/PREVIEW-PLAY-GUIDE.md`](mod/PREVIEW-PLAY-GUIDE.md).
+
+Quick start in a disposable world:
+
+```text
+Press O
+/shadowslave preview_begin
+```
+
+Useful commands:
+
+```text
+/shadowslave soul
+/shadowslave soul_screen
+/shadowslave preview_begin
+/shadowslave nightmare_status
+/shadowslave nightmare_recover
+/shadowslave kindle
+/shadowslave preview_reset
+```
+
+`/shadowslave migrate_datapack` is operator-only and should be tested on a backup legacy world.
+
+## Evidence and limitations
+
+Automated build provenance and checksums are recorded in [`docs/PLAYABLE-PREVIEW-PROVENANCE.md`](docs/PLAYABLE-PREVIEW-PROVENANCE.md). The complete review and play criteria are in [`docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`](docs/PLAYABLE-PREVIEW-TEST-MATRIX.md).
+
+Still outside this preview:
+
+- natural infection and exhaustion progression;
+- complete historical body/inventory handling;
+- custom Nightmare Creature AI and corpse Gates;
+- procedural or canon-claimed appraisal;
+- full mechanics for every imported identity;
+- later Seeds, Dream Realm progression, Memories, Echoes, and later ranks;
+- the modpack implementation and standalone/modpack comparison.
+
+## Nightmare and Seed direction
+
+Future Nightmare completion must follow [`docs/NIGHTMARE-SEED-ROADMAP.md`](docs/NIGHTMARE-SEED-ROADMAP.md): a Nightmare ends when its central conflict reaches a named terminal resolution, while each challenger's survival/outcome and appraisal are evaluated separately. Boss deaths, timers, and objective interactions are events—not universal victory conditions. Exact later-Seed behaviour requires another primary-novel check before implementation.
 
 ## Datapack v1.0.0
 
-The first public product is complete and frozen as `datapack-v1.0.0`.
-
-Install the release ZIP without extracting it:
+The frozen vanilla datapack installs unchanged at:
 
 ```text
 <world>/datapacks/shadowslave-v1.0.0.zip
 ```
 
-Reopen the world or run `/reload`. It requires Minecraft Java Edition 1.21.1 and difficulty
-Easy or higher. A multiplayer server installs it once; joining players use ordinary vanilla
-1.21.1 clients.
+It remains a behavioural and import-compatibility reference. Its first-sleep infection, safe ejection, global ownership, finite identity tables, and timer/boss structure are prototype behaviour rather than permanent Java architecture or universal canon.
 
-The datapack proves the playable reference loop:
+## Lore and design authority
 
-```text
-untouched person -> Carrier -> First Nightmare prototype -> Sleeper/Dreamer
-                 -> persistent Aspect identity + persistent Flaw identity
-```
+- novel mechanics and terminology are primary authority;
+- official adaptation material may guide compatible visual staging;
+- translations/scanlations are access aids, not final terminology authority;
+- project mechanics are labelled **DESIGN** where canon gives no deterministic rule;
+- the datapack is compatibility evidence, not a Java-format constraint.
 
-Its first-sleep trigger, safe ejection, global Nightmare ownership, finite mechanics catalogue
-and timer/creature scenario are prototype behaviour—not universal canon or permanent Java design.
-
-## Java core
-
-The Java project lives under [`mod/`](mod/). Current development version: `0.1.0-alpha.4`.
-
-Implemented:
-
-- persistent lore-aligned Soul state;
-- Uninfected, Carrier, Aspirant and Dreamer stages;
-- separate Soul Rank and Aspect Rank;
-- server-authoritative mutations and read-only client snapshots;
-- an O-key Soul screen;
-- alpha-schema migration;
-- pure datapack translation fixtures;
-- client, server, unit-test and JAR CI gates.
-
-Alpha.4 is **CI-green and Claude-verified** — [Issue #16](https://github.com/Spud0302/shadowslave/issues/16)
-is closed, with the build, both startup smokes and the validator re-run locally rather than taken from
-workflow status. The real-client walkthrough is **deferred, not performed** (owner decision **D2**):
-it judges presentation and feel, so it no longer gates anything. This is not a public mod release and
-does not yet contain a playable Java Nightmare.
-
-### Development commands
-
-```text
-/shadowslave soul
-/shadowslave soul_screen
-/shadowslave infect
-/shadowslave begin_first_nightmare_test
-/shadowslave complete_first_nightmare_test
-/shadowslave reset
-```
-
-These are architecture smoke commands, not final natural progression.
-
-### Build
-
-Java 21 is required. From the repository root:
-
-```bash
-./mod/gradlew -p mod build
-./mod/gradlew -p mod runClientSmoke --no-daemon
-./mod/gradlew -p mod runServerSmoke --no-daemon
-```
-
-## Nightmare Spell modpack
-
-[`modpack/`](modpack/) records Path A of the architecture comparison. Existing mods may provide
-generic spells, creatures, equipment, loot or presentation. The Shadow Slave core still owns
-Soul identity, progression, Aspect/Flaw identity, Nightmare lifecycle and migration.
-
-No dependency manifest or public modpack exists yet.
-
-## Lore and design
-
-- Novel mechanics and terminology are primary authority.
-- The manhwa is a secondary visual/staging reference.
-- Fan translations help access material but do not override the novel.
-- Project appraisal and generation algorithms are explicitly game design where canon provides no
-  deterministic formula.
-- Java preserves earned/imported identity while replacing datapack machinery.
-
-Start with [`docs/JAVA-LORE-ALIGNMENT.md`](docs/JAVA-LORE-ALIGNMENT.md) and
-[`docs/JAVA-HANDOFF.md`](docs/JAVA-HANDOFF.md).
+Start with [`docs/JAVA-LORE-ALIGNMENT.md`](docs/JAVA-LORE-ALIGNMENT.md), [`docs/PREVIEW-LORE-DECISIONS.md`](docs/PREVIEW-LORE-DECISIONS.md), and [`docs/JAVA-HANDOFF.md`](docs/JAVA-HANDOFF.md).
 
 ## Repository map
 
@@ -106,7 +101,7 @@ testserver/           datapack deployment and Mineflayer harnesses
 mod/                  shared/standalone NeoForge Java core
 modpack/              dependency-led prototype plan
 shared-test-spec/     implementation-neutral acceptance scenarios
-docs/                 lore, architecture, workflow and historical records
+docs/                 lore, architecture, workflow, provenance, and historical records
 ```
 
 ## Administrative authority
@@ -114,21 +109,13 @@ docs/                 lore, architecture, workflow and historical records
 | Need | Read |
 | --- | --- |
 | exact current state | [PROJECT-STATUS.md](PROJECT-STATUS.md) |
-| agent workflow and merge gates | [docs/COLLABORATION.md](docs/COLLABORATION.md) |
-| active defects and limitations | [ISSUES.md](ISSUES.md) |
-| current test gate and historical test records | [TESTING.md](TESTING.md) |
-| shipped history | [CHANGELOG.md](CHANGELOG.md) |
+| current preview summary | [docs/CURRENT-PREVIEW-SUMMARY.md](docs/CURRENT-PREVIEW-SUMMARY.md) |
+| install and play | [mod/PREVIEW-PLAY-GUIDE.md](mod/PREVIEW-PLAY-GUIDE.md) |
+| evidence and checksums | [docs/PLAYABLE-PREVIEW-PROVENANCE.md](docs/PLAYABLE-PREVIEW-PROVENANCE.md) |
+| bulk testing | [docs/PLAYABLE-PREVIEW-TEST-MATRIX.md](docs/PLAYABLE-PREVIEW-TEST-MATRIX.md) |
+| future Nightmare/Seed work | [docs/NIGHTMARE-SEED-ROADMAP.md](docs/NIGHTMARE-SEED-ROADMAP.md) |
 | GPT session checkpoint | [GPT_HANDOFF.md](GPT_HANDOFF.md) |
-| Java implementation status | [mod/IMPLEMENTATION-STATUS.md](mod/IMPLEMENTATION-STATUS.md) |
-| questions between agents | [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) |
-
-## Collaboration
-
-GPT works on `gpt/*` branches and does not merge its own feature work. Claude independently
-reviews/tests GPT work, records evidence, fixes or rejects defects, stamps versions and merges.
-GitHub CI is evidence, not a replacement for Claude's verification or Andrew's playtest judgement.
 
 ## Credit
 
-_Shadow Slave_ is by Guiltythree. This project is unofficial and is not affiliated with the
-author or publisher. It does not copy novel prose or official artwork.
+_Shadow Slave_ is by Guiltythree. This project is unofficial and is not affiliated with the author or publisher. It does not copy novel prose or official artwork.
