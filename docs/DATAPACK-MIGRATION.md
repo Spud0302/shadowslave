@@ -1,69 +1,86 @@
 # Datapack to Java migration
 
-The frozen datapack remains a supported origin for player identity. Migration is deliberately split so live player state is never cleared before the Java result has been constructed and validated.
+The frozen datapack remains a supported origin for player identity. `0.1.0-preview.1` implements a live, explicit, fail-closed migration transaction. Source datapack scores and tags remain read-only throughout this preview.
 
-## Phase 1 — immutable evidence snapshot
+## Current implementation
 
-A live reader will collect:
+The operator command is:
+
+```text
+/shadowslave migrate_datapack
+```
+
+Run it only on a backed-up legacy world.
+
+The live transaction now:
+
+1. refuses to overwrite established native Java Soul/identity state;
+2. reads immutable legacy score/tag evidence through the direct scoreboard API;
+3. translates through the tested pure `DatapackMigrationTranslator`;
+4. constructs imported and general persistent Aspect/Flaw records;
+5. writes Java attachments provisionally;
+6. reads them back and verifies exact identity and cross-references;
+7. writes the final migration marker only after successful verification;
+8. rolls all Java attachments back if any step fails;
+9. retains every legacy score and tag.
+
+Legacy cleanup is deliberately not implemented.
+
+## Phase 1 — immutable live evidence
+
+`LegacyDatapackReader` collects:
 
 - player UUID;
 - `ss_carrier` state;
-- `ss_rank`, `ss_aspect` and `ss_flaw` scores;
-- compatibility tags needed by old `1..4` identities;
+- `ss_rank`, `ss_aspect`, and `ss_flaw` scores;
+- compatibility tags required by old `1..4` identities;
 - whether `ss_in_nightmare` is active;
 - completed Java migration version.
 
-It creates `LegacyDatapackSnapshot` and performs no mutation.
+It creates `LegacyDatapackSnapshot` without mutating the player.
 
-### Hazard for whoever writes that reader: an absent score is not `0`
+### An absent score is not an explicit zero
 
-`LegacyDatapackSnapshot` uses `0` to mean "this player has no such score", and the translator relies on
-that — `rankScore() == 0` is how it recognises a player who never completed a First Nightmare. The
-convention is sound because the datapack never _sets_ `ss_rank`, `ss_aspect` or `ss_flaw` to zero:
-`progression/become_sleeper` writes `1`, the generator writes `11..44`, and `test/reset` **removes** the
-score rather than zeroing it. Absent is therefore the only not-a-Sleeper state.
+`LegacyDatapackSnapshot` uses `0` as the internal sentinel for “no stored score”. The frozen datapack never writes an explicit zero for these identity objectives; it removes the score instead.
 
-The hazard is on the reading side. Minecraft distinguishes "objective has no value for this player" from
-"value is 0", and a failed or unread lookup must not become `0`:
+The reader therefore:
 
-- read each objective explicitly and map _absent_ to `0` deliberately, with a comment saying so;
-- never let an exception, an empty result or an unparsed command reply fall through to `0` — that would
-  silently downgrade a completed Sleeper to an unmigrated player and, because `hasAnyLegacyState()` would
-  then be false for a non-Carrier, skip their migration entirely and lose the identity;
-- if a score cannot be read, fail the import for that player rather than guessing. The translator is
-  already fail-closed; keep the reader the same.
+- maps a missing objective or missing player score to the sentinel deliberately;
+- rejects an explicitly stored `0` rather than treating it as absence;
+- preserves positive and negative values for downstream validation;
+- fails the import rather than guessing when evidence cannot be read.
 
-This is not a hypothetical. Absent-versus-zero is the single most repeated bug in this project's history
-— §1.7, §1.10, the dead sneak-to-enter filter, and the `scores={x=..0}` shape `validate.py` now rejects
-outright. `docs/ENGINEERING-NOTES.md` has the datapack-side rule; this is the Java-side restatement.
+This closes the repeated absent-versus-zero failure class that affected earlier datapack guards.
 
 ## Phase 2 — pure translation
 
-`DatapackMigrationTranslator` produces either:
+`DatapackMigrationTranslator` produces:
 
-- no plan because no legacy state exists;
-- no plan because the migration version is already complete;
+- no plan when no supported legacy state exists;
+- no new plan when the current migration is already complete;
 - a validated Carrier plan;
 - a validated completed Dreamer/Sleeper plan;
-- a fail-safe exception for inconsistent, unsupported or active-Nightmare state.
+- a fail-safe exception for inconsistent, unsupported, or active-Nightmare state.
 
-The translator does not read Minecraft entities, write attachments or clear scoreboards.
+The translator remains independent of Minecraft entity mutation.
 
-## Phase 3 — persist Java state
+## Phase 3 — persistent Java identity
 
-A later live writer will:
+The live writer persists three linked records:
 
-1. persist `SoulData` schema v2;
-2. persist imported Aspect/Flaw instance records;
-3. read them back;
-4. verify IDs, names, ranks, family/effect metadata and migration version;
-5. mark Java migration complete.
+- authoritative progression and IDs in `SoulData`;
+- full revealed identity in `SoulIdentityData`;
+- frozen datapack compatibility metadata in `ImportedIdentityData`.
+
+`DatapackMigrationPersistenceVerifier` checks exact Soul and imported metadata equality and verifies that Aspect/Flaw IDs agree across records. The service also checks the general revealed identity before finalizing the marker.
+
+Any exception restores the player's pre-attempt Java attachments.
 
 ## Phase 4 — legacy cleanup
 
-Only after verification may the live writer remove or ignore legacy state. Cleanup must be idempotent and must not affect the frozen datapack release files.
+**Not implemented.** The preview does not remove scoreboards, scores, tags, functions, or datapack files. Cleanup requires a later owner-approved package with separate backup, idempotency, and rollback criteria.
 
-## Mappings preserved
+## Preserved mappings
 
 ### Progression
 
@@ -71,46 +88,51 @@ Only after verification may the live writer remove or ignore legacy state. Clean
 - Carrier -> `CARRIER`, Nightmare Spell path, no Soul Rank;
 - `ss_rank = 1` -> `DREAMER`, Nightmare Spell path, Dormant Soul Rank.
 
-### Generated Aspect scores
+### Generated Aspects
 
-`11..44` preserve the exact generated name:
+Scores `11..44` preserve:
 
-- Veiled / Ashen / Pale / Restless;
-- Witness / Bearer / Warden / Wanderer;
-- explicit imported Dormant Aspect Rank;
-- legacy mechanical root metadata.
+- Veiled / Ashen / Pale / Restless nature;
+- Witness / Bearer / Warden / Wanderer archetype;
+- exact formal name;
+- explicit Dormant imported Aspect Rank;
+- legacy mechanical-root metadata.
 
-### Old Aspect scores
+Old scores `1..4` require their matching compatibility tag and remain explicit Shadow, Flame, Bone, or Wind prototypes.
 
-`1..4` require the matching compatibility tag and preserve Shadow, Flame, Bone or Wind as explicit legacy prototypes.
+### Generated Flaws
 
-### Generated Flaw scores
-
-`11..44` preserve the exact generated player-facing name and semantic family:
+Scores `11..44` preserve exact formal names and semantic families:
 
 - daylight burden;
 - fragile vessel;
 - ravenous hunger;
 - burdened movement.
 
-### Old Flaw scores
+Old scores `1..4` require matching compatibility tags and preserve Nightbound, Brittle Vessel, Hollow Maw, or Leadbound.
 
-`1..4` require the matching compatibility tag and preserve the neutral replacement identities Nightbound, Brittle Vessel, Hollow Maw or Leadbound.
-
-The historical internal tag `ss_flaw_weightless` maps to burdened movement, not the retired fall-distance implementation.
+The historical tag `ss_flaw_weightless` imports as burdened movement. It does not require Java to reproduce the retired fall-distance implementation.
 
 ## Fail-safe cases
 
-Translation rejects:
+Migration rejects:
 
 - active `ss_in_nightmare` state;
-- negative or unsupported scores;
+- explicit zero, negative, unsupported, or inconsistent identity scores;
 - a completed rank with missing Aspect or Flaw;
-- orphaned Aspect/Flaw scores on an incomplete player;
-- old `1..4` scores without matching compatibility tags.
+- orphaned Aspect/Flaw scores;
+- old scores without matching compatibility tags;
+- established non-empty native Java Soul/identity state;
+- any read-back mismatch.
 
-No failure path deletes or modifies source evidence.
+No failure path deletes or modifies source datapack evidence.
 
-## Current boundary
+## Evidence status
 
-`0.1.0-alpha.4` implements and tests the snapshot, identity mapping and pure translation layers. It does **not** yet read a live player's scoreboard or persist full `AspectInstance`/`FlawInstance` attachments. Those are the next migration package.
+The final preview workflow passed compilation, the migration/unit suite, physical-client startup, dedicated-server startup, packaging, and artifact upload. The bulk manual matrix still includes migration on a backed-up real datapack world; that human end-to-end check has not yet been performed.
+
+See:
+
+- `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`;
+- `docs/PLAYABLE-PREVIEW-PROVENANCE.md`;
+- `mod/PREVIEW-PLAY-GUIDE.md`.
