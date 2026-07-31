@@ -1,266 +1,108 @@
-# Shadow Slave — test history and current release checks
+# Shadow Slave — current testing
 
-> The early plans below are **HISTORICAL** records. They intentionally preserve the terminology,
-> balance numbers, and assumptions that were true when those sweeps were run.
->
-> **For the current release candidate, skip to “Current release-candidate checks” at the bottom.**
-> Mechanical regressions are now owned by `testserver/harness.mjs` rather than a human checklist.
->
-> **Every human check in this file is deferred evidence, not a gate** (owner decision **D2** in
-> `docs/OPEN-QUESTIONS.md`): what remains for a person to judge is presentation and balance, and the
-> underlying state is already covered by the automated gates. They are still worth running and none of
-> them has been run — deferred is not passed. Anything one of them turns up is ordinary polish work.
+**Target:** `0.1.0-preview.1` on draft PR #19  
+**Detailed matrix:** `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`  
+**Artifact provenance:** `docs/PLAYABLE-PREVIEW-PROVENANCE.md`
 
----
+The previous datapack-era and alpha.4 testing history remains available in Git history and is
+referenced under `docs/history/`. This file now describes the current preview gate.
 
-# Historical — `v1.2.0` sweep
+## Automated checkpoint
 
-Work through these and note what fails. Nothing gets fixed until the sweep is done, so
-report everything, including things that merely feel wrong.
+GitHub Actions `Java core` run 33 / ID `30555343642` completed successfully for source commit
+`460cd31f135ae7e98f66890b6bbf60414772d57b`.
 
-**Setup:** Survival, cheats on, difficulty Easy or higher (Peaceful strips hostile mobs and
-the trial will be empty). `/function shadowslave:test/help` lists every command below.
+Passed:
 
-**Reset between tests:** `/function shadowslave:test/reset` — back to untouched, all tags and
-modifiers stripped. Safe to run anywhere except inside a nightmare.
+- Gradle wrapper validation;
+- compilation and JUnit suite;
+- physical NeoForge client startup marker;
+- dedicated NeoForge server ready marker;
+- JAR packaging;
+- artifact upload.
 
----
+Checksums:
 
-## Already known — do not re-report
+```text
+archive SHA-256  dd6315fd25ad50bbba09c53433e8b1840a2f70b344b18a425533c4856da3a8e8
+JAR SHA-256      600fa2143879f8f269aec6d048a0fa4b3150f808a091c1527fe34067d9cdd867
+```
 
-|                                                    |                                                                                                                                                                 |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **First sleep both infects you AND pulls you in.** | Confirmed. `infect` adds the Carrier tag, so the guard on the next line is already false and execution falls through. You should wake normally that first time. |
+## Local machine gate
 
----
-
-## A. Infection lifecycle
-
-| #   | Do this                                                            | Expect                                                                                                |
-| --- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| A1  | New world, `/function shadowslave:test/reset`, then wait 2 minutes | **No** nausea, **no** actionbar message. An untouched player is left alone.                           |
-| A2  | `/trigger soul`                                                    | `Rank: Sleeper`, and _"The Spell has not noticed you yet."_ No `(Carrier)`.                           |
-| A3  | `/function shadowslave:test/infect`                                | Cave sound, nausea, _"Something noticed you while you slept."_                                        |
-| A4  | `/trigger soul`                                                    | `Rank: Sleeper  (Carrier)` and _"The Spell has marked you."_                                          |
-| A5  | Wait 30 seconds as a Carrier                                       | Nausea pulse + _"Your eyelids are heavy. Something is calling."_ on the actionbar. Repeats every 30s. |
-| A6  | `/function shadowslave:test/cure` then wait 60s                    | Calling stops completely. `/trigger soul` shows no `(Carrier)`.                                       |
-| A7  | `/function shadowslave:test/infect` twice                          | Second run says _"already a Carrier"_ and does nothing.                                               |
-
-## B. Entry paths
-
-| #   | Do this                                                    | Expect                                                                                                                                                  |
-| --- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| B1  | As a **Carrier**, `/time set day`, then **sneak on a bed** | Pulled in. **This is the one I most need confirmed** — it depends on the `is_sneaking` flag, and if that name is wrong it fails silently with no error. |
-| B2  | As a Carrier, `/time set night`, sleep normally            | Pulled in.                                                                                                                                              |
-| B3  | As **untouched**, sneak on a bed in daylight               | Nothing at all.                                                                                                                                         |
-| B4  | `/function shadowslave:test/nightmare`                     | Straight into the trial, no bed needed.                                                                                                                 |
-| B5  | While already in a nightmare, run `test/nightmare` again   | Refuses, _"already in a nightmare"_.                                                                                                                    |
-| B6  | As **Awakened**, sleep at night                            | Sleeps normally, night passes, **not** pulled in. Grants _Sleep Undisturbed_.                                                                           |
-
-## C. The trial
-
-| #   | Do this                                            | Expect                                                                                                                                                                    |
-| --- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C1  | On entry                                           | Dark but navigable. Purple _"The Nightmare Spell"_ bar, title card, full health, gear intact, **not** stuck in the bed.                                                   |
-| C2  | Watch the bar for a minute                         | Drains steadily.                                                                                                                                                          |
-| C3  | Look around                                        | Hostile mobs spawning — zombies, skeletons, spiders, phantoms.                                                                                                            |
-| C4  | `/scoreboard players set @s ss_timer 1`            | Creature spawns **8–16 blocks away**, on the ground, never buried and never in your face. Bar turns red, reads _Nightmare Creature_, tracks its health. Grants _Endured_. |
-| C5  | `/data get entity @e[tag=ss_creature,limit=1]`     | `Health: 160`, and `active_effects` should now be **present** with fire resistance — it was missing before `v1.0.8`.                                                      |
-| C6  | Run away from it, 150+ blocks                      | It follows. You should **not** win by fleeing.                                                                                                                            |
-| C7  | Attack it, then quit to title and rejoin mid-fight | You do **not** get a free win. The creature is still there.                                                                                                               |
-
-## D. Outcomes
-
-| #   | Do this                                        | Expect                                                                                                       |
-| --- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| D1  | Kill the creature                              | _"The Nightmare Ends"_, returned to your bed, **stepped out of it, not stuck in it**. _Slayer_ + _Awakened_. |
-| D2  | `/trigger soul` after                          | `Rank: Awakened`, one Aspect, one Flaw, Vitality and Endurance numbers.                                      |
-| D3  | Let it beat you below 9 HP                     | _"Cast Out"_, returned at low health, **gear still in your inventory**, still a Sleeper.                     |
-| D4  | In the trial, `/kill @s`                       | You respawn normally and are **not** left tagged. No countdown continues, no creature appears near your bed. |
-| D5  | After Awakening, `test/reset` then sleep again | Whole loop repeats cleanly.                                                                                  |
-
-## E. Aspects
-
-Force one instead of rolling: `/function shadowslave:test/awaken` then
-`/tag @s remove ss_aspect_shadow` (and the other three), then add the one you want.
-
-| #   | Aspect | Command                        | Expect                                                                                                                                    |
-| --- | ------ | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| E1  | Shadow | `/tag @s add ss_aspect_shadow` | Night vision. Faster in darkness.                                                                                                         |
-| E2  | Flame  | `/tag @s add ss_aspect_flame`  | Stand in fire, take nothing. Hit a mob — it should **catch fire**.                                                                        |
-| E3  | Bone   | `/tag @s add ss_aspect_bone`   | `/attribute @s minecraft:generic.armor get` reads 6 higher. **Wait a minute and check again — it must still be exactly 6**, not stacking. |
-| E4  | Wind   | `/tag @s add ss_aspect_wind`   | Visibly faster, higher jumps. Same non-stacking check.                                                                                    |
-
-## F. Flaws
-
-| #   | Flaw         | Command                            | Expect                                                                                                                                                                                                                                                        |
-| --- | ------------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| F1  | Shadow Slave | `/tag @s add ss_flaw_shadow_slave` | Steady damage outdoors in daylight; stops in shade or at night. **Also try it with Flame active** — it should still hurt you, since it deals magic damage now.                                                                                                |
-| F2  | Fragile      | `/tag @s add ss_flaw_fragile`      | Max health drops to 14 (7 hearts). Wait a minute — must **stay** at 14.                                                                                                                                                                                       |
-| F3  | Ravenous     | `/tag @s add ss_flaw_ravenous`     | Hunger drains noticeably faster.                                                                                                                                                                                                                              |
-| F4  | Burdened     | `/tag @s add ss_flaw_weightless`   | **Reimplemented in `v0.7.3`** — the old fall-damage version was retired (see below). Walking is visibly slower and stays slower. Drink milk: the slowness clears, then returns within about a second. `/function shadowslave:test/reset` removes it for good. |
-
-**F4's tag name does not match its Flaw name, deliberately.** `ss_flaw_weightless` is kept as the
-save/import identifier so existing worlds and the Java importer need no migration; `v0.7.3` retired the
-mechanic it was named after. The old version reduced `safe_fall_distance`, which Minecraft 1.21.1
-intermittently ignored even when the command succeeded — a player could carry the Flaw and receive no
-penalty at all. It is now Slowness I, refreshed once per second by upkeep.
-
-**Still an open judgement call, now deferred:** is the slowness _noticeable but not obnoxious_? The
-harness proves the effect applies and that reset clears it; whether it feels like a fair price for the
-trial is a human call. Per **D2** this is balance judgement and no longer gates anything — Q4 is closed
-as answered on that basis. Nobody has judged it yet. If it reads as obnoxious, say so; that is ordinary
-`0.8.x` balance work.
-
-## G. Edge cases
-
-| #   | Do this                                                                    | Expect                                                                                                                |
-| --- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| G1  | Mid-trial, `/reload`                                                       | Bossbar comes back within a second. Trial continues.                                                                  |
-| G2  | Mid-trial, quit to title and rejoin                                        | Trial continues, no free win.                                                                                         |
-| G3  | `/function shadowslave:test/reset` while **inside** a nightmare            | Teleported out, not stranded.                                                                                         |
-| G4  | `/function shadowslave:test/selfcheck` at full health, outdoors, at midday | Every line PASS, including _"all 8 Aspect/Flaw functions resolve"_. **You should take no damage and lose no hearts.** |
-| G5  | `test/awaken` while already Awakened                                       | Refuses cleanly.                                                                                                      |
-
-## H. Verification tree
-
-Open advancements (**L**) → _Shadow Slave — Verification_. After a full win run plus one
-ejection run, all nine should be earned:
-
-`Shadow Slave — Verification` · `Chosen` · `Endured` · `Slayer` · `Awakened` · `Cast Out` ·
-`Aspect Holds` · `Flaw Bites` · `Sleep Undisturbed`
-
-Anything still locked tells me which mechanic never fired.
-
----
-
-## The thing no command can tell me
-
-**How does the fight feel?** 160 health, faster than you can sprint, heavy knockback
-resistance, and the leash means you cannot retreat to heal. Too easy, about right, or a
-slog? You are the only source for this, and it is the one number I would most like to get
-right before Phase 2.
-
-### Fighting it at the gear tier people will actually have
-
-A First Nightmare comes early, so wood or stone is the realistic loadout. The arithmetic
-is not encouraging:
-
-| Weapon        | Damage | Hits to kill 160 HP | Roughly                              |
-| ------------- | ------ | ------------------- | ------------------------------------ |
-| Wooden sword  | 4      | **40**              | 25+ seconds of uninterrupted hitting |
-| Stone sword   | 5      | 32                  | 20 seconds                           |
-| Iron sword    | 6      | 27                  | 17 seconds                           |
-| Diamond sword | 7      | 23                  | 15 seconds                           |
-
-Against that, the creature deals 4 per hit and ejection fires below 9 HP — so unarmoured
-you can absorb **about three hits** before the trial ends. Forty hits landed versus three
-taken, against something faster than you that you are not allowed to run from.
-
-If that turns out to be as bad as it looks, the honest fix is dropping `max_health` well
-below 160 rather than nerfing its damage — the creature should feel dangerous, just not
-take a minute of swinging. Report how it actually plays; the table is theory.
-
----
-
-> **HISTORICAL — do not use as a current expectation.** This list records the v1.3.0 regression
-> sweep. Terminology predates v1.4.8 and later releases changed several behaviours.
-
-# `v1.3.0` regression list
-
-Only what changed since the 39/39 sweep. Ordered by how likely each is to be wrong, not by
-importance. Start with a clean state: `/function shadowslave:test/reset`.
-
-## Highest risk — new mechanisms, never run
-
-| #   | Do this                                                                                          | Expect                                                                                                                                                                                                                                                                                                                                                                |
-| --- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R1  | **Die in the trial with a full inventory.** `test/nightmare`, fill your hotbar, then `/kill @s`. | **Your items are at your bed**, not stranded in the nightmare. This is the most speculative code in the batch: it drags item entities across a dimension boundary using a temporary marker as the teleport destination, because selectors cannot cross dimensions with coordinates. If the items are missing, say so — the fallback is a different approach entirely. |
-| R2  | **Read your soul, then enter.** `/trigger soul`, then immediately `test/nightmare`.              | You enter and **stay in**. This was the lockout: the readout was writing your armour into the score the ejection check reads. Try it a few times — it used to fire on every attempt.                                                                                                                                                                                  |
-| R3  | **Fight it at wooden sword, no armour.**                                                         | 60 health = 15 hits. Should be a real fight you can actually win, rather than 40 hits you never survive. Tell me if it is now trivial — that is a one-number change either way.                                                                                                                                                                                       |
-
-## Fixes to specific reported bugs
-
-| #   | Do this                                                                   | Expect                                                                                                                                                                                         |
-| --- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R4  | `test/cure`, then sleep at night as an **untouched** player               | _"Something noticed you while you slept"_ and you **wake up normally**. You should NOT be pulled in on that first sleep.                                                                       |
-| R5  | Sleep again as a **Carrier**                                              | Now you are pulled in.                                                                                                                                                                         |
-| R6  | Inside the trial, wait 30+ seconds                                        | **No** nausea, **no** _"Your eyelids are heavy"_. The Spell should not call someone already in its trial.                                                                                      |
-| R7  | Die in the trial, watch the death screen                                  | **No** portal warp, no view of your bed behind it. Just a normal death screen.                                                                                                                 |
-| R8  | `test/awaken`, note the Aspect, then `test/reset` and `test/awaken` again | Old Aspect and Flaw fully gone. Check `/trigger soul` — Vitality should read 20 unless the NEW roll is Fragile, and Endurance 0 unless it is Bone. Previously modifiers outlived their Aspect. |
-| R9  | Sleep at night as an **Awakened** player                                  | Sleeps normally, and grants **Sleep Undisturbed** — the advancement was unreachable before.                                                                                                    |
-| R10 | `test/cure` while Awakened                                                | Refuses, and points you at `test/reset`. It used to claim the Spell had lost interest, which was untrue.                                                                                       |
-| R11 | As a Carrier, sneak on a bed                                              | _"The Spell reaches for you..."_ appears **immediately** on the actionbar, before the hold completes.                                                                                          |
-| R12 | Watch the creature chase you                                              | Should move noticeably faster than before — its speed now comes from an effect, since a ravager overwrites its own speed attribute.                                                            |
-
-## Regression
-
-| #   | Do this                   | Expect                                                                                                                                        |
-| --- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| R13 | The full loop once, clean | infect → sleep → survive → kill → Awakened, with the right Aspect and Flaw. Eleven things changed; this confirms none of them broke the loop. |
-
----
-
-# Current test gates
-
-## Frozen datapack
-
-The public datapack is `datapack-v1.0.0`. Re-run its full gate only when the frozen datapack or
-packaging changes:
+Use JDK 21.
 
 ```bash
+./mod/gradlew -p mod clean build
+mod/verify-smoke.sh
 python3 shadowslave/tools/validate.py
-cd testserver && npm test
-cd .. && python3 shadowslave/tools/build_release.py
 ```
 
-A dimension/worldgen/install change additionally requires the generated ZIP in a fresh Minecraft
-1.21.1 world. Historical datapack sweeps above remain evidence, not current Java expectations.
+Do not use bare `runClientSmoke` or `runServerSmoke` task exit codes as proof. They can return success
+even when Minecraft never reaches the accepted readiness marker.
 
-## Java alpha.4 automated gate
+## Automated domain coverage
 
-GitHub CI passed build, unit tests, JAR packaging, physical-client startup and dedicated-server
-startup. Claude must independently review and run:
+The suite covers:
 
-```bash
-./mod/gradlew -p mod build
-./mod/gradlew -p mod runClientSmoke --no-daemon
-./mod/gradlew -p mod runServerSmoke --no-daemon
-```
+- Soul schema/defaults and progression boundaries;
+- independent Soul Rank and Aspect Rank;
+- bounded server-to-client Soul/identity snapshots;
+- imported and native identity codec invariants;
+- frozen datapack score/name mappings;
+- absent score versus explicit zero handling;
+- migration read-back verification and rollback rules;
+- Nightmare instance NBT ownership/return/layout data;
+- separate scenario-slot coordinates;
+- preview ability cooldown persistence guards;
+- client/server side startup compatibility.
 
-Record exact results in Issue #16. A green GitHub workflow alone does not close the gate.
+## Required manual playtest — not yet performed
 
-## Java alpha.4 real-client interaction
+Use a disposable Minecraft 1.21.1 NeoForge 21.1.244 world.
 
-In a Minecraft 1.21.1 NeoForge development client:
+1. Install only `shadowslave-0.1.0-preview.1.jar` and confirm Shadow Slave is listed.
+2. Join without cheats and press **O**; confirm Uninfected state and no invented Soul Rank.
+3. Run `/shadowslave preview_begin`; confirm it labels infection as a development shortcut.
+4. Confirm Carrier transitions to Aspirant with Dormant Soul Rank on entry.
+5. Confirm The Last Signal builds safely in the separate Nightmare slot.
+6. Confirm role and central conflict are understandable in game.
+7. Confirm the Husk creates pressure but killing it is not required.
+8. Right-click the unlit soul campfire and confirm exactly one completion/return.
+9. Confirm return to the original dimension and practical location.
+10. Open **O** and confirm Dreamer/Sleeper, Dormant Soul Rank, Last Light, Awakened Aspect Rank, Kindle,
+    and Cold Ash.
+11. Run `/shadowslave kindle`; confirm effect, cooldown refusal, and later reuse.
+12. Enter water/rain/bubbles; confirm Weakness applies and clears after leaving.
+13. Quit/reload at practical Carrier, Aspirant, and Dreamer stages; confirm persistence.
+14. Test `/shadowslave nightmare_recover`; confirm Carrier recovery and explicit technical wording.
+15. Die in the Nightmare; confirm cleanup and explicit development-accommodation wording.
+16. Run `/shadowslave preview_reset`; confirm Soul, identity, power state, and active instance clear.
+17. With two players, enter simultaneously and verify separate slots and independent outcomes.
+18. On a backup frozen-datapack world, run `/shadowslave migrate_datapack`; verify exact names/ranks,
+    retained legacy evidence, rollback on bad state, and idempotent second invocation.
 
-1. join a world and press **O**; the Soul screen opens;
-2. fresh player: Uninfected, Undecided path, no Soul Rank/Aspect Rank/Aspect/Flaw;
-3. `/shadowslave infect`: Carrier, Nightmare Spell path, still no Soul Rank;
-4. `/shadowslave begin_first_nightmare_test`: Aspirant with Dormant Soul Rank, no permanent identity;
-5. `/shadowslave complete_first_nightmare_test`: Dreamer with Dormant Soul Rank, Aspect, separate Aspect Rank and Flaw;
-6. `/shadowslave reset`: Uninfected with no Rank;
-7. relog/restart at practical stages and confirm persistence.
+No document may describe these manual checks as passed until someone records the result.
 
-Do not claim this passed until a real client was used.
+## Future completion-engine tests
 
-## Migration review
+Before mature Nightmare/Seed completion, `docs/NIGHTMARE-SEED-ROADMAP.md` requires tests proving:
 
-Confirm the pure translator:
+- a boss may die without resolving the conflict;
+- a non-combat event may resolve it;
+- prerequisites can reject an objective interaction;
+- multiple event paths reach different terminal resolutions;
+- another actor can cause world-driven resolution;
+- per-challenger survival/outcomes remain separate from global resolution;
+- appraisal runs only after completion is recorded;
+- teardown/rewards remain idempotent across reload;
+- one shared multiplayer resolution can produce separate challenger outcomes.
 
-- leaves untouched players alone;
-- imports Carrier without inventing rank or identity;
-- imports completed datapack state as Dreamer/Dormant;
-- preserves exact generated names;
-- requires compatibility tags for old `1..4` identities;
-- maps `ss_flaw_weightless` to burdened movement, not retired fall-distance behaviour;
-- rejects active-Nightmare and inconsistent state before any write;
-- produces no second plan after migration is marked complete.
+## Verdict vocabulary
 
-The current package does **not** read or mutate a live player. The next package must persist and
-read back Java data before any legacy cleanup is allowed.
+Claude's bulk review should record one:
 
-## Merge gate
-
-No new Java feature package merges until Issue #16 records **verified**, **verified with fixes** or
-**blocked**. Documentation-only reconciliation may be reviewed separately but does not waive that gate.
+- **verified**;
+- **verified with fixes**;
+- **blocked**;
+- **verified machine-checkably; human feedback pending**.
