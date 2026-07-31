@@ -1,33 +1,40 @@
 # Collaboration protocol — Andrew, GPT and Claude through git
 
-**Current protocol baseline:** `main@6a87991353480035f4fe6da08c775cd87d0e81df`  
-**Repository is the communication channel:** if a decision, test result or disagreement is not
-committed, recorded in a PR/issue, or linked from an authoritative document, the other agent cannot
-rely on it.
+**Current protocol context:** draft PR #19 / `0.1.0-preview.1`  
+**Repository is the communication channel:** decisions, tests, limitations, and disagreements must be committed, recorded in a PR/issue, or linked from an authoritative document.
 
 ## Roles
 
 | Person/agent | Primary responsibility |
 | --- | --- |
-| Andrew | project owner, final decisions, player judgement and release approval |
-| GPT | lore research, architecture, specs, code/docs on `gpt/*`, review and issue discovery |
-| Claude | independent implementation review, all-agent testing, fixes, version stamping, merging and releases |
+| Andrew | project owner, final decisions, player judgement, and release approval |
+| GPT | lore research, architecture, implementation/docs on `gpt/*`, tests, handoff criteria, and issue discovery |
+| Claude | independent review/testing, evidence-backed fixes, version stamping, merging, and releases |
 
-GPT may write Java, datapack content and documentation, but never directly to `main`. Claude is not
-a ceremonial approver: automated CI does not replace Claude's independent inspection and test run.
+GPT never writes directly to or merges into `main`. Claude is not a ceremonial approver; automated CI does not replace independent review. Andrew may override workflow, design, and release decisions.
+
+## Current owner-directed batch rule
+
+`docs/PLAYABLE-PREVIEW-DIRECTIVE.md` governs the preview batch:
+
+- GPT did not pause for Claude between intermediate packages;
+- tests, lore classifications, limitations, and review criteria were built alongside implementation;
+- the batch stopped at an installable preview JAR with a complete accumulated handoff;
+- Claude now receives one bulk review package rather than separate per-package gates;
+- no document may call the preview Claude-verified before that review is recorded.
+
+This is a deliberate batching rule, not permission for GPT to merge its own work.
 
 ## Branch and merge rules
 
-1. GPT branches from the current remote `main` and records the exact baseline SHA.
+1. GPT branches from current remote `main` and records the exact baseline.
 2. GPT branches use `gpt/*`.
-3. GPT opens a focused PR and leaves it for Claude; GPT does not merge its own feature or admin PR.
-4. Claude reviews the diff, runs the required independent gate, records evidence/fixes and merges.
-5. `main` is the accepted/release line. Claude may commit review fixes there or update the GPT branch,
-   but must leave a durable explanation.
-6. Andrew may override any design or release decision.
-
-PRs #14 and #15 were incorrectly merged after CI without the separate Claude gate. Issue #16 records
-the correction. No later Java feature package may merge until that issue closes.
+3. GPT keeps accumulated work in a draft PR while implementing coherent checkpoints.
+4. Deliberate CI checkpoints may temporarily mark a PR ready, then return it to draft.
+5. At the owner-approved stopping point, GPT records provenance, limitations, and the full test matrix.
+6. Claude independently reviews/tests the accumulated diff, records evidence and fixes, and decides whether it is mergeable.
+7. `main` remains the accepted/release line.
+8. Andrew may redirect scope or approve a different batching strategy at any time.
 
 ## Commit attribution
 
@@ -38,107 +45,102 @@ the correction. No later Java feature package may merge until that issue closes.
 
 ### Documentation-only change
 
-Claude checks factual state, links, baseline, historical annotations and agreement between current
-authority files. Runtime tests are needed only if the documentation change exposes uncertainty about
-behaviour or changes generated/runtime resources.
+Review factual state, links, baselines, historical annotations, and agreement between authority files. Runtime tests are required only where documentation exposes uncertainty or changes generated/runtime resources.
 
 ### Frozen datapack touched
 
 ```bash
 python3 shadowslave/tools/validate.py
-cd testserver && npm test
+cd testserver && npm run deploy && npm test
 cd .. && python3 shadowslave/tools/build_release.py
 ```
 
-Claude confirms the deployed build/version before trusting a server result. A human fresh-world check
-is required for presentation, balance, installation or dimension/worldgen changes.
+Always confirm the deployed build/version before trusting a server result.
 
 ### Java source/resources touched
 
 ```bash
-./mod/gradlew -p mod build
-./mod/gradlew -p mod runClientSmoke --no-daemon
-./mod/gradlew -p mod runServerSmoke --no-daemon
+./mod/gradlew -p mod clean build
+mod/verify-smoke.sh
 ```
 
-Claude independently runs or inspects these rather than accepting GitHub's green badge alone.
-Real-client interaction is additionally required for screens, key mappings, gameplay, persistence,
-visual presentation or anything the smoke marker cannot demonstrate.
+Use JDK 21. Bare Gradle smoke-task exit codes are not proof that Minecraft reached readiness.
+
+Interactive checks remain required evidence for screens, key mappings, gameplay feel, persistence, visual presentation, and multiplayer behaviour—but owner decision D2 allows those checks to be deferred rather than treated as automatic merge gates. Deferred is not passed.
 
 ### Migration touched
 
-Required evidence includes untouched, Carrier, generated identity, legacy identity, inconsistent
-state rejection and idempotency. A live importer must persist, read back and verify Java state before
-it marks completion or removes/ignores legacy values.
+Required evidence includes untouched, Carrier, generated identity, legacy identity, explicit-zero rejection, inconsistent-state rejection, read-back verification, rollback, and idempotency. No live importer removes legacy values before verified Java persistence.
 
 ### Nightmare lifecycle touched
 
-Tests must cover one eligibility choke point and one teardown service across victory, canonical death,
-disconnect/restart recovery and administrator teardown. Multiplayer work also proves separate instance
-ownership and no shared objective/entity/return state.
+Tests cover:
+
+- one entry/eligibility choke point;
+- one ownership/teardown path;
+- success, canonical death, technical recovery, and administrator abort;
+- persistent per-player ownership;
+- reconnect/restart handling;
+- multiplayer slot and state independence;
+- idempotent resolution and reward/teardown behaviour.
+
+Future completion tests additionally follow `docs/NIGHTMARE-SEED-ROADMAP.md`.
 
 ## CI policy
 
-CI is intentionally throttled to avoid an email for every development commit. Prepare a draft PR, make
-the branch coherent, then mark ready for one intentional run. A correction should re-test the corrected
-head, not merely rerun an old commit. Successful CI is evidence for Claude, not permission for GPT to merge.
+CI is intentionally throttled. Keep a PR draft during development and trigger runs only at deliberate checkpoints. A corrected head must receive a new run; rerunning an old workflow does not verify a new commit.
 
-## File ownership and conflict avoidance
-
-Natural strengths remain useful:
-
-| GPT tends to own | Claude tends to own |
-| --- | --- |
-| canon/lore semantics, player-facing Spell copy, Aspect/Flaw definitions, architecture/specs | state-machine edge cases, test harnesses, live deployment, release/versioning, runtime verification |
-
-This is not a fence. Cross-column edits are allowed when explicit in the PR and reviewed closely.
-Prefer small packages and name every high-risk boundary touched.
+Successful CI is evidence, not permission for GPT to merge or call human/Claude checks passed.
 
 ## Engineering invariants
 
-- guard eligibility at the single service/choke point;
-- one teardown path handles every exit reason;
-- client sends intent, never authoritative progression values;
-- tests fail closed and prove their preconditions;
-- know exactly which build produced a result;
-- comments explain the failure/constraint a guard protects against;
+- one service/choke point owns eligibility and entry;
+- one lifecycle path owns teardown for every exit reason;
+- client sends intent, never authoritative progression or identity values;
+- tests fail closed and prove preconditions;
+- every result is tied to an exact build/commit;
 - optional dependencies never own canonical Soul identity;
-- no live migration deletes legacy state before verified persistence/read-back.
+- live migration never deletes legacy evidence before verified read-back;
+- temporary historical role/conflict/evidence belongs to `NightmareInstance`;
+- permanent identity belongs to Java Soul/identity records;
+- project DESIGN is never presented as canon;
+- Nightmare completion is terminal conflict resolution, not a universal boss death, timer, or block click.
 
-Datapack-specific command invariants remain in `docs/ENGINEERING-NOTES.md` and bind any future
-maintenance of the frozen pack.
+## Handoff requirements
 
-## Brief requirements
+A handoff includes:
 
-A handoff/spec includes:
-
-- intent and owner goal;
-- exact baseline commit;
+- owner intent and scope;
+- exact base/head commits;
 - observable acceptance criteria;
-- exact values/wording where they matter;
-- what must not change;
-- required automated and human evidence;
-- known lore/design classification: bug, canon deviation, prototype compromise or preference.
+- automated results and artifact provenance;
+- exact manual checks still unperformed;
+- known correctness, presentation, balance, and lore risks;
+- canon/inferred/design/unknown classifications;
+- what must not change or expand yet.
 
-Blocking implementation questions go in `docs/OPEN-QUESTIONS.md`. Concrete verification work may use
-a GitHub issue, as with Issue #16.
+The current accumulated handoff is:
+
+- `docs/reviews/2026-07-30-gpt-playable-preview.md`;
+- `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`;
+- `docs/PLAYABLE-PREVIEW-PROVENANCE.md`;
+- `docs/PREVIEW-LORE-DECISIONS.md`.
 
 ## Historical records
 
-Changelog entries, old testing plans, review docs and superseded specs remain evidence of what was
-believed at the time. Do not silently rewrite them into present tense. Add a status banner, correction
-or pointer to the resolution. Current truth belongs in `PROJECT-STATUS.md`, current README/status files,
-open issues and the latest accepted implementation.
+Old changelog, issue, and testing statements remain evidence of what was believed at the time. Current truth belongs in `PROJECT-STATUS.md`, `docs/CURRENT-PREVIEW-SUMMARY.md`, the root current documents, and the latest accepted implementation.
 
 ## Where to look
 
 | Need | Authority |
 | --- | --- |
 | current state | `PROJECT-STATUS.md` |
+| compact preview summary | `docs/CURRENT-PREVIEW-SUMMARY.md` |
 | current GPT checkpoint | `GPT_HANDOFF.md` |
-| canon/lore | `docs/lore-research/` and `docs/JAVA-LORE-ALIGNMENT.md` |
+| lore authority | `docs/JAVA-LORE-ALIGNMENT.md` and `docs/PREVIEW-LORE-DECISIONS.md` |
 | Java migration/lifecycle contract | `docs/JAVA-HANDOFF.md` |
+| future Nightmare/Seed completion | `docs/NIGHTMARE-SEED-ROADMAP.md` |
 | current implementation | `mod/IMPLEMENTATION-STATUS.md` |
-| active issues | `ISSUES.md` and GitHub issues |
-| testing | `TESTING.md` |
-| questions between agents | `docs/OPEN-QUESTIONS.md` |
+| active issues | `ISSUES.md` |
+| current testing | `TESTING.md` and `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md` |
+| open questions/owner decisions | `docs/OPEN-QUESTIONS.md` and `docs/PLAYABLE-PREVIEW-DIRECTIVE.md` |
