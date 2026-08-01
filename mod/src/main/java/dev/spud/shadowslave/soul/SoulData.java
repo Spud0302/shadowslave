@@ -13,7 +13,7 @@ import java.util.Optional;
  * Canonical, server-owned player Soul state.
  *
  * <p>The attachment stores permanent identity and progression. Temporary
- * historical roles, trial bodies, objectives and evidence belong to a future
+ * historical roles, trial bodies, objectives and evidence belong to a
  * Nightmare instance rather than this record.</p>
  */
 public record SoulData(
@@ -44,21 +44,34 @@ public record SoulData(
             rank -> rank.map(SoulRank::serializedName).orElse("")
     );
 
-    public static final MapCodec<SoulData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Codec.INT.optionalFieldOf("schema_version", CURRENT_SCHEMA).forGetter(SoulData::schemaVersion),
-            SpellState.CODEC.optionalFieldOf("spell_state", SpellState.UNINFECTED).forGetter(SoulData::spellState),
-            AwakeningPath.CODEC.optionalFieldOf("awakening_path", AwakeningPath.UNDECIDED).forGetter(SoulData::awakeningPath),
-            OPTIONAL_SOUL_RANK_CODEC.optionalFieldOf("soul_rank", Optional.empty()).forGetter(SoulData::soulRank),
-            ResourceLocation.CODEC.optionalFieldOf("aspect_id").forGetter(SoulData::aspectId),
-            OPTIONAL_SOUL_RANK_CODEC.optionalFieldOf("aspect_rank", Optional.empty()).forGetter(SoulData::aspectRank),
-            ResourceLocation.CODEC.optionalFieldOf("flaw_id").forGetter(SoulData::flawId),
-            Codec.BOOL.optionalFieldOf("imported_from_datapack", false).forGetter(SoulData::importedFromDatapack),
-            Codec.INT.optionalFieldOf("migration_version", NO_MIGRATION).forGetter(SoulData::migrationVersion)
-    ).apply(instance, SoulData::decode));
+    private static final MapCodec<StoredSoulData> STORED_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            Codec.INT.optionalFieldOf("schema_version", CURRENT_SCHEMA).forGetter(StoredSoulData::schemaVersion),
+            SpellState.CODEC.optionalFieldOf("spell_state", SpellState.UNINFECTED).forGetter(StoredSoulData::spellState),
+            AwakeningPath.CODEC.optionalFieldOf("awakening_path", AwakeningPath.UNDECIDED).forGetter(StoredSoulData::awakeningPath),
+            OPTIONAL_SOUL_RANK_CODEC.optionalFieldOf("soul_rank", Optional.empty()).forGetter(StoredSoulData::soulRank),
+            ResourceLocation.CODEC.optionalFieldOf("aspect_id").forGetter(StoredSoulData::aspectId),
+            OPTIONAL_SOUL_RANK_CODEC.optionalFieldOf("aspect_rank", Optional.empty()).forGetter(StoredSoulData::aspectRank),
+            ResourceLocation.CODEC.optionalFieldOf("flaw_id").forGetter(StoredSoulData::flawId),
+            Codec.BOOL.optionalFieldOf("imported_from_datapack", false).forGetter(StoredSoulData::importedFromDatapack),
+            Codec.INT.optionalFieldOf("migration_version", NO_MIGRATION).forGetter(StoredSoulData::migrationVersion)
+    ).apply(instance, StoredSoulData::new));
+
+    /**
+     * Decode through an unvalidated storage record so domain invariant failures
+     * become {@link DataResult} errors instead of escaping as raw exceptions
+     * during player attachment loading.
+     */
+    public static final MapCodec<SoulData> CODEC = STORED_CODEC.flatXmap(
+            SoulData::decodeStored,
+            soul -> DataResult.success(StoredSoulData.from(soul))
+    );
 
     public SoulData {
         if (schemaVersion < 1) {
             throw new IllegalArgumentException("schemaVersion must be positive");
+        }
+        if (schemaVersion > CURRENT_SCHEMA) {
+            throw new IllegalArgumentException("Unsupported future SoulData schema: " + schemaVersion);
         }
         if (migrationVersion < 0) {
             throw new IllegalArgumentException("migrationVersion cannot be negative");
@@ -108,9 +121,11 @@ public record SoulData(
             }
         }
 
-        if (spellState == SpellState.DREAMER && awakeningPath == AwakeningPath.NIGHTMARE_SPELL) {
+        if (awakeningPath == AwakeningPath.NIGHTMARE_SPELL && spellState.isAtOrBeyondDreamer()) {
             if (aspectId.isEmpty() || flawId.isEmpty()) {
-                throw new IllegalArgumentException("A Spell-path Dreamer must have an appraised Aspect and Flaw");
+                throw new IllegalArgumentException(
+                        "A post-First-Nightmare Spell user must have an appraised Aspect and Flaw"
+                );
             }
         }
     }
@@ -191,38 +206,113 @@ public record SoulData(
         );
     }
 
-    private static SoulData decode(
-            int storedSchema,
+    private static DataResult<SoulData> decodeStored(StoredSoulData stored) {
+        if (stored.schemaVersion() < 1) {
+            return DataResult.error(() -> "SoulData schema_version must be positive");
+        }
+        if (stored.schemaVersion() > CURRENT_SCHEMA) {
+            return DataResult.error(() -> "Unsupported future SoulData schema: " + stored.schemaVersion());
+        }
+
+        return switch (stored.schemaVersion()) {
+            case 1 -> decodeSchemaOne(stored);
+            case CURRENT_SCHEMA -> constructCurrent(stored);
+            default -> DataResult.error(() -> "Unsupported SoulData schema: " + stored.schemaVersion());
+        };
+    }
+
+    /** Explicit alpha-1 to schema-2 migration. */
+    private static DataResult<SoulData> decodeSchemaOne(StoredSoulData stored) {
+        AwakeningPath migratedPath = stored.awakeningPath();
+        if (migratedPath == AwakeningPath.UNDECIDED && stored.spellState() != SpellState.UNINFECTED) {
+            migratedPath = AwakeningPath.NIGHTMARE_SPELL;
+        }
+
+        Optional<SoulRank> migratedAspectRank = stored.aspectRank();
+        if (stored.aspectId().isPresent() && migratedAspectRank.isEmpty()) {
+            // The frozen datapack imports its prototype Aspect at Dormant rank.
+            migratedAspectRank = Optional.of(SoulRank.DORMANT);
+        }
+
+        return construct(
+                CURRENT_SCHEMA,
+                stored.spellState(),
+                migratedPath,
+                stored.soulRank(),
+                stored.aspectId(),
+                migratedAspectRank,
+                stored.flawId(),
+                stored.importedFromDatapack(),
+                stored.migrationVersion()
+        );
+    }
+
+    /** Schema 2 is validated exactly as stored; migration defaults do not repair it silently. */
+    private static DataResult<SoulData> constructCurrent(StoredSoulData stored) {
+        return construct(
+                CURRENT_SCHEMA,
+                stored.spellState(),
+                stored.awakeningPath(),
+                stored.soulRank(),
+                stored.aspectId(),
+                stored.aspectRank(),
+                stored.flawId(),
+                stored.importedFromDatapack(),
+                stored.migrationVersion()
+        );
+    }
+
+    private static DataResult<SoulData> construct(
+            int schemaVersion,
             SpellState spellState,
-            AwakeningPath storedPath,
+            AwakeningPath awakeningPath,
             Optional<SoulRank> soulRank,
             Optional<ResourceLocation> aspectId,
-            Optional<SoulRank> storedAspectRank,
+            Optional<SoulRank> aspectRank,
             Optional<ResourceLocation> flawId,
             boolean importedFromDatapack,
             int migrationVersion
     ) {
-        AwakeningPath path = storedPath;
-        if (path == AwakeningPath.UNDECIDED && spellState != SpellState.UNINFECTED) {
-            path = AwakeningPath.NIGHTMARE_SPELL;
+        try {
+            return DataResult.success(new SoulData(
+                    schemaVersion,
+                    spellState,
+                    awakeningPath,
+                    soulRank,
+                    aspectId,
+                    aspectRank,
+                    flawId,
+                    importedFromDatapack,
+                    migrationVersion
+            ));
+        } catch (IllegalArgumentException | NullPointerException exception) {
+            return DataResult.error(() -> "Invalid SoulData: " + exception.getMessage());
         }
+    }
 
-        Optional<SoulRank> aspectRank = storedAspectRank;
-        if (aspectId.isPresent() && aspectRank.isEmpty()) {
-            // The frozen datapack imports its prototype Aspect at Dormant rank.
-            aspectRank = Optional.of(SoulRank.DORMANT);
+    private record StoredSoulData(
+            int schemaVersion,
+            SpellState spellState,
+            AwakeningPath awakeningPath,
+            Optional<SoulRank> soulRank,
+            Optional<ResourceLocation> aspectId,
+            Optional<SoulRank> aspectRank,
+            Optional<ResourceLocation> flawId,
+            boolean importedFromDatapack,
+            int migrationVersion
+    ) {
+        private static StoredSoulData from(SoulData soul) {
+            return new StoredSoulData(
+                    soul.schemaVersion(),
+                    soul.spellState(),
+                    soul.awakeningPath(),
+                    soul.soulRank(),
+                    soul.aspectId(),
+                    soul.aspectRank(),
+                    soul.flawId(),
+                    soul.importedFromDatapack(),
+                    soul.migrationVersion()
+            );
         }
-
-        return new SoulData(
-                CURRENT_SCHEMA,
-                spellState,
-                path,
-                soulRank,
-                aspectId,
-                aspectRank,
-                flawId,
-                importedFromDatapack,
-                migrationVersion
-        );
     }
 }
