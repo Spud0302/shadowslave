@@ -58,6 +58,18 @@ public enum SpellState {
         };
     }
 
+    /**
+     * Whether this stage is reached only after the First Nightmare appraisal
+     * on the Nightmare Spell path. Natural-awakening identity rules remain a
+     * separate lore decision and are not inferred here.
+     */
+    public boolean isAtOrBeyondDreamer() {
+        return switch (this) {
+            case DREAMER, AWAKENED, MASTER, SAINT, SOVEREIGN, SPIRIT, GOD -> true;
+            case UNINFECTED, CARRIER, ASPIRANT -> false;
+        };
+    }
+
     private static DataResult<SpellState> decode(String serialized) {
         if ("mundane".equals(serialized)) {
             return DataResult.success(UNINFECTED);
