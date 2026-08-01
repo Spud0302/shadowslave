@@ -40,7 +40,15 @@ class DatapackMigrationTranslatorTest {
     @Test
     void generatedCompletedIdentityPreservesNamesFamiliesAndSeparateRanks() {
         DatapackMigrationPlan plan = DatapackMigrationTranslator.translate(
-                snapshot(true, 1, 12, 43, Set.of("ss_carrier"), false, 0)
+                snapshot(
+                        true,
+                        1,
+                        12,
+                        43,
+                        Set.of("ss_carrier", "ss_aspect_shadow", "ss_flaw_weightless"),
+                        false,
+                        0
+                )
         ).orElseThrow();
 
         ImportedAspect aspect = plan.aspect().orElseThrow();
@@ -85,6 +93,48 @@ class DatapackMigrationTranslatorTest {
     }
 
     @Test
+    void generatedScoresRequireTheirMechanicsTags() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> DatapackMigrationTranslator.translate(
+                        snapshot(true, 1, 12, 43, Set.of("ss_carrier"), false, 0)
+                )
+        );
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> DatapackMigrationTranslator.translate(
+                        snapshot(
+                                true,
+                                1,
+                                12,
+                                43,
+                                Set.of("ss_carrier", "ss_aspect_shadow", "ss_flaw_ravenous"),
+                                false,
+                                0
+                        )
+                )
+        );
+    }
+
+    @Test
+    void completedPlayerRequiresCarrierEvidence() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> DatapackMigrationTranslator.translate(
+                        snapshot(
+                                false,
+                                1,
+                                12,
+                                43,
+                                Set.of("ss_aspect_shadow", "ss_flaw_weightless"),
+                                false,
+                                0
+                        )
+                )
+        );
+    }
+
+    @Test
     void activeNightmareFailsSafeBeforeAnyPlanExists() {
         assertThrows(
                 IllegalStateException.class,
@@ -112,7 +162,15 @@ class DatapackMigrationTranslatorTest {
 
     @Test
     void completedMigrationIsIdempotentAndDeterministic() {
-        LegacyDatapackSnapshot source = snapshot(true, 1, 44, 31, Set.of("ss_carrier"), false, 0);
+        LegacyDatapackSnapshot source = snapshot(
+                true,
+                1,
+                44,
+                31,
+                Set.of("ss_carrier", "ss_aspect_wind", "ss_flaw_ravenous"),
+                false,
+                0
+        );
         DatapackMigrationPlan first = DatapackMigrationTranslator.translate(source).orElseThrow();
         DatapackMigrationPlan second = DatapackMigrationTranslator.translate(source).orElseThrow();
 
@@ -120,8 +178,15 @@ class DatapackMigrationTranslatorTest {
         assertEquals(
                 Optional.empty(),
                 DatapackMigrationTranslator.translate(
-                        snapshot(true, 1, 44, 31, Set.of("ss_carrier"), false,
-                                DatapackMigrationTranslator.CURRENT_MIGRATION)
+                        snapshot(
+                                true,
+                                1,
+                                44,
+                                31,
+                                Set.of("ss_carrier", "ss_aspect_wind", "ss_flaw_ravenous"),
+                                false,
+                                DatapackMigrationTranslator.CURRENT_MIGRATION
+                        )
                 )
         );
     }
