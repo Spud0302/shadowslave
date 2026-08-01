@@ -8,23 +8,36 @@
 - ModDevGradle: `2.0.143`
 - Gradle wrapper: `9.2.1`
 - Stable main: `0.1.0-alpha.4`, Claude-verified
-- Active preview: `0.1.0-preview.1` on draft PR #19
+- Active preview candidate: `0.1.0-preview.2` on PR #19
+- Runtime source: `9cbfe57a05095e31c1980093e4d57ea9a2f7e10c`
 - Public Java release: none
 
 ## Verification state
 
-The preview source commit `460cd31f135ae7e98f66890b6bbf60414772d57b` passed GitHub Actions `Java core` run 33 / ID `30555343642`:
+GitHub Actions `Java core` run 34 / ID `30686670446` passed:
 
 - Gradle wrapper validation;
-- compilation and unit tests;
+- compilation and expanded unit tests;
 - physical-client startup marker;
 - dedicated-server ready marker;
 - JAR packaging;
 - artifact upload.
 
-Artifact and checksum details are in `docs/PLAYABLE-PREVIEW-PROVENANCE.md`.
+Artifact ID `8814240590`; checksums are in `docs/PLAYABLE-PREVIEW-PROVENANCE.md`.
 
-The preview remains **pre-Claude-tested**. Andrew has not yet played the full interaction loop, and Claude has not yet completed the accumulated review. Automated success is not represented as human or Claude verification.
+This is corrected **Java automated evidence**, not a completed Claude/player verdict. The frozen-datapack Mineflayer regression is a separate pending gate.
+
+## Corrected persistence invariants
+
+Issues #22–#25 are addressed in the candidate:
+
+- `SoulData.CODEC` decodes through `StoredSoulData` so invalid stored combinations become `DataResult.error` rather than raw exceptions;
+- negative, zero, unsupported, and future schema versions reject;
+- schema 1 migrates explicitly to schema 2;
+- schema 2 is validated as stored and does not receive legacy repairs;
+- Nightmare-Spell states at or beyond Dreamer require paired Aspect, Aspect Rank, and Flaw identity;
+- completed frozen-datapack imports require the retained Carrier tag;
+- generated two-digit identities require their matching mechanics tags.
 
 ## Implemented in the preview
 
@@ -45,7 +58,7 @@ The preview remains **pre-Claude-tested**. Andrew has not yet played the full in
 - direct scoreboard/tag reader over frozen datapack evidence;
 - deliberate absent-score sentinel handling;
 - rejection of explicit zero, unsupported, inconsistent, or active-Nightmare state;
-- pure translation through accepted mappings;
+- pure translation through exact mappings;
 - provisional Java writes;
 - exact Soul and identity read-back;
 - migration marker only after verification;
@@ -115,9 +128,9 @@ Operator-only commands:
 
 ## Future architecture
 
-`docs/NIGHTMARE-SEED-ROADMAP.md` is binding for the next Nightmare/Seed pass. The current campfire click is a development event, not the final completion model. Future work must separate:
+`docs/NIGHTMARE-SEED-ROADMAP.md` is binding. The current campfire click is a development event, not the final completion model. Future work separates:
 
-1. global central-conflict terminal resolution;
+1. central-conflict terminal resolution;
 2. per-challenger survival/eligibility and outcome;
 3. teardown and return;
 4. appraisal/progression;
