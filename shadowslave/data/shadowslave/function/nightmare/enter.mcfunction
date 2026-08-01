@@ -20,6 +20,14 @@ execute if entity @s[tag=ss_in_nightmare] run return 0
 execute unless entity @s[tag=ss_carrier] run tellraw @s {"text":"The Spell has not marked you yet.","color":"dark_gray","italic":true}
 execute unless entity @s[tag=ss_carrier] run return 0
 
+# The frozen datapack owns one global dimension, bossbar and creature selector. Allowing a second
+# active trial makes either player's creature block the other's victory and can trap them after the
+# timer expires. Enforce the real compatibility ceiling here instead of admitting a broken overlap.
+# The Java preview has per-player instance ownership and does not inherit this restriction.
+execute if entity @a[tag=ss_in_nightmare] run tellraw @s {"text":"Another First Nightmare is already unfolding. The Spell cannot draw you in until it ends.","color":"dark_gray","italic":true}
+execute if entity @a[tag=ss_in_nightmare] run tag @s remove ss_test_bypass
+execute if entity @a[tag=ss_in_nightmare] run return 0
+
 # The Spell is still spent.
 #
 # Both this and the weakness gate below are skipped for ss_test_bypass. A testing command
