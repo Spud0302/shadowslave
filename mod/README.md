@@ -2,23 +2,26 @@
 
 This directory contains the canonical Java core used by the standalone track and, where practical, by the Nightmare Spell modpack track.
 
-## Current state — `0.1.0-preview.1`
+## Current state — `0.1.0-preview.2`
 
-**Status:** installable development preview on draft PR #19. The final automated checkpoint passed compilation, unit tests, physical-client startup, dedicated-server startup, packaging, and artifact upload. Andrew's complete playthrough and Claude's accumulated review are still pending.
+**Status:** installable corrected development preview on PR #19. Workflow run 34 passed compilation, expanded unit tests, physical-client startup, dedicated-server startup, packaging, and artifact upload. Claude's corrected-head bulk review and Andrew's complete playthrough are still pending.
 
-This is not a public release or a claim of feature completeness.
+This is not a public release or a claim of feature completeness. The old `preview.1` JAR predates the issue #20–#26 correction batch.
 
 ## Implemented
 
 - NeoForge 1.21.1 / JDK 21 workspace and committed wrapper;
 - persistent schema-v2 `SoulData` attachment;
+- explicit schema-1 migration and fail-closed schema validation;
+- codec invariant failures returned as `DataResult.error` rather than raw load exceptions;
+- post-First-Nightmare Spell states retain permanent Aspect/Flaw identity;
 - persistent `SoulIdentityData`, imported identity metadata, and preview power state;
 - lore-aligned Uninfected -> Carrier -> Aspirant -> Dreamer/Sleeper progression;
 - separate Soul Rank and Aspect Rank;
 - server-authoritative services and bounded client snapshots;
 - expanded read-only Soul screen opened with **O** or `/shadowslave soul_screen`;
 - live frozen-datapack score/tag reader;
-- fail-closed absent-versus-explicit-zero handling;
+- fail-closed absent-versus-explicit-zero handling and strict mechanics-tag validation;
 - transactional import, exact read-back, migration marker, and rollback;
 - persistent Overworld `NightmareRegistryData`;
 - one active First Nightmare per player UUID and separate play-space slots;
@@ -98,7 +101,7 @@ Future completion logic must follow [`../docs/NIGHTMARE-SEED-ROADMAP.md`](../doc
 - fixed rather than procedural appraisal;
 - incomplete mechanics for imported identities;
 - no later Seeds, Dream Realm, Memories, Echoes, or later-rank progression;
-- no completed human or Claude bulk review.
+- no completed Andrew playthrough or Claude corrected-head bulk review.
 
 ## Build and verification
 
