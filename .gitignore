@@ -16,8 +16,10 @@ testserver/probe*.mjs
 
 # Server/tool logs anywhere, not just under testserver/. A root-level server.log was committed in
 # b79641b and survived review — the rules above only covered testserver/, and running the server from
-# the repo root put the log somewhere nothing matched.
+# the repo root put the log somewhere nothing matched. Rotated logs are compressed, so mod/logs/
+# put a *.log.gz in front of the same gap on 2026-08-01.
 *.log
+*.log.gz
 
 # Scratch
 .superpowers/

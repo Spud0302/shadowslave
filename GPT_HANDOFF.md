@@ -98,7 +98,36 @@ remains a live contract and is restored by this branch:
 - scenario-specific objectives behind an abstraction;
 - evidence owned by the active Nightmare instance.
 
-## Next action — unblocked
+## Open bug queue — Claude's 2026-08-01 test pass
+
+Seven confirmed findings, **none fixed** (Andrew: find and record first, fix in a later pass). Full
+reasoning, evidence and the false leads worth not re-chasing:
+**`docs/reviews/2026-08-01-claude-test-findings.md`**.
+
+| #                                                        | Finding                                                                | Area       | Severity |
+| -------------------------------------------------------- | ---------------------------------------------------------------------- | ---------- | -------- |
+| [#20](https://github.com/Spud0302/shadowslave/issues/20) | Concurrent trials block each other's victory and trap the player       | datapack   | **high** |
+| [#21](https://github.com/Spud0302/shadowslave/issues/21) | That limitation is documented only in a non-authoritative section      | docs       | medium   |
+| [#22](https://github.com/Spud0302/shadowslave/issues/22) | `SoulData` codec throws instead of returning `DataResult.error`        | Java       | **high** |
+| [#23](https://github.com/Spud0302/shadowslave/issues/23) | Stored schema version discarded on decode; its validation unreachable  | Java       | medium   |
+| [#24](https://github.com/Spud0302/shadowslave/issues/24) | Aspect/Flaw invariant enforced for `DREAMER` only                      | Java       | medium   |
+| [#25](https://github.com/Spud0302/shadowslave/issues/25) | Migration accepts two inconsistent states the legacy path rejects      | Java       | low      |
+| [#26](https://github.com/Spud0302/shadowslave/issues/26) | `test/reset` does not restore health, disarming reset-then-enter tests | test infra | low      |
+
+Suggested order: **#22** first — it is the only one that can stop a player loading, and #23/#24 live
+in the same `SoulData` constructor and codec, so all three at once avoids touching that file three
+times. Then **#20**, then **#21**. Leave **#25**/**#26** for the live-reader work below.
+
+`testserver/regression_issue20.mjs` reproduces #20 and **currently exits 1**. It is deliberately not
+in `npm test` — a known-failing check in the release gate would break the gate. Wire it in once it
+passes. Its header records three measurement mistakes that made the bug look fixed when it was not;
+keep them if you edit it.
+
+Two things the pass did **not** find, so they are not worth re-investigating: the single-player loop
+is sound end to end, and the `ss_scratch_a`/`ss_scratch_b` reuse is fragile but not currently a live
+collision.
+
+## Next action after the bug queue
 
 Build the live datapack migration reader/writer in a new `gpt/*` branch off `main`:
 
