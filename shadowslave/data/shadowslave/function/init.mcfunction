@@ -15,6 +15,10 @@ scoreboard objectives add ss_flaw dummy "Flaw"
 scoreboard objectives add ss_roll dummy "Roll"
 # Global once-a-second counter, held on the fake player $ss_clock
 scoreboard objectives add ss_clock dummy "Clock"
+# Persistent global First-Nightmare slot lock. The frozen datapack has one shared dimension,
+# bossbar and creature selector, so the lock must survive player disconnects and server restarts.
+# A score of 1 means the slot is occupied; normal teardown returns it to 0.
+scoreboard objectives add ss_trial_lock dummy "Nightmare Slot"
 # Counts seconds between the Spell's calls to its Carriers
 scoreboard objectives add ss_call dummy "Spell Call"
 # Seconds until the Spell will take a Carrier again. While this is running they sleep
