@@ -100,6 +100,11 @@ remains a live contract and is restored by this branch:
 
 ## Open bug queue — Claude's 2026-08-01 test pass
 
+> **Fixes reviewed on PR #19 (`gpt/live-datapack-import` @ `ad03e00`) — not merged.**
+> One blocker: `regression_issue20.mjs` passes then never exits, so `npm test` hangs. One gap: #20 is
+> still reproducible with a single player via a stray creature. Full argument, including two process
+> points, in **`docs/reviews/2026-08-01-claude-review-of-preview-fixes.md`**.
+
 Seven confirmed findings, **none fixed** (Andrew: find and record first, fix in a later pass). Full
 reasoning, evidence and the false leads worth not re-chasing:
 **`docs/reviews/2026-08-01-claude-test-findings.md`**.
