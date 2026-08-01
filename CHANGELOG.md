@@ -2,14 +2,45 @@
 
 [Pride Versioning](https://pridever.org/) — `PROUD.DEFAULT.SHAME`.
 
-The previous full datapack and early-alpha changelog remains available in Git history and is referenced
-under `docs/history/`. This root changelog now records the active Java preview line and major retained
-milestones.
+The previous full datapack and early-alpha changelog remains available in Git history and is referenced under `docs/history/`. This root changelog records the active Java preview line and major retained milestones.
+
+## `0.1.0-preview.2` — Claude finding correction candidate
+
+**Status:** corrected Java automated gate green; deployed datapack regression, Claude bulk verdict, and Andrew play feedback pending; not a public release.
+
+### Soul persistence
+
+- decode `SoulData` through an unvalidated storage record so inconsistent stored data returns `DataResult.error` instead of throwing through player load;
+- validate stored schema before explicit schema-1 migration;
+- reject invalid and future schemas;
+- prevent schema-2 records from receiving schema-1 repairs;
+- require every post-First-Nightmare Nightmare-Spell state to retain Aspect, Aspect Rank, and Flaw identity.
+
+### Migration validation
+
+- require completed frozen-datapack players to retain the Carrier tag written by the release path;
+- require generated two-digit Aspect and Flaw scores to retain their matching mechanics tags;
+- add rejection tests for both inconsistent save shapes.
+
+### Frozen datapack safety
+
+- serialize First Nightmare entry because the frozen pack owns one global dimension, bossbar, and creature slot;
+- refuse a second entrant before shared state is created;
+- restore health in `test/reset` after modifier cleanup;
+- replace the orphaned-decoy probe with a two-player regression proving refusal, first-player completion, teardown release, and later second-player admission;
+- wire the regression into `npm test`;
+- document the one-active-trial ceiling and former trapped-player symptom in authoritative files.
+
+### Evidence
+
+- GitHub Actions `Java core` run 34 passed wrapper validation, compilation/unit tests, physical client, dedicated server, packaging, and upload;
+- artifact ID `8814240590`;
+- JAR SHA-256 `48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9`;
+- deployed datapack/Mineflayer gate remains pending and is not claimed passed.
 
 ## `0.1.0-preview.1` — installable playable Java preview
 
-**Status:** development artifact on draft PR #19; not a public release; Andrew play feedback and Claude
-bulk review pending.
+**Status:** superseded by preview.2; retained as the first installable vertical-slice artifact.
 
 ### Live migration
 
@@ -45,11 +76,10 @@ bulk review pending.
 
 - added preview install/play guide;
 - added lore decision ledger;
-- added final build provenance and checksums;
+- added build provenance and checksums;
 - added accumulated Claude test matrix;
 - added binding Nightmare/Seed completion roadmap;
-- final GitHub workflow run 33 passed wrapper, compile/tests, physical client, dedicated server,
-  packaging, and artifact upload.
+- workflow run 33 passed wrapper, compile/tests, physical client, dedicated server, packaging, and upload.
 
 ## `0.1.0-alpha.4` — fail-safe datapack translation foundation
 
