@@ -10,7 +10,7 @@ advancement revoke @s only shadowslave:enter_nightmare
 execute if score @s ss_rank matches 1.. run advancement grant @s only shadowslave:test/bypass
 execute if score @s ss_rank matches 1.. run return 0
 
-# Guard against duplicate entry while an existing trial is active.
+# Guard against duplicate entry while this player already owns the trial.
 execute if entity @s[tag=ss_in_nightmare] run return 0
 
 # The normal First Nightmare requires infection first. Historically this invariant lived only in
@@ -20,13 +20,15 @@ execute if entity @s[tag=ss_in_nightmare] run return 0
 execute unless entity @s[tag=ss_carrier] run tellraw @s {"text":"The Spell has not marked you yet.","color":"dark_gray","italic":true}
 execute unless entity @s[tag=ss_carrier] run return 0
 
-# The frozen datapack owns one global dimension, bossbar and creature selector. Allowing a second
-# active trial makes either player's creature block the other's victory and can trap them after the
-# timer expires. Enforce the real compatibility ceiling here instead of admitting a broken overlap.
-# The Java preview has per-player instance ownership and does not inherit this restriction.
-execute if entity @a[tag=ss_in_nightmare] run tellraw @s {"text":"Another First Nightmare is already unfolding. The Spell cannot draw you in until it ends.","color":"dark_gray","italic":true}
-execute if entity @a[tag=ss_in_nightmare] run tag @s remove ss_test_bypass
-execute if entity @a[tag=ss_in_nightmare] run return 0
+# The frozen datapack owns one global dimension, bossbar and creature selector. The lock is a
+# persistent fake-player score rather than an @a query so disconnecting does not make the slot look
+# free while the owner's persistent creature waits in unloaded chunks. Reconcile an online legacy
+# trial into the lock before checking it, then fail closed until the owner returns and normal teardown
+# releases the slot. The Java preview has per-player instance ownership and does not inherit this limit.
+execute if entity @a[tag=ss_in_nightmare] run scoreboard players set $global ss_trial_lock 1
+execute if score $global ss_trial_lock matches 1.. run tellraw @s {"text":"Another First Nightmare is already unfolding. The Spell cannot draw you in until it ends.","color":"dark_gray","italic":true}
+execute if score $global ss_trial_lock matches 1.. run tag @s remove ss_test_bypass
+execute if score $global ss_trial_lock matches 1.. run return 0
 
 # The Spell is still spent.
 #
@@ -64,6 +66,10 @@ execute unless entity @s[tag=ss_test_bypass] if score @s ss_scratch_a matches ..
 # the gates for the rest of a session — which is exactly the kind of thing that has bitten
 # this pack before.
 tag @s remove ss_test_bypass
+
+# Claim the persistent slot before creating any trial state. If a later command fails, keeping the
+# lock is safer than admitting an overlapping trial; the owner can reconnect or an admin can recover.
+scoreboard players set $global ss_trial_lock 1
 
 # Remember where to put them back.
 execute store result score @s ss_ret_x run data get entity @s Pos[0]
