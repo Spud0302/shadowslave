@@ -2,8 +2,9 @@
 # player regardless of where the reset was invoked or what the previous test touched.
 #
 # BEST-PRACTICE: test reset helpers must clear hidden/transient state as well as visible state.
-# Leaving a cooldown, observation tag, scratch score, modifier or short-lived pack effect behind makes
-# later tests order-dependent and can turn a correct feature into a false failure (or vice versa).
+# Leaving health below an entry threshold, a cooldown, observation tag, scratch score, modifier or
+# short-lived pack effect behind makes later tests order-dependent and can turn a correct feature into
+# a false failure (or vice versa).
 
 # Get out of the nightmare first if we are in it. This must happen before state is cleared:
 # nightmare/leave owns teardown of the bossbar, creature and return teleport.
@@ -68,6 +69,10 @@ attribute @s minecraft:generic.movement_speed modifier remove shadowslave:aspect
 attribute @s minecraft:generic.max_health modifier remove shadowslave:flaw_fragile_health
 # Migration cleanup for 0.7.2 and older worlds. The fled family no longer uses this modifier.
 attribute @s minecraft:generic.safe_fall_distance modifier remove shadowslave:flaw_weightless_fall
+
+# Restore an enterable verification baseline after removing the max-health modifier. Entry refuses
+# below 14 HP, so leaving low health behind makes a reset-then-enter test exercise only the refusal path.
+effect give @s minecraft:instant_health 1 4 true
 
 # Defensive cleanup for tests that spawned a creature without completing normal teardown.
 # Single-player-at-a-time limitation still applies; multiplayer instance ownership must replace
