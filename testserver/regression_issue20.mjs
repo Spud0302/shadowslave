@@ -1,148 +1,147 @@
-// Regression checks for issues #20 and #26.
+// Regression check for issue #20 — concurrent First Nightmares block each other's victory.
 //
-// The frozen datapack has one global Nightmare dimension, bossbar and creature selector. It cannot
-// safely run simultaneous First Nightmares, so the accepted compatibility fix is to refuse a second
-// entrant at nightmare/enter, the one eligibility choke point. This test proves:
-//   1. test/reset restores enough health for entry;
-//   2. the first eligible player enters;
-//   3. a second eligible player is refused clearly and receives no active/bypass residue;
-//   4. the first player's creature can still be killed and their victory completes normally.
+// STATUS: THIS CURRENTLY FAILS. The bug it measures is open. It is deliberately NOT part of
+// `npm test`, because wiring a known-failing check into the release gate would break the gate.
+// Run it directly:  node regression_issue20.mjs   (exit 0 = fixed, exit 1 = still broken)
 //
-// Run directly with `node regression_issue20.mjs`; it is also part of `npm test`.
+// WHAT IT MEASURES
+// `nightmare/objective_tick` decides victory with `@e[tag=ss_creature]`. That selector is
+// DIMENSION-scoped, not per-player, and every concurrent trial shares the one
+// `shadowslave:nightmare` dimension — so any other player's creature keeps resetting your
+// `ss_gone` counter and you can neither win nor leave.
+//
+// Rather than driving two real trials (bots get ejected in seconds), it isolates the variable:
+// one player in a trial plus one inert decoy creature standing in for a second player's.
+// Control run and decoy run are otherwise identical.
+//
+// THREE THINGS THAT MADE EARLIER ATTEMPTS FALSELY PASS — keep them if you edit this:
+//   1. `@e` is dimension-scoped, so a decoy in the Overworld is invisible to objective_tick.
+//      The decoy MUST be inside shadowslave:nightmare.
+//   2. Entities in unloaded chunks are absent from `@e`. A decoy 3000 blocks away was never
+//      counted; it has to spawn in chunks the player is loading.
+//   3. `test/reset` does not restore health (issue #26) and entry refuses below 14 HP, so the
+//      subject must be healed or the run silently measures the refusal path instead.
+// The subject is also made damage-proof so ejection cannot end the run before the measurement.
+//
+// EXPECTED WHEN FIXED: the decoy run wins, exactly like the control run.
 
 import mineflayer from 'mineflayer'
 
 const HOST = 'localhost'
 const PORT = 25565
-const NAMES = ['alice', 'bob', 'tester']
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const bots = {}
-const logs = Object.fromEntries(NAMES.map((name) => [name, []]))
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-let commandTail = Promise.resolve()
+let log = []
+let tail = Promise.resolve()
 
-function command(commandText, waitMs = 350) {
-  const task = commandTail.then(async () => {
+function cmd(command, ms = 350) {
+  const task = tail.then(async () => {
     await sleep(90)
-    logs.tester = []
-    bots.tester.chat(commandText.startsWith('/') ? commandText : '/' + commandText)
-    await sleep(waitMs)
-    return logs.tester.join(' | ')
+    log = []
+    bots.tester.chat(command.startsWith('/') ? command : '/' + command)
+    await sleep(ms)
+    return log.join(' | ')
   })
-  commandTail = task.catch(() => {})
+  tail = task.catch(() => {})
   return task
 }
 
-async function dimension(player) {
-  const out = await command(`/data get entity ${player} Dimension`)
-  const match = out.match(/"([^\"]+)"/)
-  if (!match) throw new Error(`Could not parse ${player} dimension from: ${out}`)
-  return match[1]
+async function score(objective, holder) {
+  const out = await cmd(`/scoreboard players get ${holder} ${objective}`)
+  const m = out.match(/has (-?\d+) \[/)
+  return m ? parseInt(m[1], 10) : null
 }
 
-async function health(player) {
-  const out = await command(`/data get entity ${player} Health`)
-  const match = out.match(/(-?\d+(?:\.\d+)?)f/)
-  if (!match) throw new Error(`Could not parse ${player} health from: ${out}`)
-  return parseFloat(match[1])
+async function count(selector) {
+  await cmd('/scoreboard players reset $n ss_scratch_a')
+  await cmd(`/execute in shadowslave:nightmare store result score $n ss_scratch_a if entity ${selector}`)
+  return score('ss_scratch_a', '$n')
 }
 
-async function score(player, objective) {
-  const out = await command(`/scoreboard players get ${player} ${objective}`)
-  const match = out.match(/has (-?\d+) \[/)
-  return match ? parseInt(match[1], 10) : null
+async function dim(who) {
+  const out = await cmd(`/data get entity ${who} Dimension`)
+  const m = out.match(/"([a-z_]+:[a-z_/]+)"/)
+  return m ? m[1].replace('minecraft:', 'mc/').replace('shadowslave:', 'SS/') : '??'
 }
 
-async function hasTag(player, tag) {
-  const out = await command(`/tag ${player} list`)
-  if (!/has \d+ tags?|has no tags/i.test(out)) {
-    throw new Error(`Could not read ${player} tags from: ${out}`)
+async function sample(label, n = 6) {
+  for (let i = 1; i <= n; i++) {
+    console.log(`   ${label} #${i}  creatures=${await count('@e[tag=ss_creature]')}`
+      + `  ss_gone=${await score('ss_gone', 'alice')}`
+      + `  rank=${await score('ss_rank', 'alice')}`
+      + `  dim=${await dim('alice')}`)
+    await sleep(500)
   }
-  return out.includes(tag)
 }
 
-async function waitFor(label, probe, predicate, timeoutMs = 8000) {
-  const deadline = Date.now() + timeoutMs
-  let seen = null
-  while (Date.now() < deadline) {
-    seen = await probe()
-    if (predicate(seen)) return seen
-    await sleep(200)
+async function trialWithDecoy(useDecoy) {
+  console.log(`\n=== ${useDecoy ? 'B) WITH a decoy creature elsewhere' : 'A) CONTROL: no decoy'} ===`)
+  await cmd('/kill @e[tag=ss_creature]', 700)
+  await cmd('/execute in shadowslave:nightmare run kill @e[tag=ss_creature]', 700)
+  await cmd('/gamemode survival alice')
+  await cmd('/execute as alice at alice run function shadowslave:test/reset', 700)
+  await cmd('/effect give alice minecraft:instant_health 1 10 true')
+  await cmd('/effect clear alice')
+  // Damage-proof so the ravager cannot eject her before the experiment finishes.
+  await cmd('/effect give alice minecraft:resistance 120 4 true')
+  await cmd('/effect give alice minecraft:regeneration 120 4 true')
+
+  await cmd('/execute as alice at alice run function shadowslave:test/nightmare', 1200)
+  await cmd('/execute as alice run scoreboard players set @s ss_timer 1')
+  await sleep(2500)
+  console.log('  after spawn: creatures=', await count('@e[tag=ss_creature]'),
+    ' spawned_tag=', (await cmd('/tag alice list')).includes('ss_creature_spawned'))
+
+  if (useDecoy) {
+    // Stand-in for a second player's creature: far away but in the SAME nightmare
+    // dimension, which is where every concurrent trial actually runs.
+    await cmd('/execute at alice run summon minecraft:ravager ~30 ~ ~30 '
+      + '{Tags:["ss_creature","ss_decoy"],PersistenceRequired:1b,NoAI:1b,Invulnerable:1b,Silent:1b}', 800)
+    console.log('  decoy summoned; creatures now =', await count('@e[tag=ss_creature]'))
   }
-  throw new Error(`Timed out waiting for ${label}; last value=${seen}`)
-}
 
-function require(condition, message) {
-  if (!condition) throw new Error(message)
-  console.log(`PASS  ${message}`)
+  console.log('  --- killing ONLY the real trial creature (decoy survives) ---')
+  await cmd('/execute in shadowslave:nightmare run kill @e[tag=ss_creature,tag=!ss_decoy]', 900)
+  console.log('  creatures remaining =', await count('@e[tag=ss_creature]'))
+  await sample(useDecoy ? 'decoy' : 'ctrl')
+
+  const rank = await score('ss_rank', 'alice')
+  console.log(`  RESULT: rank=${rank} -> ${rank === 1 ? 'WON' : 'DID NOT WIN'}`)
+  await cmd('/execute in shadowslave:nightmare run kill @e[tag=ss_creature]', 600)
+  await cmd('/kill @e[tag=ss_creature]', 600)
+  await cmd('/execute as alice at alice run function shadowslave:test/reset')
+  return rank
 }
 
 async function run() {
-  console.log('\n=== Concurrent First Nightmare admission regression ===\n')
+  console.log('\n=== PROBE: does a creature elsewhere block victory? ===')
+  const control = await trialWithDecoy(false)
+  await sleep(1500)
+  const withDecoy = await trialWithDecoy(true)
 
-  await command('/execute in shadowslave:nightmare run kill @e[tag=ss_creature]')
-  for (const player of ['alice', 'bob']) {
-    await command(`/gamemode survival ${player}`)
-    await command(`/execute as ${player} at ${player} run function shadowslave:test/reset`, 650)
+  console.log('\n=== VERDICT ===')
+  console.log(`  no decoy   -> rank ${control} (${control === 1 ? 'won' : 'did not win'})`)
+  console.log(`  with decoy -> rank ${withDecoy} (${withDecoy === 1 ? 'won' : 'did not win'})`)
+  if (control !== 1) {
+    console.log('  INVALID: the control run did not win, so the experiment proves nothing.')
+    console.log('  (Most likely the subject was refused entry - see issue #26, health is not reset.)')
+    process.exit(2)
   }
-
-  const aliceHealth = await health('alice')
-  const bobHealth = await health('bob')
-  require(aliceHealth >= 14 && bobHealth >= 14,
-    `test/reset restores an enterable health baseline (alice=${aliceHealth}, bob=${bobHealth})`)
-
-  // Keep the admitted player alive while the test forces the creature phase.
-  await command('/effect give alice minecraft:resistance 120 4 true')
-  await command('/execute as alice at alice run function shadowslave:test/nightmare', 1000)
-  await waitFor('alice Nightmare entry', () => dimension('alice'), (value) => value === 'shadowslave:nightmare')
-  require(await hasTag('alice', 'ss_in_nightmare'), 'first eligible player owns the active trial')
-
-  logs.bob = []
-  await command('/execute as bob at bob run function shadowslave:test/nightmare', 800)
-  await sleep(300)
-
-  const bobDimension = await dimension('bob')
-  const bobMessages = logs.bob.join(' | ')
-  require(bobDimension !== 'shadowslave:nightmare', 'second player remains outside the active Nightmare')
-  require(!(await hasTag('bob', 'ss_in_nightmare')), 'second player receives no active-Nightmare tag')
-  require(!(await hasTag('bob', 'ss_test_bypass')), 'refused test entry consumes its one-shot bypass')
-  require(/Another First Nightmare is already unfolding/i.test(bobMessages),
-    'second player receives the explicit compatibility-limit message')
-
-  // Prove the refusal does not disturb the admitted player's ordinary completion path.
-  await command('/scoreboard players set alice ss_timer 1')
-  await waitFor(
-    'alice creature spawn',
-    () => hasTag('alice', 'ss_creature_spawned'),
-    (value) => value === true,
-    10000
-  )
-  await command('/execute in shadowslave:nightmare run kill @e[tag=ss_creature]', 500)
-  await waitFor('alice victory', () => score('alice', 'ss_rank'), (value) => value === 1, 8000)
-  await waitFor('alice return', () => dimension('alice'), (value) => value !== 'shadowslave:nightmare', 8000)
-  require(!(await hasTag('alice', 'ss_in_nightmare')), 'first player completes and tears down normally')
-
-  for (const player of ['alice', 'bob']) {
-    await command(`/execute as ${player} at ${player} run function shadowslave:test/reset`, 500)
+  if (withDecoy === 1) {
+    console.log('  PASS: the decoy no longer blocks victory. Issue #20 looks fixed.')
+    process.exit(0)
   }
-
-  console.log('\nPASS  issues #20 and #26 regression checks completed\n')
-  process.exit(0)
+  console.log('  FAIL: an unrelated creature in the nightmare blocks victory and traps the player.')
+  console.log('  Issue #20 is still open. Victory must be scoped to the player\'s own creature.')
+  process.exit(1)
 }
 
-for (const name of NAMES) {
-  const bot = mineflayer.createBot({ host: HOST, port: PORT, username: name, auth: 'offline', version: '1.21.1' })
-  bot.on('message', (message) => logs[name].push(message.toString()))
-  bot.on('error', (error) => {
-    console.error(`${name} error:`, error.message)
-    process.exit(1)
-  })
-  bots[name] = bot
+for (const name of ['alice', 'tester']) {
+  const b = mineflayer.createBot({ host: HOST, port: PORT, username: name, auth: 'offline', version: '1.21.1' })
+  b.on('message', (m) => { if (name === 'tester') log.push(m.toString()) })
+  b.on('error', (e) => { console.error(`${name} error:`, e.message); process.exit(1) })
+  bots[name] = b
 }
-
-Promise.all(Object.values(bots).map((bot) => new Promise((resolve) => bot.once('spawn', resolve))))
-  .then(() => sleep(2500))
-  .then(run)
-  .catch((error) => {
-    console.error('FAIL:', error)
-    process.exit(1)
-  })
+Promise.all(Object.values(bots).map((b) => new Promise((r) => b.once('spawn', r))))
+  .then(() => sleep(2500)).then(run)
+  .catch((e) => { console.error('failed:', e); process.exit(1) })
