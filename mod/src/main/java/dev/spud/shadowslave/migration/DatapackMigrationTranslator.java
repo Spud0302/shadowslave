@@ -44,6 +44,11 @@ public final class DatapackMigrationTranslator {
         if (snapshot.rankScore() != 1) {
             throw new IllegalArgumentException("Unsupported frozen datapack rank score: " + snapshot.rankScore());
         }
+        if (!snapshot.carrier()) {
+            throw new IllegalArgumentException(
+                    "Completed datapack player is missing the Carrier tag retained by the frozen progression path"
+            );
+        }
         if (snapshot.aspectScore() == 0 || snapshot.flawScore() == 0) {
             throw new IllegalArgumentException("Completed datapack player is missing Aspect or Flaw identity");
         }
