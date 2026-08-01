@@ -2,10 +2,14 @@ package dev.spud.shadowslave.soul;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -116,9 +120,108 @@ class SoulDataTest {
                 .parse(JsonOps.INSTANCE, legacy)
                 .getOrThrow();
 
+        assertEquals(SoulData.CURRENT_SCHEMA, migrated.schemaVersion());
         assertEquals(SpellState.UNINFECTED, migrated.spellState());
         assertEquals(AwakeningPath.UNDECIDED, migrated.awakeningPath());
         assertTrue(migrated.soulRank().isEmpty());
+    }
+
+    @Test
+    void malformedStoredSoulReturnsDataErrorInsteadOfThrowing() {
+        JsonElement malformed = JsonParser.parseString("""
+                {
+                  "schema_version": 2,
+                  "spell_state": "carrier",
+                  "awakening_path": "nightmare_spell",
+                  "soul_rank": "dormant"
+                }
+                """);
+
+        DataResult<SoulData> result = assertDoesNotThrow(
+                () -> SoulData.CODEC.codec().parse(JsonOps.INSTANCE, malformed)
+        );
+
+        assertTrue(result.error().isPresent());
+    }
+
+    @Test
+    void invalidAndFutureStoredSchemasAreRejected() {
+        for (int schema : new int[]{-5, 0, SoulData.CURRENT_SCHEMA + 1}) {
+            JsonElement stored = JsonParser.parseString("""
+                    {
+                      "schema_version": %d,
+                      "spell_state": "uninfected"
+                    }
+                    """.formatted(schema));
+
+            DataResult<SoulData> result = assertDoesNotThrow(
+                    () -> SoulData.CODEC.codec().parse(JsonOps.INSTANCE, stored)
+            );
+            assertTrue(result.error().isPresent(), "schema " + schema + " must be rejected");
+        }
+    }
+
+    @Test
+    void schemaTwoDoesNotSilentlyApplySchemaOneRepairs() {
+        JsonElement malformedCurrent = JsonParser.parseString("""
+                {
+                  "schema_version": 2,
+                  "spell_state": "dreamer",
+                  "awakening_path": "nightmare_spell",
+                  "soul_rank": "dormant",
+                  "aspect_id": "shadowslave:prototype/veiled_witness",
+                  "flaw_id": "shadowslave:prototype/heavy_step"
+                }
+                """);
+
+        DataResult<SoulData> result = assertDoesNotThrow(
+                () -> SoulData.CODEC.codec().parse(JsonOps.INSTANCE, malformedCurrent)
+        );
+
+        assertTrue(result.error().isPresent());
+    }
+
+    @Test
+    void everyLaterNightmareSpellStageRetainsAppraisedIdentity() {
+        SpellState[] postFirstNightmare = {
+                SpellState.DREAMER,
+                SpellState.AWAKENED,
+                SpellState.MASTER,
+                SpellState.SAINT,
+                SpellState.SOVEREIGN,
+                SpellState.SPIRIT,
+                SpellState.GOD
+        };
+
+        for (SpellState state : postFirstNightmare) {
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> new SoulData(
+                            SoulData.CURRENT_SCHEMA,
+                            state,
+                            AwakeningPath.NIGHTMARE_SPELL,
+                            state.requiredSoulRank(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
+                            false,
+                            SoulData.NO_MIGRATION
+                    ),
+                    state + " must not lose its appraised identity"
+            );
+        }
+
+        assertDoesNotThrow(() -> new SoulData(
+                SoulData.CURRENT_SCHEMA,
+                SpellState.AWAKENED,
+                AwakeningPath.NIGHTMARE_SPELL,
+                SpellState.AWAKENED.requiredSoulRank(),
+                Optional.of(ASPECT),
+                Optional.of(SoulRank.AWAKENED),
+                Optional.of(FLAW),
+                false,
+                SoulData.NO_MIGRATION
+        ));
     }
 
     private static SoulData completedDreamer() {
