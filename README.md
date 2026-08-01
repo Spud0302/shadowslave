@@ -7,10 +7,10 @@ An unofficial fan project inspired by _Shadow Slave_ by Guiltythree.
 | Product | State |
 | --- | --- |
 | Vanilla datapack | completed and frozen as `datapack-v1.0.0` |
-| Standalone/shared NeoForge core | installable `0.1.0-preview.1` on draft PR #19 |
+| Standalone/shared NeoForge core | corrected `0.1.0-preview.2` candidate on PR #19 |
 | Nightmare Spell modpack | design only; no manifest or dependency package yet |
 
-The Java preview is **not a public release and not Claude-verified**. Its final automated checkpoint passed compilation, unit tests, physical-client startup, dedicated-server startup, packaging, and artifact upload. Andrew's complete playthrough and Claude's bulk review remain pending.
+The Java preview is **not a public release and not yet bulk-verified by Claude**. The earlier `0.1.0-preview.1` artifact passed compilation, unit tests, physical-client startup, dedicated-server startup, packaging, and artifact upload. `0.1.0-preview.2` contains the correction batch for issues #20–#26 and requires a fresh workflow and play review before it replaces that artifact.
 
 See [PROJECT-STATUS.md](PROJECT-STATUS.md) for the canonical current state and [docs/CURRENT-PREVIEW-SUMMARY.md](docs/CURRENT-PREVIEW-SUMMARY.md) for a compact preview summary.
 
@@ -18,7 +18,7 @@ See [PROJECT-STATUS.md](PROJECT-STATUS.md) for the canonical current state and [
 
 The Java project lives under [`mod/`](mod/). The current preview targets Minecraft Java Edition 1.21.1, NeoForge 21.1.244, and JDK 21.
 
-Implemented in `0.1.0-preview.1`:
+Implemented in the preview line:
 
 - persistent lore-aligned Uninfected, Carrier, Aspirant, and Dreamer/Sleeper states;
 - separate Soul Rank and Aspect Rank;
@@ -75,13 +75,15 @@ Future Nightmare completion must follow [`docs/NIGHTMARE-SEED-ROADMAP.md`](docs/
 
 ## Datapack v1.0.0
 
-The frozen vanilla datapack installs unchanged at:
+The frozen vanilla datapack installs at:
 
 ```text
 <world>/datapacks/shadowslave-v1.0.0.zip
 ```
 
-It remains a behavioural and import-compatibility reference. Its first-sleep infection, safe ejection, global ownership, finite identity tables, and timer/boss structure are prototype behaviour rather than permanent Java architecture or universal canon.
+A multiplayer server installs it once; joining players use ordinary vanilla 1.21.1 clients. **Only one player may be inside a First Nightmare at a time.** The pack owns one global Nightmare dimension, bossbar, and creature slot, so a second entrant is now refused until the active trial finishes. This prevents the former failure where concurrent creatures blocked victory and trapped a player. The Java preview does not share this ceiling because it owns separate per-player Nightmare instances.
+
+The datapack remains a behavioural and import-compatibility reference. Its first-sleep infection, safe ejection, serialized global ownership, finite identity tables, and timer/boss structure are prototype behaviour rather than permanent Java architecture or universal canon.
 
 ## Lore and design authority
 
