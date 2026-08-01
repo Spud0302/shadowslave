@@ -1,21 +1,20 @@
 # Shadow Slave Java playable preview
 
-**Build line:** `0.1.0-preview.1`  
+**Build line:** `0.1.0-preview.2`  
 **Minecraft:** Java Edition 1.21.1  
 **Loader:** NeoForge 21.1.244  
-**Status:** development preview, pre-Claude-tested, not a public release
+**Status:** corrected development preview, Java automated gate green, Claude/player review pending, not a public release
 
-This build exists so Andrew can install the Java mod in an ordinary local game and feel the current
-systems. It is a coherent vertical slice, not a complete Shadow Slave game.
+This build exists so Andrew can install the Java mod in an ordinary local game and feel the current systems. It is a coherent vertical slice, not a complete Shadow Slave game.
 
 ## Install
 
 1. Install Minecraft Java Edition **1.21.1**.
 2. Install NeoForge **21.1.244** for that instance.
-3. Copy `shadowslave-0.1.0-preview.1.jar` into the instance's `mods` folder.
-4. Do not install the vanilla Shadow Slave datapack for a fresh preview world. The JAR includes its own
-   Java systems and Nightmare dimension.
-5. Start Minecraft and create a new test world. A separate disposable world is strongly recommended.
+3. Copy `shadowslave-0.1.0-preview.2.jar` into the instance's `mods` folder.
+4. Remove the older `preview.1` JAR if present; do not load both.
+5. Do not install the vanilla Shadow Slave datapack for a fresh preview world. The JAR includes its own Java systems and Nightmare dimension.
+6. Start Minecraft and create a new test world. A separate disposable world is strongly recommended.
 
 The mod has no required third-party gameplay dependencies.
 
@@ -29,12 +28,10 @@ The mod has no required third-party gameplay dependencies.
    /shadowslave preview_begin
    ```
 
-   This command is a clearly labelled development shortcut. It grants Carrier state and begins the
-   preview First Nightmare; it is **not** presented as the canonical cause of infection.
+   This command is a clearly labelled development shortcut. It grants Carrier state and begins the preview First Nightmare; it is **not** presented as the canonical cause of infection.
 4. You enter **The Last Signal** as the **last watchkeeper** of a ruined road.
 5. Follow the road toward the far watch while a corrupted pursuer closes in.
-6. Find the unlit soul campfire and **right-click it**. Killing the pursuer is optional; resolving the
-   historical conflict is the objective.
+6. Find the unlit soul campfire and **right-click it**. Killing the pursuer is optional; resolving the historical conflict is the objective.
 7. You return to your original location as a Dreamer/Sleeper with Dormant Soul Rank.
 8. Press **O** again. The screen should show:
    - Aspect: **Last Light**;
@@ -77,6 +74,7 @@ The importer:
 
 - reads legacy evidence without changing it;
 - rejects explicit zero or inconsistent scores;
+- requires completed players and generated identity scores to retain the tags the frozen datapack writes with them;
 - translates through the tested pure mapping layer;
 - writes Java Soul, Aspect and Flaw records provisionally;
 - reads them back and verifies exact identity;
@@ -88,17 +86,13 @@ Always test migration on a backup. This preview does not perform legacy cleanup.
 
 ## Recovery and death
 
-Ordinary First-Nightmare failure is treated in the domain as death. Minecraft still presents its normal
-respawn flow because this is a development preview; the mod explicitly labels that as an accommodation,
-not a safe ejection granted by the Spell.
+Ordinary First-Nightmare failure is treated in the domain as death. Minecraft still presents its normal respawn flow because this is a development preview; the mod explicitly labels that as an accommodation, not a safe ejection granted by the Spell.
 
-`/shadowslave nightmare_recover` is an administrative recovery path for technical faults. It returns the
-player to Carrier state and is deliberately described out of world.
+`/shadowslave nightmare_recover` is an administrative recovery path for technical faults. It returns the player to Carrier state and is deliberately described out of world.
 
 ## What is canon and what is designed
 
-- The progression boundaries, assigned historical role, reconstructed conflict, appraisal boundary and
-  separation of canonical death from technical recovery follow the accepted lore gate.
+- The progression boundaries, assigned historical role, reconstructed conflict, appraisal boundary and separation of canonical death from technical recovery follow the accepted lore gate.
 - **The Last Signal**, its watchkeeper, road, soul campfire and pursuer are project **DESIGN**.
 - **Last Light**, **Kindle**, **Cold Ash** and the fixed preview appraisal are project **DESIGN**.
 - The project does not claim that canon provides an algorithm that would produce those identities.
@@ -108,18 +102,16 @@ See `docs/PREVIEW-LORE-DECISIONS.md` for the full ledger.
 ## Known limitations
 
 - One handcrafted First Nightmare only.
-- The environment is a generated development arena inside a bundled dimension, not a complete historical
-  settlement or procedural Nightmare system.
+- The environment is a generated development arena inside a bundled dimension, not a complete historical settlement or procedural Nightmare system.
 - The pursuer is a vanilla Husk placeholder with vanilla AI.
 - No temporary historical body, role inventory, provisional Aspect or bespoke creature AI yet.
 - No natural infection/exhaustion trigger yet; preview onboarding is a command.
 - No corpse Gate is created after failure.
 - One fixed Aspect and Flaw outcome; appraisal is not procedural.
 - Kindle uses vanilla effects as a temporary execution layer.
-- Imported identities are preserved, but full mechanics for every imported Aspect/Flaw are not yet
-  reimplemented in Java.
-- The Soul screen and complete play loop have not yet been judged by Andrew in a real client.
-- This build has not received the accumulated Claude review.
+- Imported identities are preserved, but full mechanics for every imported Aspect/Flaw are not yet reimplemented in Java.
+- The corrected Soul screen and complete play loop have not yet been judged by Andrew in a real client.
+- The corrected build has not received Claude's accumulated verdict.
 
 ## Feedback checklist
 
