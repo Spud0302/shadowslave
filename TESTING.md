@@ -1,34 +1,43 @@
 # Shadow Slave — current testing
 
-**Target:** `0.1.0-preview.1` on draft PR #19  
+**Target:** `0.1.0-preview.2` on PR #19  
+**Runtime source:** `9cbfe57a05095e31c1980093e4d57ea9a2f7e10c`  
 **Detailed matrix:** `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`  
 **Artifact provenance:** `docs/PLAYABLE-PREVIEW-PROVENANCE.md`
 
-The previous datapack-era and alpha.4 testing history remains available in Git history and is
-referenced under `docs/history/`. This file now describes the current preview gate.
+The previous datapack-era and alpha testing history remains available in Git history and is referenced under `docs/history/`.
 
-## Automated checkpoint
+## Corrected Java checkpoint
 
-GitHub Actions `Java core` run 33 / ID `30555343642` completed successfully for source commit
-`460cd31f135ae7e98f66890b6bbf60414772d57b`.
+GitHub Actions `Java core` run 34 / ID `30686670446` completed successfully.
 
 Passed:
 
 - Gradle wrapper validation;
-- compilation and JUnit suite;
+- compilation and expanded JUnit suite;
 - physical NeoForge client startup marker;
 - dedicated NeoForge server ready marker;
 - JAR packaging;
 - artifact upload.
 
-Checksums:
-
 ```text
-archive SHA-256  dd6315fd25ad50bbba09c53433e8b1840a2f70b344b18a425533c4856da3a8e8
-JAR SHA-256      600fa2143879f8f269aec6d048a0fa4b3150f808a091c1527fe34067d9cdd867
+archive SHA-256  a7ee670001042ee9c783ceb191e667fefdf043acd1b6fa498438434907291d79
+JAR SHA-256      48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9
 ```
 
-## Local machine gate
+## Frozen datapack gate — pending
+
+Changes for issues #20, #21, and #26 touch the frozen datapack source and its harness. They require a deployed Minecraft 1.21.1 server:
+
+```bash
+cd testserver
+npm run deploy
+npm test
+```
+
+The expected gate includes lifecycle 32/32, Flaw 39/39, and the new two-player serialization regression. Merely wiring the regression into `npm test` is not evidence that it passed.
+
+## Local Java gate
 
 Use JDK 21.
 
@@ -38,51 +47,52 @@ mod/verify-smoke.sh
 python3 shadowslave/tools/validate.py
 ```
 
-Do not use bare `runClientSmoke` or `runServerSmoke` task exit codes as proof. They can return success
-even when Minecraft never reaches the accepted readiness marker.
+Do not use bare `runClientSmoke` or `runServerSmoke` task exit codes as proof. They can return success even when Minecraft never reaches the accepted readiness marker.
 
-## Automated domain coverage
+## Correction coverage
 
-The suite covers:
+The expanded suite covers:
 
-- Soul schema/defaults and progression boundaries;
-- independent Soul Rank and Aspect Rank;
-- bounded server-to-client Soul/identity snapshots;
-- imported and native identity codec invariants;
-- frozen datapack score/name mappings;
-- absent score versus explicit zero handling;
-- migration read-back verification and rollback rules;
-- Nightmare instance NBT ownership/return/layout data;
-- separate scenario-slot coordinates;
-- preview ability cooldown persistence guards;
-- client/server side startup compatibility.
+- invalid Soul combinations return codec data errors rather than throwing through parse;
+- invalid/future schema rejection and explicit schema-1 migration;
+- schema-2 state is not silently repaired as schema 1;
+- post-First-Nightmare Spell states retain permanent Aspect/Flaw identity;
+- completed legacy state requires the retained Carrier tag;
+- generated Aspect/Flaw scores require matching mechanics tags;
+- existing Soul, migration, snapshot, identity, Nightmare-record, and power-state coverage.
+
+The datapack harness additionally needs to prove:
+
+- reset restores an enterable health baseline;
+- Alice can own the global trial slot;
+- Bob is refused before shared state is created;
+- Alice can complete normally;
+- Bob can enter after teardown releases the slot.
 
 ## Required manual playtest — not yet performed
 
 Use a disposable Minecraft 1.21.1 NeoForge 21.1.244 world.
 
-1. Install only `shadowslave-0.1.0-preview.1.jar` and confirm Shadow Slave is listed.
-2. Join without cheats and press **O**; confirm Uninfected state and no invented Soul Rank.
-3. Run `/shadowslave preview_begin`; confirm it labels infection as a development shortcut.
-4. Confirm Carrier transitions to Aspirant with Dormant Soul Rank on entry.
+1. Install only `shadowslave-0.1.0-preview.2.jar` and remove `preview.1`.
+2. Join and press **O**; confirm Uninfected state and no invented Soul Rank.
+3. Run `/shadowslave preview_begin`; confirm development-shortcut wording.
+4. Confirm Carrier -> Aspirant with Dormant Soul Rank on entry.
 5. Confirm The Last Signal builds safely in the separate Nightmare slot.
-6. Confirm role and central conflict are understandable in game.
-7. Confirm the Husk creates pressure but killing it is not required.
+6. Confirm role and central conflict are understandable.
+7. Confirm the Husk creates pressure but is not required for completion.
 8. Right-click the unlit soul campfire and confirm exactly one completion/return.
 9. Confirm return to the original dimension and practical location.
-10. Open **O** and confirm Dreamer/Sleeper, Dormant Soul Rank, Last Light, Awakened Aspect Rank, Kindle,
-    and Cold Ash.
-11. Run `/shadowslave kindle`; confirm effect, cooldown refusal, and later reuse.
-12. Enter water/rain/bubbles; confirm Weakness applies and clears after leaving.
-13. Quit/reload at practical Carrier, Aspirant, and Dreamer stages; confirm persistence.
-14. Test `/shadowslave nightmare_recover`; confirm Carrier recovery and explicit technical wording.
-15. Die in the Nightmare; confirm cleanup and explicit development-accommodation wording.
-16. Run `/shadowslave preview_reset`; confirm Soul, identity, power state, and active instance clear.
-17. With two players, enter simultaneously and verify separate slots and independent outcomes.
-18. On a backup frozen-datapack world, run `/shadowslave migrate_datapack`; verify exact names/ranks,
-    retained legacy evidence, rollback on bad state, and idempotent second invocation.
+10. Confirm Dreamer/Sleeper, Dormant Soul Rank, Last Light, Awakened Aspect Rank, Kindle, and Cold Ash.
+11. Test Kindle effect, cooldown refusal, and reuse.
+12. Test Cold Ash in water/rain/bubbles and clearing after leaving.
+13. Quit/reload at Carrier, Aspirant, and Dreamer stages.
+14. Test technical recovery wording and state.
+15. Die in the Nightmare; confirm cleanup and development-accommodation wording.
+16. Run preview reset and confirm all Java state clears.
+17. With two Java-preview players, verify separate slots and independent outcomes.
+18. On a backed-up legacy world, verify exact migration, retained evidence, bad-state rejection, and idempotency.
 
-No document may describe these manual checks as passed until someone records the result.
+No document may describe these checks as passed until someone records the result.
 
 ## Future completion-engine tests
 
@@ -93,7 +103,7 @@ Before mature Nightmare/Seed completion, `docs/NIGHTMARE-SEED-ROADMAP.md` requir
 - prerequisites can reject an objective interaction;
 - multiple event paths reach different terminal resolutions;
 - another actor can cause world-driven resolution;
-- per-challenger survival/outcomes remain separate from global resolution;
+- per-challenger outcomes remain separate from global resolution;
 - appraisal runs only after completion is recorded;
 - teardown/rewards remain idempotent across reload;
 - one shared multiplayer resolution can produce separate challenger outcomes.
