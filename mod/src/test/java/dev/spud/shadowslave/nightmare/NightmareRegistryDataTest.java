@@ -32,8 +32,8 @@ class NightmareRegistryDataTest {
         assertEquals(alice, afterRestart.findByPlayer(aliceId).orElseThrow());
         assertEquals(bob, afterRestart.findByPlayer(bobId).orElseThrow());
 
-        assertEquals(alice, afterRestart.removeByPlayer(aliceId).orElseThrow());
-        assertTrue(afterRestart.removeByPlayer(aliceId).isEmpty(),
+        assertEquals(alice, afterRestart.remove(alice).orElseThrow());
+        assertTrue(afterRestart.remove(alice).isEmpty(),
                 "the ownership record used to gate teardown/appraisal must be consumable only once");
         assertTrue(afterRestart.findByPlayer(aliceId).isEmpty());
         assertEquals(bob, afterRestart.findByPlayer(bobId).orElseThrow(),
@@ -42,6 +42,21 @@ class NightmareRegistryDataTest {
         CompoundTag afterAliceTeardown = afterRestart.save(new CompoundTag(), null);
         assertEquals(8, afterAliceTeardown.getInt("next_slot"),
                 "restart must not reuse a slot that belonged to a persisted instance");
+    }
+
+    @Test
+    void staleTeardownCannotRemoveANewerInstanceForTheSamePlayer() {
+        UUID aliceId = UUID.randomUUID();
+        NightmareInstance completed = instance(aliceId, 0, 10.0, UUID.randomUUID());
+        NightmareInstance newer = instance(aliceId, 1, 20.0, UUID.randomUUID());
+        NightmareRegistryData registry = new NightmareRegistryData();
+
+        registry.restore(completed);
+        assertEquals(completed, registry.remove(completed).orElseThrow());
+        registry.restore(newer);
+
+        assertTrue(registry.remove(completed).isEmpty());
+        assertEquals(newer, registry.findByPlayer(aliceId).orElseThrow());
     }
 
     @Test
