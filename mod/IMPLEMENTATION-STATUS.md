@@ -7,49 +7,46 @@
 - Java: **JDK** `21`
 - ModDevGradle: `2.0.143`
 - Gradle wrapper: `9.2.1`
-- Stable main: `0.1.0-alpha.4`, Claude-verified
-- Active preview candidate: `0.1.0-preview.2` on PR #19
+- Current main: `c3ffcd9c3f6139817fe84ef3c81d94ceafdda4e3`
+- Current build: `0.1.0-preview.2`
 - Runtime source: `9cbfe57a05095e31c1980093e4d57ea9a2f7e10c`
 - Public Java release: none
 
 ## Verification state
 
-GitHub Actions `Java core` run 34 / ID `30686670446` passed:
+Claude independently verified the merge result:
 
-- Gradle wrapper validation;
-- compilation and expanded unit tests;
-- physical-client startup marker;
-- dedicated-server ready marker;
-- JAR packaging;
-- artifact upload.
+- validator clean;
+- frozen-datapack lifecycle harness 32/32;
+- Flaw harness 39/39;
+- disconnect/reconnect trial-lock regression PASS with exit 0, repeated twice;
+- cleanup restored the global lock to 0 and left no stray trial creature;
+- Java clean build with 35 tests and 0 failures;
+- physical-client and dedicated-server smokes passed through `mod/verify-smoke.sh`.
 
-Artifact ID `8814240590`; checksums are in `docs/PLAYABLE-PREVIEW-PROVENANCE.md`.
+Artifact:
 
-This is corrected **Java automated evidence**, not a completed Claude/player verdict. The frozen-datapack Mineflayer regression is a separate pending gate.
+```text
+shadowslave-0.1.0-preview.2.jar
+SHA-256 48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9
+```
 
-## Corrected persistence invariants
+The remaining evidence boundary is Andrew's real-client play/feel pass, not machine verification.
 
-Issues #22–#25 are addressed in the candidate:
-
-- `SoulData.CODEC` decodes through `StoredSoulData` so invalid stored combinations become `DataResult.error` rather than raw exceptions;
-- negative, zero, unsupported, and future schema versions reject;
-- schema 1 migrates explicitly to schema 2;
-- schema 2 is validated as stored and does not receive legacy repairs;
-- Nightmare-Spell states at or beyond Dreamer require paired Aspect, Aspect Rank, and Flaw identity;
-- completed frozen-datapack imports require the retained Carrier tag;
-- generated two-digit identities require their matching mechanics tags.
-
-## Implemented in the preview
+## Implemented
 
 ### Soul and identity
 
 - codec-backed schema-v2 `SoulData` player attachment copied across death;
-- Uninfected, Carrier, Aspirant, and Dreamer/Sleeper stages;
+- explicit schema-1 migration and fail-closed invalid/future schema rejection;
+- invalid Soul combinations returned as codec errors rather than thrown load exceptions;
+- Uninfected, Carrier, Aspirant, and Dreamer/Sleeper states;
 - Nightmare Spell versus natural-awakening path field;
 - optional Soul Rank before the First Nightmare;
 - independent Aspect Rank;
 - persistent paired `SoulIdentityData` records;
 - persistent imported-identity compatibility metadata;
+- post-First-Nightmare Spell states retain permanent Aspect/Flaw identity;
 - server-owned mutation and synchronization boundaries;
 - bounded client snapshots and expanded O-key Soul screen.
 
@@ -57,7 +54,10 @@ Issues #22–#25 are addressed in the candidate:
 
 - direct scoreboard/tag reader over frozen datapack evidence;
 - deliberate absent-score sentinel handling;
+- four reader tests around absence versus explicit zero;
 - rejection of explicit zero, unsupported, inconsistent, or active-Nightmare state;
+- completed players require retained Carrier evidence;
+- generated identities require matching mechanics tags;
 - pure translation through exact mappings;
 - provisional Java writes;
 - exact Soul and identity read-back;
@@ -73,7 +73,7 @@ Issues #22–#25 are addressed in the candidate:
 - separate scenario slots;
 - stored return position/dimension, role, scenario, altar, owned pursuer, and recovery data;
 - one entry choke point in `NightmareService.tryEnter`;
-- owned-entity and registry teardown shared by lifecycle outcomes;
+- exact-UUID entity ownership and shared lifecycle teardown;
 - bundled Nightmare dimension and biome;
 - reconnect resume or explicit technical recovery;
 - distinction between ordinary death and technical/admin recovery.
@@ -113,6 +113,11 @@ Operator-only commands:
 /shadowslave reset
 ```
 
+## Open engineering issues
+
+- **#20:** the frozen datapack's supported one-slot path is verified, but its command-era objective still uses global `ss_creature` selectors. A manually introduced unrelated tagged entity can affect it. Java does not share this limitation.
+- **#29:** `PreviewPowerData` must adopt a non-throwing persisted-codec construction path, followed by malformed-input regression coverage across every registered persisted attachment.
+
 ## Deliberately not implemented
 
 - natural infection and exhaustion/sleep progression;
@@ -128,7 +133,7 @@ Operator-only commands:
 
 ## Future architecture
 
-`docs/NIGHTMARE-SEED-ROADMAP.md` is binding. The current campfire click is a development event, not the final completion model. Future work separates:
+`docs/NIGHTMARE-SEED-ROADMAP.md` is binding. The current campfire interaction is a development event, not the final completion model. Future work separates:
 
 1. central-conflict terminal resolution;
 2. per-challenger survival/eligibility and outcome;
@@ -141,10 +146,10 @@ Exact Seed behaviour requires renewed primary-novel verification before implemen
 ## Local commands
 
 ```bash
-./mod/gradlew -p mod build
+./mod/gradlew -p mod clean build
 mod/verify-smoke.sh
 ./mod/gradlew -p mod runClient
 ./mod/gradlew -p mod runServer --no-daemon
 ```
 
-Do not use bare `runClientSmoke`/`runServerSmoke` exit codes as a gate. Use `mod/verify-smoke.sh`, which checks the same readiness markers as CI.
+Do not use bare `runClientSmoke`/`runServerSmoke` exit codes as a gate. Use `mod/verify-smoke.sh`, which checks the accepted readiness markers.
