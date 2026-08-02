@@ -128,6 +128,14 @@ public final class NightmareService {
         return instance;
     }
 
+    /**
+     * Tears down an active instance for a compound preview reset. The caller is
+     * responsible for resetting persistent attachments and sending the final sync.
+     */
+    public static NightmareInstance abortForPreviewReset(ServerPlayer player) {
+        return exit(player, NightmareExitReason.ADMIN_ABORT);
+    }
+
     public static void canonicalDeath(ServerPlayer player) {
         NightmareInstance instance = activeFor(player).orElse(null);
         if (instance == null) {
