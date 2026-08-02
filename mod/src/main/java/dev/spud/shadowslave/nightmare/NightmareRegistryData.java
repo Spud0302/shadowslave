@@ -82,6 +82,16 @@ public final class NightmareRegistryData extends SavedData {
         setDirty();
     }
 
+    /** Removes only the exact ownership record that the caller previously resolved. */
+    public Optional<NightmareInstance> remove(NightmareInstance expected) {
+        NightmareInstance checked = Objects.requireNonNull(expected, "expected");
+        UUID registeredInstanceId = instanceByPlayer.get(checked.playerId());
+        if (!checked.instanceId().equals(registeredInstanceId)) {
+            return Optional.empty();
+        }
+        return removeByPlayer(checked.playerId());
+    }
+
     public Optional<NightmareInstance> removeByPlayer(UUID playerId) {
         UUID instanceId = instanceByPlayer.remove(playerId);
         if (instanceId == null) {
