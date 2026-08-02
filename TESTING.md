@@ -3,6 +3,7 @@
 **Target:** `0.1.0-preview.2` on PR #19  
 **Runtime source:** `9cbfe57a05095e31c1980093e4d57ea9a2f7e10c`  
 **Detailed matrix:** `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`  
+**Integration procedures:** `docs/JAVA-INTEGRATION-TEST-PROCEDURES.md`  
 **Artifact provenance:** `docs/PLAYABLE-PREVIEW-PROVENANCE.md`
 
 The previous datapack-era and alpha testing history remains available in Git history and is referenced under `docs/history/`.
@@ -49,6 +50,23 @@ python3 shadowslave/tools/validate.py
 
 Do not use bare `runClientSmoke` or `runServerSmoke` task exit codes as proof. They can return success even when Minecraft never reaches the accepted readiness marker.
 
+## Relog, restart and multiplayer evidence
+
+Use `docs/JAVA-INTEGRATION-TEST-PROCEDURES.md` for the repeatable physical-client and dedicated-server procedures.
+
+The Java suite now includes storage/network integration checks that:
+
+- round-trip permanent Soul, revealed identity and preview cooldown through the persistent NBT codecs;
+- rebuild and stream-round-trip the authoritative owning-client snapshot;
+- save and reload two independent active Nightmare owners through the real overworld `SavedData` shape;
+- reject duplicate owners and instance IDs;
+- consume one exact instance only once without touching another player;
+- prevent stale teardown from deleting a newer instance for the same player.
+
+These checks are not a simulated logout, process restart or multiplayer server. Physical relog, dedicated restart and two-client isolation remain separate evidence and must not be marked passed until the documented procedures are performed.
+
+The success path has a confirmed restart gap: teardown removes the active-instance record before appraisal is persisted. A crash in that narrow interval can leave an Aspirant with no active instance and no recoverable completion phase. The procedures record this honestly rather than using a timing-based fake restart test.
+
 ## Correction coverage
 
 The expanded suite covers:
@@ -59,7 +77,7 @@ The expanded suite covers:
 - post-First-Nightmare Spell states retain permanent Aspect/Flaw identity;
 - completed legacy state requires the retained Carrier tag;
 - generated Aspect/Flaw scores require matching mechanics tags;
-- existing Soul, migration, snapshot, identity, Nightmare-record, and power-state coverage.
+- existing Soul, migration, snapshot, identity, Nightmare-record, power-state, restart-storage and owner-isolation coverage.
 
 The datapack harness additionally needs to prove:
 
@@ -85,12 +103,11 @@ Use a disposable Minecraft 1.21.1 NeoForge 21.1.244 world.
 10. Confirm Dreamer/Sleeper, Dormant Soul Rank, Last Light, Awakened Aspect Rank, Kindle, and Cold Ash.
 11. Test Kindle effect, cooldown refusal, and reuse.
 12. Test Cold Ash in water/rain/bubbles and clearing after leaving.
-13. Quit/reload at Carrier, Aspirant, and Dreamer stages.
+13. Perform Procedures R, S and M in `docs/JAVA-INTEGRATION-TEST-PROCEDURES.md`.
 14. Test technical recovery wording and state.
 15. Die in the Nightmare; confirm cleanup and development-accommodation wording.
 16. Run preview reset and confirm all Java state clears.
-17. With two Java-preview players, verify separate slots and independent outcomes.
-18. On a backed-up legacy world, verify exact migration, retained evidence, bad-state rejection, and idempotency.
+17. On a backed-up legacy world, verify exact migration, retained evidence, bad-state rejection, and idempotency.
 
 No document may describe these checks as passed until someone records the result.
 
