@@ -2,7 +2,6 @@ package dev.spud.shadowslave.command;
 
 import com.mojang.brigadier.Command;
 import dev.spud.shadowslave.ShadowSlaveMod;
-import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.migration.DatapackMigrationOutcome;
 import dev.spud.shadowslave.migration.DatapackMigrationService;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
@@ -10,8 +9,8 @@ import dev.spud.shadowslave.migration.ImportedIdentityService;
 import dev.spud.shadowslave.network.SoulSyncService;
 import dev.spud.shadowslave.nightmare.NightmareInstance;
 import dev.spud.shadowslave.nightmare.NightmareService;
-import dev.spud.shadowslave.preview.PreviewPowerData;
 import dev.spud.shadowslave.preview.PreviewPowerService;
+import dev.spud.shadowslave.preview.PreviewResetService;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
@@ -128,11 +127,7 @@ public final class ShadowSlaveCommands {
     }
 
     private static int previewReset(ServerPlayer player) {
-        NightmareService.activeFor(player).ifPresent(instance -> NightmareService.adminAbort(player));
-        SoulService.reset(player);
-        SoulIdentityService.replace(player, SoulIdentityData.empty());
-        ImportedIdentityService.replace(player, ImportedIdentityData.empty());
-        player.setData(ModAttachments.PREVIEW_POWER, PreviewPowerData.empty());
+        PreviewResetService.reset(player);
         player.sendSystemMessage(Component.literal("Preview state reset to uninfected (Mundane description).")
                 .withStyle(ChatFormatting.GRAY));
         return Command.SINGLE_SUCCESS;
