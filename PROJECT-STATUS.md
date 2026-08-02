@@ -1,94 +1,87 @@
 # Shadow Slave project status
 
-**Status date:** 2026-08-01  
-**Stable main:** Java `0.1.0-alpha.4`, Claude-verified  
-**Active preview:** PR #19 / `gpt/live-datapack-import`  
-**Corrected Java candidate:** `shadowslave-0.1.0-preview.2.jar`  
-**Runtime source commit:** `9cbfe57a05095e31c1980093e4d57ea9a2f7e10c`
+**Status date:** 2026-08-02  
+**Current main:** `c3ffcd9c3f6139817fe84ef3c81d94ceafdda4e3`  
+**Java build:** `0.1.0-preview.2`  
+**Review state:** merged and Claude-verified machine-checkably  
+**Public Java release:** none
 
 ## Products
 
 | Product | Current state | Public release |
 | --- | --- | --- |
-| Vanilla datapack | completed reference; one active First Nightmare at a time | `datapack-v1.0.0` |
-| Java stable main | persistent Soul foundation, networking/UI, and pure migration | none |
-| Java playable preview | corrected preview.2 Java gate green; Claude/player review pending | not a release |
+| Vanilla datapack | completed compatibility reference; one active First Nightmare at a time | `datapack-v1.0.0` |
+| Java playable preview | merged on `main`; installable and independently verified | development preview only |
 | Nightmare Spell modpack | design only | none |
 
-## Playable preview scope
+## Playable Java preview
 
-PR #19 contains:
+The merged preview contains:
 
-- transactional live datapack migration with read-back verification, rollback, and no legacy cleanup;
-- persistent imported and native Aspect/Flaw instance records;
-- persistent per-player Nightmare registry and separate scenario slots;
-- one Java entry choke point and one teardown path;
+- persistent lore-aligned Uninfected, Carrier, Aspirant, and Dreamer/Sleeper state;
+- separate Soul Rank and Aspect Rank;
+- expanded read-only O-key Soul screen;
+- transactional live frozen-datapack migration with exact read-back and rollback;
+- persistent native/imported Aspect and Flaw records;
+- persistent per-player Nightmare ownership and separate play-space slots;
 - bundled Nightmare dimension;
-- playable DESIGN scenario **The Last Signal** with the **last watchkeeper** role;
+- DESIGN scenario **The Last Signal** and role **last watchkeeper**;
 - central-conflict completion by restoring a signal fire, with combat optional;
-- fixed DESIGN appraisal **Last Light** / **Kindle** / **Cold Ash**;
-- expanded O-key Soul screen;
-- onboarding, inspection, recovery, reset, and migration commands.
+- fixed DESIGN appraisal **Last Light / Kindle / Cold Ash**;
+- technical recovery, inspection, reset, and migration commands.
 
-## Claude finding correction batch
+## Independent verification
 
-Claude's 2026-08-01 review found issues #20–#26. The active branch now contains candidate fixes:
+Claude verified the merge result rather than relying on the branch or an earlier workflow:
 
-- `SoulData` codec invariant failures become `DataResult.error` rather than raw load exceptions;
-- schema versions are validated and explicitly migrated/dispatched;
-- every post-First-Nightmare Nightmare-Spell state retains Aspect/Flaw identity;
-- completed datapack imports require the retained Carrier tag;
-- generated identities require their matching mechanics tags;
-- datapack `test/reset` restores an enterable health baseline;
-- the frozen datapack refuses a second concurrent First Nightmare before shared state is created;
-- README and authoritative issues documentation state that one-active-trial ceiling.
+- validator clean;
+- frozen-datapack lifecycle harness **32/32**;
+- Flaw harness **39/39**;
+- disconnect/reconnect serialization regression **PASS**, exit `0`, repeatable twice;
+- persistent global trial lock returned to `0` after cleanup, with no stray trial creature;
+- Java clean build with **35 tests, 0 failures**;
+- physical-client and dedicated-server smokes both passed through `mod/verify-smoke.sh`.
 
-The original findings remain in `docs/reviews/2026-08-01-claude-test-findings.md`.
+PR #19 was merged as `c3ffcd9c3f6139817fe84ef3c81d94ceafdda4e3`.
 
-## Corrected Java evidence
+## Artifact
 
-GitHub Actions `Java core` run **34** / ID `30686670446` passed:
-
-- Gradle wrapper validation;
-- compilation and expanded unit tests;
-- physical-client startup;
-- dedicated-server startup;
-- JAR packaging;
-- artifact upload.
-
-Artifact ID: `8814240590`.
+The verified runtime remains:
 
 ```text
-archive SHA-256  a7ee670001042ee9c783ceb191e667fefdf043acd1b6fa498438434907291d79
-JAR SHA-256      48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9
+shadowslave-0.1.0-preview.2.jar
+SHA-256 48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9
 ```
 
-Full artifact details belong in `docs/PLAYABLE-PREVIEW-PROVENANCE.md`.
+Runtime source: `9cbfe57a05095e31c1980093e4d57ea9a2f7e10c`. Later merged datapack, test, and documentation changes do not alter those JAR bytes.
 
-## Evidence boundary
+## Human evidence still pending
 
-The corrected **Java** gate is green. This does not yet prove:
+Machine verification does not replace Andrew's real playthrough. Still worth testing in a disposable world:
 
-- the deployed frozen-datapack lifecycle/Flaw/concurrency Mineflayer gate;
-- Claude's independent bulk verification of the corrected head;
-- Andrew's complete interactive playthrough;
-- real relog/restart persistence;
-- live Java multiplayer instance separation and gameplay feel.
+- O-screen readability and progression presentation;
+- complete Last Signal interaction and exactly-once return;
+- Carrier, active-Nightmare, and Dreamer relog/restart persistence;
+- death and technical-recovery wording;
+- two-player Java slot separation;
+- pacing, balance, readability, and general feel.
 
-The old `0.1.0-preview.1` JAR is superseded by the correction candidate and must not be used as evidence for issues #20–#26.
+## Open issues
 
-## Frozen datapack multiplayer contract
+- **#20:** the frozen datapack intentionally remains a one-slot prototype. The supported concurrent/disconnect paths are safe, but a manually introduced unrelated entity carrying the global `ss_creature` tag can still affect its objective. Per-entity ownership already belongs to the Java `NightmareService`.
+- **#29:** `PreviewPowerData` still wires a throwing invariant constructor directly into its persisted codec. Corrupt negative cooldown data can throw instead of returning `DataResult.error`. This is low severity and does not arise from normal gameplay writes, but it should be fixed with a persisted-codec guard sweep.
 
-The datapack can run on a multiplayer server, but it owns one global Nightmare dimension, bossbar, and creature slot. Only one player may be inside a First Nightmare at a time. A second entrant is refused until teardown releases the slot. True simultaneous per-player trials are provided by the Java architecture.
+Issues #21–#26 were corrected and independently verified in the merged preview batch.
 
 ## Lore boundary
 
-Novel mechanics remain authoritative. The handcrafted scenario, fixed appraisal, Aspect, ability, and Flaw are labelled **DESIGN**. Future Nightmare completion and later Seed behaviour must follow `docs/NIGHTMARE-SEED-ROADMAP.md` and begin with renewed primary-lore verification.
+Novel mechanics and terminology remain primary authority. The Last Signal, last watchkeeper, Last Light, Kindle, Cold Ash, and the fixed appraisal are **DESIGN**, not canon claims.
+
+Future Nightmare completion and later Seed behaviour must follow `docs/NIGHTMARE-SEED-ROADMAP.md`: central-conflict terminal resolution, separate challenger outcome, then appraisal. Exact later-Seed mechanics require renewed primary-novel verification before implementation.
 
 ## Next actions
 
-1. Run the deployed datapack gate: `cd testserver && npm run deploy && npm test`.
-2. Claude bulk-reviews the corrected PR head and records verified, verified with fixes, or blocked.
-3. Andrew plays `0.1.0-preview.2` and records presentation/feel findings.
-4. Fix evidence-backed defects without broad content expansion.
-5. Merge only after the corrected evidence is accepted.
+1. Andrew plays `0.1.0-preview.2` using `mod/PREVIEW-PLAY-GUIDE.md` and records concrete feedback.
+2. Fix #29 with codec-error regression coverage across every persisted attachment.
+3. Keep #20 open as the frozen datapack's explicit global-selector limitation.
+4. Do not broaden into later Seeds, the Dream Realm, or many scenarios until the preview feedback is reviewed.
