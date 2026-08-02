@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.soul.identity;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.spud.shadowslave.soul.SoulRank;
@@ -17,14 +18,20 @@ public record AspectInstanceData(
         ResourceLocation abilityId,
         String provenance
 ) {
-    public static final MapCodec<AspectInstanceData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            ResourceLocation.CODEC.fieldOf("instance_id").forGetter(AspectInstanceData::instanceId),
-            Codec.STRING.fieldOf("formal_name").forGetter(AspectInstanceData::formalName),
-            SoulRank.CODEC.fieldOf("aspect_rank").forGetter(AspectInstanceData::aspectRank),
-            ResourceLocation.CODEC.fieldOf("nature_id").forGetter(AspectInstanceData::natureId),
-            ResourceLocation.CODEC.fieldOf("ability_id").forGetter(AspectInstanceData::abilityId),
-            Codec.STRING.fieldOf("provenance").forGetter(AspectInstanceData::provenance)
-    ).apply(instance, AspectInstanceData::new));
+    private static final MapCodec<StoredAspectInstanceData> STORED_CODEC =
+            RecordCodecBuilder.mapCodec(instance -> instance.group(
+                    ResourceLocation.CODEC.fieldOf("instance_id").forGetter(StoredAspectInstanceData::instanceId),
+                    Codec.STRING.fieldOf("formal_name").forGetter(StoredAspectInstanceData::formalName),
+                    SoulRank.CODEC.fieldOf("aspect_rank").forGetter(StoredAspectInstanceData::aspectRank),
+                    ResourceLocation.CODEC.fieldOf("nature_id").forGetter(StoredAspectInstanceData::natureId),
+                    ResourceLocation.CODEC.fieldOf("ability_id").forGetter(StoredAspectInstanceData::abilityId),
+                    Codec.STRING.fieldOf("provenance").forGetter(StoredAspectInstanceData::provenance)
+            ).apply(instance, StoredAspectInstanceData::new));
+
+    public static final MapCodec<AspectInstanceData> CODEC = STORED_CODEC.flatXmap(
+            AspectInstanceData::construct,
+            data -> DataResult.success(StoredAspectInstanceData.from(data))
+    );
 
     public AspectInstanceData {
         instanceId = Objects.requireNonNull(instanceId, "instanceId");
@@ -35,11 +42,46 @@ public record AspectInstanceData(
         provenance = requireText(provenance, "provenance");
     }
 
+    private static DataResult<AspectInstanceData> construct(StoredAspectInstanceData stored) {
+        try {
+            return DataResult.success(new AspectInstanceData(
+                    stored.instanceId(),
+                    stored.formalName(),
+                    stored.aspectRank(),
+                    stored.natureId(),
+                    stored.abilityId(),
+                    stored.provenance()
+            ));
+        } catch (IllegalArgumentException | NullPointerException exception) {
+            return DataResult.error(() -> "Invalid AspectInstanceData: " + exception.getMessage());
+        }
+    }
+
     private static String requireText(String value, String name) {
         String checked = Objects.requireNonNull(value, name).trim();
         if (checked.isEmpty()) {
             throw new IllegalArgumentException(name + " cannot be blank");
         }
         return checked;
+    }
+
+    private record StoredAspectInstanceData(
+            ResourceLocation instanceId,
+            String formalName,
+            SoulRank aspectRank,
+            ResourceLocation natureId,
+            ResourceLocation abilityId,
+            String provenance
+    ) {
+        private static StoredAspectInstanceData from(AspectInstanceData data) {
+            return new StoredAspectInstanceData(
+                    data.instanceId(),
+                    data.formalName(),
+                    data.aspectRank(),
+                    data.natureId(),
+                    data.abilityId(),
+                    data.provenance()
+            );
+        }
     }
 }
