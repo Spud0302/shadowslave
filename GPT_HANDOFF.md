@@ -7,6 +7,12 @@
 **PR:** #19  
 **Candidate version:** `0.1.0-preview.2`
 
+## Mandatory lore source
+
+Before any lore-sensitive design, implementation, naming or review, read **`docs/LORE-SOURCE-POLICY.md`**.
+
+The project owner has designated <https://novelfull.com/shadow-slave.html> as the working full-chapter access source for researching the novel through the latest available chapters. Use chapter text rather than memory or wiki summaries as the authority; use official WebNovel for exact official wording/publication verification where practical. Summarise mechanics and evidence—do not reproduce chapters or long passages—and keep **CANON**, **INFERRED**, **DESIGN** and **UNKNOWN** distinct.
+
 ## Current state
 
 The playable Java slice and live migration are implemented on PR #19. Claude reviewed the #20–#26 correction batch at `ad03e00` and returned one blocking test-harness hang plus one real disconnect gap in the frozen datapack's single-trial guard.
