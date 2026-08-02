@@ -2,11 +2,11 @@
 
 [Pride Versioning](https://pridever.org/) — `PROUD.DEFAULT.SHAME`.
 
-The previous full datapack and early-alpha changelog remains available in Git history and is referenced under `docs/history/`. This root changelog records the active Java preview line and major retained milestones.
+The previous full datapack and early-alpha changelog remains available in Git history and under `docs/history/`. This root changelog records the active Java preview line and major retained milestones.
 
-## `0.1.0-preview.2` — Claude finding correction candidate
+## `0.1.0-preview.2` — verified playable Java preview
 
-**Status:** corrected Java automated gate green; deployed datapack regression, Claude bulk verdict, and Andrew play feedback pending; not a public release.
+**Status:** merged into `main` as `c3ffcd9`; independently verified machine-checkably; Andrew play feedback pending; not a public release.
 
 ### Soul persistence
 
@@ -20,66 +20,62 @@ The previous full datapack and early-alpha changelog remains available in Git hi
 
 - require completed frozen-datapack players to retain the Carrier tag written by the release path;
 - require generated two-digit Aspect and Flaw scores to retain their matching mechanics tags;
-- add rejection tests for both inconsistent save shapes.
+- add four reader tests around absent scores and explicit zero, including fail-closed handling rather than treating zero as absence;
+- retain exact read-back, rollback, final marker, and legacy evidence.
 
 ### Frozen datapack safety
 
-- serialize First Nightmare entry because the frozen pack owns one global dimension, bossbar, and creature slot;
-- refuse a second entrant before shared state is created;
+- enforce one active First Nightmare through a persistent global lock;
+- preserve the slot while its owner is offline and across restarts;
+- release the lock only after shared creature cleanup;
 - restore health in `test/reset` after modifier cleanup;
-- replace the orphaned-decoy probe with a two-player regression proving refusal, first-player completion, teardown release, and later second-player admission;
-- wire the regression into `npm test`;
-- document the one-active-trial ceiling and former trapped-player symptom in authoritative files.
+- add a disconnect/reconnect regression proving refusal, resume, completion, cleanup, and later admission;
+- make the Mineflayer regression exit cleanly after PASS;
+- preserve the separate manually induced global-selector defect probe and its measurement notes;
+- document the one-active-trial ceiling and residual global-selector limitation.
 
-### Evidence
+### Verification
 
-- GitHub Actions `Java core` run 34 passed wrapper validation, compilation/unit tests, physical client, dedicated server, packaging, and upload;
-- artifact ID `8814240590`;
-- JAR SHA-256 `48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9`;
-- deployed datapack/Mineflayer gate remains pending and is not claimed passed.
+Claude verified the merge result:
 
-## `0.1.0-preview.1` — installable playable Java preview
+```text
+validator                         clean
+lifecycle harness                 32/32
+Flaw harness                      39/39
+disconnect/reconnect regression   PASS, exit 0, repeated twice
+Java tests                        35, failures 0
+physical-client smoke             PASS
+dedicated-server smoke            PASS
+```
 
-**Status:** superseded by preview.2; retained as the first installable vertical-slice artifact.
+The regression left `$global ss_trial_lock = 0` and no stray trial creature.
 
-### Live migration
+### Artifact
 
-- added direct read-only frozen-datapack scoreboard/tag reader;
-- distinguished deliberately absent scores from explicit stored zero;
-- added persistent imported and general Aspect/Flaw records;
-- added provisional writes, exact read-back, final migration marker, and rollback;
-- retained all legacy scores and tags;
-- added `/shadowslave migrate_datapack`.
+```text
+shadowslave-0.1.0-preview.2.jar
+SHA-256 48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9
+```
 
-### Nightmare lifecycle
+### Follow-up
 
-- added persistent Overworld `NightmareRegistryData`;
-- enforced one active Nightmare per player UUID;
-- added separate per-player scenario slots and return/recovery records;
-- added bundled Nightmare dimension and biome;
-- added one entry choke point and shared owned-entity/registry teardown;
-- distinguished success, canonical death, technical recovery, and admin abort.
+- Andrew's complete play/feel pass remains pending;
+- issue #20 remains open for the frozen prototype's manually induced global creature-selector limitation;
+- issue #29 tracks the next persisted-codec invariant sweep, beginning with `PreviewPowerData`.
 
-### Playable vertical slice
+## `0.1.0-preview.1` — first installable vertical slice
 
-- added DESIGN scenario **The Last Signal**;
-- added DESIGN historical role **last watchkeeper**;
-- made combat optional to the signal-restoration conflict;
-- added fixed DESIGN appraisal;
-- added persistent Aspect **Last Light**, Awakened Aspect Rank;
-- added server-authoritative **Kindle** ability and cooldown;
-- added persistent Flaw **Cold Ash** and water/rain Weakness;
-- expanded the O-key Soul screen with formal names, ability, and Flaw effect;
-- added player onboarding, inspection, recovery, and reset commands.
+**Status:** superseded by preview.2.
 
-### Documentation and evidence
-
-- added preview install/play guide;
-- added lore decision ledger;
-- added build provenance and checksums;
-- added accumulated Claude test matrix;
-- added binding Nightmare/Seed completion roadmap;
-- workflow run 33 passed wrapper, compile/tests, physical client, dedicated server, packaging, and upload.
+- added transactional live frozen-datapack migration;
+- added persistent native/imported identities;
+- added persistent per-player Java Nightmare ownership and separate slots;
+- added bundled Nightmare dimension;
+- added DESIGN scenario **The Last Signal** and role **last watchkeeper**;
+- added fixed DESIGN appraisal **Last Light / Kindle / Cold Ash**;
+- expanded the O-key Soul screen;
+- added onboarding, inspection, recovery, reset, and migration commands;
+- added preview install guide, lore ledger, artifact provenance, bulk test matrix, and Nightmare/Seed roadmap.
 
 ## `0.1.0-alpha.4` — fail-safe datapack translation foundation
 
@@ -88,12 +84,12 @@ The previous full datapack and early-alpha changelog remains available in Git hi
 - fail-closed rejection of active/inconsistent state;
 - deterministic imported IDs and idempotency fixtures;
 - validator cross-check for all imported Flaw names;
-- independently reviewed and verified by Claude after CI.
+- independently reviewed and verified by Claude.
 
 ## `0.1.0-alpha.3` — lore-aligned Java schema
 
 - removed Mundane from the Soul Rank ladder;
-- added explicit Aspirant and Dreamer stages plus awakening path;
+- added explicit Aspirant and Dreamer states plus awakening path;
 - separated Aspect Rank from Soul Rank;
 - updated Soul snapshot/screen and schema-1 migration;
 - documented novel/adaptation/design authority boundaries.
@@ -114,6 +110,7 @@ The previous full datapack and early-alpha changelog remains available in Git hi
 
 ## Datapack `1.0.0`
 
-- released and frozen as `datapack-v1.0.0`;
+- released and tagged as `datapack-v1.0.0`;
 - remains the vanilla product and Java migration/behavioural reference;
-- historical prototype and datapack release details remain in Git history.
+- later maintenance preserves the release format while correcting test/reset and safe one-slot ownership;
+- historical datapack release details remain in Git history.
