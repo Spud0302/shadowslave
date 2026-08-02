@@ -1,156 +1,119 @@
-# Playable preview bulk test matrix
+# Playable preview test matrix
 
-**Target:** `0.1.0-preview.2` on PR #19  
+**Target:** `0.1.0-preview.2` on merged `main@c3ffcd9`  
 **Runtime source:** `9cbfe57a05095e31c1980093e4d57ea9a2f7e10c`  
-**Review mode:** accumulated Claude review plus Andrew play feedback  
-**Human status:** corrected build not yet played; pending is not passed
+**Machine verdict:** verified  
+**Human status:** Andrew play feedback pending; deferred is not passed
 
-## GPT Java checkpoint
+## Independent machine result
 
-GitHub Actions `Java core` run **34** / ID **30686670446** completed successfully.
+Claude verified the merge result rather than trusting an earlier workflow or branch:
 
-| Area | Evidence | Result |
-| --- | --- | --- |
-| Wrapper | Gradle wrapper validation | passed |
-| Java build and tests | `./mod/gradlew -p mod build --stacktrace` | passed |
-| Physical client | Shadow Slave client + GUI-atlas startup markers | passed |
-| Dedicated server | Shadow Slave load + server-ready marker | passed |
-| Packaging | `shadowslave-0.1.0-preview.2.jar` | passed |
-| Artifact upload | artifact ID `8814240590` | passed |
+| Area | Result |
+| --- | --- |
+| Validator | clean |
+| Frozen-datapack lifecycle | 32/32 |
+| Frozen-datapack Flaw suite | 39/39 |
+| Disconnect/reconnect slot regression | PASS, exit 0 |
+| Regression repeatability | passed twice back to back |
+| Cleanup after regression | `$global ss_trial_lock = 0`; no stray trial creature |
+| Java clean build | 35 tests, 0 failures |
+| Physical client | PASS through `mod/verify-smoke.sh` |
+| Dedicated server | PASS through `mod/verify-smoke.sh` |
+
+## Artifact
 
 ```text
-archive SHA-256  a7ee670001042ee9c783ceb191e667fefdf043acd1b6fa498438434907291d79
-JAR SHA-256      48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9
+shadowslave-0.1.0-preview.2.jar
+SHA-256 48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9
 ```
 
-Claude must reproduce rather than trust the workflow:
+Runtime source is unchanged by later datapack, harness, workflow, and documentation commits.
 
-```bash
-./mod/gradlew -p mod clean build
-mod/verify-smoke.sh
-python3 shadowslave/tools/validate.py
-```
-
-## Required frozen-datapack gate — pending
-
-The Java workflow does not boot the vanilla datapack harness. Run against a deployed Minecraft 1.21.1 server:
+## Reproduction commands
 
 ```bash
 cd testserver
 npm run deploy
 npm test
+
+cd ..
+./mod/gradlew -p mod clean build
+mod/verify-smoke.sh
+python3 shadowslave/tools/validate.py
 ```
 
-Expected suites:
+Use JDK 21. Deploy before running the datapack harness. Use readiness-marker smokes rather than bare Gradle task exit codes.
 
-- lifecycle: 32/32;
-- Flaw: 39/39;
-- issue #20 serialization regression: Alice enters, Bob is refused cleanly, Alice completes, Bob enters after teardown.
+## Verified correction matrix
 
-Do not claim this gate passed merely because `regression_issue20.mjs` is wired into `npm test`.
-
-## Correction regression matrix
-
-| Issue | Required evidence |
+| Issue | Verified result |
 | --- | --- |
-| #20 | second frozen-datapack entrant is refused before `ss_in_nightmare`, shared creature, bossbar, or progression state; first trial completes; teardown releases slot |
-| #21 | README and authoritative `ISSUES.md` state one active datapack First Nightmare and explain the former blocked-victory/trapped-player symptom |
-| #22 | malformed Soul records return `DataResult.error`; parse call does not throw raw invariant exceptions |
-| #23 | negative, zero, unknown, and future schemas reject; schema 1 migrates explicitly; schema 2 receives no schema-1 repair |
-| #24 | every Nightmare-Spell state from Dreamer through God rejects missing Aspect/Flaw identity |
-| #25 | completed player without Carrier tag rejects; modern two-digit Aspect/Flaw score without matching mechanics tag rejects |
-| #26 | `test/reset` restores enough health for normal entry after max-health modifier removal and low-health setup |
+| #20 supported path | persistent one-slot lock survives disconnect; second entrant refused; owner resumes and completes; teardown releases slot |
+| #21 | authoritative docs state the one-active-trial ceiling and its recovery boundary |
+| #22 | malformed Soul records return `DataResult.error`; raw invariant exceptions do not escape decode |
+| #23 | invalid/future schemas reject; schema 1 migrates explicitly; schema 2 receives no schema-1 repair |
+| #24 | post-First-Nightmare Spell states require Aspect, Aspect Rank, and Flaw identity |
+| #25 | inconsistent completed/generated legacy evidence rejects fail closed |
+| #26 | `test/reset` restores an enterable health baseline |
 
 ## Existing automated domain coverage
 
-| Rule | Test/evidence |
-| --- | --- |
-| Missing legacy score differs from explicit stored zero | `LegacyDatapackReaderTest` |
-| Frozen mappings remain exact and fail closed | `DatapackMigrationTranslatorTest` |
-| Imported metadata codec round-trip | `ImportedIdentityDataTest` |
-| Wrong migration read-back rejects | `DatapackMigrationPersistenceVerifierTest` |
-| Revealed identity paired presence | `SoulIdentityDataTest` |
-| Bounded Soul snapshot and independent ranks | `SoulSnapshotTest` |
-| Nightmare owner/role/return/layout/pursuer record round-trip | `NightmareInstanceTest` |
-| Different instance slots use different origins | `NightmareInstanceTest` |
-| Kindle cooldown codec and guard | `PreviewPowerDataTest` |
-| Bundled dimension resources load | workflow run 34 dedicated-server smoke |
+- Soul defaults, ranks, paths, and transition boundaries;
+- schema migration and malformed-record rejection;
+- bounded server-to-client snapshots;
+- native/imported identity pairing and codec round trips;
+- absent legacy score versus explicit stored zero;
+- exact frozen-datapack mappings and mechanics-tag validation;
+- provisional migration writes, exact read-back, rollback, and idempotency;
+- Nightmare ownership, return state, layout, pursuer UUID, and separate slots;
+- Kindle cooldown persistence guards;
+- client/server side startup compatibility;
+- frozen-datapack disconnect/reconnect ownership and cleanup.
 
-## Claude code-review matrix
-
-### Soul persistence and schema
-
-- `SoulData.CODEC` decodes into a non-throwing storage record first.
-- Domain constructor exceptions become `DataResult.error`, never a silent reset.
-- Stored schema is checked before migration.
-- Schema 1 migration is explicit and cannot silently repair schema 2.
-- Future schemas reject rather than being rewritten as current.
-- Post-First-Nightmare Spell progression cannot lose permanent identity.
-
-### Live migration
-
-- Reader uses direct scoreboard API, not command/chat parsing.
-- Missing objective/player score maps to absence deliberately; read failures do not become zero.
-- Established Java Soul/identity is not overwritten.
-- Provisional writes and exact read-back precede final marker.
-- Soul, identity, and imported metadata roll back together.
-- Legacy scores/tags remain.
-- Completed state and every mechanics family tag are validated consistently.
-
-### Java Nightmare lifecycle
-
-- `NightmareService.tryEnter` is the only entry choke point.
-- Overworld `SavedData` enforces one active instance per owner UUID.
-- Role, scenario, layout, pursuer, return, and recovery state belong to `NightmareInstance`.
-- Per-player slots and exact entity UUID cleanup prevent cross-player interference.
-- Signal restoration resolves the preview conflict; pursuer death is not completion.
-- Success, technical recovery, admin abort, and canonical death converge on shared teardown.
-- Technical recovery is not presented as mercy from the Spell.
-
-### Appraisal, identity, and powers
-
-- Fixed preview appraisal remains explicitly DESIGN.
-- Dreamer Soul Rank is Dormant while Last Light Aspect Rank is Awakened.
-- Appraisal failure cannot leave half an identity.
-- Kindle/cooldown and Cold Ash drawback are server-authoritative.
-- Client payload cannot submit progression, identity, or cooldown values.
-
-## Manual Java play matrix — not yet performed
+## Manual Java play matrix — pending
 
 Use a disposable Minecraft 1.21.1 NeoForge 21.1.244 world.
 
 1. Install only `shadowslave-0.1.0-preview.2.jar` and confirm the mod is listed.
-2. Join and press **O**; confirm Uninfected state.
+2. Join and press **O**; confirm Uninfected state and no invented Soul Rank.
 3. Run `/shadowslave preview_begin`; confirm development-shortcut wording.
 4. Confirm Carrier -> Aspirant/Dormant on entry.
 5. Confirm The Last Signal builds without suffocation or void placement.
-6. Confirm role and conflict are understandable.
-7. Confirm the pursuer pressures but is not required for completion.
-8. Right-click the unlit soul campfire; confirm exact return dimension/location and exactly-once completion.
+6. Confirm the role and conflict are understandable in game.
+7. Confirm the Husk creates pressure but is not required for completion.
+8. Right-click the unlit soul campfire; confirm exactly-once completion and return location.
 9. Confirm Dreamer/Dormant, Last Light/Awakened, Kindle, and Cold Ash on the Soul screen.
-10. Run `/shadowslave kindle`; confirm effect, cooldown refusal, and reuse.
-11. Enter water/rain; confirm Weakness applies and expires after leaving.
-12. Quit/reload at Carrier, Aspirant, and Dreamer points; confirm persistence.
+10. Test Kindle effect, cooldown refusal, and later reuse.
+11. Test Cold Ash in water/rain/bubbles and clearing after leaving.
+12. Quit/reload at Carrier, active-Nightmare, and Dreamer stages.
 13. Test `/shadowslave nightmare_recover` and technical wording.
-14. Die in the Nightmare; confirm cleanup and explicit development accommodation wording.
+14. Die in the Nightmare; confirm cleanup and development-accommodation wording.
 15. Run `/shadowslave preview_reset`; confirm cleared state.
 16. With two Java-preview players, confirm separate slots and independent completion.
-17. On a backed-up legacy world, test migration, retained evidence, rejection of inconsistent saves, and idempotency.
+17. On a backed-up legacy world, test migration, retained evidence, bad-state rejection, and idempotency.
+18. Record pacing, presentation, readability, balance, and general feel.
 
-## Known deferred risks
+## Open regression work
 
-- No human has run the complete corrected interaction loop.
-- No GameTest simulates real logout/login.
-- Active-instance restart recovery is not end-to-end automated.
-- The pursuer is a vanilla Husk placeholder.
-- Full mechanics for every imported identity are not implemented.
-- Visual layout, pacing, balance, and readability need Andrew's feedback.
+### #20 — retained frozen-datapack defect probe
 
-## Verdict vocabulary
+`testserver/defect_issue20_stray_creature.mjs` remains outside `npm test`. It deliberately proves that a manually introduced unrelated entity carrying the prototype-global `ss_creature` tag can affect the frozen objective. The supported one-slot contract is verified; this architectural limitation remains open and explicit.
 
-Claude should record exactly one:
+### #29 — persisted codec sweep
 
-- **verified**;
-- **verified with fixes**;
-- **blocked**;
-- **verified machine-checkably; human feedback pending**.
+Add well-formed invariant-violating payload tests for every registered persisted attachment codec. Each must return `DataResult.error` rather than throw. `PreviewPowerData` is the confirmed failing case for corrupt negative cooldown data.
+
+## Future completion-engine tests
+
+Before mature Nightmare/Seed completion, `docs/NIGHTMARE-SEED-ROADMAP.md` requires tests proving:
+
+- a boss may die without resolving the conflict;
+- a non-combat event may resolve it;
+- prerequisites can reject an objective interaction;
+- multiple event paths reach different terminal resolutions;
+- another actor can cause world-driven resolution;
+- per-challenger outcomes remain separate from global resolution;
+- appraisal runs only after completion is recorded;
+- teardown and rewards remain idempotent across reload;
+- one shared multiplayer resolution can produce separate challenger outcomes.
