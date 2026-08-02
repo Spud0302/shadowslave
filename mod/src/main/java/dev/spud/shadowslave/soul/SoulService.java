@@ -44,11 +44,25 @@ public final class SoulService {
         return replace(player, SoulTransitions.reset());
     }
 
+    /**
+     * Resets only the Soul attachment. The caller must complete every related
+     * attachment mutation and send one final authoritative snapshot.
+     */
+    public static SoulData resetWithoutSync(ServerPlayer player) {
+        return replaceWithoutSync(player, SoulTransitions.reset());
+    }
+
     public static SoulData replace(ServerPlayer player, SoulData next) {
+        ServerPlayer checkedPlayer = Objects.requireNonNull(player, "player");
+        SoulData replaced = replaceWithoutSync(checkedPlayer, next);
+        SoulSyncService.sync(checkedPlayer, replaced, false);
+        return replaced;
+    }
+
+    private static SoulData replaceWithoutSync(ServerPlayer player, SoulData next) {
         ServerPlayer checkedPlayer = Objects.requireNonNull(player, "player");
         SoulData checkedNext = Objects.requireNonNull(next, "next");
         checkedPlayer.setData(ModAttachments.SOUL, checkedNext);
-        SoulSyncService.sync(checkedPlayer, checkedNext, false);
         return checkedNext;
     }
 }
