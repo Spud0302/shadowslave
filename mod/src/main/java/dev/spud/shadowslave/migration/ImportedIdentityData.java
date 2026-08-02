@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.migration;
 
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -16,10 +17,18 @@ public record ImportedIdentityData(
         Optional<ImportedAspect> aspect,
         Optional<ImportedFlaw> flaw
 ) {
-    public static final MapCodec<ImportedIdentityData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            ImportedAspect.CODEC.codec().optionalFieldOf("aspect").forGetter(ImportedIdentityData::aspect),
-            ImportedFlaw.CODEC.codec().optionalFieldOf("flaw").forGetter(ImportedIdentityData::flaw)
-    ).apply(instance, ImportedIdentityData::new));
+    private static final MapCodec<StoredImportedIdentityData> STORED_CODEC =
+            RecordCodecBuilder.mapCodec(instance -> instance.group(
+                    ImportedAspect.CODEC.codec().optionalFieldOf("aspect")
+                            .forGetter(StoredImportedIdentityData::aspect),
+                    ImportedFlaw.CODEC.codec().optionalFieldOf("flaw")
+                            .forGetter(StoredImportedIdentityData::flaw)
+            ).apply(instance, StoredImportedIdentityData::new));
+
+    public static final MapCodec<ImportedIdentityData> CODEC = STORED_CODEC.flatXmap(
+            ImportedIdentityData::construct,
+            data -> DataResult.success(StoredImportedIdentityData.from(data))
+    );
 
     public ImportedIdentityData {
         aspect = Objects.requireNonNull(aspect, "aspect");
@@ -40,5 +49,22 @@ public record ImportedIdentityData(
 
     public boolean hasIdentity() {
         return aspect.isPresent();
+    }
+
+    private static DataResult<ImportedIdentityData> construct(StoredImportedIdentityData stored) {
+        try {
+            return DataResult.success(new ImportedIdentityData(stored.aspect(), stored.flaw()));
+        } catch (IllegalArgumentException | NullPointerException exception) {
+            return DataResult.error(() -> "Invalid ImportedIdentityData: " + exception.getMessage());
+        }
+    }
+
+    private record StoredImportedIdentityData(
+            Optional<ImportedAspect> aspect,
+            Optional<ImportedFlaw> flaw
+    ) {
+        private static StoredImportedIdentityData from(ImportedIdentityData data) {
+            return new StoredImportedIdentityData(data.aspect(), data.flaw());
+        }
     }
 }
