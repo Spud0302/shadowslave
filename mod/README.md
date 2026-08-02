@@ -1,96 +1,114 @@
 # Standalone/shared Shadow Slave Java core
 
-This directory contains the canonical Java core used by the standalone track and, where practical,
-by the Nightmare Spell modpack track.
+This directory contains the canonical Java core used by the standalone track and, where practical, by the Nightmare Spell modpack track.
 
-## Current state — `0.1.0-alpha.4`
+## Current state — `0.1.0-preview.2`
 
-Implemented:
+**Status:** installable corrected development preview on PR #19. Workflow run 34 passed compilation, expanded unit tests, physical-client startup, dedicated-server startup, packaging, and artifact upload. Claude's corrected-head bulk review and Andrew's complete playthrough are still pending.
 
-- NeoForge 1.21.1 / JDK 21 workspace and committed wrapper (a JRE cannot build it — NeoForm needs `javac`);
-- persistent schema-v2 Soul attachment;
-- lore-aligned Uninfected -> Carrier -> Aspirant -> Dreamer progression model;
+This is not a public release or a claim of feature completeness. The old `preview.1` JAR predates the issue #20–#26 correction batch.
+
+## Implemented
+
+- NeoForge 1.21.1 / JDK 21 workspace and committed wrapper;
+- persistent schema-v2 `SoulData` attachment;
+- explicit schema-1 migration and fail-closed schema validation;
+- codec invariant failures returned as `DataResult.error` rather than raw load exceptions;
+- post-First-Nightmare Spell states retain permanent Aspect/Flaw identity;
+- persistent `SoulIdentityData`, imported identity metadata, and preview power state;
+- lore-aligned Uninfected -> Carrier -> Aspirant -> Dreamer/Sleeper progression;
 - separate Soul Rank and Aspect Rank;
-- server-authoritative mutation service;
-- limited server-to-client snapshots;
-- read-only O-key Soul screen;
-- alpha-schema compatibility;
-- pure fail-safe datapack migration translator and fixtures;
-- unit, packaging, client-startup and dedicated-server gates.
+- server-authoritative services and bounded client snapshots;
+- expanded read-only Soul screen opened with **O** or `/shadowslave soul_screen`;
+- live frozen-datapack score/tag reader;
+- fail-closed absent-versus-explicit-zero handling and strict mechanics-tag validation;
+- transactional import, exact read-back, migration marker, and rollback;
+- persistent Overworld `NightmareRegistryData`;
+- one active First Nightmare per player UUID and separate play-space slots;
+- bundled Nightmare dimension;
+- DESIGN scenario **The Last Signal** and role **last watchkeeper**;
+- one shared lifecycle teardown for success, technical recovery, admin abort, and canonical death handling;
+- fixed DESIGN appraisal: **Last Light** / Awakened Aspect Rank / **Cold Ash**;
+- server-owned **Kindle** cooldown and Cold Ash Weakness effect;
+- unit, packaging, client-startup, and dedicated-server gates.
 
-**Status:** CI-green and Claude-verified; Issue #16 is closed. The real-client walkthrough is deferred
-rather than performed (**D2**), so nothing here claims a human has driven the Soul screen. This is not a
-public release and does not yet include a playable Java Nightmare.
+## Quick play
+
+Install the JAR and follow [`PREVIEW-PLAY-GUIDE.md`](PREVIEW-PLAY-GUIDE.md).
+
+```text
+Press O
+/shadowslave preview_begin
+```
+
+Reach and right-click the unlit soul campfire. Combat with the placeholder pursuer is optional. After appraisal, test:
+
+```text
+/shadowslave kindle
+```
+
+## Player commands
+
+```text
+/shadowslave soul
+/shadowslave soul_screen
+/shadowslave preview_begin
+/shadowslave nightmare_enter
+/shadowslave nightmare_status
+/shadowslave nightmare_recover
+/shadowslave kindle
+/shadowslave preview_reset
+```
+
+Operator-only architecture/migration commands include `/shadowslave migrate_datapack`, `/shadowslave infect`, and the older transition test commands.
 
 ## Lore model
 
 ```text
 Uninfected — no Soul Rank
   -> Carrier — no Soul Rank
-  -> Aspirant — Dormant Soul Rank, temporary role belongs to NightmareInstance
-  -> Dreamer/Sleeper — Dormant Soul Rank, permanent Aspect + Aspect Rank + Flaw
+  -> Aspirant — Dormant Soul Rank, temporary role on NightmareInstance
+  -> Dreamer/Sleeper — Dormant Soul Rank, permanent Aspect + independent Aspect Rank + Flaw
 ```
 
-Mundane is descriptive rather than Rank zero. Aspect Rank is independent of Soul Rank. Project
-appraisal algorithms are design unless canon explicitly defines a rule.
+Mundane is descriptive rather than Rank zero. The Last Signal, Last Light, Kindle, Cold Ash, and the fixed preview appraisal are **DESIGN**, not canonical events or formulas.
 
-## Smoke commands
-
-```text
-/shadowslave soul
-/shadowslave soul_screen
-/shadowslave infect
-/shadowslave begin_first_nightmare_test
-/shadowslave complete_first_nightmare_test
-/shadowslave reset
-```
-
-These bypass natural gameplay and exist only to test architecture.
+Future completion logic must follow [`../docs/NIGHTMARE-SEED-ROADMAP.md`](../docs/NIGHTMARE-SEED-ROADMAP.md): scenario terminal resolution, per-challenger outcome, and appraisal are separate stages.
 
 ## Authority rules
 
-- server owns every permanent mutation;
-- client sends intent, never rank/identity values;
+- the server owns permanent mutations, identity, cooldowns, and Nightmare ownership;
+- the client sends intent, never rank or identity values;
 - UI is a snapshot, not save authority;
-- commands, scenarios and integrations call services;
-- one Nightmare service owns eligibility and teardown;
+- one service choke point owns entry and one lifecycle path owns teardown;
+- temporary role/conflict state belongs to `NightmareInstance`;
 - external mods never become canonical identity storage;
-- missing optional integrations cannot make Soul data undecodable.
+- project design is not presented as canon.
 
-## Persistence ownership
+## Evidence
 
-- player attachment: progression, path, rank/core, Aspect, Flaw, Attributes and personal history;
-- Overworld/server SavedData: Nightmare registry, instance ownership, role/conflict state, return and recovery records;
-- data components: generated item/Memory identity and charges;
-- data resources/codecs: roles, scenarios, conflicts and compatible content definitions.
+- provenance: [`../docs/PLAYABLE-PREVIEW-PROVENANCE.md`](../docs/PLAYABLE-PREVIEW-PROVENANCE.md);
+- test matrix: [`../docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`](../docs/PLAYABLE-PREVIEW-TEST-MATRIX.md);
+- lore decisions: [`../docs/PREVIEW-LORE-DECISIONS.md`](../docs/PREVIEW-LORE-DECISIONS.md).
 
-## First public target — `mod-v0.1.0`
+## Known limits
 
-The first public JAR requires:
+- no natural infection/exhaustion sequence;
+- one handcrafted scenario and one terminal trigger only;
+- no historical body/inventory replacement;
+- vanilla Husk placeholder instead of custom Nightmare Creature AI;
+- no corpse Gate;
+- fixed rather than procedural appraisal;
+- incomplete mechanics for imported identities;
+- no later Seeds, Dream Realm, Memories, Echoes, or later-rank progression;
+- no completed Andrew playthrough or Claude corrected-head bulk review.
 
-1. Claude-verified current foundation;
-2. safe live datapack import with read-back verification;
-3. persistent per-player Nightmare instance ownership;
-4. one historical role and central conflict;
-5. one valid completion path and canonical death outcome;
-6. appraisal revealing Aspect and Flaw;
-7. real client and dedicated-server evidence;
-8. no mandatory external content dependency.
-
-## Next order
-
-1. close Issue #16 with evidence/fixes;
-2. live migration reader/writer;
-3. Nightmare registry and lifecycle;
-4. data-driven role/conflict prototype;
-5. appraisal boundary;
-6. shared vertical-slice verification;
-7. release only when the slice is genuinely playable.
-
-## Build
+## Build and verification
 
 ```bash
 ./mod/gradlew -p mod build
-./mod/gradlew -p mod runClientSmoke --no-daemon
-./mod/gradlew -p mod runServerSmoke --no-daemon
+mod/verify-smoke.sh
+./mod/gradlew -p mod runClient
 ```
+
+Use JDK 21. Do not treat bare smoke-task exit codes as proof; use `mod/verify-smoke.sh` and its readiness markers.

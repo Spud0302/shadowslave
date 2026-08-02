@@ -5,27 +5,28 @@
 //
 // WHY THIS EXISTS SEPARATELY FROM regression_issue20.mjs
 // They measure different properties and both are worth keeping:
-//   * regression_issue20.mjs  — the CONTRACT: a second entrant is refused while a trial is active.
-//                               Belongs in the gate. Passing is the supported behaviour.
+//   * regression_issue20.mjs  — the CONTRACT: the persistent global slot remains occupied while
+//                               its owner is offline. Belongs in the gate.
 //   * this file               — the DEFECT: `nightmare/objective_tick` decides victory with
 //                               `@e[tag=ss_creature]`, which is dimension-scoped rather than
-//                               per-player, so ANY stray creature in shadowslave:nightmare stops
-//                               `ss_gone` climbing. Refusing a second entrant does not change that.
-// A passing contract test does not imply a fixed defect. Confirmed on gpt/live-datapack-import
-// @ ad03e00: this still reports "with decoy -> rank 0", one player, no second player involved.
+//                               per-player, so ANY manually introduced stray creature stops
+//                               `ss_gone` climbing.
+// A passing contract test does not imply per-entity ownership. The persistent slot prevents the
+// ordinary disconnect path from admitting another player, while Java owns the real long-term fix.
 //
 // THREE MEASUREMENT MISTAKES THAT MADE THIS LOOK FIXED WHEN IT WAS NOT — keep them if you edit:
 //   1. `@e` is dimension-scoped, so a decoy in the Overworld is invisible to objective_tick.
 //      The decoy MUST be inside shadowslave:nightmare.
 //   2. Entities in unloaded chunks are absent from `@e`. A decoy 3000 blocks away was never
 //      counted; it has to spawn in chunks the player is loading. (This is also why a stray
-//      creature reads as "gone" after its owner disconnects — it is unloaded, not dead.)
+//      creature reads as "gone" after its owner disconnects - it is unloaded, not dead. That
+//      mechanism is what made the disconnect gap reachable, so the note is load-bearing.)
 //   3. `test/reset` did not restore health (#26) and entry refuses below 14 HP, so an unhealed
 //      subject silently measures the entry-refusal path instead.
 // The subject is also made damage-proof so ejection cannot end the run before the measurement.
 //
-// EXPECTED WHEN FIXED: the decoy run wins, exactly like the control run. Then move this into
-// `npm test` and delete this notice.
+// EXPECTED WHEN TRUE PER-ENTITY OWNERSHIP EXISTS: the decoy run wins, exactly like the control run.
+// Then move this into the gate and delete this notice.
 
 import mineflayer from 'mineflayer'
 
@@ -80,6 +81,7 @@ async function trialWithDecoy(useDecoy) {
   console.log(`\n=== ${useDecoy ? 'B) WITH a decoy creature elsewhere' : 'A) CONTROL: no decoy'} ===`)
   await cmd('/kill @e[tag=ss_creature]', 700)
   await cmd('/execute in shadowslave:nightmare run kill @e[tag=ss_creature]', 700)
+  await cmd('/scoreboard players set $global ss_trial_lock 0')
   await cmd('/gamemode survival alice')
   await cmd('/execute as alice at alice run function shadowslave:test/reset', 700)
   await cmd('/effect give alice minecraft:instant_health 1 10 true')
@@ -95,8 +97,7 @@ async function trialWithDecoy(useDecoy) {
     ' spawned_tag=', (await cmd('/tag alice list')).includes('ss_creature_spawned'))
 
   if (useDecoy) {
-    // Stand-in for a second player's creature: far away but in the SAME nightmare
-    // dimension, which is where every concurrent trial actually runs.
+    // Stand-in for an unrelated entity carrying the global prototype tag.
     await cmd('/execute at alice run summon minecraft:ravager ~30 ~ ~30 '
       + '{Tags:["ss_creature","ss_decoy"],PersistenceRequired:1b,NoAI:1b,Invulnerable:1b,Silent:1b}', 800)
     console.log('  decoy summoned; creatures now =', await count('@e[tag=ss_creature]'))
@@ -112,11 +113,12 @@ async function trialWithDecoy(useDecoy) {
   await cmd('/execute in shadowslave:nightmare run kill @e[tag=ss_creature]', 600)
   await cmd('/kill @e[tag=ss_creature]', 600)
   await cmd('/execute as alice at alice run function shadowslave:test/reset')
+  await cmd('/scoreboard players set $global ss_trial_lock 0')
   return rank
 }
 
 async function run() {
-  console.log('\n=== PROBE: does a creature elsewhere block victory? ===')
+  console.log('\n=== PROBE: does an unrelated tagged creature block victory? ===')
   const control = await trialWithDecoy(false)
   await sleep(1500)
   const withDecoy = await trialWithDecoy(true)
@@ -126,15 +128,14 @@ async function run() {
   console.log(`  with decoy -> rank ${withDecoy} (${withDecoy === 1 ? 'won' : 'did not win'})`)
   if (control !== 1) {
     console.log('  INVALID: the control run did not win, so the experiment proves nothing.')
-    console.log('  (Most likely the subject was refused entry - see issue #26, health is not reset.)')
     process.exit(2)
   }
   if (withDecoy === 1) {
-    console.log('  PASS: the decoy no longer blocks victory. Issue #20 looks fixed.')
+    console.log('  PASS: the objective no longer depends on the global creature selector.')
     process.exit(0)
   }
-  console.log('  FAIL: an unrelated creature in the nightmare blocks victory and traps the player.')
-  console.log('  Issue #20 is still open. Victory must be scoped to the player\'s own creature.')
+  console.log('  FAIL: an unrelated creature in the nightmare still blocks victory.')
+  console.log('  The supported one-slot contract is safe, but true per-entity ownership remains deferred to Java.')
   process.exit(1)
 }
 

@@ -18,6 +18,10 @@ scoreboard players set @s ss_cooldown 600
 # need owner tags; deferred with it.
 execute in shadowslave:nightmare run kill @e[tag=ss_creature]
 
+# Release the persistent global slot only after the shared creature state is torn down. The score
+# survives disconnects and restarts, so this line is the authoritative end of trial ownership.
+scoreboard players set $global ss_trial_lock 0
+
 bossbar set shadowslave:trial visible false
 bossbar set shadowslave:trial players
 

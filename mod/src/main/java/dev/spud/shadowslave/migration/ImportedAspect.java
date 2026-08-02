@@ -1,5 +1,8 @@
 package dev.spud.shadowslave.migration;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.spud.shadowslave.soul.SoulRank;
 import net.minecraft.resources.ResourceLocation;
 
@@ -16,6 +19,17 @@ public record ImportedAspect(
         int sourceScore,
         boolean legacyPrototype
 ) {
+    public static final MapCodec<ImportedAspect> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            ResourceLocation.CODEC.fieldOf("instance_id").forGetter(ImportedAspect::instanceId),
+            Codec.STRING.fieldOf("formal_name").forGetter(ImportedAspect::formalName),
+            SoulRank.CODEC.fieldOf("aspect_rank").forGetter(ImportedAspect::aspectRank),
+            Codec.STRING.fieldOf("legacy_nature").forGetter(ImportedAspect::legacyNature),
+            Codec.STRING.fieldOf("legacy_archetype").forGetter(ImportedAspect::legacyArchetype),
+            ResourceLocation.CODEC.fieldOf("legacy_mechanical_root").forGetter(ImportedAspect::legacyMechanicalRoot),
+            Codec.INT.fieldOf("source_score").forGetter(ImportedAspect::sourceScore),
+            Codec.BOOL.optionalFieldOf("legacy_prototype", false).forGetter(ImportedAspect::legacyPrototype)
+    ).apply(instance, ImportedAspect::new));
+
     public ImportedAspect {
         instanceId = Objects.requireNonNull(instanceId, "instanceId");
         formalName = requireText(formalName, "formalName");

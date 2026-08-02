@@ -25,10 +25,15 @@ public final class DatapackIdentityMappings {
     };
     private static final String[] FLAW_EFFECTS = {"daylight", "fragile", "ravenous", "burdened"};
 
-    private static final String[] LEGACY_ASPECT_TAGS = {
+    /**
+     * The frozen generator writes one mechanics tag alongside every score,
+     * including modern two-digit identities. A missing tag is inconsistent
+     * evidence and must fail closed rather than inventing the mechanics family.
+     */
+    private static final String[] ASPECT_MECHANICS_TAGS = {
             "ss_aspect_shadow", "ss_aspect_flame", "ss_aspect_bone", "ss_aspect_wind"
     };
-    private static final String[] LEGACY_FLAW_TAGS = {
+    private static final String[] FLAW_MECHANICS_TAGS = {
             "ss_flaw_shadow_slave", "ss_flaw_fragile", "ss_flaw_ravenous", "ss_flaw_weightless"
     };
 
@@ -39,7 +44,7 @@ public final class DatapackIdentityMappings {
         int score = snapshot.aspectScore();
         if (score >= 1 && score <= 4) {
             int index = score - 1;
-            requireTag(snapshot, LEGACY_ASPECT_TAGS[index], "legacy Aspect score " + score);
+            requireTag(snapshot, ASPECT_MECHANICS_TAGS[index], "legacy Aspect score " + score);
             String root = ASPECT_ROOTS[index];
             return new ImportedAspect(
                     instanceId(snapshot.playerId(), "aspect", score),
@@ -61,6 +66,7 @@ public final class DatapackIdentityMappings {
 
         int familyIndex = family - 1;
         int variantIndex = variant - 1;
+        requireTag(snapshot, ASPECT_MECHANICS_TAGS[familyIndex], "generated Aspect score " + score);
         return new ImportedAspect(
                 instanceId(snapshot.playerId(), "aspect", score),
                 ASPECT_NATURE_NAMES[familyIndex] + " " + ASPECT_ARCHETYPE_NAMES[variantIndex],
@@ -77,7 +83,7 @@ public final class DatapackIdentityMappings {
         int score = snapshot.flawScore();
         if (score >= 1 && score <= 4) {
             int index = score - 1;
-            requireTag(snapshot, LEGACY_FLAW_TAGS[index], "legacy Flaw score " + score);
+            requireTag(snapshot, FLAW_MECHANICS_TAGS[index], "legacy Flaw score " + score);
             return new ImportedFlaw(
                     instanceId(snapshot.playerId(), "flaw", score),
                     FLAW_NAMES[index][0],
@@ -96,6 +102,7 @@ public final class DatapackIdentityMappings {
 
         int familyIndex = family - 1;
         int variantIndex = variant - 1;
+        requireTag(snapshot, FLAW_MECHANICS_TAGS[familyIndex], "generated Flaw score " + score);
         return new ImportedFlaw(
                 instanceId(snapshot.playerId(), "flaw", score),
                 FLAW_NAMES[familyIndex][variantIndex],

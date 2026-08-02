@@ -4,47 +4,109 @@
 
 - Minecraft: `1.21.1`
 - NeoForge: `21.1.244`
-- Java: **JDK** `21` (a JRE cannot build: NeoForm recompiles with `javac`)
+- Java: **JDK** `21`
 - ModDevGradle: `2.0.143`
 - Gradle wrapper: `9.2.1`
-- Development version: `0.1.0-alpha.4`
+- Stable main: `0.1.0-alpha.4`, Claude-verified
+- Active preview candidate: `0.1.0-preview.2` on PR #19
+- Runtime source: `9cbfe57a05095e31c1980093e4d57ea9a2f7e10c`
 - Public Java release: none
 
-## Gate status
+## Verification state
 
-The alpha.4 head is GitHub-CI green for compilation, unit tests, JAR packaging, physical-client
-startup and dedicated-server startup, and is **Claude-verified**: Issue #16 is closed, with the build,
-both startup smokes and the validator re-run locally rather than accepted from workflow status.
+GitHub Actions `Java core` run 34 / ID `30686670446` passed:
 
-Nothing blocks the next Java feature merge. Real-client interaction evidence is **deferred, not
-recorded** (owner decision **D2** in `docs/OPEN-QUESTIONS.md`) because it judges presentation and feel;
-no document may present it as having passed.
+- Gradle wrapper validation;
+- compilation and expanded unit tests;
+- physical-client startup marker;
+- dedicated-server ready marker;
+- JAR packaging;
+- artifact upload.
 
-## Implemented
+Artifact ID `8814240590`; checksums are in `docs/PLAYABLE-PREVIEW-PROVENANCE.md`.
 
-- loadable common and physical-client mod entry points;
-- persistent codec-backed `SoulData` player attachment copied across death;
-- schema version 2 with legacy alpha decoding;
-- Uninfected, Carrier, Aspirant and Dreamer stages;
+This is corrected **Java automated evidence**, not a completed Claude/player verdict. The frozen-datapack Mineflayer regression is a separate pending gate.
+
+## Corrected persistence invariants
+
+Issues #22–#25 are addressed in the candidate:
+
+- `SoulData.CODEC` decodes through `StoredSoulData` so invalid stored combinations become `DataResult.error` rather than raw exceptions;
+- negative, zero, unsupported, and future schema versions reject;
+- schema 1 migrates explicitly to schema 2;
+- schema 2 is validated as stored and does not receive legacy repairs;
+- Nightmare-Spell states at or beyond Dreamer require paired Aspect, Aspect Rank, and Flaw identity;
+- completed frozen-datapack imports require the retained Carrier tag;
+- generated two-digit identities require their matching mechanics tags.
+
+## Implemented in the preview
+
+### Soul and identity
+
+- codec-backed schema-v2 `SoulData` player attachment copied across death;
+- Uninfected, Carrier, Aspirant, and Dreamer/Sleeper stages;
 - Nightmare Spell versus natural-awakening path field;
 - optional Soul Rank before the First Nightmare;
 - independent Aspect Rank;
-- server-owned `SoulService` mutation boundary;
-- server-to-client limited Soul snapshot;
-- read-only Soul screen opened with O or `/shadowslave soul_screen`;
-- login and mutation synchronization;
-- command-driven development progression;
-- pure datapack migration evidence snapshot, translator and validated plan;
-- exact generated and legacy datapack Aspect/Flaw mappings;
-- fail-closed rejection of active/inconsistent legacy state;
-- deterministic/idempotent migration fixtures;
-- wrapper validation, JUnit, JAR, client-smoke and server-smoke CI.
+- persistent paired `SoulIdentityData` records;
+- persistent imported-identity compatibility metadata;
+- server-owned mutation and synchronization boundaries;
+- bounded client snapshots and expanded O-key Soul screen.
 
-## Development commands
+### Live datapack migration
+
+- direct scoreboard/tag reader over frozen datapack evidence;
+- deliberate absent-score sentinel handling;
+- rejection of explicit zero, unsupported, inconsistent, or active-Nightmare state;
+- pure translation through exact mappings;
+- provisional Java writes;
+- exact Soul and identity read-back;
+- migration marker only after verification;
+- rollback of Java attachments on failure;
+- no deletion of legacy scores or tags;
+- operator command `/shadowslave migrate_datapack`.
+
+### Nightmare lifecycle
+
+- persistent Overworld `NightmareRegistryData`;
+- one active instance per owner UUID;
+- separate scenario slots;
+- stored return position/dimension, role, scenario, altar, owned pursuer, and recovery data;
+- one entry choke point in `NightmareService.tryEnter`;
+- owned-entity and registry teardown shared by lifecycle outcomes;
+- bundled Nightmare dimension and biome;
+- reconnect resume or explicit technical recovery;
+- distinction between ordinary death and technical/admin recovery.
+
+### Playable vertical slice
+
+- DESIGN scenario **The Last Signal**;
+- DESIGN role **last watchkeeper**;
+- optional combat pressure from one owned vanilla Husk placeholder;
+- central conflict resolved by restoring the signal fire;
+- fixed DESIGN appraisal;
+- persistent Aspect **Last Light**, Awakened Aspect Rank;
+- server-owned ability **Kindle** and cooldown;
+- persistent Flaw **Cold Ash**, applying Weakness in water/rain/bubbles;
+- player onboarding, inspection, recovery, and reset commands.
+
+## Current commands
 
 ```text
 /shadowslave soul
 /shadowslave soul_screen
+/shadowslave preview_begin
+/shadowslave nightmare_enter
+/shadowslave nightmare_status
+/shadowslave nightmare_recover
+/shadowslave kindle
+/shadowslave preview_reset
+```
+
+Operator-only commands:
+
+```text
+/shadowslave migrate_datapack
 /shadowslave infect
 /shadowslave begin_first_nightmare_test
 /shadowslave complete_first_nightmare_test
@@ -54,41 +116,35 @@ no document may present it as having passed.
 ## Deliberately not implemented
 
 - natural infection and exhaustion/sleep progression;
-- live datapack scoreboard/tag reader;
-- full imported `AspectInstance` and `FlawInstance` persistence/read-back;
-- migration-complete marker and legacy cleanup;
-- `NightmareRegistryData` / SavedData;
-- active instance allocation, ownership, entry or teardown;
-- historical-role/scenario/conflict resources;
-- canonical death and technical recovery implementation;
-- appraisal service or executable abilities;
-- modpack adapters;
+- complete historical body, inventory, or provisional role-power replacement;
+- custom Nightmare Creature AI;
+- corpse Gate consequences;
+- procedural or canon-claimed appraisal;
+- multiple terminal resolutions or a `ResolutionGraph`;
+- complete mechanics for every imported Aspect/Flaw;
+- later Seeds, Dream Realm systems, Memories, Echoes, Gates, or later ranks;
+- modpack adapters and manifest;
 - public `mod-v0.1.0` release.
 
-## Next package after verification
+## Future architecture
 
-Add live migration without destructive cleanup:
+`docs/NIGHTMARE-SEED-ROADMAP.md` is binding. The current campfire click is a development event, not the final completion model. Future work separates:
 
-1. read legacy evidence from a real player;
-2. produce the accepted pure migration plan;
-3. persist Java data;
-4. read back and verify every identity field;
-5. mark migration complete;
-6. keep legacy values until success is proven.
+1. central-conflict terminal resolution;
+2. per-challenger survival/eligibility and outcome;
+3. teardown and return;
+4. appraisal/progression;
+5. Seed post-resolution lifecycle.
 
-Nightmare registry work begins after that persistence boundary is accepted.
+Exact Seed behaviour requires renewed primary-novel verification before implementation.
 
 ## Local commands
 
 ```bash
-./mod/gradlew -p mod build      # compile, unit tests, JAR
-mod/verify-smoke.sh             # both startup smokes, pass/fail on CI's log markers
-./mod/gradlew -p mod runClient  # interactive client
+./mod/gradlew -p mod build
+mod/verify-smoke.sh
+./mod/gradlew -p mod runClient
 ./mod/gradlew -p mod runServer --no-daemon
 ```
 
-**Do not use the bare `runClientSmoke`/`runServerSmoke` tasks as a gate.** They report
-`BUILD SUCCESSFUL` with exit `0` even when the server never starts — observed three times on
-2026-07-30 (a port clash with the Mineflayer harness on 25565, then a stale `world/session.lock`).
-`mod/verify-smoke.sh` greps for the same readiness markers CI does, resets the smoke world, sweeps
-JVMs that survive its own kill, and defaults to port 25599 to avoid that clash.
+Do not use bare `runClientSmoke`/`runServerSmoke` exit codes as a gate. Use `mod/verify-smoke.sh`, which checks the same readiness markers as CI.

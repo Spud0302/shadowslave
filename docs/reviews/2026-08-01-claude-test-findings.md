@@ -47,7 +47,7 @@ header; please keep them if you edit it.
 
 1. `@e` is dimension-scoped — a decoy in the Overworld is invisible to `objective_tick`. Verified
    separately with two armour stands, one per dimension: each dimension-scoped query returns 1.
-2. Entities in unloaded chunks are absent from `@e`. A decoy 3000 blocks out was never counted.
+2. Entities in unloaded chunks are absent from `@e`. A decoy 3000 blocks away was never counted.
 3. `test/reset` does not restore health (#26) and entry refuses below 14 HP, so an unhealed subject
    silently measures the refusal path.
 

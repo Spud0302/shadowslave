@@ -1,97 +1,94 @@
 # Shadow Slave project status
 
-**Status date:** 2026-07-30  
-**Documentation baseline:** `main@a852a76` (alpha.4 verification)  
-**Canonical repository:** `Spud0302/shadowslave`
-
-This is the current-state document. Historical assumptions remain in the changelog, issue log,
-testing history, review records and Git history, but they do not override this file.
+**Status date:** 2026-08-01  
+**Stable main:** Java `0.1.0-alpha.4`, Claude-verified  
+**Active preview:** PR #19 / `gpt/live-datapack-import`  
+**Corrected Java candidate:** `shadowslave-0.1.0-preview.2.jar`  
+**Runtime source commit:** `9cbfe57a05095e31c1980093e4d57ea9a2f7e10c`
 
 ## Products
 
-| Product                     | Current state                                           | Public release    |
-| --------------------------- | ------------------------------------------------------- | ----------------- |
-| Vanilla datapack            | completed and frozen behavioural reference              | `datapack-v1.0.0` |
-| Standalone/shared Java core | `0.1.0-alpha.4`, CI-green and Claude-verified            | not released      |
-| Nightmare Spell modpack     | design and dependency boundaries only                   | not released      |
+| Product | Current state | Public release |
+| --- | --- | --- |
+| Vanilla datapack | completed reference; one active First Nightmare at a time | `datapack-v1.0.0` |
+| Java stable main | persistent Soul foundation, networking/UI, and pure migration | none |
+| Java playable preview | corrected preview.2 Java gate green; Claude/player review pending | not a release |
+| Nightmare Spell modpack | design only | none |
 
-## Datapack
+## Playable preview scope
 
-The Minecraft Java 1.21.1 datapack is complete and released. Players install
-`shadowslave-v1.0.0.zip` unchanged in `<world>/datapacks/`; no mod loader or client install is
-required. Feature development is frozen. Datapack changes are now limited to genuine release
-defects, compatibility corrections and documentation.
+PR #19 contains:
 
-## Java core implemented
+- transactional live datapack migration with read-back verification, rollback, and no legacy cleanup;
+- persistent imported and native Aspect/Flaw instance records;
+- persistent per-player Nightmare registry and separate scenario slots;
+- one Java entry choke point and one teardown path;
+- bundled Nightmare dimension;
+- playable DESIGN scenario **The Last Signal** with the **last watchkeeper** role;
+- central-conflict completion by restoring a signal fire, with combat optional;
+- fixed DESIGN appraisal **Last Light** / **Kindle** / **Cold Ash**;
+- expanded O-key Soul screen;
+- onboarding, inspection, recovery, reset, and migration commands.
 
-- NeoForge 21.1.244 / Minecraft 1.21.1 / JDK 21 workspace (JRE-only hosts cannot build it);
-- committed Gradle wrapper and CI packaging;
-- persistent, schema-versioned, server-authoritative `SoulData`;
-- lore-aligned Uninfected -> Carrier -> Aspirant -> Dreamer model;
-- optional Soul Rank before the First Nightmare and Dormant rank for Aspirants/Dreamers;
-- independent Aspect Rank;
-- server-to-client Soul snapshots and read-only O-key Soul screen;
-- command-driven development transitions;
-- alpha-schema migration;
-- pure, fail-safe datapack migration translation and fixtures;
-- validator cross-check ensuring all 16 imported Flaw names still match the frozen datapack;
-- physical-client and dedicated-server startup smoke gates.
+## Claude finding correction batch
 
-## Verification state
+Claude's 2026-08-01 review found issues #20–#26. The active branch now contains candidate fixes:
 
-GitHub Actions passed compilation, unit tests, JAR packaging, client startup and dedicated-server
-startup for PRs #14 and #15. Under `docs/COLLABORATION.md` that is not the final gate on its own, so
-Claude reviewed and independently re-ran the work.
+- `SoulData` codec invariant failures become `DataResult.error` rather than raw load exceptions;
+- schema versions are validated and explicitly migrated/dispatched;
+- every post-First-Nightmare Nightmare-Spell state retains Aspect/Flaw identity;
+- completed datapack imports require the retained Carrier tag;
+- generated identities require their matching mechanics tags;
+- datapack `test/reset` restores an enterable health baseline;
+- the frozen datapack refuses a second concurrent First Nightmare before shared state is created;
+- README and authoritative issues documentation state that one-active-trial ceiling.
 
-**Alpha.4 is Claude-verified.** [Issue #16](https://github.com/Spud0302/shadowslave/issues/16) is
-closed. Evidence, reproduced locally rather than taken from workflow status:
+The original findings remain in `docs/reviews/2026-08-01-claude-test-findings.md`.
 
-- `./mod/gradlew -p mod build` — BUILD SUCCESSFUL, 14 tests, 0 failures, `shadowslave-0.1.0-alpha.4.jar`;
-- dedicated-server smoke — `Done (15.023s)! For help, type "help"` with the mod loaded;
-- physical-client smoke under `xvfb` — client loading plus GUI atlas creation;
-- `python3 shadowslave/tools/validate.py` — clean, including the 16-name Java/datapack cross-check;
-- review of client/server side separation, payload registration and the migration translator.
+## Corrected Java evidence
 
-A fix came out of that verification: the bare Gradle smoke commands are **not** pass/fail gates — the
-dedicated server failed to start three times (port conflict, then a stale `session.lock`) while Gradle
-still reported `BUILD SUCCESSFUL` with exit `0`. `mod/verify-smoke.sh` now applies CI's marker-based
-criterion locally and is proven to fail as well as pass.
+GitHub Actions `Java core` run **34** / ID `30686670446` passed:
 
-**Human tests are deferred, not passed** (owner decision **D2** in `docs/OPEN-QUESTIONS.md`): they are
-visual or balance judgements, so they no longer gate merges or releases. Nobody has run them, and no
-document may claim otherwise. The real-client O-key walkthrough remains written down in `TESTING.md`.
+- Gradle wrapper validation;
+- compilation and expanded unit tests;
+- physical-client startup;
+- dedicated-server startup;
+- JAR packaging;
+- artifact upload.
 
-Still true regardless: **no public Java release should be stamped** until there is something worth
-releasing — that is a product decision, not a verification gate.
+Artifact ID: `8814240590`.
 
-## Not implemented yet
+```text
+archive SHA-256  a7ee670001042ee9c783ceb191e667fefdf043acd1b6fa498438434907291d79
+JAR SHA-256      48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9
+```
 
-- live reading/writing of datapack scores and tags;
-- persistence/read-back of full imported Aspect and Flaw instances;
-- legacy cleanup after verified import;
-- natural infection;
-- persistent Nightmare registry and instance ownership;
-- data-driven historical roles, central conflicts and resolutions;
-- playable Java First Nightmare;
-- appraisal/revelation beyond development fixtures;
-- abilities, Memories, Echoes, Dream Realm progression, Gates or later ranks;
-- modpack dependency manifest or compatibility adapters.
+Full artifact details belong in `docs/PLAYABLE-PREVIEW-PROVENANCE.md`.
 
-## Next gated sequence
+## Evidence boundary
 
-1. ~~Claude reviews and independently tests alpha.4.~~ **Done**; Issue #16 closed. The real client
-   session is deferred per **D2**, not performed.
-2. Add the live datapack reader and verified persistence writer without deleting legacy state. Absent
-   scores are not zeroes — see the hazard note in `docs/DATAPACK-MIGRATION.md` before writing it.
-3. Add persistent `NightmareRegistryData` and explicit instance ownership, honouring the Nightmare
-   lifecycle contract in `docs/JAVA-HANDOFF.md` §6.
-4. Implement one lore-shaped historical role, central conflict and valid resolution.
-5. Build the same slice in the modpack track and compare with evidence.
-6. Optional, closes the last real gap: a NeoForge GameTest for Soul persistence across a relog —
-   `mod/build.gradle` already declares `gameTestServer`.
+The corrected **Java** gate is green. This does not yet prove:
 
-## Canon boundary
+- the deployed frozen-datapack lifecycle/Flaw/concurrency Mineflayer gate;
+- Claude's independent bulk verification of the corrected head;
+- Andrew's complete interactive playthrough;
+- real relog/restart persistence;
+- live Java multiplayer instance separation and gameplay feel.
 
-The novel is authoritative for mechanics and terminology. The manhwa is a secondary visual and
-staging reference. Project generation/appraisal systems are labelled design rather than claimed
-canon. The datapack is a compatibility baseline, not a constraint on Java architecture.
+The old `0.1.0-preview.1` JAR is superseded by the correction candidate and must not be used as evidence for issues #20–#26.
+
+## Frozen datapack multiplayer contract
+
+The datapack can run on a multiplayer server, but it owns one global Nightmare dimension, bossbar, and creature slot. Only one player may be inside a First Nightmare at a time. A second entrant is refused until teardown releases the slot. True simultaneous per-player trials are provided by the Java architecture.
+
+## Lore boundary
+
+Novel mechanics remain authoritative. The handcrafted scenario, fixed appraisal, Aspect, ability, and Flaw are labelled **DESIGN**. Future Nightmare completion and later Seed behaviour must follow `docs/NIGHTMARE-SEED-ROADMAP.md` and begin with renewed primary-lore verification.
+
+## Next actions
+
+1. Run the deployed datapack gate: `cd testserver && npm run deploy && npm test`.
+2. Claude bulk-reviews the corrected PR head and records verified, verified with fixes, or blocked.
+3. Andrew plays `0.1.0-preview.2` and records presentation/feel findings.
+4. Fix evidence-backed defects without broad content expansion.
+5. Merge only after the corrected evidence is accepted.
