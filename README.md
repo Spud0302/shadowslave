@@ -6,19 +6,19 @@ An unofficial fan project inspired by _Shadow Slave_ by Guiltythree.
 
 | Product | State |
 | --- | --- |
-| Vanilla datapack | completed and frozen as `datapack-v1.0.0` |
-| Standalone/shared NeoForge core | corrected `0.1.0-preview.2` candidate on PR #19 |
+| Vanilla datapack | completed compatibility reference, tagged `datapack-v1.0.0` |
+| Standalone/shared NeoForge core | merged and Claude-verified `0.1.0-preview.2` |
 | Nightmare Spell modpack | design only; no manifest or dependency package yet |
 
-The Java preview is **not a public release and not yet bulk-verified by Claude**. The earlier `0.1.0-preview.1` artifact passed compilation, unit tests, physical-client startup, dedicated-server startup, packaging, and artifact upload. `0.1.0-preview.2` contains the correction batch for issues #20–#26 and requires a fresh workflow and play review before it replaces that artifact.
+The Java preview is installable but is **not a public release or feature-complete game**. Its machine gate is independently verified; Andrew's real play/feel pass remains pending.
 
-See [PROJECT-STATUS.md](PROJECT-STATUS.md) for the canonical current state and [docs/CURRENT-PREVIEW-SUMMARY.md](docs/CURRENT-PREVIEW-SUMMARY.md) for a compact preview summary.
+See [PROJECT-STATUS.md](PROJECT-STATUS.md) for canonical current state and [docs/CURRENT-PREVIEW-SUMMARY.md](docs/CURRENT-PREVIEW-SUMMARY.md) for the compact summary.
 
 ## Playable Java preview
 
-The Java project lives under [`mod/`](mod/). The current preview targets Minecraft Java Edition 1.21.1, NeoForge 21.1.244, and JDK 21.
+The Java project lives under [`mod/`](mod/) and targets Minecraft Java Edition 1.21.1, NeoForge 21.1.244, and JDK 21.
 
-Implemented in the preview line:
+Implemented in `0.1.0-preview.2`:
 
 - persistent lore-aligned Uninfected, Carrier, Aspirant, and Dreamer/Sleeper states;
 - separate Soul Rank and Aspect Rank;
@@ -27,14 +27,12 @@ Implemented in the preview line:
 - transactional live datapack migration with exact read-back and rollback;
 - persistent per-player First Nightmare registry and separate play-space slots;
 - bundled Nightmare dimension;
-- the handcrafted DESIGN scenario **The Last Signal** and role **last watchkeeper**;
-- one central-conflict resolution path where combat is optional;
+- DESIGN scenario **The Last Signal** and role **last watchkeeper**;
+- a central-conflict resolution path where combat is optional;
 - fixed DESIGN appraisal: Aspect **Last Light**, ability **Kindle**, and Flaw **Cold Ash**;
 - technical recovery, inspection, reset, and migration commands.
 
 Install and play using [`mod/PREVIEW-PLAY-GUIDE.md`](mod/PREVIEW-PLAY-GUIDE.md).
-
-Quick start in a disposable world:
 
 ```text
 Press O
@@ -55,9 +53,27 @@ Useful commands:
 
 `/shadowslave migrate_datapack` is operator-only and should be tested on a backup legacy world.
 
-## Evidence and limitations
+## Verification
 
-Automated build provenance and checksums are recorded in [`docs/PLAYABLE-PREVIEW-PROVENANCE.md`](docs/PLAYABLE-PREVIEW-PROVENANCE.md). The complete review and play criteria are in [`docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`](docs/PLAYABLE-PREVIEW-TEST-MATRIX.md).
+Claude verified the merged result:
+
+- validator clean;
+- datapack lifecycle **32/32**;
+- Flaw suite **39/39**;
+- disconnect/reconnect slot regression passed and exited cleanly twice;
+- Java clean build with **35 tests, 0 failures**;
+- physical-client and dedicated-server smokes passed with `mod/verify-smoke.sh`.
+
+Artifact:
+
+```text
+shadowslave-0.1.0-preview.2.jar
+SHA-256 48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9
+```
+
+Machine verification does not prove presentation, pacing, balance, or real-player feel. Use [`docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`](docs/PLAYABLE-PREVIEW-TEST-MATRIX.md) for the remaining manual pass.
+
+## Known limits
 
 Still outside this preview:
 
@@ -69,21 +85,28 @@ Still outside this preview:
 - later Seeds, Dream Realm progression, Memories, Echoes, and later ranks;
 - the modpack implementation and standalone/modpack comparison.
 
+Open engineering issues:
+
+- #20 retains the frozen datapack's manually induced global-selector limitation;
+- #29 requires a persisted-codec invariant sweep, beginning with `PreviewPowerData`.
+
 ## Nightmare and Seed direction
 
-Future Nightmare completion must follow [`docs/NIGHTMARE-SEED-ROADMAP.md`](docs/NIGHTMARE-SEED-ROADMAP.md): a Nightmare ends when its central conflict reaches a named terminal resolution, while each challenger's survival/outcome and appraisal are evaluated separately. Boss deaths, timers, and objective interactions are events—not universal victory conditions. Exact later-Seed behaviour requires another primary-novel check before implementation.
+Future Nightmare completion follows [`docs/NIGHTMARE-SEED-ROADMAP.md`](docs/NIGHTMARE-SEED-ROADMAP.md): a Nightmare ends when its central conflict reaches a named terminal resolution, while each challenger's survival/outcome and appraisal are evaluated separately. Boss deaths, timers, and objective interactions are events, not universal victory conditions. Exact later-Seed behaviour requires another primary-novel check before implementation.
 
 ## Datapack v1.0.0
 
-The frozen vanilla datapack installs at:
+Install the vanilla datapack at:
 
 ```text
 <world>/datapacks/shadowslave-v1.0.0.zip
 ```
 
-A multiplayer server installs it once; joining players use ordinary vanilla 1.21.1 clients. **Only one player may be inside a First Nightmare at a time.** The pack owns one global Nightmare dimension, bossbar, and creature slot, so a second entrant is now refused until the active trial finishes. This prevents the former failure where concurrent creatures blocked victory and trapped a player. The Java preview does not share this ceiling because it owns separate per-player Nightmare instances.
+A multiplayer server installs it once; joining players use ordinary vanilla 1.21.1 clients. **Only one player may be inside a First Nightmare at a time.** A persistent global lock keeps the slot occupied across disconnects and server restarts until the owner returns and teardown completes.
 
-The datapack remains a behavioural and import-compatibility reference. Its first-sleep infection, safe ejection, serialized global ownership, finite identity tables, and timer/boss structure are prototype behaviour rather than permanent Java architecture or universal canon.
+The supported one-slot path is verified. The frozen prototype still uses global `ss_creature` selectors, so an administrator manually introducing an unrelated entity with that internal tag can affect the objective. True simultaneous per-player ownership is implemented in Java.
+
+The datapack remains behavioural and import-compatibility evidence. Its first-sleep infection, safe ejection, serialized global ownership, finite identity tables, and timer/boss structure are prototype behaviour rather than permanent Java architecture or universal canon.
 
 ## Lore and design authority
 
@@ -114,7 +137,7 @@ docs/                 lore, architecture, workflow, provenance, and historical r
 | current preview summary | [docs/CURRENT-PREVIEW-SUMMARY.md](docs/CURRENT-PREVIEW-SUMMARY.md) |
 | install and play | [mod/PREVIEW-PLAY-GUIDE.md](mod/PREVIEW-PLAY-GUIDE.md) |
 | evidence and checksums | [docs/PLAYABLE-PREVIEW-PROVENANCE.md](docs/PLAYABLE-PREVIEW-PROVENANCE.md) |
-| bulk testing | [docs/PLAYABLE-PREVIEW-TEST-MATRIX.md](docs/PLAYABLE-PREVIEW-TEST-MATRIX.md) |
+| testing | [docs/PLAYABLE-PREVIEW-TEST-MATRIX.md](docs/PLAYABLE-PREVIEW-TEST-MATRIX.md) |
 | future Nightmare/Seed work | [docs/NIGHTMARE-SEED-ROADMAP.md](docs/NIGHTMARE-SEED-ROADMAP.md) |
 | GPT session checkpoint | [GPT_HANDOFF.md](GPT_HANDOFF.md) |
 
