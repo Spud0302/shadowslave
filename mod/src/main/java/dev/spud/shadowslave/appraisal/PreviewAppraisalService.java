@@ -55,6 +55,12 @@ public final class PreviewAppraisalService {
             SoulIdentityService.replace(player, SoulIdentityData.empty());
             throw exception;
         }
+
+        ShadowSlaveMod.LOGGER.info(
+                "Preview appraisal completed for Nightmare {} and player {}",
+                completedInstance.instanceId(),
+                player.getScoreboardName()
+        );
     }
 
     private static ResourceLocation id(String path) {

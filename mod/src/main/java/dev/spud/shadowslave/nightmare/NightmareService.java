@@ -193,7 +193,21 @@ public final class NightmareService {
         if (nightmareLevel != null) {
             LastSignalScenario.removeOwnedEntities(nightmareLevel, instance);
         }
-        NightmareRegistryData.get(server).removeByPlayer(instance.playerId());
+
+        Optional<NightmareInstance> removed = NightmareRegistryData.get(server).remove(instance);
+        if (removed.isPresent()) {
+            ShadowSlaveMod.LOGGER.info(
+                    "Nightmare {} teardown completed for player {}",
+                    instance.instanceId(),
+                    instance.playerId()
+            );
+        } else {
+            ShadowSlaveMod.LOGGER.warn(
+                    "Nightmare {} teardown skipped because its ownership was already absent for player {}",
+                    instance.instanceId(),
+                    instance.playerId()
+            );
+        }
     }
 
     private static ResourceLocation id(String path) {

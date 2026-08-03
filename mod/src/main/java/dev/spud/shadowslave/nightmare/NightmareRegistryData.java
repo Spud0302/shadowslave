@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -81,6 +82,16 @@ public final class NightmareRegistryData extends SavedData {
         setDirty();
     }
 
+    /** Removes only the exact ownership record that the caller previously resolved. */
+    public Optional<NightmareInstance> remove(NightmareInstance expected) {
+        NightmareInstance checked = Objects.requireNonNull(expected, "expected");
+        UUID registeredInstanceId = instanceByPlayer.get(checked.playerId());
+        if (!checked.instanceId().equals(registeredInstanceId)) {
+            return Optional.empty();
+        }
+        return removeByPlayer(checked.playerId());
+    }
+
     public Optional<NightmareInstance> removeByPlayer(UUID playerId) {
         UUID instanceId = instanceByPlayer.remove(playerId);
         if (instanceId == null) {
@@ -102,20 +113,31 @@ public final class NightmareRegistryData extends SavedData {
         return tag;
     }
 
-    private static NightmareRegistryData load(CompoundTag tag, HolderLookup.Provider registries) {
+    static NightmareRegistryData load(CompoundTag tag, HolderLookup.Provider registries) {
         NightmareRegistryData data = new NightmareRegistryData();
         data.nextSlot = Math.max(0, tag.getInt("next_slot"));
         ListTag encoded = tag.getList("instances", Tag.TAG_COMPOUND);
         for (int index = 0; index < encoded.size(); index++) {
-            NightmareInstance instance = NightmareInstance.load(encoded.getCompound(index));
-            if (data.instances.putIfAbsent(instance.instanceId(), instance) != null) {
-                throw new IllegalStateException("Duplicate Nightmare instance ID in SavedData");
-            }
-            if (data.instanceByPlayer.putIfAbsent(instance.playerId(), instance.instanceId()) != null) {
-                throw new IllegalStateException("Player owns multiple active Nightmares in SavedData");
-            }
-            data.nextSlot = Math.max(data.nextSlot, instance.slot() + 1);
+            data.restore(NightmareInstance.load(encoded.getCompound(index)));
         }
         return data;
+    }
+
+    /**
+     * Rebuilds one persisted ownership record without exposing a second runtime entry path.
+     * Package visibility keeps the restart boundary directly testable.
+     */
+    void restore(NightmareInstance instance) {
+        NightmareInstance checked = Objects.requireNonNull(instance, "instance");
+        if (instances.containsKey(checked.instanceId())) {
+            throw new IllegalStateException("Duplicate Nightmare instance ID in SavedData");
+        }
+        if (instanceByPlayer.containsKey(checked.playerId())) {
+            throw new IllegalStateException("Player owns multiple active Nightmares in SavedData");
+        }
+
+        instances.put(checked.instanceId(), checked);
+        instanceByPlayer.put(checked.playerId(), checked.instanceId());
+        nextSlot = Math.max(nextSlot, checked.slot() + 1);
     }
 }
