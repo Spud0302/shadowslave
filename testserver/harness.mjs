@@ -269,6 +269,7 @@ async function run(bot) {
   // --- entry ---------------------------------------------------------------
   await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')
   await sleep(200)
+  const entryStartedAt = Date.now()
   await cmd(bot, '/function shadowslave:test/nightmare')
   const dimIn = await waitDimension(bot, inNightmare)
   assert('test/nightmare enters the dimension', inNightmare(dimIn), `dimension=${dimIn}`)
@@ -276,11 +277,15 @@ async function run(bot) {
 
   const timer = await score(bot, 'ss_timer')
   const COUNTDOWN = 1800
-  // Pinned near the exact 90-second value. The old `<= 6000` assertion could not catch a bad retune.
+  const observationMs = Date.now() - entryStartedAt
+  const observationTicks = Math.ceil(observationMs / 50)
+  const minimumExpectedTimer = COUNTDOWN - Math.max(60, observationTicks + 20)
+  // Pin the configured 90-second value while accounting for ticks that elapsed before the
+  // server-authoritative observation. A broad `<= 6000` assertion could not catch a bad retune.
   assert(
     'entry starts the countdown',
-    timer !== null && timer > COUNTDOWN - 60 && timer <= COUNTDOWN,
-    `ss_timer=${timer}, expected ~${COUNTDOWN}`
+    timer !== null && timer >= minimumExpectedTimer && timer <= COUNTDOWN,
+    `ss_timer=${timer}, expected ${minimumExpectedTimer}..${COUNTDOWN} after ${observationMs}ms`
   )
 
   const reEnter = await cmd(bot, '/function shadowslave:test/nightmare', /already in a nightmare/i)
