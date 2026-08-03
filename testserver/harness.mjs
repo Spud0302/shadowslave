@@ -12,6 +12,8 @@
 
 import mineflayer from 'mineflayer'
 
+import { waitForDimensionObservation } from './dimension_wait.mjs'
+
 const HOST = 'localhost'
 const PORT = 25565
 const USER = 'tester'
@@ -77,8 +79,13 @@ async function hasTag(bot, tag) {
  * cross-dimension command teleports do not reliably emit one. The stale cache has already caused
  * three false failures against a correct pack.
  */
-async function dimension(bot) {
-  const out = await cmd(bot, `/data get entity ${USER} Dimension`, /"[^\"]+:[^\"]+"/)
+async function dimension(bot, timeoutMs = 4000) {
+  const out = await cmd(
+    bot,
+    `/data get entity ${USER} Dimension`,
+    /"[^\"]+:[^\"]+"/,
+    timeoutMs
+  )
   const match = out.match(/"([^\"]+)"/)
   if (!match) throw new Error(`Could not parse dimension from: ${out}`)
   return match[1]
@@ -136,14 +143,11 @@ async function driveHealthTo(bot, target, timeoutMs = 6000) {
 
 /** Poll dimension until the requested state is actually observed. Timeout is a test error. */
 async function waitDimension(bot, predicate, timeoutMs = 6000) {
-  let seen = null
-  const deadline = Date.now() + timeoutMs
-  while (Date.now() < deadline) {
-    seen = await dimension(bot)
-    if (predicate(seen)) return seen
-    await sleep(200)
-  }
-  throw new Error(`Timed out waiting for dimension transition; last dimension=${seen}`)
+  return waitForDimensionObservation(
+    (remainingMs) => dimension(bot, Math.min(1500, remainingMs)),
+    predicate,
+    { timeoutMs, retryDelayMs: 200 }
+  )
 }
 
 /** Poll an attribute rather than guessing when the once-per-second upkeep has run. */
