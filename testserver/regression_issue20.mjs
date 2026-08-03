@@ -180,13 +180,12 @@ async function run() {
     return
   }
 
-  await cmd('/execute as alice run scoreboard players set @s ss_timer 1')
-  await sleep(2500)
-  await cmd('/execute in shadowslave:nightmare run kill @e[tag=ss_creature]', 800)
-  await sleep(3000)
-
-  const aliceRank = await score('ss_rank', 'alice')
+  // This regression owns serialization and teardown, not the frozen prototype's global creature
+  // selector. Invoke the real completion seam directly so scenario timing cannot turn a lock test
+  // into a second copy of the known Issue #20 limitation.
+  await cmd('/execute as alice at alice run function shadowslave:nightmare/survive', 1200)
   const aliceReturnDimension = await waitDimension('alice', notNightmare)
+  const aliceRank = await score('ss_rank', 'alice')
   const aliceStillActive = await hasTag('alice', 'ss_in_nightmare')
   const releasedLock = await score('ss_trial_lock', '$global')
   if (aliceRank !== 1) {
