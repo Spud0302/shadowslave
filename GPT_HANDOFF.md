@@ -1,23 +1,21 @@
-# GPT handoff — corrected playable preview candidate
+# GPT handoff — playable preview baseline
 
 **Read first in a new GPT or Claude session.**  
 **Repository:** `Spud0302/shadowslave`  
-**Stable main:** `7b693a7`  
-**Active branch:** `gpt/live-datapack-import`  
-**PR:** #19  
+**Baseline branch:** `main`
 **Candidate version:** `0.1.0-preview.2`
 
 ## Mandatory lore source
 
-Before any lore-sensitive design, implementation, naming or review, read **`docs/LORE-SOURCE-POLICY.md`**.
+Before any lore-sensitive design, implementation, naming or review, read the **[lore source policy](docs/LORE-SOURCE-POLICY.md)**.
 
-The project owner has designated <https://novelfull.com/shadow-slave.html> as the working full-chapter access source for researching the novel through the latest available chapters. Use chapter text rather than memory or wiki summaries as the authority; use official WebNovel for exact official wording/publication verification where practical. Summarise mechanics and evidence—do not reproduce chapters or long passages—and keep **CANON**, **INFERRED**, **DESIGN** and **UNKNOWN** distinct.
+The project owner has designated [NovelFull](https://novelfull.com/shadow-slave.html) as the working full-chapter research access source. That host is not itself canonical: use novel chapter text rather than site metadata, memory or wiki summaries as the authority, and use [official WebNovel](https://www.webnovel.com/book/shadow-slave_22196546206090805) for official wording and publication cross-checks. Check relevant later clarifications, summarise evidence without committing novel text, and keep **CANON**, **INFERRED**, **DESIGN** and **UNKNOWN** distinct.
 
 ## Current state
 
-The playable Java slice and live migration are implemented on PR #19. Claude reviewed the #20–#26 correction batch at `ad03e00` and returned one blocking test-harness hang plus one real disconnect gap in the frozen datapack's single-trial guard.
+The playable Java slice and live migration from PR #19 are merged into `main`. Claude reviewed the #20–#26 correction batch at `ad03e00` and returned one blocking test-harness hang plus one real disconnect gap in the frozen datapack's single-trial guard.
 
-Both returned items are now addressed on the branch:
+Both returned items are addressed in the merged source:
 
 - `regression_issue20.mjs` terminates cleanly on success and failure;
 - the frozen datapack uses a persistent `$global` score in `ss_trial_lock`, so the one shared First-Nightmare slot remains occupied while its owner is offline and across server restarts;
@@ -54,7 +52,7 @@ Those datapack counts predate the persistent-lock regression and are not proof o
 
 ## Next verification
 
-Claude should rerun from the corrected branch head:
+Fresh evidence is still needed against current `main`:
 
 ```bash
 cd testserver
@@ -94,7 +92,7 @@ The scenario, role, fixed appraisal, Aspect, ability, and Flaw are **DESIGN**, n
 
 Full original reasoning remains in `docs/reviews/2026-08-01-claude-test-findings.md`.
 
-| Issue | Current branch state |
+| Issue | Merged state |
 | --- | --- |
 | #20 | ordinary concurrent and disconnect overlap is prevented by a persistent global slot; deeper global-selector limitation remains explicitly measured out of gate |
 | #21 | authoritative docs state the one-active-trial ceiling, offline ownership behaviour, and admin recovery boundary |
@@ -114,6 +112,6 @@ Use `mod/PREVIEW-PLAY-GUIDE.md` and `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`. Impo
 - Every GPT commit includes `Co-Authored-By: ChatGPT <gpt@openai.com>`.
 - Use JDK 21.
 - Use `mod/verify-smoke.sh`; bare Gradle smoke-task success is not a valid gate.
-- Keep PR #19 draft and unmerged until the corrected head has fresh evidence.
+- Treat merged PRs as historical context and verify current repository state before following an old status instruction.
 - Preserve original findings and review records; append corrections rather than rewriting history.
 - Never assume lore. Check primary novel evidence before adding or generalising mechanics, and label project inventions as DESIGN.

@@ -4,18 +4,11 @@
 
 **Purpose:** the Java mod and Nightmare Spell modpack are no longer constrained by datapack scoreboards, command timing, four-family tables or a single arena. They must preserve useful tested behaviour while replacing any prototype shortcut that conflicts with the setting.
 
-**Mandatory research procedure:** read `docs/LORE-SOURCE-POLICY.md` before changing a lore-sensitive mechanic. That policy records the owner-designated full-chapter access source, evidence labels, copyright limits and conflict-handling workflow.
+**Mandatory research procedure:** read the [lore source policy](LORE-SOURCE-POLICY.md) before changing a lore-sensitive mechanic. That policy is the single authority for source selection, evidence labels, later-chapter checks, copyright limits and conflict handling.
 
-## 1. Source hierarchy
+## 1. Research authority
 
-Use sources in this order:
-
-1. **Novel chapter text** — authority for mechanics, terminology, progression and metaphysics. The project owner has designated <https://novelfull.com/shadow-slave.html> as the working full-chapter access layer for research through the latest available chapters. Check later clarifications, not only the first appearance of a term.
-2. **Official WebNovel publication** — use to verify exact official wording, chapter identity or publication details where practical.
-3. **Officially released adaptation material** — a visual/staging reference where it does not contradict the novel.
-4. **Community wikis** — indexes and research aids whose important claims require novel verification.
-5. **Repository lore decisions** — accepted interpretations and constraints that remain subordinate to stronger chapter evidence.
-6. **Project design** — explicitly labelled invention made to create a playable Minecraft system.
+Do not maintain a second source hierarchy here. Apply the lore source policy directly: novel chapter text is the authority, the owner-designated third-party host is only a research access layer, official WebNovel is the official-wording/publication cross-check, and community wikis are research aids. Relevant later chapter clarifications must be checked. If this document and the policy ever differ on research procedure, the policy controls and this document must be corrected.
 
 The manhwa adaptation may guide:
 
@@ -27,7 +20,7 @@ The manhwa adaptation may guide:
 
 It must not silently override novel mechanics when dialogue is compressed, exposition is simplified or a visual choice resolves an ambiguity the novel left open.
 
-Use chapter sources for research, not redistribution: summarise mechanics and evidence, quote only briefly when exact wording matters, and never commit copied chapters or scraped chapter collections.
+Follow the policy's copyright and repository-content limits; this architecture document must contain concise evidence summaries, not source-text archives.
 
 ## 2. Canon and game design must remain distinguishable
 
