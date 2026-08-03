@@ -1,7 +1,9 @@
 # Java relog, restart and multiplayer integration procedures
 
-**Status:** repeatable evidence plan for the playable Java preview.  
-**Scope:** persisted Soul state, active Nightmare recovery, exactly-once teardown/appraisal, and two-player isolation.  
+**Status:** repeatable evidence plan for the playable Java preview.
+
+**Scope:** persisted Soul state, active Nightmare recovery, exactly-once teardown/appraisal, and two-player isolation.
+
 **Boundary:** this does not rewrite or close the frozen datapack limitation in Issue #20.
 
 ## Evidence vocabulary

@@ -3,7 +3,7 @@
 **Target:** `0.1.0-preview.2` on PR #19  
 **Runtime source:** `9cbfe57a05095e31c1980093e4d57ea9a2f7e10c`  
 **Detailed matrix:** `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`  
-**Integration procedures:** `docs/JAVA-INTEGRATION-TEST-PROCEDURES.md`  
+**Integration procedures:** `docs/JAVA-INTEGRATION-TEST-PROCEDURES.md`<br>
 **Artifact provenance:** `docs/PLAYABLE-PREVIEW-PROVENANCE.md`
 
 The previous datapack-era and alpha testing history remains available in Git history and is referenced under `docs/history/`.
