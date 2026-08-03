@@ -10,12 +10,15 @@ test('retries a dropped dimension reply and accepts the next server observation'
   const observed = await waitForDimensionObservation(
     async () => {
       attempts += 1
-      if (attempts === 1) throw new Error('Timed out waiting for dimension; saw <no reply>')
+      if (attempts === 1) {
+        clock += 4000
+        throw new Error('Timed out waiting for dimension; saw <no reply>')
+      }
       return 'shadowslave:nightmare'
     },
     (dimension) => dimension === 'shadowslave:nightmare',
     {
-      timeoutMs: 1000,
+      timeoutMs: 6000,
       retryDelayMs: 100,
       now: () => clock,
       sleep: async (ms) => {

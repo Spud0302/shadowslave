@@ -142,13 +142,13 @@ async function driveHealthTo(bot, target, timeoutMs = 6000) {
 }
 
 /**
- * Poll dimension until the requested state is actually observed. Fresh hosted worlds can spend
- * several seconds generating the destination while the server cannot answer commands, so keep the
- * overall transition budget larger than any individual read. Timeout remains a test error.
+ * Poll dimension until the requested state is actually observed. Fresh hosted worlds have blocked
+ * command processing for more than 20 seconds while generating the destination, so keep the
+ * overall transition budget much larger than any individual read. Timeout remains a test error.
  */
-async function waitDimension(bot, predicate, timeoutMs = 20000) {
+async function waitDimension(bot, predicate, timeoutMs = 60000) {
   return waitForDimensionObservation(
-    (remainingMs) => dimension(bot, Math.min(1500, remainingMs)),
+    (remainingMs) => dimension(bot, Math.min(4000, remainingMs)),
     predicate,
     { timeoutMs, retryDelayMs: 200 }
   )
