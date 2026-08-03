@@ -12,6 +12,8 @@
 
 import mineflayer from 'mineflayer'
 
+import { waitForDimensionObservation } from './dimension_wait.mjs'
+
 const HOST = 'localhost'
 const PORT = 25565
 const USER = 'tester'
@@ -77,8 +79,13 @@ async function hasTag(bot, tag) {
  * cross-dimension command teleports do not reliably emit one. The stale cache has already caused
  * three false failures against a correct pack.
  */
-async function dimension(bot) {
-  const out = await cmd(bot, `/data get entity ${USER} Dimension`, /"[^\"]+:[^\"]+"/)
+async function dimension(bot, timeoutMs = 4000) {
+  const out = await cmd(
+    bot,
+    `/data get entity ${USER} Dimension`,
+    /"[^\"]+:[^\"]+"/,
+    timeoutMs
+  )
   const match = out.match(/"([^\"]+)"/)
   if (!match) throw new Error(`Could not parse dimension from: ${out}`)
   return match[1]
@@ -134,16 +141,17 @@ async function driveHealthTo(bot, target, timeoutMs = 6000) {
   throw new Error(`Could not drive health to <=${target}; last value=${current}`)
 }
 
-/** Poll dimension until the requested state is actually observed. Timeout is a test error. */
-async function waitDimension(bot, predicate, timeoutMs = 6000) {
-  let seen = null
-  const deadline = Date.now() + timeoutMs
-  while (Date.now() < deadline) {
-    seen = await dimension(bot)
-    if (predicate(seen)) return seen
-    await sleep(200)
-  }
-  throw new Error(`Timed out waiting for dimension transition; last dimension=${seen}`)
+/**
+ * Poll dimension until the requested state is actually observed. Fresh hosted worlds have blocked
+ * command processing for more than 20 seconds while generating the destination, so keep the
+ * overall transition budget much larger than any individual read. Timeout remains a test error.
+ */
+async function waitDimension(bot, predicate, timeoutMs = 60000) {
+  return waitForDimensionObservation(
+    (remainingMs) => dimension(bot, Math.min(4000, remainingMs)),
+    predicate,
+    { timeoutMs, retryDelayMs: 200 }
+  )
 }
 
 /** Poll an attribute rather than guessing when the once-per-second upkeep has run. */
@@ -261,6 +269,7 @@ async function run(bot) {
   // --- entry ---------------------------------------------------------------
   await cmd(bot, '/effect give @s minecraft:instant_health 1 10 true')
   await sleep(200)
+  const entryStartedAt = Date.now()
   await cmd(bot, '/function shadowslave:test/nightmare')
   const dimIn = await waitDimension(bot, inNightmare)
   assert('test/nightmare enters the dimension', inNightmare(dimIn), `dimension=${dimIn}`)
@@ -268,11 +277,15 @@ async function run(bot) {
 
   const timer = await score(bot, 'ss_timer')
   const COUNTDOWN = 1800
-  // Pinned near the exact 90-second value. The old `<= 6000` assertion could not catch a bad retune.
+  const observationMs = Date.now() - entryStartedAt
+  const observationTicks = Math.ceil(observationMs / 50)
+  const minimumExpectedTimer = COUNTDOWN - Math.max(60, observationTicks + 20)
+  // Pin the configured 90-second value while accounting for ticks that elapsed before the
+  // server-authoritative observation. A broad `<= 6000` assertion could not catch a bad retune.
   assert(
     'entry starts the countdown',
-    timer !== null && timer > COUNTDOWN - 60 && timer <= COUNTDOWN,
-    `ss_timer=${timer}, expected ~${COUNTDOWN}`
+    timer !== null && timer >= minimumExpectedTimer && timer <= COUNTDOWN,
+    `ss_timer=${timer}, expected ${minimumExpectedTimer}..${COUNTDOWN} after ${observationMs}ms`
   )
 
   const reEnter = await cmd(bot, '/function shadowslave:test/nightmare', /already in a nightmare/i)
