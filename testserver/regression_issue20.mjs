@@ -16,6 +16,8 @@
 
 import mineflayer from 'mineflayer'
 
+import { waitForDimensionObservation } from './dimension_wait.mjs'
+
 const HOST = 'localhost'
 const PORT = 25565
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -67,10 +69,21 @@ async function score(objective, holder) {
   return match ? Number.parseInt(match[1], 10) : null
 }
 
-async function dimension(player) {
-  const output = await cmd(`/data get entity ${player} Dimension`)
+async function dimension(player, waitMs = 350) {
+  const output = await cmd(`/data get entity ${player} Dimension`, waitMs)
   const match = output.match(/"([a-z_]+:[a-z0-9_/.-]+)"/)
   return match ? match[1] : null
+}
+
+const inNightmare = (value) => value === 'shadowslave:nightmare'
+const notNightmare = (value) => typeof value === 'string' && value !== 'shadowslave:nightmare'
+
+async function waitDimension(player, predicate, timeoutMs = 60000) {
+  return waitForDimensionObservation(
+    (remainingMs) => dimension(player, Math.min(1000, remainingMs)),
+    predicate,
+    { timeoutMs, retryDelayMs: 200 }
+  )
 }
 
 async function hasTag(player, tag) {
@@ -120,7 +133,7 @@ async function run() {
   console.log('1) Alice enters and claims the persistent global slot')
   await cmd('/execute as alice at alice run function shadowslave:test/nightmare', 1200)
 
-  const aliceEntryDimension = await dimension('alice')
+  const aliceEntryDimension = await waitDimension('alice', inNightmare)
   const aliceActive = await hasTag('alice', 'ss_in_nightmare')
   const entryLock = await score('ss_trial_lock', '$global')
   if (aliceEntryDimension !== 'shadowslave:nightmare' || !aliceActive || entryLock !== 1) {
@@ -160,7 +173,7 @@ async function run() {
   await createBot('alice')
   await sleep(1500)
 
-  const aliceResumeDimension = await dimension('alice')
+  const aliceResumeDimension = await waitDimension('alice', inNightmare)
   const aliceResumeActive = await hasTag('alice', 'ss_in_nightmare')
   if (aliceResumeDimension !== 'shadowslave:nightmare' || !aliceResumeActive) {
     fail(`Alice did not resume the owned trial (dimension=${aliceResumeDimension}, active=${aliceResumeActive})`)
@@ -173,7 +186,7 @@ async function run() {
   await sleep(3000)
 
   const aliceRank = await score('ss_rank', 'alice')
-  const aliceReturnDimension = await dimension('alice')
+  const aliceReturnDimension = await waitDimension('alice', notNightmare)
   const aliceStillActive = await hasTag('alice', 'ss_in_nightmare')
   const releasedLock = await score('ss_trial_lock', '$global')
   if (aliceRank !== 1) {
@@ -192,7 +205,7 @@ async function run() {
   console.log('5) Bob enters after Alice releases the slot')
   await cmd('/execute as bob at bob run function shadowslave:test/nightmare', 1200)
 
-  const bobEntryDimension = await dimension('bob')
+  const bobEntryDimension = await waitDimension('bob', inNightmare)
   const bobEntryActive = await hasTag('bob', 'ss_in_nightmare')
   const bobEntryLock = await score('ss_trial_lock', '$global')
   if (bobEntryDimension !== 'shadowslave:nightmare' || !bobEntryActive || bobEntryLock !== 1) {
