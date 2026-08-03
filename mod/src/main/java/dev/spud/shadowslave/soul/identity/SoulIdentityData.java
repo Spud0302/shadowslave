@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.soul.identity;
 
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -11,10 +12,18 @@ public record SoulIdentityData(
         Optional<AspectInstanceData> aspect,
         Optional<FlawInstanceData> flaw
 ) {
-    public static final MapCodec<SoulIdentityData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            AspectInstanceData.CODEC.codec().optionalFieldOf("aspect").forGetter(SoulIdentityData::aspect),
-            FlawInstanceData.CODEC.codec().optionalFieldOf("flaw").forGetter(SoulIdentityData::flaw)
-    ).apply(instance, SoulIdentityData::new));
+    private static final MapCodec<StoredSoulIdentityData> STORED_CODEC =
+            RecordCodecBuilder.mapCodec(instance -> instance.group(
+                    AspectInstanceData.CODEC.codec().optionalFieldOf("aspect")
+                            .forGetter(StoredSoulIdentityData::aspect),
+                    FlawInstanceData.CODEC.codec().optionalFieldOf("flaw")
+                            .forGetter(StoredSoulIdentityData::flaw)
+            ).apply(instance, StoredSoulIdentityData::new));
+
+    public static final MapCodec<SoulIdentityData> CODEC = STORED_CODEC.flatXmap(
+            SoulIdentityData::construct,
+            data -> DataResult.success(StoredSoulIdentityData.from(data))
+    );
 
     public SoulIdentityData {
         aspect = Objects.requireNonNull(aspect, "aspect");
@@ -30,5 +39,22 @@ public record SoulIdentityData(
 
     public boolean isRevealed() {
         return aspect.isPresent();
+    }
+
+    private static DataResult<SoulIdentityData> construct(StoredSoulIdentityData stored) {
+        try {
+            return DataResult.success(new SoulIdentityData(stored.aspect(), stored.flaw()));
+        } catch (IllegalArgumentException | NullPointerException exception) {
+            return DataResult.error(() -> "Invalid SoulIdentityData: " + exception.getMessage());
+        }
+    }
+
+    private record StoredSoulIdentityData(
+            Optional<AspectInstanceData> aspect,
+            Optional<FlawInstanceData> flaw
+    ) {
+        private static StoredSoulIdentityData from(SoulIdentityData data) {
+            return new StoredSoulIdentityData(data.aspect(), data.flaw());
+        }
     }
 }
