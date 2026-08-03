@@ -128,6 +128,16 @@ public final class NightmareService {
         return instance;
     }
 
+    /**
+     * Exits through the normal teleport and teardown path for a compound preview
+     * reset, but deliberately omits the Carrier recovery mutations and their sync.
+     * The caller is responsible for resetting every persistent preview attachment
+     * and sending the one final authoritative snapshot.
+     */
+    public static NightmareInstance abortForPreviewReset(ServerPlayer player) {
+        return exit(player, NightmareExitReason.ADMIN_ABORT);
+    }
+
     public static void canonicalDeath(ServerPlayer player) {
         NightmareInstance instance = activeFor(player).orElse(null);
         if (instance == null) {
