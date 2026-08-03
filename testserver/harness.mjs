@@ -141,8 +141,12 @@ async function driveHealthTo(bot, target, timeoutMs = 6000) {
   throw new Error(`Could not drive health to <=${target}; last value=${current}`)
 }
 
-/** Poll dimension until the requested state is actually observed. Timeout is a test error. */
-async function waitDimension(bot, predicate, timeoutMs = 6000) {
+/**
+ * Poll dimension until the requested state is actually observed. Fresh hosted worlds can spend
+ * several seconds generating the destination while the server cannot answer commands, so keep the
+ * overall transition budget larger than any individual read. Timeout remains a test error.
+ */
+async function waitDimension(bot, predicate, timeoutMs = 20000) {
   return waitForDimensionObservation(
     (remainingMs) => dimension(bot, Math.min(1500, remainingMs)),
     predicate,
