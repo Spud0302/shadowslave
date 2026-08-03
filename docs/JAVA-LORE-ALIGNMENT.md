@@ -4,15 +4,11 @@
 
 **Purpose:** the Java mod and Nightmare Spell modpack are no longer constrained by datapack scoreboards, command timing, four-family tables or a single arena. They must preserve useful tested behaviour while replacing any prototype shortcut that conflicts with the setting.
 
-## 1. Source hierarchy
+**Mandatory research procedure:** read the [lore source policy](LORE-SOURCE-POLICY.md) before changing a lore-sensitive mechanic. That policy is the single authority for source selection, evidence labels, later-chapter checks, copyright limits and conflict handling.
 
-Use sources in this order:
+## 1. Research authority
 
-1. **Novel text** — authority for mechanics, terminology, progression and metaphysics.
-2. **Officially released adaptation material** — a visual/staging reference where it does not contradict the novel.
-3. **Translation or scanlation access layers** — useful for reading the adaptation, but not authority over exact terminology.
-4. **Community wikis** — indexes and research aids whose claims require novel verification.
-5. **Project design** — explicitly labelled invention made to create a playable Minecraft system.
+Do not maintain a second source hierarchy here. Apply the lore source policy directly: novel chapter text is the authority, the owner-designated third-party host is only a research access layer, official WebNovel is the official-wording/publication cross-check, and community wikis are research aids. Relevant later chapter clarifications must be checked. If this document and the policy ever differ on research procedure, the policy controls and this document must be corrected.
 
 The manhwa adaptation may guide:
 
@@ -23,6 +19,8 @@ The manhwa adaptation may guide:
 - environmental palette and creature presentation.
 
 It must not silently override novel mechanics when dialogue is compressed, exposition is simplified or a visual choice resolves an ambiguity the novel left open.
+
+Follow the policy's copyright and repository-content limits; this architecture document must contain concise evidence summaries, not source-text archives.
 
 ## 2. Canon and game design must remain distinguishable
 
