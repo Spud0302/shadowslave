@@ -47,16 +47,26 @@ public final class SoulService {
     /**
      * Resets only the Soul attachment. The caller must complete every related
      * attachment mutation and send one final authoritative snapshot.
+     *
+     * @apiNote This method is public only for {@code PreviewResetService}, which
+     * lives in a different package. Ordinary Soul mutations must use
+     * {@link #reset(ServerPlayer)} or another auto-synchronizing method in this
+     * service. Calling this method anywhere else can leave the client stale.
      */
     public static SoulData resetWithoutSync(ServerPlayer player) {
         return replaceWithoutSync(player, SoulTransitions.reset());
     }
 
     public static SoulData replace(ServerPlayer player, SoulData next) {
-        ServerPlayer checkedPlayer = Objects.requireNonNull(player, "player");
-        SoulData replaced = replaceWithoutSync(checkedPlayer, next);
-        SoulSyncService.sync(checkedPlayer, replaced, false);
-        return replaced;
+        return replace(new ServerOperations(Objects.requireNonNull(player, "player")), next);
+    }
+
+    static SoulData replace(Operations operations, SoulData next) {
+        Operations checkedOperations = Objects.requireNonNull(operations, "operations");
+        SoulData checkedNext = Objects.requireNonNull(next, "next");
+        checkedOperations.write(checkedNext);
+        checkedOperations.sync(checkedNext);
+        return checkedNext;
     }
 
     private static SoulData replaceWithoutSync(ServerPlayer player, SoulData next) {
@@ -64,5 +74,23 @@ public final class SoulService {
         SoulData checkedNext = Objects.requireNonNull(next, "next");
         checkedPlayer.setData(ModAttachments.SOUL, checkedNext);
         return checkedNext;
+    }
+
+    interface Operations {
+        void write(SoulData next);
+
+        void sync(SoulData next);
+    }
+
+    private record ServerOperations(ServerPlayer player) implements Operations {
+        @Override
+        public void write(SoulData next) {
+            player.setData(ModAttachments.SOUL, next);
+        }
+
+        @Override
+        public void sync(SoulData next) {
+            SoulSyncService.sync(player, next, false);
+        }
     }
 }

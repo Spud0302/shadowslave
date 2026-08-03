@@ -129,8 +129,10 @@ public final class NightmareService {
     }
 
     /**
-     * Tears down an active instance for a compound preview reset. The caller is
-     * responsible for resetting persistent attachments and sending the final sync.
+     * Exits through the normal teleport and teardown path for a compound preview
+     * reset, but deliberately omits the Carrier recovery mutations and their sync.
+     * The caller is responsible for resetting every persistent preview attachment
+     * and sending the one final authoritative snapshot.
      */
     public static NightmareInstance abortForPreviewReset(ServerPlayer player) {
         return exit(player, NightmareExitReason.ADMIN_ABORT);

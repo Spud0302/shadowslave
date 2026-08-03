@@ -19,7 +19,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PreviewResetServiceTest {
     private static final ResourceLocation ASPECT = id("preview/aspect/last_light");
@@ -51,17 +50,11 @@ class PreviewResetServiceTest {
         assertEquals(ImportedIdentityData.empty(), operations.importedIdentityAtSync);
         assertEquals(PreviewPowerData.empty(), operations.previewPowerAtSync);
 
-        SoulSnapshot snapshot = operations.snapshots.getFirst();
-        assertEquals("uninfected", snapshot.spellState());
-        assertTrue(snapshot.soulRank().isBlank());
-        assertTrue(snapshot.aspectId().isBlank());
-        assertTrue(snapshot.aspectName().isBlank());
-        assertTrue(snapshot.aspectRank().isBlank());
-        assertTrue(snapshot.abilityId().isBlank());
-        assertTrue(snapshot.flawId().isBlank());
-        assertTrue(snapshot.flawName().isBlank());
-        assertTrue(snapshot.flawEffectId().isBlank());
-        assertFalse(snapshot.importedFromDatapack());
+        assertEquals(
+                SoulSnapshot.from(SoulData.uninfected(), SoulIdentityData.empty()),
+                operations.snapshots.getFirst(),
+                "the only published snapshot must contain the complete cleared state"
+        );
     }
 
     private static final class FakeOperations implements PreviewResetService.Operations {
