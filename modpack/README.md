@@ -1,21 +1,41 @@
 # Nightmare Spell modpack prototype
 
-This directory is reserved for Path A: a curated NeoForge modpack that reuses mature mods for generic content while a custom Shadow Slave Java core owns identity, progression and Nightmare lifecycle.
+This directory is the deterministic packaging boundary for Path A: a curated NeoForge modpack that reuses mature mods for generic content while the custom Shadow Slave Java core owns identity, progression and Nightmare lifecycle.
 
-<!-- modpack-current-status -->
 ## Current status
 
-Design only. No manifest, dependency lockfile, compatibility adapter, downloaded JAR or public package
-exists yet. Path A waits for Claude verification of Java alpha.4 and the accepted live migration plus
-Nightmare-instance boundaries. Dependency research may continue, but no external mod may become the
-canonical owner of Soul identity or Nightmare lifecycle.
+A validated dependency-free manifest shell now exists. It pins Minecraft `1.21.1`, NeoForge `21.1.244` and Java `21`, references the locally built Shadow Slave core, and defines the metadata every future external component must provide.
+
+This is not yet a playable modpack or public package. No external dependency, downloaded JAR, launcher export or compatibility adapter is included.
+
+Validate with:
+
+```bash
+python3 modpack/tools/validate_manifest.py
+python3 -m unittest discover -s modpack/tests -v
+```
+
+## Manifest contract
+
+The shared Java core is the sole canonical state owner. Every future external component must declare:
+
+- stable component and mod IDs;
+- exact version and side;
+- role: execution provider, presentation provider, infrastructure or content;
+- whether it is required;
+- source project/file identity and SHA-256;
+- licence;
+- explicit removal behaviour;
+- `owns_canonical_state: false`.
+
+The validator rejects duplicate IDs, missing provenance, malformed hashes, unsorted package inputs and any external component that claims canonical state ownership.
 
 ## Purpose
 
 The prototype answers:
 
-- how quickly can existing mods produce convincing Shadow Slave gameplay;
-- which generic systems are already good enough to reuse;
+- how quickly existing mods can produce convincing Shadow Slave gameplay;
+- which generic systems are good enough to reuse;
 - where integrations break immersion or correctness;
 - how much custom Java is still required;
 - whether a hybrid should become the long-term product.
@@ -26,7 +46,7 @@ This is not permission to replace the Shadow Slave architecture with disconnecte
 
 The first package must pass the shared Mundane -> Carrier -> First Nightmare -> Sleeper comparison slice.
 
-Expected package outputs:
+Expected future outputs:
 
 ```text
 nightmare-spell-modpack-v0.1.0.mrpack
@@ -34,28 +54,6 @@ nightmare-spell-server-v0.1.0.zip
 ```
 
 A platform manifest is preferred over committing or redistributing dependency JARs.
-
-## Candidate dependency roles
-
-The initial compatibility spike should evaluate a minimal set rather than installing a large kitchen-sink pack.
-
-| Candidate | Proposed use | Boundary |
-| --- | --- | --- |
-| KubeJS | rapid recipe, event and pack-behaviour iteration | never authoritative for permanent Soul identity |
-| LootJS | adapt loot from selected content mods | pack tuning only |
-| Iron's Spells 'n Spellbooks | candidate spell visuals, casting and generic magic content | external spell IDs are adapter targets, not Aspect identity |
-| Curios API | Memory/accessory-style equipment slots | Soul data records ownership/meaning separately |
-| Patchouli | optional guide/codex during prototyping | not the final Soul interface |
-
-Candidate project pages:
-
-- <https://modrinth.com/mod/kubejs>
-- <https://modrinth.com/mod/lootjs>
-- <https://modrinth.com/mod/irons-spells-n-spellbooks>
-- <https://modrinth.com/mod/curios>
-- <https://modrinth.com/mod/patchouli>
-
-Do not add all candidates automatically. Each must earn its place through the dependency review.
 
 ## Dependency review checklist
 
@@ -76,11 +74,7 @@ Before adding a mod to the published manifest, record:
 13. whether an API is available or integration requires brittle reflection/mixins;
 14. replacement plan if the dependency is abandoned.
 
-All-rights-reserved is not automatically disqualifying for a manifest-based private test pack, but it changes how the project may distribute, modify or integrate the dependency. Never copy assets or code without permission.
-
 ## Custom core boundary
-
-The modpack depends on the same canonical Java core intended for the standalone track where possible.
 
 The core owns:
 
@@ -89,100 +83,23 @@ SoulData
 AspectInstance
 FlawInstance
 NightmareInstance
-ProgressionService
-NightmareService
-MigrationService
+progression and appraisal
+migration and history
 Soul networking/UI contract
 ```
 
-Compatibility packages translate internal ability/equipment/objective references into dependency-specific mechanics.
+Compatibility packages may translate internal ability, equipment or objective references into dependency-specific mechanics. The save must retain the Shadow Slave identity, not only an opaque external ID. If a provider is absent, canonical identity must still load and report that execution is unavailable.
 
-Example:
+## Architecture and lore boundary
 
-```text
-Aspect ability id: shadowslave:dormant/ember_touch
-             ↓ compatibility adapter
-Iron's Spells spell or effect implementation
-```
+This manifest shell is Minecraft **DESIGN** and repository packaging infrastructure. It introduces no Shadow Slave lore mechanic.
 
-The save stores `shadowslave:dormant/ember_touch`, not only an opaque external spell ID. If the integration is absent, the identity still loads and the ability reports that its provider is unavailable.
+External mods may provide presentation, generic execution, infrastructure or content, but their removal must not make canonical state undecodable or reroll generated identities.
 
-## What KubeJS may own
+## Deliberate limits
 
-Good prototype uses:
-
-- recipe removal/replacement;
-- loot and structure tuning;
-- rapid event experiments;
-- hiding or gating dependency content;
-- temporary diagnostics;
-- pack-specific onboarding messages;
-- proving whether a mechanic is fun before implementing it in Java.
-
-KubeJS must not be the only storage location for:
-
-- Spell state;
-- Soul Rank;
-- generated Aspect/Flaw identity;
-- Nightmare ownership;
-- migration completion;
-- irreplaceable progression history.
-
-## First vertical-slice mapping
-
-### Mundane and Carrier
-
-Implemented by the custom core. No quest mod should be required to detect or store infection.
-
-### First Nightmare
-
-Use one selected content source for environment or creature content, but wrap it in a custom `NightmareScenarioAdapter` so entry, evidence, victory and teardown remain ours.
-
-### Aspect
-
-Map one generated Aspect root to one external spell/effect provider. The Aspect instance remains custom Java data.
-
-### Flaw
-
-Implement one custom burden in the core first. Do not rely on a third-party quest condition to enforce a permanent Flaw.
-
-### Soul screen
-
-Use the custom Java Soul screen. Patchouli may explain the prototype but is not a substitute for live Soul data.
-
-## Suggested repository contents
-
-```text
-modpack/
-  README.md
-  manifest/
-  config/
-  defaultconfigs/
-  kubejs/
-    startup_scripts/
-    server_scripts/
-    client_scripts/
-  resourcepacks/
-  server-overrides/
-  dependency-review/
-  test-results/
-```
-
-Do not commit downloaded mod JARs unless their licence and repository policy explicitly allow it and there is a strong reason not to use a manifest.
-
-## Comparison discipline
-
-The modpack may contain extra exploration content for testing, but the architecture comparison must score the same shared slice as the standalone mod.
-
-Track separately:
-
-- time spent configuring dependencies;
-- time spent writing custom Java;
-- time spent fighting compatibility;
-- defects caused by integrations;
-- content quality gained from dependencies;
-- install size and client requirements;
-- server performance;
-- upgrade difficulty.
-
-The modpack path succeeds if it produces a cohesive Shadow Slave experience substantially faster without surrendering canonical state ownership. It fails if the custom core has to fight every dependency or if progression becomes a fragile collection of scripts and hidden mod state.
+- no external mods are selected;
+- no launcher export is generated;
+- no download occurs during validation;
+- no public release is claimed;
+- the core JAR is referenced as a local Gradle build artifact rather than copied into source control.
