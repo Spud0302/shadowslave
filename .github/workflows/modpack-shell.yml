@@ -33,5 +33,22 @@ jobs:
       - name: Validate manifest
         run: python3 modpack/tools/validate_manifest.py
 
-      - name: Run manifest tests
+      - name: Run manifest and packaging tests
         run: python3 -m unittest discover -s modpack/tests -v
+
+      - name: Build deterministic fixture package
+        run: |
+          printf 'ci-core-fixture' > "$RUNNER_TEMP/shadowslave-core.jar"
+          python3 modpack/tools/build_package.py \
+            --core-jar "$RUNNER_TEMP/shadowslave-core.jar" \
+            --output "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
+          unzip -t "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
+          sha256sum "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
+
+      - name: Upload fixture package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightmare-spell-modpack-shell
+          path: ${{ runner.temp }}/nightmare-spell-modpack-dev.zip
+          if-no-files-found: error
+          retention-days: 7
