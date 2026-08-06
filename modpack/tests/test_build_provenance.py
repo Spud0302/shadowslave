@@ -39,34 +39,52 @@ class BuildProvenanceTest(unittest.TestCase):
             "nightmare-spell-modpack",
         )
 
-    def test_create_and_verify_exact_external_identity_and_bytes(self) -> None:
-        write_statement(self.statement, self.make_statement())
+    def verify(self, **overrides: object) -> None:
+        values = {
+            "expected_repository": "Spud0302/shadowslave",
+            "expected_commit": "a" * 40,
+            "expected_run_id": 123,
+            "expected_run_attempt": 2,
+            "expected_artifact_id": 456,
+            "expected_artifact_name": "nightmare-spell-modpack",
+        }
+        values.update(overrides)
         verify_statement(
             self.statement,
             self.archive,
             self.core,
-            "Spud0302/shadowslave",
-            "a" * 40,
-            123,
-            456,
+            values["expected_repository"],
+            values["expected_commit"],
+            values["expected_run_id"],
+            values["expected_run_attempt"],
+            values["expected_artifact_id"],
+            values["expected_artifact_name"],
         )
+
+    def test_create_and_verify_exact_external_identity_and_bytes(self) -> None:
+        write_statement(self.statement, self.make_statement())
+        self.verify()
 
     def test_archive_tampering_is_rejected(self) -> None:
         write_statement(self.statement, self.make_statement())
         self.archive.write_bytes(b"tampered")
         with self.assertRaisesRegex(ProvenanceError, "archive_sha256 mismatch"):
-            verify_statement(
-                self.statement, self.archive, self.core,
-                "Spud0302/shadowslave", "a" * 40, 123, 456,
-            )
+            self.verify()
 
     def test_commit_mismatch_is_rejected(self) -> None:
         write_statement(self.statement, self.make_statement())
         with self.assertRaisesRegex(ProvenanceError, "commit_sha mismatch"):
-            verify_statement(
-                self.statement, self.archive, self.core,
-                "Spud0302/shadowslave", "b" * 40, 123, 456,
-            )
+            self.verify(expected_commit="b" * 40)
+
+    def test_run_attempt_mismatch_is_rejected(self) -> None:
+        write_statement(self.statement, self.make_statement())
+        with self.assertRaisesRegex(ProvenanceError, "workflow_run_attempt mismatch"):
+            self.verify(expected_run_attempt=3)
+
+    def test_artifact_name_mismatch_is_rejected(self) -> None:
+        write_statement(self.statement, self.make_statement())
+        with self.assertRaisesRegex(ProvenanceError, "artifact_name mismatch"):
+            self.verify(expected_artifact_name="replacement-artifact")
 
     def test_unknown_fields_are_rejected(self) -> None:
         statement = self.make_statement()
