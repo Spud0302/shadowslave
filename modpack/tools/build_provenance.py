@@ -100,7 +100,9 @@ def verify_statement(
     expected_repository: str,
     expected_commit: str,
     expected_run_id: int,
+    expected_run_attempt: int,
     expected_artifact_id: int,
+    expected_artifact_name: str,
 ) -> None:
     with statement_path.open("r", encoding="utf-8") as handle:
         statement = validate(json.load(handle))
@@ -108,7 +110,9 @@ def verify_statement(
         "repository": expected_repository,
         "commit_sha": expected_commit,
         "workflow_run_id": expected_run_id,
+        "workflow_run_attempt": expected_run_attempt,
         "artifact_id": expected_artifact_id,
+        "artifact_name": expected_artifact_name,
         "archive_name": archive.name,
         "archive_sha256": sha256_file(archive),
         "core_jar_sha256": sha256_file(core_jar),
@@ -146,7 +150,9 @@ def main() -> int:
     verify.add_argument("--expected-repository", required=True)
     verify.add_argument("--expected-commit", required=True)
     verify.add_argument("--expected-run-id", required=True, type=int)
+    verify.add_argument("--expected-run-attempt", required=True, type=int)
     verify.add_argument("--expected-artifact-id", required=True, type=int)
+    verify.add_argument("--expected-artifact-name", required=True)
     args = parser.parse_args()
     try:
         if args.command == "create":
@@ -161,7 +167,8 @@ def main() -> int:
             verify_statement(
                 Path(args.statement), Path(args.archive), Path(args.core_jar),
                 args.expected_repository, args.expected_commit,
-                args.expected_run_id, args.expected_artifact_id,
+                args.expected_run_id, args.expected_run_attempt,
+                args.expected_artifact_id, args.expected_artifact_name,
             )
             print("OK: external build provenance matches expected identity and bytes")
     except (OSError, json.JSONDecodeError, ProvenanceError) as error:
