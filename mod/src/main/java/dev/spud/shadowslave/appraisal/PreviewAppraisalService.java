@@ -2,8 +2,10 @@ package dev.spud.shadowslave.appraisal;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.nightmare.NightmareInstance;
+import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
+import dev.spud.shadowslave.soul.SpellState;
 import dev.spud.shadowslave.soul.identity.AspectInstanceData;
 import dev.spud.shadowslave.soul.identity.FlawInstanceData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
@@ -27,11 +29,74 @@ public final class PreviewAppraisalService {
     private PreviewAppraisalService() {
     }
 
+    /**
+     * Applies or reconciles the fixed preview appraisal.
+     *
+     * <p>A durable Nightmare receipt can be saved before or after the player's
+     * attachment file. Replaying this method therefore accepts the exact
+     * already-appraised state and repairs either safe half-state: expected
+     * identity with an Aspirant Soul, or expected Dreamer Soul with empty
+     * identity. Unrelated identity/progression is never overwritten.</p>
+     */
     public static void appraise(ServerPlayer player, NightmareInstance completedInstance) {
-        if (!"last_signal".equals(completedInstance.scenarioId())) {
-            throw new IllegalArgumentException("Preview appraisal does not know scenario " + completedInstance.scenarioId());
+        requireSupportedScenario(completedInstance);
+
+        SoulIdentityData expectedIdentity = expectedIdentity();
+        SoulData currentSoul = SoulService.get(player);
+        SoulIdentityData currentIdentity = SoulIdentityService.get(player);
+        boolean soulApplied = hasExpectedSoul(currentSoul);
+        boolean identityApplied = expectedIdentity.equals(currentIdentity);
+
+        if (soulApplied && identityApplied) {
+            return;
         }
 
+        if (currentSoul.spellState() == SpellState.ASPIRANT
+                && (currentIdentity.equals(SoulIdentityData.empty()) || identityApplied)) {
+            SoulIdentityService.replace(player, expectedIdentity);
+            try {
+                SoulService.completeFirstNightmare(player, ASPECT_ID, SoulRank.AWAKENED, FLAW_ID);
+            } catch (RuntimeException exception) {
+                if (!hasExpectedSoul(SoulService.get(player))) {
+                    SoulIdentityService.replace(player, SoulIdentityData.empty());
+                } else {
+                    SoulIdentityService.replace(player, expectedIdentity);
+                }
+                throw exception;
+            }
+        } else if (soulApplied && currentIdentity.equals(SoulIdentityData.empty())) {
+            SoulIdentityService.replace(player, expectedIdentity);
+        } else {
+            throw new IllegalStateException(
+                    "Cannot reconcile preview appraisal with unrelated Soul or identity state"
+            );
+        }
+
+        if (!isApplied(player, completedInstance)) {
+            throw new IllegalStateException("Preview appraisal reconciliation did not reach the expected state");
+        }
+
+        ShadowSlaveMod.LOGGER.info(
+                "Preview appraisal completed for Nightmare {} and player {}",
+                completedInstance.instanceId(),
+                player.getScoreboardName()
+        );
+    }
+
+    public static boolean isApplied(ServerPlayer player, NightmareInstance completedInstance) {
+        requireSupportedScenario(completedInstance);
+        return hasExpectedSoul(SoulService.get(player))
+                && expectedIdentity().equals(SoulIdentityService.get(player));
+    }
+
+    private static boolean hasExpectedSoul(SoulData soul) {
+        return soul.spellState() == SpellState.DREAMER
+                && soul.aspectId().equals(Optional.of(ASPECT_ID))
+                && soul.aspectRank().equals(Optional.of(SoulRank.AWAKENED))
+                && soul.flawId().equals(Optional.of(FLAW_ID));
+    }
+
+    private static SoulIdentityData expectedIdentity() {
         AspectInstanceData aspect = new AspectInstanceData(
                 ASPECT_ID,
                 "Last Light",
@@ -46,21 +111,13 @@ public final class PreviewAppraisalService {
                 FLAW_EFFECT_ID,
                 "preview_appraisal_design"
         );
+        return new SoulIdentityData(Optional.of(aspect), Optional.of(flaw));
+    }
 
-        SoulIdentityData identity = new SoulIdentityData(Optional.of(aspect), Optional.of(flaw));
-        SoulIdentityService.replace(player, identity);
-        try {
-            SoulService.completeFirstNightmare(player, ASPECT_ID, SoulRank.AWAKENED, FLAW_ID);
-        } catch (RuntimeException exception) {
-            SoulIdentityService.replace(player, SoulIdentityData.empty());
-            throw exception;
+    private static void requireSupportedScenario(NightmareInstance completedInstance) {
+        if (!"last_signal".equals(completedInstance.scenarioId())) {
+            throw new IllegalArgumentException("Preview appraisal does not know scenario " + completedInstance.scenarioId());
         }
-
-        ShadowSlaveMod.LOGGER.info(
-                "Preview appraisal completed for Nightmare {} and player {}",
-                completedInstance.instanceId(),
-                player.getScoreboardName()
-        );
     }
 
     private static ResourceLocation id(String path) {
