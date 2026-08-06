@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class NightmareCompletionRecoveryPlanTest {
     @Test
-    void terminalReceiptReplaysEveryMissingMilestone() {
+    void terminalReceiptReplaysEveryMissingAction() {
         assertEquals(
                 new NightmareCompletionRecoveryPlan(true, true, true),
                 NightmareCompletionRecoveryPlan.forState(
@@ -19,9 +19,9 @@ class NightmareCompletionRecoveryPlanTest {
     }
 
     @Test
-    void playerSaveAheadOfReceiptDoesNotDuplicateAppraisal() {
+    void playerSaveAheadOfReceiptDoesNotDuplicateAppraisalOrReturn() {
         assertEquals(
-                new NightmareCompletionRecoveryPlan(false, true, true),
+                new NightmareCompletionRecoveryPlan(false, false, true),
                 NightmareCompletionRecoveryPlan.forState(
                         NightmareCompletionPhase.TERMINAL_RESOLUTION_RECORDED,
                         true,
@@ -32,7 +32,7 @@ class NightmareCompletionRecoveryPlanTest {
     }
 
     @Test
-    void receiptAheadOfPlayerSaveReappliesAppraisal() {
+    void receiptAheadOfPlayerSaveReappliesAppraisalAndReturn() {
         assertEquals(
                 new NightmareCompletionRecoveryPlan(true, true, true),
                 NightmareCompletionRecoveryPlan.forState(
