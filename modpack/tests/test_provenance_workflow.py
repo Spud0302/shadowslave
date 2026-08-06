@@ -22,15 +22,24 @@ class ProvenanceWorkflowTests(unittest.TestCase):
         )
         self.assertIn('--artifact-id "$PACKAGE_ARTIFACT_ID"', self.workflow)
 
-    def test_pull_request_build_and_statement_use_same_head_commit(self) -> None:
-        source_expression = "${{ github.event.pull_request.head.sha || github.sha }}"
-        checkout = self.workflow.index("name: Check out claimed source commit")
+    def test_build_and_statement_use_same_source_repository_and_commit(self) -> None:
+        repository_expression = (
+            "${{ github.event.pull_request.head.repo.full_name || github.repository }}"
+        )
+        commit_expression = "${{ github.event.pull_request.head.sha || github.sha }}"
+        checkout = self.workflow.index("name: Check out claimed source repository and commit")
         validate = self.workflow.index("name: Validate manifest")
         self.assertLess(checkout, validate)
-        self.assertIn(f"ref: {source_expression}", self.workflow)
-        self.assertIn(f"SOURCE_COMMIT: {source_expression}", self.workflow)
+        self.assertIn(f"repository: {repository_expression}", self.workflow)
+        self.assertIn(f"ref: {commit_expression}", self.workflow)
+        self.assertIn(f"SOURCE_REPOSITORY: {repository_expression}", self.workflow)
+        self.assertIn(f"SOURCE_COMMIT: {commit_expression}", self.workflow)
+        self.assertIn('--repository "$SOURCE_REPOSITORY"', self.workflow)
+        self.assertIn('--expected-repository "$SOURCE_REPOSITORY"', self.workflow)
         self.assertIn('--commit-sha "$SOURCE_COMMIT"', self.workflow)
         self.assertIn('--expected-commit "$SOURCE_COMMIT"', self.workflow)
+        self.assertNotIn('--repository "$GITHUB_REPOSITORY"', self.workflow)
+        self.assertNotIn('--expected-repository "$GITHUB_REPOSITORY"', self.workflow)
 
     def test_third_party_actions_are_pinned_to_full_commit_shas(self) -> None:
         uses_entries = re.findall(r"^\s*uses:\s*([^\s#]+)", self.workflow, re.MULTILINE)
