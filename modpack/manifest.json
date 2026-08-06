@@ -21,8 +21,8 @@
   "packaging": {
     "format": "directory-shell-v1",
     "include": [
-      "manifest.json",
-      "README.md"
+      "README.md",
+      "manifest.json"
     ]
   }
 }
