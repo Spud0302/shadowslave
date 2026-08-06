@@ -1,0 +1,37 @@
+name: Modpack shell
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - ready_for_review
+      - reopened
+    paths:
+      - 'modpack/**'
+      - '.github/workflows/modpack-shell.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'modpack/**'
+      - '.github/workflows/modpack-shell.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate manifest
+        run: python3 modpack/tools/validate_manifest.py
+
+      - name: Run manifest tests
+        run: python3 -m unittest discover -s modpack/tests -v
