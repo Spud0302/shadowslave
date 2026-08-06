@@ -300,7 +300,9 @@ public final class NightmareService {
     }
 
     private static void persistPlayer(ServerPlayer player) {
-        player.getServer().getPlayerList().save(player);
+        // The mapped per-player save method is protected in NeoForge 1.21.1.
+        // Successful completion is rare enough to use the public synchronous boundary.
+        player.getServer().getPlayerList().saveAll();
     }
 
     private record ServerCompletionOperations(
