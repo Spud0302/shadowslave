@@ -17,14 +17,14 @@ import java.util.Set;
 public record GeneratedIdentityCandidate(
         String generatorVersion,
         long seed,
-        String evidenceFingerprint,
+        String generationFingerprint,
         String provenance,
         Aspect aspect,
         Flaw flaw
 ) {
     public GeneratedIdentityCandidate {
         generatorVersion = requireText(generatorVersion, "generatorVersion");
-        evidenceFingerprint = requireFingerprint(evidenceFingerprint);
+        generationFingerprint = requireFingerprint(generationFingerprint);
         provenance = requireText(provenance, "provenance");
         aspect = Objects.requireNonNull(aspect, "aspect");
         flaw = Objects.requireNonNull(flaw, "flaw");
@@ -67,9 +67,9 @@ public record GeneratedIdentityCandidate(
     }
 
     private static String requireFingerprint(String value) {
-        String checked = requireText(value, "evidenceFingerprint").toLowerCase(Locale.ROOT);
+        String checked = requireText(value, "generationFingerprint").toLowerCase(Locale.ROOT);
         if (checked.length() != 64 || !checked.matches("[0-9a-f]{64}")) {
-            throw new IllegalArgumentException("evidenceFingerprint must be a lowercase SHA-256 hex digest");
+            throw new IllegalArgumentException("generationFingerprint must be a lowercase SHA-256 hex digest");
         }
         return checked;
     }
