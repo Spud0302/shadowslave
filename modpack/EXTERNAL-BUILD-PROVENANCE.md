@@ -11,7 +11,7 @@
 - archive file name and SHA-256;
 - input Shadow Slave core JAR SHA-256.
 
-The statement is intentionally outside the archive it describes. Verification requires the caller to supply the expected repository, commit, run ID and artifact ID from an independently trusted GitHub page or API response. The verifier recomputes both file digests and fails closed on unknown fields, malformed identifiers or any mismatch.
+The statement is intentionally outside the archive it describes. Verification requires the caller to supply the expected repository, commit, workflow run ID and attempt, plus artifact ID and name from an independently trusted GitHub page or API response. The verifier recomputes both file digests and fails closed on unknown fields, malformed identifiers or any mismatch.
 
 ## Create
 
@@ -40,8 +40,12 @@ python3 modpack/tools/build_provenance.py verify \
   --expected-repository Spud0302/shadowslave \
   --expected-commit <40-character-commit> \
   --expected-run-id <workflow-run-id> \
-  --expected-artifact-id <artifact-id>
+  --expected-run-attempt <workflow-run-attempt> \
+  --expected-artifact-id <artifact-id> \
+  --expected-artifact-name <artifact-name>
 ```
+
+The run attempt and artifact name are part of the externally checked identity. Recording them without requiring independent expected values would allow a statement to describe a different rerun or a different artifact label while still passing verification.
 
 ## Evidence classification
 
