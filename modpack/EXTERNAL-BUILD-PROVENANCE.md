@@ -28,7 +28,17 @@ python3 modpack/tools/build_provenance.py create \
   --output build-provenance.json
 ```
 
-The artifact ID is assigned only after GitHub accepts an upload. A production release workflow must therefore obtain the returned upload artifact ID before creating and publishing this statement. The current shell workflow does not pretend a guessed or placeholder ID is trustworthy.
+The artifact ID is assigned only after GitHub accepts an upload. The shell workflow therefore:
+
+1. builds and verifies the deterministic package;
+2. uploads that package with a named `actions/upload-artifact` step;
+3. reads the action's returned `artifact-id` output;
+4. creates and immediately verifies the external statement using that real ID;
+5. uploads the statement as a separate artifact.
+
+For pull-request runs, the statement records the pull request head SHA rather than GitHub's synthetic merge commit. Push and manual runs use `github.sha`. The workflow never invents a placeholder artifact ID.
+
+The provenance artifact is deliberately separate from the package artifact. Uploading the statement changes neither the already-created package artifact nor the package ID recorded by the statement.
 
 ## Verify
 
@@ -49,12 +59,14 @@ The run attempt and artifact name are part of the externally checked identity. R
 
 ## Evidence classification
 
-- **DESIGN:** schema fields, strict validation and external expected-value verification.
+- **DESIGN:** schema fields, publication order, strict validation and external expected-value verification.
 - **COMPATIBILITY:** the packaged Java core remains the sole canonical Shadow Slave state owner.
 - No lore-sensitive runtime mechanic changes; no new **CANON**, **INFERRED** or **UNKNOWN** claim is introduced.
 
 ## Deliberate limits
 
 A matching unsigned statement proves that the supplied files agree with the supplied repository/build identity. It does not prove that the expected values came from a trusted source, that GitHub executed reviewed source, that dependencies were uncompromised, or that the statement was not replaced together with the files.
+
+The separate provenance upload has its own GitHub artifact ID, which schema 1 does not record. The package artifact ID remains the identity being bound. The workflow also packages a fixture core JAR; it is CI evidence for the publication contract, not a public modpack release.
 
 Cryptographic signing or GitHub artifact attestations, protected release environments, immutable release publication and independently reproducible core builds remain separate work. Until those exist, this statement is a precise provenance contract, not a signature or authenticity claim.
