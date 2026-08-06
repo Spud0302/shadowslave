@@ -6,8 +6,8 @@ import java.util.Objects;
  * Pure recovery decision for one successful Nightmare receipt.
  *
  * <p>The durable phase and player save can disagree after a process failure.
- * Actions are therefore derived from both the receipt and observed runtime
- * state. Replaying any requested action is required to be idempotent.</p>
+ * The observed state is therefore authoritative for whether an idempotent
+ * action still needs to run, while the phase preserves ordered audit history.</p>
  */
 public record NightmareCompletionRecoveryPlan(
         boolean applyAppraisal,
@@ -20,13 +20,11 @@ public record NightmareCompletionRecoveryPlan(
             boolean playerInNightmare,
             boolean activeOwnershipPresent
     ) {
-        NightmareCompletionPhase checkedPhase = Objects.requireNonNull(phase, "phase");
+        Objects.requireNonNull(phase, "phase");
         return new NightmareCompletionRecoveryPlan(
                 !appraisalApplied,
-                checkedPhase.ordinal() < NightmareCompletionPhase.RETURN_COMMITTED.ordinal()
-                        || playerInNightmare,
-                checkedPhase.ordinal() < NightmareCompletionPhase.TEARDOWN_COMMITTED.ordinal()
-                        || activeOwnershipPresent
+                playerInNightmare,
+                activeOwnershipPresent
         );
     }
 }
