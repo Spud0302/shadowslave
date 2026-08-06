@@ -36,13 +36,19 @@ public record FlawInstanceData(
         provenance = requireText(provenance, "provenance");
     }
 
+    /** Source-compatible constructor for existing revealed identities. */
     public FlawInstanceData(
             ResourceLocation instanceId,
             String formalName,
             ResourceLocation effectId,
             String provenance
     ) {
-        this(instanceId, Optional.ofNullable(formalName), effectId, provenance);
+        this(
+                instanceId,
+                Optional.of(Objects.requireNonNull(formalName, "formalName")),
+                effectId,
+                provenance
+        );
     }
 
     public String displayedName() {
