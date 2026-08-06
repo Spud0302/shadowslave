@@ -46,6 +46,57 @@ class SoulIdentityDataTest {
     }
 
     @Test
+    void codecRoundTripsIdentityBeforeFormalNamesAreRevealed() {
+        SoulIdentityData original = new SoulIdentityData(
+                Optional.of(new AspectInstanceData(
+                        id("natural/aspect/rain"),
+                        Optional.empty(),
+                        SoulRank.SACRED,
+                        id("nature/unresolved"),
+                        id("ability/unresolved"),
+                        "natural_awakening_observation"
+                )),
+                Optional.of(new FlawInstanceData(
+                        id("natural/flaw/rain"),
+                        Optional.empty(),
+                        id("flaw_effect/unresolved"),
+                        "natural_awakening_observation"
+                ))
+        );
+
+        JsonElement encoded = SoulIdentityData.CODEC.codec()
+                .encodeStart(JsonOps.INSTANCE, original)
+                .getOrThrow();
+        SoulIdentityData decoded = SoulIdentityData.CODEC.codec()
+                .parse(JsonOps.INSTANCE, encoded)
+                .getOrThrow();
+
+        assertEquals(original, decoded);
+        assertTrue(encoded.toString().contains("formal_name") == false,
+                "an unrevealed name must be absent rather than serialized as invented text");
+    }
+
+    @Test
+    void legacyStoredNamesRemainReadable() {
+        JsonElement stored = JsonParser.parseString("""
+                {
+                  "instance_id": "shadowslave:preview/aspect/last_light",
+                  "formal_name": "Last Light",
+                  "aspect_rank": "awakened",
+                  "nature_id": "shadowslave:preview/nature/ember_resolve",
+                  "ability_id": "shadowslave:preview/ability/kindle",
+                  "provenance": "test"
+                }
+                """);
+
+        AspectInstanceData decoded = AspectInstanceData.CODEC.codec()
+                .parse(JsonOps.INSTANCE, stored)
+                .getOrThrow();
+
+        assertEquals(Optional.of("Last Light"), decoded.formalName());
+    }
+
+    @Test
     void halfStoredIdentityReturnsDataErrorInsteadOfThrowing() {
         JsonElement malformed = JsonParser.parseString("""
                 {
