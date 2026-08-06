@@ -42,6 +42,13 @@ For pull-request runs, both checkout and the statement use the pull request head
 
 This alignment is required for correctness: recording a head SHA while packaging bytes from the default pull-request merge ref would bind the artifact to a commit that was not actually checked out.
 
+The workflow also pins every third-party action to a complete commit SHA. Human-readable release comments remain beside those pins, but mutable major-version tags are not execution identities. The pinned revisions are:
+
+- `actions/checkout` commit `11bd71901bbe5b1630ceea73d27597364c9af683` (`v4.2.2`);
+- `actions/upload-artifact` commit `ea165f8d65b6e75b540449e92b4886f43607fa02` (`v4.6.2`).
+
+Pinning closes the bounded risk that the same repository source commit and workflow text could later execute different action code after an upstream tag moves. Updating an action is therefore an explicit reviewed source change.
+
 The provenance artifact is deliberately separate from the package artifact. Uploading the statement changes neither the already-created package artifact nor the package ID recorded by the statement.
 
 ## Verify
@@ -63,13 +70,13 @@ The run attempt and artifact name are part of the externally checked identity. R
 
 ## Evidence classification
 
-- **DESIGN:** schema fields, checkout/source alignment, publication order, strict validation and external expected-value verification.
+- **DESIGN:** schema fields, checkout/source alignment, immutable action revisions, publication order, strict validation and external expected-value verification.
 - **COMPATIBILITY:** the packaged Java core remains the sole canonical Shadow Slave state owner.
 - No lore-sensitive runtime mechanic changes; no new **CANON**, **INFERRED** or **UNKNOWN** claim is introduced.
 
 ## Deliberate limits
 
-A matching unsigned statement proves that the supplied files agree with the supplied repository/build identity. It does not prove that the expected values came from a trusted source, that GitHub executed reviewed source, that dependencies were uncompromised, or that the statement was not replaced together with the files.
+A matching unsigned statement proves that the supplied files agree with the supplied repository/build identity. It does not prove that the expected values came from a trusted source, that GitHub executed reviewed source, that the pinned action commits or their transitive runtime were uncompromised, or that the statement was not replaced together with the files.
 
 The separate provenance upload has its own GitHub artifact ID, which schema 1 does not record. The package artifact ID remains the identity being bound. The workflow also packages a fixture core JAR; it is CI evidence for the publication contract, not a public modpack release.
 
