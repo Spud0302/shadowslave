@@ -17,16 +17,17 @@ public record AspectAbilityData(
         Optional<SoulRank> acquisitionRank,
         String provenance
 ) {
-    private static final MapCodec<AspectAbilityData> STORED_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            ResourceLocation.CODEC.fieldOf("ability_id").forGetter(AspectAbilityData::abilityId),
-            AspectAbilityKind.CODEC.fieldOf("kind").forGetter(AspectAbilityData::kind),
-            SoulRank.CODEC.optionalFieldOf("acquisition_rank").forGetter(AspectAbilityData::acquisitionRank),
-            Codec.STRING.fieldOf("provenance").forGetter(AspectAbilityData::provenance)
-    ).apply(instance, AspectAbilityData::new));
+    private static final MapCodec<StoredAspectAbilityData> STORED_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            ResourceLocation.CODEC.fieldOf("ability_id").forGetter(StoredAspectAbilityData::abilityId),
+            AspectAbilityKind.CODEC.fieldOf("kind").forGetter(StoredAspectAbilityData::kind),
+            SoulRank.CODEC.optionalFieldOf("acquisition_rank").forGetter(StoredAspectAbilityData::acquisitionRank),
+            Codec.STRING.fieldOf("provenance").forGetter(StoredAspectAbilityData::provenance)
+    ).apply(instance, StoredAspectAbilityData::new));
 
+    /** Decode through an unvalidated storage shape so domain failures become DataResult errors. */
     public static final MapCodec<AspectAbilityData> CODEC = STORED_CODEC.flatXmap(
-            AspectAbilityData::validate,
-            DataResult::success
+            AspectAbilityData::construct,
+            data -> DataResult.success(StoredAspectAbilityData.from(data))
     );
 
     public AspectAbilityData {
@@ -60,10 +61,13 @@ public record AspectAbilityData(
         );
     }
 
-    private static DataResult<AspectAbilityData> validate(AspectAbilityData data) {
+    private static DataResult<AspectAbilityData> construct(StoredAspectAbilityData stored) {
         try {
             return DataResult.success(new AspectAbilityData(
-                    data.abilityId(), data.kind(), data.acquisitionRank(), data.provenance()
+                    stored.abilityId(),
+                    stored.kind(),
+                    stored.acquisitionRank(),
+                    stored.provenance()
             ));
         } catch (IllegalArgumentException | NullPointerException exception) {
             return DataResult.error(() -> "Invalid AspectAbilityData: " + exception.getMessage());
@@ -76,5 +80,21 @@ public record AspectAbilityData(
             throw new IllegalArgumentException(name + " cannot be blank");
         }
         return checked;
+    }
+
+    private record StoredAspectAbilityData(
+            ResourceLocation abilityId,
+            AspectAbilityKind kind,
+            Optional<SoulRank> acquisitionRank,
+            String provenance
+    ) {
+        private static StoredAspectAbilityData from(AspectAbilityData data) {
+            return new StoredAspectAbilityData(
+                    data.abilityId(),
+                    data.kind(),
+                    data.acquisitionRank(),
+                    data.provenance()
+            );
+        }
     }
 }
