@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -121,8 +120,8 @@ class DeterministicIdentityGeneratorTest {
 
         assertEquals(DeterministicIdentityGenerator.GENERATOR_VERSION, candidate.generatorVersion());
         assertEquals(seed, candidate.seed());
-        assertEquals(64, candidate.evidenceFingerprint().length());
-        assertTrue(candidate.provenance().contains(candidate.evidenceFingerprint()));
+        assertEquals(64, candidate.generationFingerprint().length());
+        assertTrue(candidate.provenance().contains(candidate.generationFingerprint()));
         assertEquals(SoulRank.ASCENDED, candidate.aspect().aspectRank());
         assertTrue(candidate.aspect().instanceId().getPath().startsWith("generated/aspect/"));
         assertTrue(candidate.flaw().instanceId().getPath().startsWith("generated/flaw/"));
