@@ -30,13 +30,17 @@ python3 modpack/tools/build_provenance.py create \
 
 The artifact ID is assigned only after GitHub accepts an upload. The shell workflow therefore:
 
-1. builds and verifies the deterministic package;
-2. uploads that package with a named `actions/upload-artifact` step;
-3. reads the action's returned `artifact-id` output;
-4. creates and immediately verifies the external statement using that real ID;
-5. uploads the statement as a separate artifact.
+1. resolves the source commit that the statement will claim;
+2. checks out that exact commit rather than relying on the pull-request merge-ref default;
+3. builds and verifies the deterministic package;
+4. uploads that package with a named `actions/upload-artifact` step;
+5. reads the action's returned `artifact-id` output;
+6. creates and immediately verifies the external statement using that real ID;
+7. uploads the statement as a separate artifact.
 
-For pull-request runs, the statement records the pull request head SHA rather than GitHub's synthetic merge commit. Push and manual runs use `github.sha`. The workflow never invents a placeholder artifact ID.
+For pull-request runs, both checkout and the statement use the pull request head SHA rather than GitHub's synthetic merge commit. Push and manual runs use `github.sha`. The workflow never invents a placeholder artifact ID.
+
+This alignment is required for correctness: recording a head SHA while packaging bytes from the default pull-request merge ref would bind the artifact to a commit that was not actually checked out.
 
 The provenance artifact is deliberately separate from the package artifact. Uploading the statement changes neither the already-created package artifact nor the package ID recorded by the statement.
 
@@ -59,7 +63,7 @@ The run attempt and artifact name are part of the externally checked identity. R
 
 ## Evidence classification
 
-- **DESIGN:** schema fields, publication order, strict validation and external expected-value verification.
+- **DESIGN:** schema fields, checkout/source alignment, publication order, strict validation and external expected-value verification.
 - **COMPATIBILITY:** the packaged Java core remains the sole canonical Shadow Slave state owner.
 - No lore-sensitive runtime mechanic changes; no new **CANON**, **INFERRED** or **UNKNOWN** claim is introduced.
 
