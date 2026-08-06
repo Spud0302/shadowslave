@@ -27,8 +27,10 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Check out repository
+      - name: Check out claimed source commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Validate manifest
         run: python3 modpack/tools/validate_manifest.py
