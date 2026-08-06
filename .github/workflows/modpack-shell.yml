@@ -27,9 +27,10 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Check out claimed source commit
+      - name: Check out claimed source repository and commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Validate manifest
@@ -60,6 +61,7 @@ jobs:
 
       - name: Create and verify external build provenance
         env:
+          SOURCE_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
           PACKAGE_ARTIFACT_ID: ${{ steps.package-upload.outputs.artifact-id }}
           PACKAGE_ARTIFACT_NAME: nightmare-spell-modpack-shell
@@ -67,7 +69,7 @@ jobs:
           python3 modpack/tools/build_provenance.py create \
             --archive "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip" \
             --core-jar "$RUNNER_TEMP/shadowslave-core.jar" \
-            --repository "$GITHUB_REPOSITORY" \
+            --repository "$SOURCE_REPOSITORY" \
             --commit-sha "$SOURCE_COMMIT" \
             --workflow-run-id "$GITHUB_RUN_ID" \
             --workflow-run-attempt "$GITHUB_RUN_ATTEMPT" \
@@ -78,7 +80,7 @@ jobs:
             --statement "$RUNNER_TEMP/nightmare-spell-modpack-dev.provenance.json" \
             --archive "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip" \
             --core-jar "$RUNNER_TEMP/shadowslave-core.jar" \
-            --expected-repository "$GITHUB_REPOSITORY" \
+            --expected-repository "$SOURCE_REPOSITORY" \
             --expected-commit "$SOURCE_COMMIT" \
             --expected-run-id "$GITHUB_RUN_ID" \
             --expected-run-attempt "$GITHUB_RUN_ATTEMPT" \
