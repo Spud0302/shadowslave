@@ -10,7 +10,10 @@ import os
 from pathlib import Path, PurePosixPath
 import zipfile
 
-from modpack.tools.validate_manifest import load_and_validate
+try:
+    from modpack.tools.validate_manifest import load_and_validate
+except ModuleNotFoundError:
+    from validate_manifest import load_and_validate
 
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
 FILE_MODE = 0o100644 << 16
