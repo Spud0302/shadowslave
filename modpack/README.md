@@ -4,9 +4,11 @@ This directory is the deterministic packaging boundary for Path A: a curated Neo
 
 ## Current status
 
-A validated dependency-free manifest shell now exists. It pins Minecraft `1.21.1`, NeoForge `21.1.244` and Java `21`, references the locally built Shadow Slave core, and defines the metadata every future external component must provide.
+A validated dependency-free manifest and deterministic ZIP exporter now exist. The manifest pins Minecraft `1.21.1`, NeoForge `21.1.244` and Java `21`, references the locally built Shadow Slave core, and defines the metadata every future external component must provide.
 
-This is not yet a playable modpack or public package. No external dependency, downloaded JAR, launcher export or compatibility adapter is included.
+The exporter packages the exact supplied core JAR under a fixed path, adds the declared shell files, records per-entry SHA-256 and size provenance, sorts every archive entry and fixes ZIP timestamps and file modes. Identical inputs therefore produce byte-identical archives.
+
+This is not yet a playable public modpack. No external dependency, downloaded JAR, launcher export or compatibility adapter is included.
 
 Validate with:
 
@@ -14,6 +16,41 @@ Validate with:
 python3 modpack/tools/validate_manifest.py
 python3 -m unittest discover -s modpack/tests -v
 ```
+
+Build the current dependency-free archive after compiling the Java core:
+
+```bash
+./mod/gradlew -p mod build
+python3 modpack/tools/build_package.py \
+  --core-jar mod/build/libs/shadowslave-0.1.0-preview.2.jar \
+  --output build/nightmare-spell-modpack-dev.zip
+```
+
+Use the exact produced JAR path rather than relying on the manifest glob when more than one development artifact is present.
+
+## Deterministic archive contract
+
+The package contains:
+
+```text
+README.md
+manifest.json
+mods/shadowslave-core.jar
+provenance.json
+```
+
+`provenance.json` records the pack ID/version and SHA-256 plus byte size for every non-provenance entry. It deliberately omits timestamps, host paths and build-machine metadata so it remains reproducible.
+
+The archive writer uses:
+
+- lexicographically sorted entries;
+- a fixed `1980-01-01 00:00:00` ZIP timestamp;
+- fixed regular-file permissions;
+- deterministic JSON formatting;
+- atomic replacement of the requested output;
+- fail-closed rejection of missing core JARs, unsafe paths and generated-path collisions.
+
+The ZIP is a reviewable repository package, not yet a Modrinth `.mrpack`. Platform-specific export should be added only after the dependency model and redistribution rules are established.
 
 ## Manifest contract
 
@@ -28,7 +65,7 @@ The shared Java core is the sole canonical state owner. Every future external co
 - explicit removal behaviour;
 - `owns_canonical_state: false`.
 
-The validator rejects duplicate IDs, missing provenance, malformed hashes, unsorted package inputs and any external component that claims canonical state ownership.
+The validator rejects duplicate IDs, missing provenance, malformed hashes, unsafe paths, unsorted package inputs and any external component that claims canonical state ownership.
 
 ## Purpose
 
@@ -92,14 +129,15 @@ Compatibility packages may translate internal ability, equipment or objective re
 
 ## Architecture and lore boundary
 
-This manifest shell is Minecraft **DESIGN** and repository packaging infrastructure. It introduces no Shadow Slave lore mechanic.
+This package exporter is Minecraft **DESIGN** and repository build infrastructure. It introduces no Shadow Slave lore mechanic.
 
 External mods may provide presentation, generic execution, infrastructure or content, but their removal must not make canonical state undecodable or reroll generated identities.
 
 ## Deliberate limits
 
 - no external mods are selected;
-- no launcher export is generated;
-- no download occurs during validation;
+- no dependency download occurs;
+- no `.mrpack` is generated;
 - no public release is claimed;
-- the core JAR is referenced as a local Gradle build artifact rather than copied into source control.
+- the core JAR is supplied from a local Gradle build rather than copied into source control;
+- package reproducibility is proven for identical input bytes, not across different compiler/toolchain outputs.
