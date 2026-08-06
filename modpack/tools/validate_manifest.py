@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Fail-closed validator for the Nightmare Spell modpack manifest shell."""
+"""Fail-closed validator for the Nightmare Spell modpack manifest."""
 
 from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
+from pathlib import PurePosixPath, Path
 from typing import Any
 
 ALLOWED_COMPONENT_ROLES = {"execution_provider", "presentation_provider", "infrastructure", "content"}
@@ -36,6 +36,16 @@ def require_text(value: Any, path: str) -> str:
     return value.strip()
 
 
+def require_safe_relative_path(value: Any, path: str) -> str:
+    text = require_text(value, path)
+    candidate = PurePosixPath(text)
+    if candidate.is_absolute() or ".." in candidate.parts or candidate.as_posix() in {"", "."}:
+        raise ManifestError(f"{path} must be a safe relative path")
+    if "\\" in text:
+        raise ManifestError(f"{path} must use forward slashes")
+    return candidate.as_posix()
+
+
 def validate_manifest(data: Any) -> None:
     root = require_object(data, "manifest")
     if root.get("schema_version") != 1:
@@ -59,6 +69,11 @@ def validate_manifest(data: Any) -> None:
     if owner.get("source") != "local_gradle_build":
         raise ManifestError("canonical_state_owner.source must equal local_gradle_build")
     require_text(owner.get("artifact_glob"), "canonical_state_owner.artifact_glob")
+    owner_package_path = require_safe_relative_path(
+        owner.get("package_path"), "canonical_state_owner.package_path"
+    )
+    if not owner_package_path.startswith("mods/") or not owner_package_path.endswith(".jar"):
+        raise ManifestError("canonical_state_owner.package_path must be a JAR under mods/")
 
     components = require_list(root.get("components"), "components")
     seen_ids: set[str] = set()
@@ -95,15 +110,24 @@ def validate_manifest(data: Any) -> None:
         require_text(component.get("removal_behavior"), f"{path}.removal_behavior")
 
     packaging = require_object(root.get("packaging"), "packaging")
-    if packaging.get("format") != "directory-shell-v1":
-        raise ManifestError("packaging.format must equal directory-shell-v1")
+    if packaging.get("format") != "deterministic-zip-v1":
+        raise ManifestError("packaging.format must equal deterministic-zip-v1")
     include = require_list(packaging.get("include"), "packaging.include")
-    normalized = [require_text(value, f"packaging.include[{index}]") for index, value in enumerate(include)]
+    normalized = [
+        require_safe_relative_path(value, f"packaging.include[{index}]")
+        for index, value in enumerate(include)
+    ]
     if normalized != sorted(set(normalized)):
         raise ManifestError("packaging.include must be unique and lexicographically sorted")
     for required_path in ("README.md", "manifest.json"):
         if required_path not in normalized:
             raise ManifestError(f"packaging.include must contain {required_path}")
+    if owner_package_path in normalized or "provenance.json" in normalized:
+        raise ManifestError("packaging.include collides with a generated package path")
+
+    output_name = require_safe_relative_path(packaging.get("output_name"), "packaging.output_name")
+    if "/" in output_name or not output_name.endswith(".zip"):
+        raise ManifestError("packaging.output_name must be a ZIP filename")
 
 
 def load_and_validate(path: Path) -> None:
