@@ -98,10 +98,10 @@ public final class NightmareService {
         }
 
         LastSignalScenario.igniteAltar(player.serverLevel(), instance);
-        NightmareRegistryData.get(player.getServer()).beginSuccessfulCompletion(
-                instance,
-                player.serverLevel().getGameTime()
-        );
+        NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
+        registry.beginSuccessfulCompletion(instance, player.serverLevel().getGameTime());
+        persistRegistry(player.getServer());
+
         if (!resumeSuccessfulCompletion(player)) {
             throw new IllegalStateException("Successful Nightmare receipt disappeared before completion recovery");
         }
@@ -118,7 +118,8 @@ public final class NightmareService {
      */
     public static boolean resumeSuccessfulCompletion(ServerPlayer player) {
         Objects.requireNonNull(player, "player");
-        NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
+        MinecraftServer server = player.getServer();
+        NightmareRegistryData registry = NightmareRegistryData.get(server);
         NightmareCompletionRecord completion = registry
                 .findSuccessfulCompletionByPlayer(player.getUUID())
                 .orElse(null);
@@ -142,23 +143,40 @@ public final class NightmareService {
 
         if (plan.applyAppraisal()) {
             PreviewAppraisalService.appraise(player, instance);
+            persistPlayer(player);
         }
         if (!PreviewAppraisalService.isApplied(player, instance)) {
             throw new IllegalStateException("Successful Nightmare appraisal is not durably reconcilable");
         }
-        registry.advanceSuccessfulCompletion(instance, NightmareCompletionPhase.APPRAISAL_COMMITTED);
+        completion = advanceAndPersist(
+                server,
+                registry,
+                instance,
+                NightmareCompletionPhase.APPRAISAL_COMMITTED,
+                false
+        );
 
         if (plan.returnPlayer()) {
             teleportToReturn(player, instance, NightmareExitReason.SUCCESS);
+            persistPlayer(player);
         }
-        registry.advanceSuccessfulCompletion(instance, NightmareCompletionPhase.RETURN_COMMITTED);
+        completion = advanceAndPersist(
+                server,
+                registry,
+                instance,
+                NightmareCompletionPhase.RETURN_COMMITTED,
+                false
+        );
 
         if (plan.teardownActiveInstance()) {
-            teardown(player.getServer(), instance);
+            teardown(server, instance);
         }
-        NightmareCompletionRecord finished = registry.advanceSuccessfulCompletion(
+        NightmareCompletionRecord finished = advanceAndPersist(
+                server,
+                registry,
                 instance,
-                NightmareCompletionPhase.TEARDOWN_COMMITTED
+                NightmareCompletionPhase.TEARDOWN_COMMITTED,
+                plan.teardownActiveInstance()
         );
 
         if (completion.phase() != NightmareCompletionPhase.TEARDOWN_COMMITTED
@@ -185,8 +203,10 @@ public final class NightmareService {
     public static NightmareInstance technicalRecover(ServerPlayer player) {
         NightmareInstance instance = exit(player, NightmareExitReason.TECHNICAL_RECOVERY);
         NightmareRegistryData.get(player.getServer()).clearSuccessfulCompletionByPlayer(player.getUUID());
+        persistRegistry(player.getServer());
         SoulIdentityService.replace(player, SoulIdentityData.empty());
         SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
+        persistPlayer(player);
         player.sendSystemMessage(Component.literal(
                 "Technical recovery completed. This is an administrative path, not mercy from the Nightmare Spell."
         ).withStyle(ChatFormatting.YELLOW));
@@ -196,8 +216,10 @@ public final class NightmareService {
     public static NightmareInstance adminAbort(ServerPlayer player) {
         NightmareInstance instance = exit(player, NightmareExitReason.ADMIN_ABORT);
         NightmareRegistryData.get(player.getServer()).clearSuccessfulCompletionByPlayer(player.getUUID());
+        persistRegistry(player.getServer());
         SoulIdentityService.replace(player, SoulIdentityData.empty());
         SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
+        persistPlayer(player);
         return instance;
     }
 
@@ -213,7 +235,10 @@ public final class NightmareService {
 
     /** Clears the retained success receipt as part of an explicit development reset. */
     public static void clearSuccessfulCompletionForPreviewReset(ServerPlayer player) {
-        NightmareRegistryData.get(player.getServer()).clearSuccessfulCompletionByPlayer(player.getUUID());
+        NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
+        if (registry.clearSuccessfulCompletionByPlayer(player.getUUID()).isPresent()) {
+            persistRegistry(player.getServer());
+        }
     }
 
     public static void canonicalDeath(ServerPlayer player) {
@@ -223,8 +248,10 @@ public final class NightmareService {
         }
         teardown(player.getServer(), instance);
         NightmareRegistryData.get(player.getServer()).clearSuccessfulCompletionByPlayer(player.getUUID());
+        persistRegistry(player.getServer());
         SoulIdentityService.replace(player, SoulIdentityData.empty());
         SoulService.reset(player);
+        persistPlayer(player);
         player.sendSystemMessage(Component.literal(
                 "Canonical First-Nightmare outcome: death. Minecraft respawn is a development accommodation; the Spell did not safely eject you."
         ).withStyle(ChatFormatting.RED));
@@ -245,7 +272,9 @@ public final class NightmareService {
                 .orElseThrow(() -> new IllegalStateException("Player does not own an active Nightmare"));
 
         teleportToReturn(player, instance, reason);
+        persistPlayer(player);
         teardown(server, instance);
+        persistRegistry(server);
         ShadowSlaveMod.LOGGER.info(
                 "Nightmare {} exited for player {} with reason {}",
                 instance.instanceId(),
@@ -253,6 +282,23 @@ public final class NightmareService {
                 reason
         );
         return instance;
+    }
+
+    private static NightmareCompletionRecord advanceAndPersist(
+            MinecraftServer server,
+            NightmareRegistryData registry,
+            NightmareInstance instance,
+            NightmareCompletionPhase target,
+            boolean forcePersist
+    ) {
+        NightmareCompletionPhase before = registry.findSuccessfulCompletionByPlayer(instance.playerId())
+                .orElseThrow(() -> new IllegalStateException("Successful Nightmare receipt disappeared"))
+                .phase();
+        NightmareCompletionRecord advanced = registry.advanceSuccessfulCompletion(instance, target);
+        if (forcePersist || advanced.phase() != before) {
+            persistRegistry(server);
+        }
+        return advanced;
     }
 
     private static void teleportToReturn(
@@ -301,6 +347,14 @@ public final class NightmareService {
                     instance.playerId()
             );
         }
+    }
+
+    private static void persistRegistry(MinecraftServer server) {
+        server.overworld().getDataStorage().save();
+    }
+
+    private static void persistPlayer(ServerPlayer player) {
+        player.getServer().getPlayerList().save(player);
     }
 
     private static ResourceLocation id(String path) {
