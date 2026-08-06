@@ -21,11 +21,13 @@ class ProvenanceWorkflowTests(unittest.TestCase):
         )
         self.assertIn('--artifact-id "$PACKAGE_ARTIFACT_ID"', self.workflow)
 
-    def test_pull_request_statement_binds_head_commit_not_synthetic_merge(self) -> None:
-        self.assertIn(
-            "SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}",
-            self.workflow,
-        )
+    def test_pull_request_build_and_statement_use_same_head_commit(self) -> None:
+        source_expression = "${{ github.event.pull_request.head.sha || github.sha }}"
+        checkout = self.workflow.index("name: Check out claimed source commit")
+        validate = self.workflow.index("name: Validate manifest")
+        self.assertLess(checkout, validate)
+        self.assertIn(f"ref: {source_expression}", self.workflow)
+        self.assertIn(f"SOURCE_COMMIT: {source_expression}", self.workflow)
         self.assertIn('--commit-sha "$SOURCE_COMMIT"', self.workflow)
         self.assertIn('--expected-commit "$SOURCE_COMMIT"', self.workflow)
 
