@@ -2,14 +2,7 @@ package dev.spud.shadowslave.nightmare;
 
 import java.util.Objects;
 
-/**
- * Ordered, restart-replayable successful Nightmare completion workflow.
- *
- * <p>Each externally visible action is persisted before its receipt phase is
- * advanced. A deterministic test implementation can fail after any persistence
- * call, reconstruct from durable state, and rerun this coordinator without
- * relying on process-kill timing.</p>
- */
+/** Ordered, restart-replayable successful Nightmare completion workflow. */
 public final class NightmareCompletionCoordinator {
     private NightmareCompletionCoordinator() {
     }
@@ -26,17 +19,29 @@ public final class NightmareCompletionCoordinator {
         if (plan.applyAppraisal()) {
             checked.applyAppraisal();
             checked.persistPlayer();
+            checked.afterDurableBoundary(NightmareCompletionFaultPoint.AFTER_APPRAISAL_PLAYER_SAVE);
         }
         if (!checked.appraisalApplied()) {
             throw new IllegalStateException("Successful Nightmare appraisal did not reach the expected state");
         }
-        advanceAndPersist(checked, NightmareCompletionPhase.APPRAISAL_COMMITTED, false);
+        advanceAndPersist(
+                checked,
+                NightmareCompletionPhase.APPRAISAL_COMMITTED,
+                false,
+                NightmareCompletionFaultPoint.AFTER_APPRAISAL_REGISTRY_SAVE
+        );
 
         if (plan.returnPlayer()) {
             checked.returnPlayer();
             checked.persistPlayer();
+            checked.afterDurableBoundary(NightmareCompletionFaultPoint.AFTER_RETURN_PLAYER_SAVE);
         }
-        advanceAndPersist(checked, NightmareCompletionPhase.RETURN_COMMITTED, false);
+        advanceAndPersist(
+                checked,
+                NightmareCompletionPhase.RETURN_COMMITTED,
+                false,
+                NightmareCompletionFaultPoint.AFTER_RETURN_REGISTRY_SAVE
+        );
 
         if (plan.teardownActiveInstance()) {
             checked.teardownActiveInstance();
@@ -44,41 +49,38 @@ public final class NightmareCompletionCoordinator {
         advanceAndPersist(
                 checked,
                 NightmareCompletionPhase.TEARDOWN_COMMITTED,
-                plan.teardownActiveInstance()
+                plan.teardownActiveInstance(),
+                NightmareCompletionFaultPoint.AFTER_TEARDOWN_REGISTRY_SAVE
         );
     }
 
     private static void advanceAndPersist(
             Operations operations,
             NightmareCompletionPhase target,
-            boolean forcePersist
+            boolean forcePersist,
+            NightmareCompletionFaultPoint faultPoint
     ) {
         NightmareCompletionPhase before = operations.phase();
         operations.advancePhase(target);
         if (forcePersist || operations.phase() != before) {
             operations.persistRegistry();
+            operations.afterDurableBoundary(faultPoint);
         }
     }
 
     public interface Operations {
         NightmareCompletionPhase phase();
-
         boolean appraisalApplied();
-
         boolean playerInNightmare();
-
         boolean activeOwnershipPresent();
-
         void applyAppraisal();
-
         void returnPlayer();
-
         void teardownActiveInstance();
-
         void advancePhase(NightmareCompletionPhase target);
-
         void persistPlayer();
-
         void persistRegistry();
+
+        default void afterDurableBoundary(NightmareCompletionFaultPoint point) {
+        }
     }
 }
