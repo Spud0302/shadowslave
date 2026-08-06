@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import unittest
 
 
@@ -30,6 +31,19 @@ class ProvenanceWorkflowTests(unittest.TestCase):
         self.assertIn(f"SOURCE_COMMIT: {source_expression}", self.workflow)
         self.assertIn('--commit-sha "$SOURCE_COMMIT"', self.workflow)
         self.assertIn('--expected-commit "$SOURCE_COMMIT"', self.workflow)
+
+    def test_third_party_actions_are_pinned_to_full_commit_shas(self) -> None:
+        uses_entries = re.findall(r"^\s*uses:\s*([^\s#]+)", self.workflow, re.MULTILINE)
+        self.assertGreaterEqual(len(uses_entries), 3)
+        for entry in uses_entries:
+            action, separator, revision = entry.partition("@")
+            self.assertTrue(separator, f"action is missing a revision: {entry}")
+            self.assertRegex(action, r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+            self.assertRegex(
+                revision,
+                r"^[0-9a-f]{40}$",
+                f"action is not pinned to a full commit SHA: {entry}",
+            )
 
     def test_statement_is_verified_before_separate_upload(self) -> None:
         create = self.workflow.index("name: Create and verify external build provenance")
