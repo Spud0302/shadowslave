@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-/** Overworld-owned persistent registry for active Nightmare instances. */
+/** Overworld-owned persistent registry for active Nightmare instances and durable completion receipts. */
 public final class NightmareRegistryData extends SavedData {
     private static final String DATA_NAME = "shadowslave_nightmares";
     private static final Factory<NightmareRegistryData> FACTORY = new Factory<>(
@@ -28,6 +28,7 @@ public final class NightmareRegistryData extends SavedData {
 
     private final Map<UUID, NightmareInstance> instances = new LinkedHashMap<>();
     private final Map<UUID, UUID> instanceByPlayer = new LinkedHashMap<>();
+    private final Map<UUID, NightmareCompletionRecord> successfulCompletions = new LinkedHashMap<>();
     private int nextSlot;
 
     public static NightmareRegistryData get(MinecraftServer server) {
@@ -39,8 +40,16 @@ public final class NightmareRegistryData extends SavedData {
         return instanceId == null ? Optional.empty() : Optional.ofNullable(instances.get(instanceId));
     }
 
+    public Optional<NightmareCompletionRecord> findSuccessfulCompletionByPlayer(UUID playerId) {
+        return Optional.ofNullable(successfulCompletions.get(playerId));
+    }
+
     public Collection<NightmareInstance> activeInstances() {
         return List.copyOf(instances.values());
+    }
+
+    public Collection<NightmareCompletionRecord> successfulCompletionRecords() {
+        return List.copyOf(successfulCompletions.values());
     }
 
     public NightmareInstance create(ServerPlayer player, String scenarioId, String historicalRoleId) {
@@ -82,6 +91,76 @@ public final class NightmareRegistryData extends SavedData {
         setDirty();
     }
 
+    /**
+     * Records the terminal success while the active instance still exists.
+     * Repeating the call for the same instance is idempotent.
+     */
+    public NightmareCompletionRecord beginSuccessfulCompletion(
+            NightmareInstance expected,
+            long resolvedGameTime
+    ) {
+        NightmareInstance checked = Objects.requireNonNull(expected, "expected");
+        UUID registeredInstanceId = instanceByPlayer.get(checked.playerId());
+        if (!checked.instanceId().equals(registeredInstanceId)) {
+            throw new IllegalStateException("Cannot complete a Nightmare that is not the player's active instance");
+        }
+
+        NightmareCompletionRecord existing = successfulCompletions.get(checked.playerId());
+        if (existing != null) {
+            if (!existing.instance().instanceId().equals(checked.instanceId())) {
+                throw new IllegalStateException("Player already has a completion receipt for another Nightmare");
+            }
+            return existing;
+        }
+
+        NightmareCompletionRecord created = new NightmareCompletionRecord(
+                checked,
+                NightmareCompletionPhase.TERMINAL_RESOLUTION_RECORDED,
+                resolvedGameTime
+        );
+        successfulCompletions.put(checked.playerId(), created);
+        setDirty();
+        return created;
+    }
+
+    /**
+     * Advances a receipt one durable milestone. Replaying an already-reached
+     * target is idempotent; skipping a milestone is rejected.
+     */
+    public NightmareCompletionRecord advanceSuccessfulCompletion(
+            NightmareInstance expected,
+            NightmareCompletionPhase target
+    ) {
+        NightmareInstance checked = Objects.requireNonNull(expected, "expected");
+        NightmareCompletionPhase checkedTarget = Objects.requireNonNull(target, "target");
+        NightmareCompletionRecord existing = successfulCompletions.get(checked.playerId());
+        if (existing == null || !existing.instance().instanceId().equals(checked.instanceId())) {
+            throw new IllegalStateException("No matching successful Nightmare completion receipt exists");
+        }
+        if (checkedTarget.ordinal() <= existing.phase().ordinal()) {
+            return existing;
+        }
+        if (checkedTarget.ordinal() != existing.phase().ordinal() + 1) {
+            throw new IllegalStateException(
+                    "Cannot skip Nightmare completion phase from " + existing.phase() + " to " + checkedTarget
+            );
+        }
+
+        NightmareCompletionRecord advanced = existing.advanceTo(checkedTarget);
+        successfulCompletions.put(checked.playerId(), advanced);
+        setDirty();
+        return advanced;
+    }
+
+    /** Removes a retained completion receipt during an explicit development reset. */
+    public Optional<NightmareCompletionRecord> clearSuccessfulCompletionByPlayer(UUID playerId) {
+        NightmareCompletionRecord removed = successfulCompletions.remove(playerId);
+        if (removed != null) {
+            setDirty();
+        }
+        return Optional.ofNullable(removed);
+    }
+
     /** Removes only the exact ownership record that the caller previously resolved. */
     public Optional<NightmareInstance> remove(NightmareInstance expected) {
         NightmareInstance checked = Objects.requireNonNull(expected, "expected");
@@ -105,20 +184,33 @@ public final class NightmareRegistryData extends SavedData {
     @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putInt("next_slot", nextSlot);
-        ListTag encoded = new ListTag();
+
+        ListTag encodedInstances = new ListTag();
         for (NightmareInstance instance : instances.values()) {
-            encoded.add(instance.save());
+            encodedInstances.add(instance.save());
         }
-        tag.put("instances", encoded);
+        tag.put("instances", encodedInstances);
+
+        ListTag encodedCompletions = new ListTag();
+        for (NightmareCompletionRecord completion : successfulCompletions.values()) {
+            encodedCompletions.add(completion.save());
+        }
+        tag.put("successful_completions", encodedCompletions);
         return tag;
     }
 
     static NightmareRegistryData load(CompoundTag tag, HolderLookup.Provider registries) {
         NightmareRegistryData data = new NightmareRegistryData();
         data.nextSlot = Math.max(0, tag.getInt("next_slot"));
-        ListTag encoded = tag.getList("instances", Tag.TAG_COMPOUND);
-        for (int index = 0; index < encoded.size(); index++) {
-            data.restore(NightmareInstance.load(encoded.getCompound(index)));
+
+        ListTag encodedInstances = tag.getList("instances", Tag.TAG_COMPOUND);
+        for (int index = 0; index < encodedInstances.size(); index++) {
+            data.restore(NightmareInstance.load(encodedInstances.getCompound(index)));
+        }
+
+        ListTag encodedCompletions = tag.getList("successful_completions", Tag.TAG_COMPOUND);
+        for (int index = 0; index < encodedCompletions.size(); index++) {
+            data.restoreSuccessfulCompletion(NightmareCompletionRecord.load(encodedCompletions.getCompound(index)));
         }
         return data;
     }
@@ -139,5 +231,21 @@ public final class NightmareRegistryData extends SavedData {
         instances.put(checked.instanceId(), checked);
         instanceByPlayer.put(checked.playerId(), checked.instanceId());
         nextSlot = Math.max(nextSlot, checked.slot() + 1);
+    }
+
+    /** Package-visible restart hook for direct persistence tests. */
+    void restoreSuccessfulCompletion(NightmareCompletionRecord completion) {
+        NightmareCompletionRecord checked = Objects.requireNonNull(completion, "completion");
+        UUID playerId = checked.instance().playerId();
+        if (successfulCompletions.containsKey(playerId)) {
+            throw new IllegalStateException("Player has multiple successful Nightmare receipts in SavedData");
+        }
+        boolean duplicateInstance = successfulCompletions.values().stream()
+                .anyMatch(existing -> existing.instance().instanceId().equals(checked.instance().instanceId()));
+        if (duplicateInstance) {
+            throw new IllegalStateException("Duplicate successful Nightmare instance ID in SavedData");
+        }
+        successfulCompletions.put(playerId, checked);
+        nextSlot = Math.max(nextSlot, checked.instance().slot() + 1);
     }
 }
