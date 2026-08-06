@@ -36,12 +36,14 @@ jobs:
       - name: Run manifest and packaging tests
         run: python3 -m unittest discover -s modpack/tests -v
 
-      - name: Build deterministic fixture package
+      - name: Build and verify deterministic fixture package
         run: |
           printf 'ci-core-fixture' > "$RUNNER_TEMP/shadowslave-core.jar"
           python3 modpack/tools/build_package.py \
             --core-jar "$RUNNER_TEMP/shadowslave-core.jar" \
             --output "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
+          python3 modpack/tools/verify_package.py \
+            "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
           unzip -t "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
           sha256sum "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
 
