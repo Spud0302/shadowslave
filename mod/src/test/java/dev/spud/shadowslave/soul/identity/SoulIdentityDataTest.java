@@ -72,7 +72,7 @@ class SoulIdentityDataTest {
                 .getOrThrow();
 
         assertEquals(original, decoded);
-        assertTrue(encoded.toString().contains("formal_name") == false,
+        assertTrue(!encoded.toString().contains("formal_name"),
                 "an unrevealed name must be absent rather than serialized as invented text");
     }
 
@@ -194,6 +194,30 @@ class SoulIdentityDataTest {
                         "Cold Ash",
                         id("preview/flaw_effect/cold_ash"),
                         "   "
+                )
+        );
+    }
+
+    @Test
+    void compatibilityConstructorsRejectNullInsteadOfInventingUnrevealedState() {
+        assertThrows(
+                NullPointerException.class,
+                () -> new AspectInstanceData(
+                        id("preview/aspect/last_light"),
+                        (String) null,
+                        SoulRank.AWAKENED,
+                        id("preview/nature/ember_resolve"),
+                        id("preview/ability/kindle"),
+                        "test"
+                )
+        );
+        assertThrows(
+                NullPointerException.class,
+                () -> new FlawInstanceData(
+                        id("preview/flaw/cold_ash"),
+                        (String) null,
+                        id("preview/flaw_effect/cold_ash"),
+                        "test"
                 )
         );
     }
