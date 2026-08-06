@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "pack": {
+    "id": "shadowslave-nightmare-spell",
+    "name": "Shadow Slave: Nightmare Spell",
+    "version": "0.0.0-dev",
+    "minecraft_version": "1.21.1",
+    "loader": {
+      "type": "neoforge",
+      "version": "21.1.244"
+    },
+    "java_major": 21
+  },
+  "canonical_state_owner": {
+    "component_id": "shadowslave-core",
+    "mod_id": "shadowslave",
+    "source": "local_gradle_build",
+    "artifact_glob": "mod/build/libs/*.jar"
+  },
+  "components": [],
+  "packaging": {
+    "format": "directory-shell-v1",
+    "include": [
+      "manifest.json",
+      "README.md"
+    ]
+  }
+}
