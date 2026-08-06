@@ -52,7 +52,14 @@ public record AspectInstanceData(
             ResourceLocation abilityId,
             String provenance
     ) {
-        this(instanceId, Optional.ofNullable(formalName), aspectRank, natureId, abilityId, provenance);
+        this(
+                instanceId,
+                Optional.of(Objects.requireNonNull(formalName, "formalName")),
+                aspectRank,
+                natureId,
+                abilityId,
+                provenance
+        );
     }
 
     public String displayedName() {
