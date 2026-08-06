@@ -35,6 +35,11 @@ public final class NightmareEvents {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
+
+        if (NightmareService.resumeSuccessfulCompletion(player)) {
+            return;
+        }
+
         NightmareService.activeFor(player).ifPresent(instance -> {
             if (player.serverLevel().dimension().equals(NightmareService.NIGHTMARE_LEVEL)) {
                 player.sendSystemMessage(Component.literal(
