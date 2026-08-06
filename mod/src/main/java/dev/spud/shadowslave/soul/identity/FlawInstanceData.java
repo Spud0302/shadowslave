@@ -7,18 +7,19 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Objects;
+import java.util.Optional;
 
-/** Persistent revealed Flaw identity; formal name and enforced effect remain separate. */
+/** Persistent drawback identity with a separately revealed formal label. */
 public record FlawInstanceData(
         ResourceLocation instanceId,
-        String formalName,
+        Optional<String> formalName,
         ResourceLocation effectId,
         String provenance
 ) {
     private static final MapCodec<StoredFlawInstanceData> STORED_CODEC =
             RecordCodecBuilder.mapCodec(instance -> instance.group(
                     ResourceLocation.CODEC.fieldOf("instance_id").forGetter(StoredFlawInstanceData::instanceId),
-                    Codec.STRING.fieldOf("formal_name").forGetter(StoredFlawInstanceData::formalName),
+                    Codec.STRING.optionalFieldOf("formal_name").forGetter(StoredFlawInstanceData::formalName),
                     ResourceLocation.CODEC.fieldOf("effect_id").forGetter(StoredFlawInstanceData::effectId),
                     Codec.STRING.fieldOf("provenance").forGetter(StoredFlawInstanceData::provenance)
             ).apply(instance, StoredFlawInstanceData::new));
@@ -30,9 +31,22 @@ public record FlawInstanceData(
 
     public FlawInstanceData {
         instanceId = Objects.requireNonNull(instanceId, "instanceId");
-        formalName = requireText(formalName, "formalName");
+        formalName = normalizeOptionalName(formalName);
         effectId = Objects.requireNonNull(effectId, "effectId");
         provenance = requireText(provenance, "provenance");
+    }
+
+    public FlawInstanceData(
+            ResourceLocation instanceId,
+            String formalName,
+            ResourceLocation effectId,
+            String provenance
+    ) {
+        this(instanceId, Optional.ofNullable(formalName), effectId, provenance);
+    }
+
+    public String displayedName() {
+        return formalName.orElse("");
     }
 
     private static DataResult<FlawInstanceData> construct(StoredFlawInstanceData stored) {
@@ -48,6 +62,18 @@ public record FlawInstanceData(
         }
     }
 
+    private static Optional<String> normalizeOptionalName(Optional<String> value) {
+        Optional<String> checked = Objects.requireNonNull(value, "formalName");
+        if (checked.isEmpty()) {
+            return Optional.empty();
+        }
+        String normalized = checked.orElseThrow().trim();
+        if (normalized.isEmpty()) {
+            throw new IllegalArgumentException("formalName cannot be blank when present");
+        }
+        return Optional.of(normalized);
+    }
+
     private static String requireText(String value, String name) {
         String checked = Objects.requireNonNull(value, name).trim();
         if (checked.isEmpty()) {
@@ -58,7 +84,7 @@ public record FlawInstanceData(
 
     private record StoredFlawInstanceData(
             ResourceLocation instanceId,
-            String formalName,
+            Optional<String> formalName,
             ResourceLocation effectId,
             String provenance
     ) {
