@@ -15,14 +15,16 @@
     "component_id": "shadowslave-core",
     "mod_id": "shadowslave",
     "source": "local_gradle_build",
-    "artifact_glob": "mod/build/libs/*.jar"
+    "artifact_glob": "mod/build/libs/*.jar",
+    "package_path": "mods/shadowslave-core.jar"
   },
   "components": [],
   "packaging": {
-    "format": "directory-shell-v1",
+    "format": "deterministic-zip-v1",
     "include": [
       "README.md",
       "manifest.json"
-    ]
+    ],
+    "output_name": "nightmare-spell-modpack-dev.zip"
   }
 }
