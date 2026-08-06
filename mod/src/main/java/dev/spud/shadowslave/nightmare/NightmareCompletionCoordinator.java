@@ -24,34 +24,22 @@ public final class NightmareCompletionCoordinator {
         if (!checked.appraisalApplied()) {
             throw new IllegalStateException("Successful Nightmare appraisal did not reach the expected state");
         }
-        advanceAndPersist(
-                checked,
-                NightmareCompletionPhase.APPRAISAL_COMMITTED,
-                false,
-                NightmareCompletionFaultPoint.AFTER_APPRAISAL_REGISTRY_SAVE
-        );
+        advanceAndPersist(checked, NightmareCompletionPhase.APPRAISAL_COMMITTED, false,
+                NightmareCompletionFaultPoint.AFTER_APPRAISAL_REGISTRY_SAVE);
 
         if (plan.returnPlayer()) {
             checked.returnPlayer();
             checked.persistPlayer();
             checked.afterDurableBoundary(NightmareCompletionFaultPoint.AFTER_RETURN_PLAYER_SAVE);
         }
-        advanceAndPersist(
-                checked,
-                NightmareCompletionPhase.RETURN_COMMITTED,
-                false,
-                NightmareCompletionFaultPoint.AFTER_RETURN_REGISTRY_SAVE
-        );
+        advanceAndPersist(checked, NightmareCompletionPhase.RETURN_COMMITTED, false,
+                NightmareCompletionFaultPoint.AFTER_RETURN_REGISTRY_SAVE);
 
         if (plan.teardownActiveInstance()) {
             checked.teardownActiveInstance();
         }
-        advanceAndPersist(
-                checked,
-                NightmareCompletionPhase.TEARDOWN_COMMITTED,
-                plan.teardownActiveInstance(),
-                NightmareCompletionFaultPoint.AFTER_TEARDOWN_REGISTRY_SAVE
-        );
+        advanceAndPersist(checked, NightmareCompletionPhase.TEARDOWN_COMMITTED,
+                plan.teardownActiveInstance(), NightmareCompletionFaultPoint.AFTER_TEARDOWN_REGISTRY_SAVE);
     }
 
     private static void advanceAndPersist(
@@ -81,6 +69,7 @@ public final class NightmareCompletionCoordinator {
         void persistRegistry();
 
         default void afterDurableBoundary(NightmareCompletionFaultPoint point) {
+            NightmareCompletionFaultInjector.afterDurableBoundary(point);
         }
     }
 }
