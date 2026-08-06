@@ -48,9 +48,45 @@ jobs:
           sha256sum "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
 
       - name: Upload fixture package
+        id: package-upload
         uses: actions/upload-artifact@v4
         with:
           name: nightmare-spell-modpack-shell
           path: ${{ runner.temp }}/nightmare-spell-modpack-dev.zip
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Create and verify external build provenance
+        env:
+          SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          PACKAGE_ARTIFACT_ID: ${{ steps.package-upload.outputs.artifact-id }}
+          PACKAGE_ARTIFACT_NAME: nightmare-spell-modpack-shell
+        run: |
+          python3 modpack/tools/build_provenance.py create \
+            --archive "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip" \
+            --core-jar "$RUNNER_TEMP/shadowslave-core.jar" \
+            --repository "$GITHUB_REPOSITORY" \
+            --commit-sha "$SOURCE_COMMIT" \
+            --workflow-run-id "$GITHUB_RUN_ID" \
+            --workflow-run-attempt "$GITHUB_RUN_ATTEMPT" \
+            --artifact-id "$PACKAGE_ARTIFACT_ID" \
+            --artifact-name "$PACKAGE_ARTIFACT_NAME" \
+            --output "$RUNNER_TEMP/nightmare-spell-modpack-dev.provenance.json"
+          python3 modpack/tools/build_provenance.py verify \
+            --statement "$RUNNER_TEMP/nightmare-spell-modpack-dev.provenance.json" \
+            --archive "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip" \
+            --core-jar "$RUNNER_TEMP/shadowslave-core.jar" \
+            --expected-repository "$GITHUB_REPOSITORY" \
+            --expected-commit "$SOURCE_COMMIT" \
+            --expected-run-id "$GITHUB_RUN_ID" \
+            --expected-run-attempt "$GITHUB_RUN_ATTEMPT" \
+            --expected-artifact-id "$PACKAGE_ARTIFACT_ID" \
+            --expected-artifact-name "$PACKAGE_ARTIFACT_NAME"
+
+      - name: Upload external build provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightmare-spell-modpack-shell-provenance
+          path: ${{ runner.temp }}/nightmare-spell-modpack-dev.provenance.json
           if-no-files-found: error
           retention-days: 7
