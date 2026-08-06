@@ -130,59 +130,22 @@ public final class NightmareService {
             throw new IllegalStateException("Successful Nightmare receipt belongs to another player");
         }
 
-        NightmareInstance instance = completion.instance();
-        boolean activeOwnershipPresent = registry.findByPlayer(player.getUUID())
-                .map(active -> active.instanceId().equals(instance.instanceId()))
-                .orElse(false);
-        NightmareCompletionRecoveryPlan plan = NightmareCompletionRecoveryPlan.forState(
-                completion.phase(),
-                PreviewAppraisalService.isApplied(player, instance),
-                player.serverLevel().dimension().equals(NIGHTMARE_LEVEL),
-                activeOwnershipPresent
-        );
-
-        if (plan.applyAppraisal()) {
-            PreviewAppraisalService.appraise(player, instance);
-            persistPlayer(player);
-        }
-        if (!PreviewAppraisalService.isApplied(player, instance)) {
-            throw new IllegalStateException("Successful Nightmare appraisal is not durably reconcilable");
-        }
-        completion = advanceAndPersist(
+        ServerCompletionOperations operations = new ServerCompletionOperations(
+                player,
                 server,
                 registry,
-                instance,
-                NightmareCompletionPhase.APPRAISAL_COMMITTED,
-                false
+                completion.instance()
         );
+        boolean recoveryDidWork = !operations.appraisalApplied()
+                || operations.playerInNightmare()
+                || operations.activeOwnershipPresent();
+        NightmareCompletionPhase startingPhase = completion.phase();
 
-        if (plan.returnPlayer()) {
-            teleportToReturn(player, instance, NightmareExitReason.SUCCESS);
-            persistPlayer(player);
-        }
-        completion = advanceAndPersist(
-                server,
-                registry,
-                instance,
-                NightmareCompletionPhase.RETURN_COMMITTED,
-                false
-        );
+        NightmareCompletionCoordinator.resume(operations);
+        NightmareCompletionRecord finished = registry.findSuccessfulCompletionByPlayer(player.getUUID())
+                .orElseThrow(() -> new IllegalStateException("Successful Nightmare receipt disappeared"));
 
-        if (plan.teardownActiveInstance()) {
-            teardown(server, instance);
-        }
-        NightmareCompletionRecord finished = advanceAndPersist(
-                server,
-                registry,
-                instance,
-                NightmareCompletionPhase.TEARDOWN_COMMITTED,
-                plan.teardownActiveInstance()
-        );
-
-        if (completion.phase() != NightmareCompletionPhase.TEARDOWN_COMMITTED
-                || plan.applyAppraisal()
-                || plan.returnPlayer()
-                || plan.teardownActiveInstance()) {
+        if (startingPhase != NightmareCompletionPhase.TEARDOWN_COMMITTED || recoveryDidWork) {
             player.sendSystemMessage(Component.literal(
                     "The signal answers. The Spell appraises the life you lived in the borrowed role."
             ).withStyle(ChatFormatting.LIGHT_PURPLE));
@@ -193,7 +156,7 @@ public final class NightmareService {
 
         ShadowSlaveMod.LOGGER.info(
                 "Nightmare {} successful completion reconciled for player {} at phase {}",
-                instance.instanceId(),
+                completion.instance().instanceId(),
                 player.getScoreboardName(),
                 finished.phase()
         );
@@ -284,23 +247,6 @@ public final class NightmareService {
         return instance;
     }
 
-    private static NightmareCompletionRecord advanceAndPersist(
-            MinecraftServer server,
-            NightmareRegistryData registry,
-            NightmareInstance instance,
-            NightmareCompletionPhase target,
-            boolean forcePersist
-    ) {
-        NightmareCompletionPhase before = registry.findSuccessfulCompletionByPlayer(instance.playerId())
-                .orElseThrow(() -> new IllegalStateException("Successful Nightmare receipt disappeared"))
-                .phase();
-        NightmareCompletionRecord advanced = registry.advanceSuccessfulCompletion(instance, target);
-        if (forcePersist || advanced.phase() != before) {
-            persistRegistry(server);
-        }
-        return advanced;
-    }
-
     private static void teleportToReturn(
             ServerPlayer player,
             NightmareInstance instance,
@@ -355,6 +301,67 @@ public final class NightmareService {
 
     private static void persistPlayer(ServerPlayer player) {
         player.getServer().getPlayerList().save(player);
+    }
+
+    private record ServerCompletionOperations(
+            ServerPlayer player,
+            MinecraftServer server,
+            NightmareRegistryData registry,
+            NightmareInstance instance
+    ) implements NightmareCompletionCoordinator.Operations {
+        @Override
+        public NightmareCompletionPhase phase() {
+            return registry.findSuccessfulCompletionByPlayer(player.getUUID())
+                    .orElseThrow(() -> new IllegalStateException("Successful Nightmare receipt disappeared"))
+                    .phase();
+        }
+
+        @Override
+        public boolean appraisalApplied() {
+            return PreviewAppraisalService.isApplied(player, instance);
+        }
+
+        @Override
+        public boolean playerInNightmare() {
+            return player.serverLevel().dimension().equals(NIGHTMARE_LEVEL);
+        }
+
+        @Override
+        public boolean activeOwnershipPresent() {
+            return registry.findByPlayer(player.getUUID())
+                    .map(active -> active.instanceId().equals(instance.instanceId()))
+                    .orElse(false);
+        }
+
+        @Override
+        public void applyAppraisal() {
+            PreviewAppraisalService.appraise(player, instance);
+        }
+
+        @Override
+        public void returnPlayer() {
+            teleportToReturn(player, instance, NightmareExitReason.SUCCESS);
+        }
+
+        @Override
+        public void teardownActiveInstance() {
+            teardown(server, instance);
+        }
+
+        @Override
+        public void advancePhase(NightmareCompletionPhase target) {
+            registry.advanceSuccessfulCompletion(instance, target);
+        }
+
+        @Override
+        public void persistPlayer() {
+            NightmareService.persistPlayer(player);
+        }
+
+        @Override
+        public void persistRegistry() {
+            NightmareService.persistRegistry(server);
+        }
     }
 
     private static ResourceLocation id(String path) {
