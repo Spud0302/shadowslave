@@ -55,6 +55,7 @@ Observed state determines which idempotent action still needs to run:
 - persisted reconstruction rejects a player whose active Nightmare instance differs from the instance named by that player's retained successful-completion receipt;
 - persisted reconstruction also rejects one Nightmare instance UUID being assigned to different players across active ownership and retained completion state;
 - persisted reconstruction treats each allocated scenario slot as belonging to one instance UUID across active and retained completion state;
+- persisted reconstruction requires an active instance and its retained completion snapshot to agree on the persisted scenario `origin` and `altar` when both records exist;
 - an active instance cannot change its allocated slot through `update`;
 - phase markers advance monotonically and cannot skip a milestone;
 - unrelated Soul or identity state is rejected rather than overwritten;
@@ -66,6 +67,8 @@ Instance UUIDs are likewise global persisted identities, not merely keys local t
 
 Slots are persistent physical namespaces in the current preview: `LastSignalScenario.originForSlot` maps a slot directly to a separated region of the shared Nightmare dimension. The allocator is monotonic and retained completion receipts keep the original slot, so two different instance UUIDs claiming one slot is not a supported historical state. Allowing it could make restart reconstruction accept overlapping scenario geometry or make later ownership/history disagree about which instance owns that region. Reconstruction therefore rejects duplicate slot ownership across active instances and retained receipts, while still allowing one active instance and its own receipt to carry the same slot during normal completion recovery.
 
+The completion receipt is a snapshot of the same active instance at terminal resolution, so its persisted layout cannot legitimately diverge from the still-active record before teardown. If `origin` or `altar` differs for the same player, instance UUID and slot, recovery no longer has one unambiguous physical scenario location: interaction checks, entity cleanup and future geometry reconstruction could target different places depending on which record is read. Reconstruction therefore rejects that split state in either load order rather than choosing one layout. This is a persistence **DESIGN** invariant; it does not assert a lore rule about Nightmare geometry.
+
 `PreviewAppraisalService` accepts the exact already-appraised state and repairs only the two safe split states:
 
 1. expected identity present while the Soul is still Aspirant;
@@ -75,7 +78,7 @@ It does not replace unrelated progression or identity.
 
 ## Automated evidence
 
-`NightmareRegistryDataTest` now proves:
+`NightmareRegistryDataTest` and `NightmareRegistryLayoutRecoveryTest` now prove:
 
 - completion receipts round-trip at every phase;
 - active ownership remains available until teardown commit;
@@ -85,6 +88,7 @@ It does not replace unrelated progression or identity.
 - a retained completion receipt cannot coexist with a different active instance for the same player, regardless of reconstruction order;
 - one instance UUID cannot belong to different players across active and completed state, regardless of reconstruction order;
 - one physical slot cannot belong to different instance UUIDs across active or retained completion state;
+- the same active/completed instance cannot disagree on persisted `origin` or `altar`, regardless of reconstruction order;
 - registered active instances cannot move to another allocated slot through the update path.
 
 `NightmareCompletionRecoveryPlanTest` proves that replay actions follow actual durable player/registry state rather than phase alone.
