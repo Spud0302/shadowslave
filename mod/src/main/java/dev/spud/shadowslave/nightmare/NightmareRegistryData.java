@@ -209,7 +209,7 @@ public final class NightmareRegistryData extends SavedData {
         return removeByPlayer(checked.playerId());
     }
 
-    public Optional<NightmareInstance> removeByPlayer(UUID playerId) {
+    private Optional<NightmareInstance> removeByPlayer(UUID playerId) {
         UUID instanceId = instanceByPlayer.remove(playerId);
         if (instanceId == null) {
             return Optional.empty();
