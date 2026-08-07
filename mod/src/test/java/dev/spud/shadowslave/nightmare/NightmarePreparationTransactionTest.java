@@ -3,6 +3,7 @@ package dev.spud.shadowslave.nightmare;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -63,5 +64,32 @@ class NightmarePreparationTransactionTest {
         assertSame(failure, thrown);
         assertEquals(1, thrown.getSuppressed().length);
         assertSame(rollbackFailure, thrown.getSuppressed()[0]);
+    }
+
+    @Test
+    void rollbackAllContinuesAfterAnEarlierCleanupStepFails() {
+        AtomicInteger stepsRun = new AtomicInteger();
+        IllegalStateException firstFailure = new IllegalStateException("discard failed");
+        IllegalArgumentException secondFailure = new IllegalArgumentException("clear failed");
+
+        IllegalStateException thrown = assertThrows(
+                IllegalStateException.class,
+                () -> NightmarePreparationTransaction.rollbackAll(
+                        () -> {
+                            stepsRun.incrementAndGet();
+                            throw firstFailure;
+                        },
+                        () -> {
+                            stepsRun.incrementAndGet();
+                            throw secondFailure;
+                        },
+                        stepsRun::incrementAndGet
+                )
+        );
+
+        assertEquals(3, stepsRun.get());
+        assertSame(firstFailure, thrown);
+        assertEquals(1, thrown.getSuppressed().length);
+        assertSame(secondFailure, thrown.getSuppressed()[0]);
     }
 }
