@@ -45,6 +45,18 @@ class NightmareRegistryRecoveryIdentityTest {
         assertRejectedInBothOrders(active, receipt(completed));
     }
 
+    @Test
+    void runtimeUpdateCannotRewritePersistentRecoveryIdentity() {
+        NightmareInstance active = baseInstance();
+        NightmareRegistryData registry = new NightmareRegistryData();
+        registry.restore(active);
+        NightmareInstance rewritten = copy(active, "other_scenario", active.historicalRoleId(), active.returnDimension(),
+                active.returnX(), active.returnY(), active.returnZ(), active.returnYaw(), active.returnPitch(), active.createdGameTime());
+
+        assertThrows(IllegalStateException.class, () -> registry.update(rewritten));
+        assertEquals(active, registry.findByPlayer(active.playerId()).orElseThrow());
+    }
+
     private static void assertRejectedInBothOrders(NightmareInstance active, NightmareCompletionRecord receipt) {
         UUID playerId = active.playerId();
 
