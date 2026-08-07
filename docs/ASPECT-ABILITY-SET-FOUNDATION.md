@@ -1,6 +1,6 @@
 # Aspect ability-set foundation
 
-**Status:** persistent Java identity migration stacked on PR #42.
+**Status:** persistent Java identity migration stacked on PR #42, with provider authorization migrating to set membership.
 
 ## Lore evidence
 
@@ -27,13 +27,19 @@ The codec accepts exactly one storage shape:
 
 Supplying both forms or neither form fails closed. New encoding writes only `abilities`; it does not preserve the obsolete scalar field. Existing Java call sites remain source-compatible through the old constructor and `abilityId()` accessor, both of which represent only the first compatibility ability and are deliberately temporary.
 
+## Provider authorization
+
+Provider execution must authorize a stable ability ID by membership in `AspectAbilitySetData`; list position is not an authorization rule. The fixed Kindle preview now follows that boundary, so a valid Kindle entry remains executable when it is not the first ability in the ordered set.
+
+This is **COMPATIBILITY** behavior preservation for the existing preview mechanic, not a claim that canon defines Java collection lookup or ability-provider dispatch.
+
 ## Evidence boundary
 
-The migration preserves stable ability identity without claiming historical facts absent from old saves. It does not infer an innate/rank-granted category, acquisition rank, evolution history, or natural-awakening discovery order.
+The migration preserves stable ability identity without claiming historical facts absent from old saves. It does not infer an innate/rank-granted category, acquisition rank, evolution history, natural-awakening discovery order, or provider execution formula.
 
 ## Follow-up
 
-1. update snapshots and provider authorization to query the set directly;
+1. update client snapshots to expose the ability set without making list position semantically privileged;
 2. remove the scalar compatibility accessor only after all call sites and stored fixtures are migrated;
 3. add explicit evolution metadata only after a separately researched schema decision;
 4. keep exceptional ability categories and natural-awakening ordering `UNKNOWN` until evidence supports a model.
