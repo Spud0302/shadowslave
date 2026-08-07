@@ -59,13 +59,15 @@ public final class LastSignalScenario {
 
                     return instance.withLayout(origin, altar).withPursuer(pursuer.getUUID());
                 },
-                () -> {
-                    Husk pursuer = createdPursuer[0];
-                    if (pursuer != null) {
-                        pursuer.discard();
-                    }
-                    clearVolume(level, origin);
-                }
+                () -> NightmarePreparationTransaction.rollbackAll(
+                        () -> {
+                            Husk pursuer = createdPursuer[0];
+                            if (pursuer != null) {
+                                pursuer.discard();
+                            }
+                        },
+                        () -> clearVolume(level, origin)
+                )
         );
     }
 
