@@ -42,6 +42,9 @@ public record AspectAbilityData(
         if (kind == AspectAbilityKind.RANK_GRANTED && acquisitionRank.isEmpty()) {
             throw new IllegalArgumentException("A rank-granted Aspect ability requires an acquisition rank");
         }
+        if (kind == AspectAbilityKind.LEGACY_UNCLASSIFIED && acquisitionRank.isPresent()) {
+            throw new IllegalArgumentException("A legacy-unclassified Aspect ability cannot invent an acquisition rank");
+        }
     }
 
     public static AspectAbilityData innate(ResourceLocation abilityId, String provenance) {
@@ -57,6 +60,15 @@ public record AspectAbilityData(
                 abilityId,
                 AspectAbilityKind.RANK_GRANTED,
                 Optional.of(Objects.requireNonNull(acquisitionRank, "acquisitionRank")),
+                provenance
+        );
+    }
+
+    public static AspectAbilityData legacyUnclassified(ResourceLocation abilityId, String provenance) {
+        return new AspectAbilityData(
+                abilityId,
+                AspectAbilityKind.LEGACY_UNCLASSIFIED,
+                Optional.empty(),
                 provenance
         );
     }
