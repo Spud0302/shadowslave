@@ -56,6 +56,7 @@ Observed state determines which idempotent action still needs to run:
 - persisted reconstruction also rejects one Nightmare instance UUID being assigned to different players across active ownership and retained completion state;
 - persisted reconstruction treats each allocated scenario slot as belonging to one instance UUID across active and retained completion state;
 - an active instance cannot change its allocated slot through `update`;
+- persisted Last Signal instances must use the exact origin and altar derived from their allocated slot;
 - phase markers advance monotonically and cannot skip a milestone;
 - unrelated Soul or identity state is rejected rather than overwritten;
 - `preview_reset` explicitly clears the retained receipt before publishing the reset snapshot.
@@ -65,6 +66,8 @@ The cross-instance reconstruction check is deliberately fail-closed. Without it,
 Instance UUIDs are likewise global persisted identities, not merely keys local to one map. If active ownership for Alice and a retained completion receipt for Bob claim the same instance UUID, exact-instance recovery and audit history become contradictory. The supported transaction cannot create that state, so reconstruction rejects it in either load order rather than choosing one owner.
 
 Slots are persistent physical namespaces in the current preview: `LastSignalScenario.originForSlot` maps a slot directly to a separated region of the shared Nightmare dimension. The allocator is monotonic and retained completion receipts keep the original slot, so two different instance UUIDs claiming one slot is not a supported historical state. Allowing it could make restart reconstruction accept overlapping scenario geometry or make later ownership/history disagree about which instance owns that region. Reconstruction therefore rejects duplicate slot ownership across active instances and retained receipts, while still allowing one active instance and its own receipt to carry the same slot during normal completion recovery.
+
+The Last Signal has an additional scenario-specific **DESIGN** invariant: its `origin` is exactly `originForSlot(slot)` and its `altar` is exactly `altarForOrigin(origin)`. Those persisted coordinates are consumed by player interaction and recovery/teardown logic, so accepting a different coordinate pair for the same slot would let one logical instance point at another physical namespace even when UUID and slot ownership are otherwise valid. `NightmareInstance` therefore validates this mapping when Last Signal state is encoded or decoded. Unknown/future scenario IDs are deliberately not subjected to this rule; they must define their own layout contract rather than inheriting Last Signal geometry by accident.
 
 `PreviewAppraisalService` accepts the exact already-appraised state and repairs only the two safe split states:
 
@@ -86,6 +89,13 @@ It does not replace unrelated progression or identity.
 - one instance UUID cannot belong to different players across active and completed state, regardless of reconstruction order;
 - one physical slot cannot belong to different instance UUIDs across active or retained completion state;
 - registered active instances cannot move to another allocated slot through the update path.
+
+`NightmareInstancePersistenceTest` proves:
+
+- a valid Last Signal instance round-trips with its slot-derived layout;
+- encoding rejects an origin or altar that drifts from the allocated slot;
+- decoding rejects persisted origin or altar drift;
+- an unknown future scenario is not silently forced into Last Signal's geometry contract.
 
 `NightmareCompletionRecoveryPlanTest` proves that replay actions follow actual durable player/registry state rather than phase alone.
 
