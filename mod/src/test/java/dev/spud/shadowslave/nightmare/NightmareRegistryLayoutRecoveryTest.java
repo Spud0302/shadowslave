@@ -51,6 +51,25 @@ class NightmareRegistryLayoutRecoveryTest {
         assertRejectedInBothOrders(active, receipt);
     }
 
+    @Test
+    void runtimeUpdateCannotMoveLayoutAfterCompletionReceiptIsRecorded() {
+        UUID instanceId = UUID.randomUUID();
+        UUID playerId = UUID.randomUUID();
+        BlockPos origin = new BlockPos(1152, 96, 0);
+        NightmareInstance active = instance(instanceId, playerId, 6, origin);
+        NightmareRegistryData registry = new NightmareRegistryData();
+        registry.restore(active);
+        NightmareCompletionRecord receipt = registry.beginSuccessfulCompletion(active, 1000L);
+        NightmareInstance moved = active.withLayout(
+                origin.offset(1, 0, 0),
+                LastSignalScenario.altarForOrigin(origin).offset(1, 0, 0)
+        );
+
+        assertThrows(IllegalStateException.class, () -> registry.update(moved));
+        assertEquals(active, registry.findByPlayer(playerId).orElseThrow());
+        assertEquals(receipt, registry.findSuccessfulCompletionByPlayer(playerId).orElseThrow());
+    }
+
     private static void assertRejectedInBothOrders(
             NightmareInstance active,
             NightmareCompletionRecord receipt
