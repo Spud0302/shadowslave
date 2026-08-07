@@ -71,7 +71,7 @@ class NightmareRegistryLayoutRecoveryTest {
     }
 
     @Test
-    void runtimeUpdateMayStillChangeOperationalPursuerStateAfterReceipt() {
+    void runtimeUpdateCannotChangePursuerAfterCompletionReceiptIsRecorded() {
         UUID instanceId = UUID.randomUUID();
         UUID playerId = UUID.randomUUID();
         BlockPos origin = new BlockPos(1344, 96, 0);
@@ -81,9 +81,9 @@ class NightmareRegistryLayoutRecoveryTest {
         NightmareCompletionRecord receipt = registry.beginSuccessfulCompletion(active, 1100L);
         NightmareInstance updated = active.withPursuer(UUID.randomUUID());
 
-        registry.update(updated);
+        assertThrows(IllegalStateException.class, () -> registry.update(updated));
 
-        assertEquals(updated, registry.findByPlayer(playerId).orElseThrow());
+        assertEquals(active, registry.findByPlayer(playerId).orElseThrow());
         assertEquals(receipt, registry.findSuccessfulCompletionByPlayer(playerId).orElseThrow());
     }
 
