@@ -38,6 +38,11 @@ public final class NightmareService {
         if (beforeSoul.spellState() != SpellState.CARRIER) {
             throw new IllegalStateException("Only a Carrier can enter the preview First Nightmare");
         }
+        if (!entryOriginAllowed(player.serverLevel().dimension())) {
+            throw new IllegalStateException(
+                    "Cannot start a new Nightmare while already inside the Nightmare dimension"
+            );
+        }
 
         MinecraftServer server = player.getServer();
         NightmareRegistryData registry = NightmareRegistryData.get(server);
@@ -98,6 +103,10 @@ public final class NightmareService {
                     exception
             );
         }
+    }
+
+    static boolean entryOriginAllowed(ResourceKey<Level> actualDimension) {
+        return !NIGHTMARE_LEVEL.equals(Objects.requireNonNull(actualDimension, "actualDimension"));
     }
 
     static boolean entryTeleportCommitted(ResourceKey<Level> actualDimension) {
@@ -385,12 +394,6 @@ public final class NightmareService {
         @Override
         public boolean playerInNightmare() {
             return player.serverLevel().dimension().equals(NIGHTMARE_LEVEL);
-        }
-
-        @Override
-        public boolean returnDestinationReached() {
-            ResourceKey<Level> returnKey = ResourceKey.create(Registries.DIMENSION, instance.returnDimension());
-            return player.serverLevel().dimension().equals(returnKey);
         }
 
         @Override
