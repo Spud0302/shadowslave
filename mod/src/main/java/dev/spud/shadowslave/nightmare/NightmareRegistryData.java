@@ -99,6 +99,13 @@ public final class NightmareRegistryData extends SavedData {
             throw new IllegalStateException("Cannot change a Nightmare instance's allocated slot");
         }
         ensureSamePersistentIdentity(existing, instance);
+        NightmareCompletionRecord completion = successfulCompletions.get(instance.playerId());
+        if (completion != null) {
+            if (!completion.instance().instanceId().equals(instance.instanceId())) {
+                throw new IllegalStateException("Player retained successful completion belongs to another Nightmare");
+            }
+            ensureSameInstanceRecoveryIdentity(instance, completion.instance());
+        }
         ensureSlotOwnedOnlyBy(instance.slot(), instance.instanceId());
         instances.put(instance.instanceId(), instance);
         instanceByPlayer.put(instance.playerId(), instance.instanceId());
