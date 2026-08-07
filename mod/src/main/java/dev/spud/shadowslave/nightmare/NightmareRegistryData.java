@@ -237,6 +237,11 @@ public final class NightmareRegistryData extends SavedData {
                     "Player active Nightmare does not match retained successful completion in SavedData"
             );
         }
+        if (completion != null && completion.instance().slot() != checked.slot()) {
+            throw new IllegalStateException(
+                    "Active Nightmare and retained successful completion disagree on the instance slot"
+            );
+        }
         boolean completionUsesInstanceForAnotherPlayer = successfulCompletions.values().stream()
                 .anyMatch(existing -> existing.instance().instanceId().equals(checked.instanceId())
                         && !existing.instance().playerId().equals(checked.playerId()));
@@ -268,6 +273,11 @@ public final class NightmareRegistryData extends SavedData {
         if (activeWithSameInstanceId != null && !activeWithSameInstanceId.playerId().equals(playerId)) {
             throw new IllegalStateException(
                     "Nightmare instance ID belongs to another player's active Nightmare in SavedData"
+            );
+        }
+        if (activeWithSameInstanceId != null && activeWithSameInstanceId.slot() != checked.instance().slot()) {
+            throw new IllegalStateException(
+                    "Retained successful completion and active Nightmare disagree on the instance slot"
             );
         }
         UUID activeInstanceId = instanceByPlayer.get(playerId);
