@@ -74,7 +74,10 @@ public final class NightmareService {
                     0.0F,
                     0.0F
             );
-            teleportCommitted = true;
+            teleportCommitted = entryTeleportCommitted(player.serverLevel().dimension());
+            if (!teleportCommitted) {
+                throw new IllegalStateException("Nightmare entry teleport returned without moving the player into the Nightmare dimension");
+            }
             player.sendSystemMessage(Component.literal("First Nightmare — The Last Signal")
                     .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD));
             player.sendSystemMessage(Component.literal(
@@ -95,6 +98,10 @@ public final class NightmareService {
                     exception
             );
         }
+    }
+
+    static boolean entryTeleportCommitted(ResourceKey<Level> actualDimension) {
+        return NIGHTMARE_LEVEL.equals(Objects.requireNonNull(actualDimension, "actualDimension"));
     }
 
     static boolean shouldRollbackFailedEntry(boolean teleportCommitted) {
