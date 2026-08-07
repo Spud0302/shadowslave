@@ -48,28 +48,6 @@ public record AspectInstanceData(
         provenance = requireText(provenance, "provenance");
     }
 
-    /** Source-compatible constructor for current single-ability call sites during migration. */
-    public AspectInstanceData(
-            ResourceLocation instanceId,
-            String formalName,
-            SoulRank aspectRank,
-            ResourceLocation natureId,
-            ResourceLocation abilityId,
-            String provenance
-    ) {
-        this(
-                instanceId,
-                formalName,
-                aspectRank,
-                natureId,
-                new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
-                        abilityId,
-                        "compatibility: legacy single AspectInstanceData ability"
-                ))),
-                provenance
-        );
-    }
-
     private static DataResult<AspectInstanceData> construct(StoredAspectInstanceData stored) {
         try {
             boolean hasAbilities = stored.abilities().isPresent();
