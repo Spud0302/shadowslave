@@ -165,6 +165,31 @@ class NightmareRegistryDataTest {
     }
 
     @Test
+    void corruptRestartDataRejectsDifferentSlotsForTheSameActiveAndCompletedInstance() {
+        UUID instanceId = UUID.randomUUID();
+        UUID playerId = UUID.randomUUID();
+        NightmareInstance active = instance(instanceId, playerId, 4, 10.0, UUID.randomUUID());
+        NightmareInstance completedSnapshot = instance(instanceId, playerId, 5, 10.0, UUID.randomUUID());
+        NightmareCompletionRecord receipt = new NightmareCompletionRecord(
+                completedSnapshot,
+                NightmareCompletionPhase.TERMINAL_RESOLUTION_RECORDED,
+                100L
+        );
+
+        NightmareRegistryData activeFirst = new NightmareRegistryData();
+        activeFirst.restore(active);
+        assertThrows(IllegalStateException.class, () -> activeFirst.restoreSuccessfulCompletion(receipt));
+        assertEquals(active, activeFirst.findByPlayer(playerId).orElseThrow());
+        assertTrue(activeFirst.findSuccessfulCompletionByPlayer(playerId).isEmpty());
+
+        NightmareRegistryData receiptFirst = new NightmareRegistryData();
+        receiptFirst.restoreSuccessfulCompletion(receipt);
+        assertThrows(IllegalStateException.class, () -> receiptFirst.restore(active));
+        assertEquals(receipt, receiptFirst.findSuccessfulCompletionByPlayer(playerId).orElseThrow());
+        assertTrue(receiptFirst.findByPlayer(playerId).isEmpty());
+    }
+
+    @Test
     void corruptRestartDataCannotReplaceAnExistingOwnerInstanceOrReceipt() {
         UUID aliceId = UUID.randomUUID();
         UUID sharedInstanceId = UUID.randomUUID();
