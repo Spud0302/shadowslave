@@ -89,6 +89,7 @@ public final class NightmareRegistryData extends SavedData {
         if (existing.slot() != instance.slot()) {
             throw new IllegalStateException("Cannot change a Nightmare instance's allocated slot");
         }
+        ensureSamePersistentIdentity(existing, instance);
         ensureSlotOwnedOnlyBy(instance.slot(), instance.instanceId());
         instances.put(instance.instanceId(), instance);
         instanceByPlayer.put(instance.playerId(), instance.instanceId());
@@ -297,20 +298,22 @@ public final class NightmareRegistryData extends SavedData {
         nextSlot = Math.max(nextSlot, checked.instance().slot() + 1);
     }
 
-    private static void ensureSameInstanceRecoveryIdentity(NightmareInstance active, NightmareInstance completed) {
-        if (!active.scenarioId().equals(completed.scenarioId())
-                || !active.historicalRoleId().equals(completed.historicalRoleId())
-                || !active.returnDimension().equals(completed.returnDimension())
-                || Double.compare(active.returnX(), completed.returnX()) != 0
-                || Double.compare(active.returnY(), completed.returnY()) != 0
-                || Double.compare(active.returnZ(), completed.returnZ()) != 0
-                || Float.compare(active.returnYaw(), completed.returnYaw()) != 0
-                || Float.compare(active.returnPitch(), completed.returnPitch()) != 0
-                || active.createdGameTime() != completed.createdGameTime()) {
-            throw new IllegalStateException(
-                    "Active Nightmare and retained successful completion disagree on persisted recovery identity"
-            );
+    private static void ensureSamePersistentIdentity(NightmareInstance expected, NightmareInstance actual) {
+        if (!expected.scenarioId().equals(actual.scenarioId())
+                || !expected.historicalRoleId().equals(actual.historicalRoleId())
+                || !expected.returnDimension().equals(actual.returnDimension())
+                || Double.compare(expected.returnX(), actual.returnX()) != 0
+                || Double.compare(expected.returnY(), actual.returnY()) != 0
+                || Double.compare(expected.returnZ(), actual.returnZ()) != 0
+                || Float.compare(expected.returnYaw(), actual.returnYaw()) != 0
+                || Float.compare(expected.returnPitch(), actual.returnPitch()) != 0
+                || expected.createdGameTime() != actual.createdGameTime()) {
+            throw new IllegalStateException("Cannot change a Nightmare instance's persistent recovery identity");
         }
+    }
+
+    private static void ensureSameInstanceRecoveryIdentity(NightmareInstance active, NightmareInstance completed) {
+        ensureSamePersistentIdentity(active, completed);
         if (!active.origin().equals(completed.origin()) || !active.altar().equals(completed.altar())) {
             throw new IllegalStateException(
                     "Active Nightmare and retained successful completion disagree on persisted scenario layout"
