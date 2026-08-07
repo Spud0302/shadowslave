@@ -146,6 +146,9 @@ public final class NightmareRegistryData extends SavedData {
         if (existing == null || !existing.instance().instanceId().equals(checked.instanceId())) {
             throw new IllegalStateException("No matching successful Nightmare completion receipt exists");
         }
+        if (!existing.instance().equals(checked)) {
+            throw new IllegalStateException("Cannot advance completion from a stale or modified Nightmare instance snapshot");
+        }
         if (checkedTarget.ordinal() <= existing.phase().ordinal()) {
             return existing;
         }
@@ -176,6 +179,13 @@ public final class NightmareRegistryData extends SavedData {
         UUID registeredInstanceId = instanceByPlayer.get(checked.playerId());
         if (!checked.instanceId().equals(registeredInstanceId)) {
             return Optional.empty();
+        }
+        NightmareInstance registered = instances.get(registeredInstanceId);
+        if (registered == null) {
+            return Optional.empty();
+        }
+        if (!registered.equals(checked)) {
+            throw new IllegalStateException("Cannot remove a stale or modified Nightmare instance snapshot");
         }
         return removeByPlayer(checked.playerId());
     }
