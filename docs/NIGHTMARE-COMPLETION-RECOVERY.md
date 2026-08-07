@@ -52,9 +52,12 @@ Observed state determines which idempotent action still needs to run:
 - appraisal is replayed only when the exact expected Dreamer Soul and fixed preview identity are absent;
 - return is replayed only while the player is still in the Nightmare dimension;
 - teardown is replayed only while the exact active ownership remains;
+- persisted reconstruction rejects a player whose active Nightmare instance differs from the instance named by that player's retained successful-completion receipt;
 - phase markers advance monotonically and cannot skip a milestone;
 - unrelated Soul or identity state is rejected rather than overwritten;
 - `preview_reset` explicitly clears the retained receipt before publishing the reset snapshot.
+
+The cross-instance reconstruction check is deliberately fail-closed. Without it, corrupted SavedData could retain completion X while also restoring a newer active Nightmare Y for the same player. Completion recovery would correctly refuse to tear down Y, but could still return the player using X's recorded return location and then suppress normal active-instance login handling. The supported transaction never creates that pairing, so recovery must reject it instead of guessing which instance owns the player.
 
 `PreviewAppraisalService` accepts the exact already-appraised state and repairs only the two safe split states:
 
@@ -71,7 +74,8 @@ It does not replace unrelated progression or identity.
 - active ownership remains available until teardown commit;
 - the receipt survives after active ownership is consumed;
 - phase progression is ordered and replay-idempotent;
-- duplicate owners, instance IDs and receipts fail closed.
+- duplicate owners, instance IDs and receipts fail closed;
+- a retained completion receipt cannot coexist with a different active instance for the same player, regardless of reconstruction order.
 
 `NightmareCompletionRecoveryPlanTest` proves that replay actions follow actual durable player/registry state rather than phase alone.
 
