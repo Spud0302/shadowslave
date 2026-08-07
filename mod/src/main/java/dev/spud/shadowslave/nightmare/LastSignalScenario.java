@@ -37,22 +37,36 @@ public final class LastSignalScenario {
     ) {
         BlockPos origin = originForSlot(instance.slot());
         BlockPos altar = altarForOrigin(origin);
-        clearVolume(level, origin);
-        buildRoadAndWatch(level, origin, altar);
+        Husk[] createdPursuer = new Husk[1];
 
-        Husk pursuer = EntityType.HUSK.create(level);
-        if (pursuer == null) {
-            throw new IllegalStateException("Could not create Last Signal pursuer");
-        }
-        pursuer.moveTo(origin.getX() + 0.5, origin.getY() + 1.0, origin.getZ() + 18.5, 180.0F, 0.0F);
-        pursuer.setPersistenceRequired();
-        pursuer.setTarget(player);
-        pursuer.addTag("shadowslave_preview_pursuer");
-        if (!level.addFreshEntity(pursuer)) {
-            throw new IllegalStateException("Could not add Last Signal pursuer to the Nightmare level");
-        }
+        return NightmarePreparationTransaction.run(
+                () -> {
+                    clearVolume(level, origin);
+                    buildRoadAndWatch(level, origin, altar);
 
-        return instance.withLayout(origin, altar).withPursuer(pursuer.getUUID());
+                    Husk pursuer = EntityType.HUSK.create(level);
+                    if (pursuer == null) {
+                        throw new IllegalStateException("Could not create Last Signal pursuer");
+                    }
+                    createdPursuer[0] = pursuer;
+                    pursuer.moveTo(origin.getX() + 0.5, origin.getY() + 1.0, origin.getZ() + 18.5, 180.0F, 0.0F);
+                    pursuer.setPersistenceRequired();
+                    pursuer.setTarget(player);
+                    pursuer.addTag("shadowslave_preview_pursuer");
+                    if (!level.addFreshEntity(pursuer)) {
+                        throw new IllegalStateException("Could not add Last Signal pursuer to the Nightmare level");
+                    }
+
+                    return instance.withLayout(origin, altar).withPursuer(pursuer.getUUID());
+                },
+                () -> {
+                    Husk pursuer = createdPursuer[0];
+                    if (pursuer != null) {
+                        pursuer.discard();
+                    }
+                    clearVolume(level, origin);
+                }
+        );
     }
 
     public static boolean igniteAltar(ServerLevel level, NightmareInstance instance) {
