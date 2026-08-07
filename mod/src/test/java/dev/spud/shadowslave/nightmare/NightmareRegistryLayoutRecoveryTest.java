@@ -70,6 +70,23 @@ class NightmareRegistryLayoutRecoveryTest {
         assertEquals(receipt, registry.findSuccessfulCompletionByPlayer(playerId).orElseThrow());
     }
 
+    @Test
+    void runtimeUpdateMayStillChangeOperationalPursuerStateAfterReceipt() {
+        UUID instanceId = UUID.randomUUID();
+        UUID playerId = UUID.randomUUID();
+        BlockPos origin = new BlockPos(1344, 96, 0);
+        NightmareInstance active = instance(instanceId, playerId, 7, origin);
+        NightmareRegistryData registry = new NightmareRegistryData();
+        registry.restore(active);
+        NightmareCompletionRecord receipt = registry.beginSuccessfulCompletion(active, 1100L);
+        NightmareInstance updated = active.withPursuer(UUID.randomUUID());
+
+        registry.update(updated);
+
+        assertEquals(updated, registry.findByPlayer(playerId).orElseThrow());
+        assertEquals(receipt, registry.findSuccessfulCompletionByPlayer(playerId).orElseThrow());
+    }
+
     private static void assertRejectedInBothOrders(
             NightmareInstance active,
             NightmareCompletionRecord receipt
