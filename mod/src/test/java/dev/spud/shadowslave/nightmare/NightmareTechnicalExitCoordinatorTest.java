@@ -7,35 +7,51 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NightmareTechnicalExitCoordinatorTest {
     @Test
-    void restartAfterReceiptClearReplaysFromActiveOwnership() {
+    void restartAfterIntentSaveReplaysTechnicalExit() {
+        FakeOperations operations = new FakeOperations(Checkpoint.AFTER_INTENT_SAVE);
+
+        runToCompletionAcrossCrash(operations);
+
+        assertFalse(operations.durableTechnicalExitIntentPresent);
+        assertFalse(operations.durableCompletionReceiptPresent);
+        assertTrue(operations.durablePlayerReset);
+        assertFalse(operations.durableActiveOwnershipPresent);
+    }
+
+    @Test
+    void restartAfterReceiptClearReplaysFromDurableTechnicalIntent() {
         FakeOperations operations = new FakeOperations(Checkpoint.AFTER_RECEIPT_CLEAR_SAVE);
 
         runToCompletionAcrossCrash(operations);
 
+        assertFalse(operations.durableTechnicalExitIntentPresent);
         assertFalse(operations.durableCompletionReceiptPresent);
         assertTrue(operations.durablePlayerReset);
         assertFalse(operations.durableActiveOwnershipPresent);
     }
 
     @Test
-    void restartAfterPlayerResetReplaysTeardownFromActiveOwnership() {
+    void restartAfterPlayerResetReplaysTeardownFromDurableTechnicalIntent() {
         FakeOperations operations = new FakeOperations(Checkpoint.AFTER_PLAYER_SAVE);
 
         runToCompletionAcrossCrash(operations);
 
+        assertFalse(operations.durableTechnicalExitIntentPresent);
         assertFalse(operations.durableCompletionReceiptPresent);
         assertTrue(operations.durablePlayerReset);
         assertFalse(operations.durableActiveOwnershipPresent);
     }
 
     @Test
-    void durableOrderNeverConsumesOwnershipBeforePlayerReset() {
+    void durableOrderNeverConsumesOwnershipBeforeIntentReceiptClearAndPlayerReset() {
         FakeOperations operations = new FakeOperations(null);
 
         NightmareTechnicalExitCoordinator.commit(operations);
 
+        assertTrue(operations.intentWasPresentWhenOwnershipRemoved);
         assertTrue(operations.playerWasResetWhenOwnershipRemoved);
         assertFalse(operations.receiptWasPresentWhenOwnershipRemoved);
+        assertFalse(operations.durableTechnicalExitIntentPresent);
     }
 
     private static void runToCompletionAcrossCrash(FakeOperations operations) {
@@ -52,6 +68,7 @@ class NightmareTechnicalExitCoordinatorTest {
     }
 
     private enum Checkpoint {
+        AFTER_INTENT_SAVE,
         AFTER_RECEIPT_CLEAR_SAVE,
         AFTER_PLAYER_SAVE
     }
@@ -63,14 +80,17 @@ class NightmareTechnicalExitCoordinatorTest {
         private final Checkpoint crashCheckpoint;
         private boolean crashTriggered;
 
+        private boolean durableTechnicalExitIntentPresent;
         private boolean durableCompletionReceiptPresent = true;
         private boolean durablePlayerReset;
         private boolean durableActiveOwnershipPresent = true;
 
+        private boolean volatileTechnicalExitIntentPresent;
         private boolean volatileCompletionReceiptPresent;
         private boolean volatilePlayerReset;
         private boolean volatileActiveOwnershipPresent;
 
+        private boolean intentWasPresentWhenOwnershipRemoved;
         private boolean playerWasResetWhenOwnershipRemoved;
         private boolean receiptWasPresentWhenOwnershipRemoved;
         private int registryPersistCount;
@@ -81,9 +101,16 @@ class NightmareTechnicalExitCoordinatorTest {
         }
 
         private void restartFromDurableState() {
+            volatileTechnicalExitIntentPresent = durableTechnicalExitIntentPresent;
             volatileCompletionReceiptPresent = durableCompletionReceiptPresent;
             volatilePlayerReset = durablePlayerReset;
             volatileActiveOwnershipPresent = durableActiveOwnershipPresent;
+            registryPersistCount = 0;
+        }
+
+        @Override
+        public void recordTechnicalExitIntent() {
+            volatileTechnicalExitIntentPresent = true;
         }
 
         @Override
@@ -93,12 +120,19 @@ class NightmareTechnicalExitCoordinatorTest {
 
         @Override
         public void persistRegistry() {
+            durableTechnicalExitIntentPresent = volatileTechnicalExitIntentPresent;
             durableCompletionReceiptPresent = volatileCompletionReceiptPresent;
             durableActiveOwnershipPresent = volatileActiveOwnershipPresent;
             registryPersistCount++;
             if (!crashTriggered
-                    && crashCheckpoint == Checkpoint.AFTER_RECEIPT_CLEAR_SAVE
+                    && crashCheckpoint == Checkpoint.AFTER_INTENT_SAVE
                     && registryPersistCount == 1) {
+                crashTriggered = true;
+                throw new SimulatedCrash();
+            }
+            if (!crashTriggered
+                    && crashCheckpoint == Checkpoint.AFTER_RECEIPT_CLEAR_SAVE
+                    && registryPersistCount == 2) {
                 crashTriggered = true;
                 throw new SimulatedCrash();
             }
@@ -120,9 +154,11 @@ class NightmareTechnicalExitCoordinatorTest {
 
         @Override
         public void teardownActiveInstance() {
+            intentWasPresentWhenOwnershipRemoved = volatileTechnicalExitIntentPresent;
             playerWasResetWhenOwnershipRemoved = volatilePlayerReset;
             receiptWasPresentWhenOwnershipRemoved = volatileCompletionReceiptPresent;
             volatileActiveOwnershipPresent = false;
+            volatileTechnicalExitIntentPresent = false;
         }
     }
 }
