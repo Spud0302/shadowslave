@@ -83,7 +83,7 @@ public final class NightmareService {
             ).withStyle(ChatFormatting.LIGHT_PURPLE));
             return prepared;
         } catch (RuntimeException exception) {
-            teardown(server, prepared);
+            rollbackFailedEntry(server, prepared);
             SoulService.replace(player, beforeSoul);
             throw new IllegalStateException("Nightmare entry failed and was rolled back", exception);
         }
@@ -277,6 +277,40 @@ public final class NightmareService {
                 instance.returnYaw(),
                 instance.returnPitch()
         );
+    }
+
+    private static void rollbackFailedEntry(MinecraftServer server, NightmareInstance attempted) {
+        ServerLevel nightmareLevel = server.getLevel(NIGHTMARE_LEVEL);
+        if (nightmareLevel != null) {
+            LastSignalScenario.removeOwnedEntities(nightmareLevel, attempted);
+        }
+
+        NightmareRegistryData registry = NightmareRegistryData.get(server);
+        Optional<NightmareInstance> removed = removeMatchingEntryOwnership(registry, attempted);
+        if (removed.isPresent()) {
+            ShadowSlaveMod.LOGGER.info(
+                    "Nightmare {} failed-entry ownership rollback completed for player {}",
+                    attempted.instanceId(),
+                    attempted.playerId()
+            );
+        } else {
+            ShadowSlaveMod.LOGGER.warn(
+                    "Nightmare {} failed-entry ownership rollback skipped because matching ownership was absent for player {}",
+                    attempted.instanceId(),
+                    attempted.playerId()
+            );
+        }
+    }
+
+    static Optional<NightmareInstance> removeMatchingEntryOwnership(
+            NightmareRegistryData registry,
+            NightmareInstance attempted
+    ) {
+        NightmareRegistryData checkedRegistry = Objects.requireNonNull(registry, "registry");
+        NightmareInstance checkedAttempted = Objects.requireNonNull(attempted, "attempted");
+        return checkedRegistry.findByPlayer(checkedAttempted.playerId())
+                .filter(active -> active.instanceId().equals(checkedAttempted.instanceId()))
+                .flatMap(checkedRegistry::remove);
     }
 
     private static void teardown(MinecraftServer server, NightmareInstance instance) {
