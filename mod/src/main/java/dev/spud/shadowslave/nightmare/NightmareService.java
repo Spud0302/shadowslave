@@ -388,6 +388,12 @@ public final class NightmareService {
         }
 
         @Override
+        public boolean returnDestinationReached() {
+            ResourceKey<Level> returnKey = ResourceKey.create(Registries.DIMENSION, instance.returnDimension());
+            return player.serverLevel().dimension().equals(returnKey);
+        }
+
+        @Override
         public boolean activeOwnershipPresent() {
             return registry.findByPlayer(player.getUUID())
                     .map(active -> active.instanceId().equals(instance.instanceId()))
