@@ -185,6 +185,30 @@ class NightmareRegistryDataTest {
         assertEquals(receipt, registry.findSuccessfulCompletionByPlayer(aliceId).orElseThrow());
     }
 
+    @Test
+    void corruptRestartDataRejectsDifferentActiveAndCompletedInstancesForOnePlayer() {
+        UUID playerId = UUID.randomUUID();
+        NightmareInstance completed = instance(playerId, 0, 10.0, UUID.randomUUID());
+        NightmareInstance newer = instance(playerId, 1, 20.0, UUID.randomUUID());
+        NightmareCompletionRecord receipt = new NightmareCompletionRecord(
+                completed,
+                NightmareCompletionPhase.TERMINAL_RESOLUTION_RECORDED,
+                100L
+        );
+
+        NightmareRegistryData activeFirst = new NightmareRegistryData();
+        activeFirst.restore(newer);
+        assertThrows(IllegalStateException.class, () -> activeFirst.restoreSuccessfulCompletion(receipt));
+        assertEquals(newer, activeFirst.findByPlayer(playerId).orElseThrow());
+        assertTrue(activeFirst.findSuccessfulCompletionByPlayer(playerId).isEmpty());
+
+        NightmareRegistryData receiptFirst = new NightmareRegistryData();
+        receiptFirst.restoreSuccessfulCompletion(receipt);
+        assertThrows(IllegalStateException.class, () -> receiptFirst.restore(newer));
+        assertEquals(receipt, receiptFirst.findSuccessfulCompletionByPlayer(playerId).orElseThrow());
+        assertTrue(receiptFirst.findByPlayer(playerId).isEmpty());
+    }
+
     private static NightmareInstance instance(UUID playerId, int slot, double returnX, UUID pursuerId) {
         return instance(UUID.randomUUID(), playerId, slot, returnX, pursuerId);
     }
