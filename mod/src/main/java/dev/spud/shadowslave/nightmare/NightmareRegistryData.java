@@ -243,7 +243,7 @@ public final class NightmareRegistryData extends SavedData {
             );
         }
         if (completion != null) {
-            ensureSameInstanceLayout(checked, completion.instance());
+            ensureSameInstanceRecoveryIdentity(checked, completion.instance());
         }
         boolean completionUsesInstanceForAnotherPlayer = successfulCompletions.values().stream()
                 .anyMatch(existing -> existing.instance().instanceId().equals(checked.instanceId())
@@ -284,7 +284,7 @@ public final class NightmareRegistryData extends SavedData {
             );
         }
         if (activeWithSameInstanceId != null) {
-            ensureSameInstanceLayout(activeWithSameInstanceId, checked.instance());
+            ensureSameInstanceRecoveryIdentity(activeWithSameInstanceId, checked.instance());
         }
         UUID activeInstanceId = instanceByPlayer.get(playerId);
         if (activeInstanceId != null && !activeInstanceId.equals(checked.instance().instanceId())) {
@@ -297,7 +297,20 @@ public final class NightmareRegistryData extends SavedData {
         nextSlot = Math.max(nextSlot, checked.instance().slot() + 1);
     }
 
-    private static void ensureSameInstanceLayout(NightmareInstance active, NightmareInstance completed) {
+    private static void ensureSameInstanceRecoveryIdentity(NightmareInstance active, NightmareInstance completed) {
+        if (!active.scenarioId().equals(completed.scenarioId())
+                || !active.historicalRoleId().equals(completed.historicalRoleId())
+                || !active.returnDimension().equals(completed.returnDimension())
+                || Double.compare(active.returnX(), completed.returnX()) != 0
+                || Double.compare(active.returnY(), completed.returnY()) != 0
+                || Double.compare(active.returnZ(), completed.returnZ()) != 0
+                || Float.compare(active.returnYaw(), completed.returnYaw()) != 0
+                || Float.compare(active.returnPitch(), completed.returnPitch()) != 0
+                || active.createdGameTime() != completed.createdGameTime()) {
+            throw new IllegalStateException(
+                    "Active Nightmare and retained successful completion disagree on persisted recovery identity"
+            );
+        }
         if (!active.origin().equals(completed.origin()) || !active.altar().equals(completed.altar())) {
             throw new IllegalStateException(
                     "Active Nightmare and retained successful completion disagree on persisted scenario layout"
