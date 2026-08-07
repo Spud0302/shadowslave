@@ -36,6 +36,10 @@ public final class NightmareEvents {
             return;
         }
 
+        if (NightmareService.resumeTechnicalExit(player)) {
+            return;
+        }
+
         if (NightmareService.resumeSuccessfulCompletion(player)) {
             return;
         }
