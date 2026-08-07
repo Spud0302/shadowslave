@@ -109,6 +109,10 @@ public final class NightmareRegistryData extends SavedData {
         if (!checked.instanceId().equals(registeredInstanceId)) {
             throw new IllegalStateException("Cannot complete a Nightmare that is not the player's active instance");
         }
+        NightmareInstance registered = instances.get(registeredInstanceId);
+        if (registered == null || !registered.equals(checked)) {
+            throw new IllegalStateException("Cannot complete a stale or modified Nightmare instance snapshot");
+        }
 
         NightmareCompletionRecord existing = successfulCompletions.get(checked.playerId());
         if (existing != null) {
@@ -119,11 +123,11 @@ public final class NightmareRegistryData extends SavedData {
         }
 
         NightmareCompletionRecord created = new NightmareCompletionRecord(
-                checked,
+                registered,
                 NightmareCompletionPhase.TERMINAL_RESOLUTION_RECORDED,
                 resolvedGameTime
         );
-        successfulCompletions.put(checked.playerId(), created);
+        successfulCompletions.put(registered.playerId(), created);
         setDirty();
         return created;
     }
