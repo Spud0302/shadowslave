@@ -41,6 +41,13 @@ class ProvenanceWorkflowTests(unittest.TestCase):
         self.assertNotIn('--repository "$GITHUB_REPOSITORY"', self.workflow)
         self.assertNotIn('--expected-repository "$GITHUB_REPOSITORY"', self.workflow)
 
+    def test_checkout_does_not_persist_repository_credentials(self) -> None:
+        checkout = self.workflow.index("name: Check out claimed source repository and commit")
+        validate = self.workflow.index("name: Validate manifest")
+        checkout_block = self.workflow[checkout:validate]
+        self.assertIn("persist-credentials: false", checkout_block)
+        self.assertNotIn("persist-credentials: true", checkout_block)
+
     def test_third_party_actions_are_pinned_to_full_commit_shas(self) -> None:
         uses_entries = re.findall(r"^\s*uses:\s*([^\s#]+)", self.workflow, re.MULTILINE)
         self.assertGreaterEqual(len(uses_entries), 3)
