@@ -53,11 +53,14 @@ Observed state determines which idempotent action still needs to run:
 - return is replayed only while the player is still in the Nightmare dimension;
 - teardown is replayed only while the exact active ownership remains;
 - persisted reconstruction rejects a player whose active Nightmare instance differs from the instance named by that player's retained successful-completion receipt;
+- persisted reconstruction also rejects one Nightmare instance UUID being assigned to different players across active ownership and retained completion state;
 - phase markers advance monotonically and cannot skip a milestone;
 - unrelated Soul or identity state is rejected rather than overwritten;
 - `preview_reset` explicitly clears the retained receipt before publishing the reset snapshot.
 
 The cross-instance reconstruction check is deliberately fail-closed. Without it, corrupted SavedData could retain completion X while also restoring a newer active Nightmare Y for the same player. Completion recovery would correctly refuse to tear down Y, but could still return the player using X's recorded return location and then suppress normal active-instance login handling. The supported transaction never creates that pairing, so recovery must reject it instead of guessing which instance owns the player.
+
+Instance UUIDs are likewise global persisted identities, not merely keys local to one map. If active ownership for Alice and a retained completion receipt for Bob claim the same instance UUID, exact-instance recovery and audit history become contradictory. The supported transaction cannot create that state, so reconstruction rejects it in either load order rather than choosing one owner.
 
 `PreviewAppraisalService` accepts the exact already-appraised state and repairs only the two safe split states:
 
@@ -75,7 +78,8 @@ It does not replace unrelated progression or identity.
 - the receipt survives after active ownership is consumed;
 - phase progression is ordered and replay-idempotent;
 - duplicate owners, instance IDs and receipts fail closed;
-- a retained completion receipt cannot coexist with a different active instance for the same player, regardless of reconstruction order.
+- a retained completion receipt cannot coexist with a different active instance for the same player, regardless of reconstruction order;
+- one instance UUID cannot belong to different players across active and completed state, regardless of reconstruction order.
 
 `NightmareCompletionRecoveryPlanTest` proves that replay actions follow actual durable player/registry state rather than phase alone.
 
