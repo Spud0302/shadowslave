@@ -164,13 +164,23 @@ public final class NightmareRegistryData extends SavedData {
         return advanced;
     }
 
-    /** Removes a retained completion receipt during an explicit development reset. */
-    public Optional<NightmareCompletionRecord> clearSuccessfulCompletionByPlayer(UUID playerId) {
-        NightmareCompletionRecord removed = successfulCompletions.remove(playerId);
-        if (removed != null) {
-            setDirty();
+    /**
+     * Removes only the retained completion receipt owned by the supplied authoritative instance snapshot.
+     * A stale instance ID is a no-op; a modified same-ID snapshot is rejected.
+     */
+    public Optional<NightmareCompletionRecord> clearSuccessfulCompletion(NightmareInstance expected) {
+        NightmareInstance checked = Objects.requireNonNull(expected, "expected");
+        NightmareCompletionRecord existing = successfulCompletions.get(checked.playerId());
+        if (existing == null || !existing.instance().instanceId().equals(checked.instanceId())) {
+            return Optional.empty();
         }
-        return Optional.ofNullable(removed);
+        if (!existing.instance().equals(checked)) {
+            throw new IllegalStateException("Cannot clear completion from a stale or modified Nightmare instance snapshot");
+        }
+
+        successfulCompletions.remove(checked.playerId());
+        setDirty();
+        return Optional.of(existing);
     }
 
     /** Removes only the exact ownership record that the caller previously resolved. */
