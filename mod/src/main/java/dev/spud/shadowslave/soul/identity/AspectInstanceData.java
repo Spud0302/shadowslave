@@ -70,11 +70,6 @@ public record AspectInstanceData(
         );
     }
 
-    /** Compatibility accessor retained until all execution-provider call sites query the set directly. */
-    public ResourceLocation abilityId() {
-        return abilitySet.abilities().getFirst().abilityId();
-    }
-
     private static DataResult<AspectInstanceData> construct(StoredAspectInstanceData stored) {
         try {
             boolean hasAbilities = stored.abilities().isPresent();
