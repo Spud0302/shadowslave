@@ -200,13 +200,7 @@ public final class NightmareService {
     }
 
     public static NightmareInstance technicalRecover(ServerPlayer player) {
-        NightmareInstance instance = exit(player, NightmareExitReason.TECHNICAL_RECOVERY);
-        NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
-        registry.clearSuccessfulCompletion(instance);
-        persistRegistry(player.getServer());
-        SoulIdentityService.replace(player, SoulIdentityData.empty());
-        SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
-        persistPlayer(player);
+        NightmareInstance instance = technicalExit(player, NightmareExitReason.TECHNICAL_RECOVERY);
         player.sendSystemMessage(Component.literal(
                 "Technical recovery completed. This is an administrative path, not mercy from the Nightmare Spell."
         ).withStyle(ChatFormatting.YELLOW));
@@ -214,14 +208,7 @@ public final class NightmareService {
     }
 
     public static NightmareInstance adminAbort(ServerPlayer player) {
-        NightmareInstance instance = exit(player, NightmareExitReason.ADMIN_ABORT);
-        NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
-        registry.clearSuccessfulCompletion(instance);
-        persistRegistry(player.getServer());
-        SoulIdentityService.replace(player, SoulIdentityData.empty());
-        SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
-        persistPlayer(player);
-        return instance;
+        return technicalExit(player, NightmareExitReason.ADMIN_ABORT);
     }
 
     /**
@@ -269,6 +256,34 @@ public final class NightmareService {
     public static Optional<NightmareCompletionRecord> successfulCompletionFor(ServerPlayer player) {
         return NightmareRegistryData.get(player.getServer())
                 .findSuccessfulCompletionByPlayer(player.getUUID());
+    }
+
+    private static NightmareInstance technicalExit(ServerPlayer player, NightmareExitReason reason) {
+        MinecraftServer server = player.getServer();
+        NightmareRegistryData registry = NightmareRegistryData.get(server);
+        NightmareInstance instance = activeFor(player)
+                .orElseThrow(() -> new IllegalStateException("Player does not own an active Nightmare"));
+
+        ResourceKey<Level> expectedReturnDimension = teleportToReturn(player, instance, reason);
+        if (!returnTeleportCommitted(player.serverLevel().dimension(), expectedReturnDimension)) {
+            throw new IllegalStateException(
+                    "Nightmare exit teleport did not reach its selected return dimension; ownership was retained"
+            );
+        }
+
+        NightmareTechnicalExitCoordinator.commit(new ServerTechnicalExitOperations(
+                player,
+                server,
+                registry,
+                instance
+        ));
+        ShadowSlaveMod.LOGGER.info(
+                "Nightmare {} exited for player {} with reason {}",
+                instance.instanceId(),
+                player.getScoreboardName(),
+                reason
+        );
+        return instance;
     }
 
     private static NightmareInstance exit(ServerPlayer player, NightmareExitReason reason) {
@@ -385,6 +400,39 @@ public final class NightmareService {
         // The mapped per-player save method is protected in NeoForge 1.21.1.
         // Successful completion is rare enough to use the public synchronous boundary.
         player.getServer().getPlayerList().saveAll();
+    }
+
+    private record ServerTechnicalExitOperations(
+            ServerPlayer player,
+            MinecraftServer server,
+            NightmareRegistryData registry,
+            NightmareInstance instance
+    ) implements NightmareTechnicalExitCoordinator.Operations {
+        @Override
+        public void clearCompletionReceipt() {
+            registry.clearSuccessfulCompletion(instance);
+        }
+
+        @Override
+        public void persistRegistry() {
+            NightmareService.persistRegistry(server);
+        }
+
+        @Override
+        public void resetPlayerState() {
+            SoulIdentityService.replace(player, SoulIdentityData.empty());
+            SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
+        }
+
+        @Override
+        public void persistPlayer() {
+            NightmareService.persistPlayer(player);
+        }
+
+        @Override
+        public void teardownActiveInstance() {
+            teardown(server, instance);
+        }
     }
 
     private record ServerCompletionOperations(
