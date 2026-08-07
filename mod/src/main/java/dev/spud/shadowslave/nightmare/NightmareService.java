@@ -165,7 +165,8 @@ public final class NightmareService {
 
     public static NightmareInstance technicalRecover(ServerPlayer player) {
         NightmareInstance instance = exit(player, NightmareExitReason.TECHNICAL_RECOVERY);
-        NightmareRegistryData.get(player.getServer()).clearSuccessfulCompletionByPlayer(player.getUUID());
+        NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
+        registry.clearSuccessfulCompletion(instance);
         persistRegistry(player.getServer());
         SoulIdentityService.replace(player, SoulIdentityData.empty());
         SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
@@ -178,7 +179,8 @@ public final class NightmareService {
 
     public static NightmareInstance adminAbort(ServerPlayer player) {
         NightmareInstance instance = exit(player, NightmareExitReason.ADMIN_ABORT);
-        NightmareRegistryData.get(player.getServer()).clearSuccessfulCompletionByPlayer(player.getUUID());
+        NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
+        registry.clearSuccessfulCompletion(instance);
         persistRegistry(player.getServer());
         SoulIdentityService.replace(player, SoulIdentityData.empty());
         SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
@@ -196,10 +198,13 @@ public final class NightmareService {
         return exit(player, NightmareExitReason.ADMIN_ABORT);
     }
 
-    /** Clears the retained success receipt as part of an explicit development reset. */
+    /** Clears the exact retained success receipt as part of an explicit development reset. */
     public static void clearSuccessfulCompletionForPreviewReset(ServerPlayer player) {
         NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
-        if (registry.clearSuccessfulCompletionByPlayer(player.getUUID()).isPresent()) {
+        NightmareCompletionRecord completion = registry
+                .findSuccessfulCompletionByPlayer(player.getUUID())
+                .orElse(null);
+        if (completion != null && registry.clearSuccessfulCompletion(completion.instance()).isPresent()) {
             persistRegistry(player.getServer());
         }
     }
@@ -210,7 +215,8 @@ public final class NightmareService {
             return;
         }
         teardown(player.getServer(), instance);
-        NightmareRegistryData.get(player.getServer()).clearSuccessfulCompletionByPlayer(player.getUUID());
+        NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
+        registry.clearSuccessfulCompletion(instance);
         persistRegistry(player.getServer());
         SoulIdentityService.replace(player, SoulIdentityData.empty());
         SoulService.reset(player);
