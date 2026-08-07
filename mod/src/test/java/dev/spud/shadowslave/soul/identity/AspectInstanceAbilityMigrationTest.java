@@ -33,8 +33,8 @@ class AspectInstanceAbilityMigrationTest {
                 .parse(JsonOps.INSTANCE, legacy)
                 .getOrThrow();
 
-        assertEquals(id("ability/kindle"), decoded.abilityId());
         AspectAbilityData migrated = decoded.abilitySet().abilities().getFirst();
+        assertEquals(id("ability/kindle"), migrated.abilityId());
         assertEquals(AspectAbilityKind.LEGACY_UNCLASSIFIED, migrated.kind());
         assertTrue(migrated.acquisitionRank().isEmpty());
     }
