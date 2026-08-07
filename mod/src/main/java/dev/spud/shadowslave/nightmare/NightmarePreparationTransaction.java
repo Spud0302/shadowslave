@@ -22,4 +22,23 @@ final class NightmarePreparationTransaction {
             throw failure;
         }
     }
+
+    static void rollbackAll(Runnable... steps) {
+        RuntimeException firstFailure = null;
+        for (Runnable step : Objects.requireNonNull(steps, "steps")) {
+            Runnable checkedStep = Objects.requireNonNull(step, "rollback step");
+            try {
+                checkedStep.run();
+            } catch (RuntimeException failure) {
+                if (firstFailure == null) {
+                    firstFailure = failure;
+                } else {
+                    firstFailure.addSuppressed(failure);
+                }
+            }
+        }
+        if (firstFailure != null) {
+            throw firstFailure;
+        }
+    }
 }
