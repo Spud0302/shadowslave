@@ -8,6 +8,8 @@ import dev.spud.shadowslave.preview.PreviewPowerData;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulTransitions;
+import dev.spud.shadowslave.soul.identity.AspectAbilityData;
+import dev.spud.shadowslave.soul.identity.AspectAbilitySetData;
 import dev.spud.shadowslave.soul.identity.AspectInstanceData;
 import dev.spud.shadowslave.soul.identity.FlawInstanceData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
@@ -18,6 +20,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,7 +40,10 @@ class PersistedSoulStateIntegrationTest {
                         "Last Light",
                         SoulRank.AWAKENED,
                         id("preview/nature/ember_resolve"),
-                        PreviewAppraisalService.ABILITY_ID,
+                        new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
+                                PreviewAppraisalService.ABILITY_ID,
+                                "compatibility: persisted preview fixture predates ability classification"
+                        ))),
                         "preview_appraisal_design"
                 )),
                 Optional.of(new FlawInstanceData(
