@@ -4,6 +4,8 @@ import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.SpellState;
+import dev.spud.shadowslave.soul.identity.AspectAbilityData;
+import dev.spud.shadowslave.soul.identity.AspectAbilitySetData;
 import dev.spud.shadowslave.soul.identity.AspectInstanceData;
 import dev.spud.shadowslave.soul.identity.FlawInstanceData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
@@ -11,6 +13,7 @@ import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -110,12 +113,16 @@ public final class DatapackMigrationService {
         }
         ImportedAspect aspect = imported.aspect().orElseThrow();
         ImportedFlaw flaw = imported.flaw().orElseThrow();
+        ResourceLocation importedAbilityId = id("compat/datapack/" + aspect.legacyNature());
         AspectInstanceData persistentAspect = new AspectInstanceData(
                 aspect.instanceId(),
                 aspect.formalName(),
                 aspect.aspectRank(),
                 aspect.legacyMechanicalRoot(),
-                id("compat/datapack/" + aspect.legacyNature()),
+                new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
+                        importedAbilityId,
+                        "compatibility: frozen datapack stores no Aspect ability classification"
+                ))),
                 "datapack-v1.0.0"
         );
         FlawInstanceData persistentFlaw = new FlawInstanceData(
