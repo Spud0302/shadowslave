@@ -42,6 +42,8 @@ For pull-request runs, checkout and the statement use the pull request head repo
 
 The workflow never invents a placeholder artifact ID. Repository and commit alignment are both required for correctness: recording a head SHA while packaging bytes from the default pull-request merge ref, or recording the base repository while packaging a fork head, would misidentify the checked-out source.
 
+Checkout explicitly sets `persist-credentials: false`. The workflow executes Python and packaging code from the checked-out pull-request head, so leaving the repository token in local Git credential configuration would unnecessarily expose the base workflow credential to that code. The job needs the token only for checkout itself; subsequent validation, packaging and artifact upload use no persisted Git credential.
+
 The workflow also pins every third-party action to a complete commit SHA. Human-readable release comments remain beside those pins, but mutable major-version tags are not execution identities. The pinned revisions are:
 
 - `actions/checkout` commit `11bd71901bbe5b1630ceea73d27597364c9af683` (`v4.2.2`);
@@ -70,13 +72,15 @@ The run attempt and artifact name are part of the externally checked identity. R
 
 ## Evidence classification
 
-- **DESIGN:** schema fields, checkout/source alignment, fork-source identity, immutable action revisions, publication order, strict validation and external expected-value verification.
+- **DESIGN:** schema fields, checkout/source alignment, fork-source identity, checkout credential isolation, immutable action revisions, publication order, strict validation and external expected-value verification.
 - **COMPATIBILITY:** the packaged Java core remains the sole canonical Shadow Slave state owner.
 - No lore-sensitive runtime mechanic changes; no new **CANON**, **INFERRED** or **UNKNOWN** claim is introduced.
 
 ## Deliberate limits
 
 A matching unsigned statement proves that the supplied files agree with the supplied repository/build identity. It does not prove that the expected values came from a trusted source, that GitHub executed reviewed source, that the pinned action commits or their transitive runtime were uncompromised, or that the statement was not replaced together with the files.
+
+Disabling persisted checkout credentials narrows credential exposure but does not sandbox untrusted pull-request code from the runner, network or artifact upload service. Pull-request workflows must continue to use least-privilege permissions and must not receive release secrets.
 
 The separate provenance upload has its own GitHub artifact ID, which schema 1 does not record. The package artifact ID remains the identity being bound. The workflow also packages a fixture core JAR; it is CI evidence for the publication contract, not a public modpack release.
 
