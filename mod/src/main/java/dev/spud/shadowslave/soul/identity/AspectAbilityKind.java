@@ -11,7 +11,12 @@ import java.util.Locale;
  */
 public enum AspectAbilityKind {
     INNATE,
-    RANK_GRANTED;
+    RANK_GRANTED,
+    /**
+     * Compatibility-only classification for legacy saves whose single ability_id did not record
+     * whether the ability was innate or rank-granted. New content must not create this kind.
+     */
+    LEGACY_UNCLASSIFIED;
 
     public static final Codec<AspectAbilityKind> CODEC = Codec.STRING.comapFlatMap(
             AspectAbilityKind::decode,
