@@ -86,6 +86,10 @@ public final class NightmareRegistryData extends SavedData {
         if (existing == null || !existing.playerId().equals(instance.playerId())) {
             throw new IllegalStateException("Cannot update an unregistered Nightmare instance");
         }
+        if (existing.slot() != instance.slot()) {
+            throw new IllegalStateException("Cannot change a Nightmare instance's allocated slot");
+        }
+        ensureSlotOwnedOnlyBy(instance.slot(), instance.instanceId());
         instances.put(instance.instanceId(), instance);
         instanceByPlayer.put(instance.playerId(), instance.instanceId());
         setDirty();
@@ -241,6 +245,7 @@ public final class NightmareRegistryData extends SavedData {
                     "Nightmare instance ID belongs to another player's retained successful completion in SavedData"
             );
         }
+        ensureSlotOwnedOnlyBy(checked.slot(), checked.instanceId());
 
         instances.put(checked.instanceId(), checked);
         instanceByPlayer.put(checked.playerId(), checked.instanceId());
@@ -271,7 +276,19 @@ public final class NightmareRegistryData extends SavedData {
                     "Player retained successful completion does not match active Nightmare in SavedData"
             );
         }
+        ensureSlotOwnedOnlyBy(checked.instance().slot(), checked.instance().instanceId());
         successfulCompletions.put(playerId, checked);
         nextSlot = Math.max(nextSlot, checked.instance().slot() + 1);
+    }
+
+    private void ensureSlotOwnedOnlyBy(int slot, UUID instanceId) {
+        boolean activeConflict = instances.values().stream()
+                .anyMatch(existing -> existing.slot() == slot && !existing.instanceId().equals(instanceId));
+        boolean completionConflict = successfulCompletions.values().stream()
+                .map(NightmareCompletionRecord::instance)
+                .anyMatch(existing -> existing.slot() == slot && !existing.instanceId().equals(instanceId));
+        if (activeConflict || completionConflict) {
+            throw new IllegalStateException("Nightmare slot belongs to another instance in SavedData");
+        }
     }
 }
