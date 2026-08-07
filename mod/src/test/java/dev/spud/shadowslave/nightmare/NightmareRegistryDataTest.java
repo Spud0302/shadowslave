@@ -152,6 +152,19 @@ class NightmareRegistryDataTest {
     }
 
     @Test
+    void registeredInstanceCannotMoveToAnotherAllocatedSlot() {
+        UUID instanceId = UUID.randomUUID();
+        UUID playerId = UUID.randomUUID();
+        NightmareInstance original = instance(instanceId, playerId, 4, 10.0, UUID.randomUUID());
+        NightmareInstance moved = instance(instanceId, playerId, 5, 10.0, UUID.randomUUID());
+        NightmareRegistryData registry = new NightmareRegistryData();
+        registry.restore(original);
+
+        assertThrows(IllegalStateException.class, () -> registry.update(moved));
+        assertEquals(original, registry.findByPlayer(playerId).orElseThrow());
+    }
+
+    @Test
     void corruptRestartDataCannotReplaceAnExistingOwnerInstanceOrReceipt() {
         UUID aliceId = UUID.randomUUID();
         UUID sharedInstanceId = UUID.randomUUID();
@@ -231,6 +244,49 @@ class NightmareRegistryDataTest {
         NightmareRegistryData receiptFirst = new NightmareRegistryData();
         receiptFirst.restoreSuccessfulCompletion(bobReceipt);
         assertThrows(IllegalStateException.class, () -> receiptFirst.restore(aliceActive));
+        assertEquals(bobReceipt, receiptFirst.findSuccessfulCompletionByPlayer(bobId).orElseThrow());
+        assertTrue(receiptFirst.findByPlayer(aliceId).isEmpty());
+    }
+
+    @Test
+    void corruptRestartDataRejectsOnePhysicalSlotAssignedToDifferentInstances() {
+        int sharedSlot = 6;
+        UUID aliceId = UUID.randomUUID();
+        UUID bobId = UUID.randomUUID();
+        NightmareInstance alice = instance(UUID.randomUUID(), aliceId, sharedSlot, 10.0, UUID.randomUUID());
+        NightmareInstance bob = instance(UUID.randomUUID(), bobId, sharedSlot, 20.0, UUID.randomUUID());
+        NightmareCompletionRecord aliceReceipt = new NightmareCompletionRecord(
+                alice,
+                NightmareCompletionPhase.TEARDOWN_COMMITTED,
+                100L
+        );
+        NightmareCompletionRecord bobReceipt = new NightmareCompletionRecord(
+                bob,
+                NightmareCompletionPhase.TEARDOWN_COMMITTED,
+                200L
+        );
+
+        NightmareRegistryData activeOnly = new NightmareRegistryData();
+        activeOnly.restore(alice);
+        assertThrows(IllegalStateException.class, () -> activeOnly.restore(bob));
+        assertEquals(alice, activeOnly.findByPlayer(aliceId).orElseThrow());
+        assertTrue(activeOnly.findByPlayer(bobId).isEmpty());
+
+        NightmareRegistryData completionOnly = new NightmareRegistryData();
+        completionOnly.restoreSuccessfulCompletion(aliceReceipt);
+        assertThrows(IllegalStateException.class, () -> completionOnly.restoreSuccessfulCompletion(bobReceipt));
+        assertEquals(aliceReceipt, completionOnly.findSuccessfulCompletionByPlayer(aliceId).orElseThrow());
+        assertTrue(completionOnly.findSuccessfulCompletionByPlayer(bobId).isEmpty());
+
+        NightmareRegistryData activeFirst = new NightmareRegistryData();
+        activeFirst.restore(alice);
+        assertThrows(IllegalStateException.class, () -> activeFirst.restoreSuccessfulCompletion(bobReceipt));
+        assertEquals(alice, activeFirst.findByPlayer(aliceId).orElseThrow());
+        assertTrue(activeFirst.findSuccessfulCompletionByPlayer(bobId).isEmpty());
+
+        NightmareRegistryData receiptFirst = new NightmareRegistryData();
+        receiptFirst.restoreSuccessfulCompletion(bobReceipt);
+        assertThrows(IllegalStateException.class, () -> receiptFirst.restore(alice));
         assertEquals(bobReceipt, receiptFirst.findSuccessfulCompletionByPlayer(bobId).orElseThrow());
         assertTrue(receiptFirst.findByPlayer(aliceId).isEmpty());
     }
