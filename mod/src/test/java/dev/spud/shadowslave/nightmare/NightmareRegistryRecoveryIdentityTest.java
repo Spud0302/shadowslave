@@ -57,6 +57,19 @@ class NightmareRegistryRecoveryIdentityTest {
         assertEquals(active, registry.findByPlayer(active.playerId()).orElseThrow());
     }
 
+    @Test
+    void completionReceiptCannotBeCreatedFromModifiedCallerSnapshot() {
+        NightmareInstance active = baseInstance();
+        NightmareRegistryData registry = new NightmareRegistryData();
+        registry.restore(active);
+        NightmareInstance modified = copy(active, active.scenarioId(), active.historicalRoleId(), active.returnDimension(),
+                active.returnX() + 12.0, active.returnY(), active.returnZ(), active.returnYaw(), active.returnPitch(), active.createdGameTime());
+
+        assertThrows(IllegalStateException.class, () -> registry.beginSuccessfulCompletion(modified, 100L));
+        assertTrue(registry.findSuccessfulCompletionByPlayer(active.playerId()).isEmpty());
+        assertEquals(active, registry.findByPlayer(active.playerId()).orElseThrow());
+    }
+
     private static void assertRejectedInBothOrders(NightmareInstance active, NightmareCompletionRecord receipt) {
         UUID playerId = active.playerId();
 
