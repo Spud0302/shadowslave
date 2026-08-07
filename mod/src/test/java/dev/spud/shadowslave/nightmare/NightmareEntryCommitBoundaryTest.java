@@ -13,6 +13,16 @@ class NightmareEntryCommitBoundaryTest {
     }
 
     @Test
+    void entryFromNightmareDimensionIsRejectedBeforeCreatingReturnState() {
+        assertFalse(NightmareService.entryOriginAllowed(NightmareService.NIGHTMARE_LEVEL));
+    }
+
+    @Test
+    void entryFromOrdinaryDimensionIsAllowed() {
+        assertTrue(NightmareService.entryOriginAllowed(Level.OVERWORLD));
+    }
+
+    @Test
     void normalTeleportReturnWithoutDimensionChangeDoesNotCommitEntry() {
         assertFalse(NightmareService.entryTeleportCommitted(Level.OVERWORLD));
         assertTrue(NightmareService.shouldRollbackFailedEntry(false));
