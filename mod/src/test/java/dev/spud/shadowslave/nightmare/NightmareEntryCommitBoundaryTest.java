@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.nightmare;
 
+import net.minecraft.world.level.Level;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -12,7 +13,14 @@ class NightmareEntryCommitBoundaryTest {
     }
 
     @Test
-    void postTeleportFailurePreservesCommittedEntry() {
+    void normalTeleportReturnWithoutDimensionChangeDoesNotCommitEntry() {
+        assertFalse(NightmareService.entryTeleportCommitted(Level.OVERWORLD));
+        assertTrue(NightmareService.shouldRollbackFailedEntry(false));
+    }
+
+    @Test
+    void playerActuallyInNightmareCommitsEntry() {
+        assertTrue(NightmareService.entryTeleportCommitted(NightmareService.NIGHTMARE_LEVEL));
         assertFalse(NightmareService.shouldRollbackFailedEntry(true));
     }
 }
