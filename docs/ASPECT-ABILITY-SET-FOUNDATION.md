@@ -1,6 +1,6 @@
 # Aspect ability-set foundation
 
-**Status:** persistent Java identity migration stacked on PR #42, with provider authorization and client snapshots migrating to the complete ability set.
+**Status:** persistent Java identity migration stacked on PR #42, with provider authorization and client snapshots migrated to the complete ability set and the scalar ability accessor removed.
 
 ## Lore evidence
 
@@ -25,7 +25,7 @@ The codec accepts exactly one storage shape:
 - current `abilities`, containing fully classified ability records; or
 - legacy `ability_id`, migrated to one `LEGACY_UNCLASSIFIED` compatibility entry.
 
-Supplying both forms or neither form fails closed. New encoding writes only `abilities`; it does not preserve the obsolete scalar field. Existing Java call sites remain source-compatible through the old constructor and `abilityId()` accessor, both of which represent only the first compatibility ability and are deliberately temporary.
+Supplying both forms or neither form fails closed. New encoding writes only `abilities`; it does not preserve the obsolete scalar field. The old single-ability constructor remains temporarily source-compatible for fixtures and construction call sites, but `AspectInstanceData.abilityId()` has been removed so runtime consumers cannot silently treat the first collection entry as the whole Aspect.
 
 ## Provider authorization
 
@@ -47,7 +47,7 @@ The migration preserves stable ability identity without claiming historical fact
 
 ## Follow-up
 
-1. remove the scalar `AspectInstanceData.abilityId()` compatibility accessor only after all remaining domain call sites and stored fixtures are migrated;
+1. remove the old single-ability constructor only after remaining construction fixtures and migration call sites create explicit `AspectAbilitySetData` values;
 2. add explicit evolution metadata only after a separately researched schema decision;
 3. keep exceptional ability categories and natural-awakening ordering `UNKNOWN` until evidence supports a model;
 4. broaden the client payload only when a concrete UI or gameplay consumer needs more than stable ability IDs.
