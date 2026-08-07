@@ -113,6 +113,14 @@ public final class NightmareService {
         return NIGHTMARE_LEVEL.equals(Objects.requireNonNull(actualDimension, "actualDimension"));
     }
 
+    static boolean returnTeleportCommitted(
+            ResourceKey<Level> actualDimension,
+            ResourceKey<Level> expectedDimension
+    ) {
+        return Objects.requireNonNull(expectedDimension, "expectedDimension")
+                .equals(Objects.requireNonNull(actualDimension, "actualDimension"));
+    }
+
     static boolean shouldRollbackFailedEntry(boolean teleportCommitted) {
         return !teleportCommitted;
     }
@@ -268,7 +276,12 @@ public final class NightmareService {
         NightmareInstance instance = activeFor(player)
                 .orElseThrow(() -> new IllegalStateException("Player does not own an active Nightmare"));
 
-        teleportToReturn(player, instance, reason);
+        ResourceKey<Level> expectedReturnDimension = teleportToReturn(player, instance, reason);
+        if (!returnTeleportCommitted(player.serverLevel().dimension(), expectedReturnDimension)) {
+            throw new IllegalStateException(
+                    "Nightmare exit teleport did not reach its selected return dimension; ownership was retained"
+            );
+        }
         persistPlayer(player);
         teardown(server, instance);
         persistRegistry(server);
@@ -281,7 +294,7 @@ public final class NightmareService {
         return instance;
     }
 
-    private static void teleportToReturn(
+    private static ResourceKey<Level> teleportToReturn(
             ServerPlayer player,
             NightmareInstance instance,
             NightmareExitReason reason
@@ -305,6 +318,7 @@ public final class NightmareService {
                 instance.returnYaw(),
                 instance.returnPitch()
         );
+        return returnLevel.dimension();
     }
 
     private static void rollbackFailedEntry(MinecraftServer server, NightmareInstance attempted) {
