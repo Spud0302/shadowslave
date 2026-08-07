@@ -7,6 +7,8 @@ import dev.spud.shadowslave.network.payload.SoulSnapshot;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulTransitions;
+import dev.spud.shadowslave.soul.identity.AspectAbilityData;
+import dev.spud.shadowslave.soul.identity.AspectAbilitySetData;
 import dev.spud.shadowslave.soul.identity.AspectInstanceData;
 import dev.spud.shadowslave.soul.identity.FlawInstanceData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
@@ -73,7 +75,10 @@ class PreviewResetServiceTest {
                         "Last Light",
                         SoulRank.AWAKENED,
                         NATURE,
-                        ABILITY,
+                        new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
+                                ABILITY,
+                                "compatibility: preview reset fixture predates ability classification"
+                        ))),
                         "preview"
                 )),
                 Optional.of(new FlawInstanceData(FLAW, "Cold Ash", EFFECT, "preview"))
