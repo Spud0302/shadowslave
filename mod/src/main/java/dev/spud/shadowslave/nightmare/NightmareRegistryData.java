@@ -104,7 +104,11 @@ public final class NightmareRegistryData extends SavedData {
             if (!completion.instance().instanceId().equals(instance.instanceId())) {
                 throw new IllegalStateException("Player retained successful completion belongs to another Nightmare");
             }
-            ensureSameInstanceRecoveryIdentity(instance, completion.instance());
+            if (!completion.instance().equals(instance)) {
+                throw new IllegalStateException(
+                        "Cannot mutate a Nightmare instance after its successful completion receipt is recorded"
+                );
+            }
         }
         ensureSlotOwnedOnlyBy(instance.slot(), instance.instanceId());
         instances.put(instance.instanceId(), instance);
