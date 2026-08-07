@@ -8,6 +8,7 @@ import dev.spud.shadowslave.soul.SoulRank;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -24,7 +25,7 @@ class SoulIdentityDataTest {
                         "Last Light",
                         SoulRank.AWAKENED,
                         id("preview/nature/ember_resolve"),
-                        id("preview/ability/kindle"),
+                        legacyAbilitySet(id("preview/ability/kindle")),
                         "preview_appraisal_design"
                 )),
                 Optional.of(new FlawInstanceData(
@@ -115,7 +116,7 @@ class SoulIdentityDataTest {
                                 "Last Light",
                                 SoulRank.AWAKENED,
                                 id("preview/nature/ember_resolve"),
-                                id("preview/ability/kindle"),
+                                legacyAbilitySet(id("preview/ability/kindle")),
                                 "test"
                         )),
                         Optional.empty()
@@ -132,7 +133,7 @@ class SoulIdentityDataTest {
                         "   ",
                         SoulRank.AWAKENED,
                         id("preview/nature/ember_resolve"),
-                        id("preview/ability/kindle"),
+                        legacyAbilitySet(id("preview/ability/kindle")),
                         "test"
                 )
         );
@@ -145,6 +146,13 @@ class SoulIdentityDataTest {
                         "   "
                 )
         );
+    }
+
+    private static AspectAbilitySetData legacyAbilitySet(ResourceLocation abilityId) {
+        return new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
+                abilityId,
+                "compatibility: test fixture predates ability classification"
+        )));
     }
 
     private static ResourceLocation id(String path) {
