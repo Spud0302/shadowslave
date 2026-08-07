@@ -1,6 +1,6 @@
 # Aspect ability-set foundation
 
-**Status:** persistent Java identity migration stacked on PR #42, with provider authorization and client snapshots migrated to the complete ability set and the scalar ability accessor removed.
+**Status:** persistent Java identity migration stacked on PR #42, with provider authorization and client snapshots migrated to the complete ability set and both scalar Aspect ability API compatibility seams removed.
 
 ## Lore evidence
 
@@ -25,7 +25,11 @@ The codec accepts exactly one storage shape:
 - current `abilities`, containing fully classified ability records; or
 - legacy `ability_id`, migrated to one `LEGACY_UNCLASSIFIED` compatibility entry.
 
-Supplying both forms or neither form fails closed. New encoding writes only `abilities`; it does not preserve the obsolete scalar field. The old single-ability constructor remains temporarily source-compatible for fixtures and construction call sites, but `AspectInstanceData.abilityId()` has been removed so runtime consumers cannot silently treat the first collection entry as the whole Aspect.
+Supplying both forms or neither form fails closed. New encoding writes only `abilities`; it does not preserve the obsolete scalar field.
+
+The temporary `AspectInstanceData.abilityId()` accessor and the six-argument constructor accepting one scalar ability ID have both been removed. Programmatic construction must provide an explicit `AspectAbilitySetData`, so a new call site cannot silently collapse an Aspect to one privileged entry merely because the old API is convenient.
+
+Existing fixed preview and frozen-datapack construction paths preserve their previous information boundary by creating one explicit `LEGACY_UNCLASSIFIED` ability entry. They do **not** guess whether that historical/design ability should be `INNATE` or `RANK_GRANTED`, and they do not invent an acquisition rank.
 
 ## Provider authorization
 
@@ -47,7 +51,7 @@ The migration preserves stable ability identity without claiming historical fact
 
 ## Follow-up
 
-1. remove the old single-ability constructor only after remaining construction fixtures and migration call sites create explicit `AspectAbilitySetData` values;
-2. add explicit evolution metadata only after a separately researched schema decision;
-3. keep exceptional ability categories and natural-awakening ordering `UNKNOWN` until evidence supports a model;
-4. broaden the client payload only when a concrete UI or gameplay consumer needs more than stable ability IDs.
+1. add explicit evolution metadata only after a separately researched schema decision;
+2. keep exceptional ability categories and natural-awakening ordering `UNKNOWN` until evidence supports a model;
+3. broaden the client payload only when a concrete UI or gameplay consumer needs more than stable ability IDs;
+4. after the stacked migration is green and merged, audit any new Aspect construction added during review for explicit set semantics before expanding content.
