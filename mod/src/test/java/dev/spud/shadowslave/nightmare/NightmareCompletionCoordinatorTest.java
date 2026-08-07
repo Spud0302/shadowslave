@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NightmareCompletionCoordinatorTest {
@@ -37,6 +38,30 @@ class NightmareCompletionCoordinatorTest {
     }
 
     @Test
+    void cancelledReturnDoesNotCommitReturnOrTeardown() {
+        FakeOperations operations = new FakeOperations(null);
+        operations.returnMovesPlayer = false;
+
+        IllegalStateException failure = assertThrows(
+                IllegalStateException.class,
+                () -> NightmareCompletionCoordinator.resume(operations)
+        );
+
+        assertEquals(
+                "Successful Nightmare return did not move the player out of the Nightmare dimension",
+                failure.getMessage()
+        );
+        assertEquals(NightmareCompletionPhase.APPRAISAL_COMMITTED, operations.volatilePhase);
+        assertTrue(operations.volatileAppraisalApplied);
+        assertTrue(operations.volatilePlayerInNightmare);
+        assertTrue(operations.volatileActiveOwnershipPresent);
+        assertEquals(1, operations.volatileReturnExecutions);
+        assertEquals(0, operations.volatileTeardownExecutions);
+        assertEquals(2, operations.persistCalls,
+                "cancelled return must fail before the return player save or RETURN_COMMITTED registry save");
+    }
+
+    @Test
     void replayOfFullyCommittedReceiptDoesNothing() {
         FakeOperations operations = FakeOperations.completed();
 
@@ -62,6 +87,7 @@ class NightmareCompletionCoordinatorTest {
     private static final class FakeOperations implements NightmareCompletionCoordinator.Operations {
         private final Checkpoint crashCheckpoint;
         private boolean crashTriggered;
+        private boolean returnMovesPlayer = true;
         private int persistCalls;
 
         private NightmareCompletionPhase durablePhase;
@@ -139,7 +165,9 @@ class NightmareCompletionCoordinatorTest {
 
         @Override
         public void returnPlayer() {
-            volatilePlayerInNightmare = false;
+            if (returnMovesPlayer) {
+                volatilePlayerInNightmare = false;
+            }
             volatileReturnExecutions++;
         }
 
