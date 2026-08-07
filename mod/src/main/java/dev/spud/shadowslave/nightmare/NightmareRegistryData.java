@@ -53,14 +53,13 @@ public final class NightmareRegistryData extends SavedData {
     }
 
     public NightmareInstance create(ServerPlayer player, String scenarioId, String historicalRoleId) {
-        if (findByPlayer(player.getUUID()).isPresent()) {
-            throw new IllegalStateException("Player already owns an active Nightmare instance");
-        }
+        UUID playerId = player.getUUID();
+        ensurePlayerCanCreate(playerId);
 
         int slot = nextSlot++;
         NightmareInstance created = new NightmareInstance(
                 UUID.randomUUID(),
-                player.getUUID(),
+                playerId,
                 slot,
                 scenarioId,
                 historicalRoleId,
@@ -79,6 +78,16 @@ public final class NightmareRegistryData extends SavedData {
         instanceByPlayer.put(created.playerId(), created.instanceId());
         setDirty();
         return created;
+    }
+
+    void ensurePlayerCanCreate(UUID playerId) {
+        UUID checkedPlayerId = Objects.requireNonNull(playerId, "playerId");
+        if (findByPlayer(checkedPlayerId).isPresent()) {
+            throw new IllegalStateException("Player already owns an active Nightmare instance");
+        }
+        if (successfulCompletions.containsKey(checkedPlayerId)) {
+            throw new IllegalStateException("Player still has a retained successful Nightmare completion receipt");
+        }
     }
 
     public void update(NightmareInstance instance) {
