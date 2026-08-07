@@ -144,6 +144,18 @@ public final class NightmareService {
         return true;
     }
 
+    /** Replays a durable technical/admin exit intent before any competing completion recovery. */
+    public static boolean resumeTechnicalExit(ServerPlayer player) {
+        Objects.requireNonNull(player, "player");
+        NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
+        NightmareExitReason reason = registry.findTechnicalExitReasonByPlayer(player.getUUID()).orElse(null);
+        if (reason == null) {
+            return false;
+        }
+        technicalExit(player, reason);
+        return true;
+    }
+
     /**
      * Reconciles and finishes a durable successful completion receipt.
      *
@@ -275,7 +287,8 @@ public final class NightmareService {
                 player,
                 server,
                 registry,
-                instance
+                instance,
+                reason
         ));
         ShadowSlaveMod.LOGGER.info(
                 "Nightmare {} exited for player {} with reason {}",
@@ -392,6 +405,23 @@ public final class NightmareService {
         }
     }
 
+    private static void teardownTechnicalExit(
+            MinecraftServer server,
+            NightmareRegistryData registry,
+            NightmareInstance instance
+    ) {
+        ServerLevel nightmareLevel = server.getLevel(NIGHTMARE_LEVEL);
+        if (nightmareLevel != null) {
+            LastSignalScenario.removeOwnedEntities(nightmareLevel, instance);
+        }
+        registry.completeTechnicalExit(instance);
+        ShadowSlaveMod.LOGGER.info(
+                "Nightmare {} technical-exit teardown completed for player {}",
+                instance.instanceId(),
+                instance.playerId()
+        );
+    }
+
     private static void persistRegistry(MinecraftServer server) {
         server.overworld().getDataStorage().save();
     }
@@ -406,8 +436,14 @@ public final class NightmareService {
             ServerPlayer player,
             MinecraftServer server,
             NightmareRegistryData registry,
-            NightmareInstance instance
+            NightmareInstance instance,
+            NightmareExitReason reason
     ) implements NightmareTechnicalExitCoordinator.Operations {
+        @Override
+        public void recordTechnicalExitIntent() {
+            registry.beginTechnicalExit(instance, reason);
+        }
+
         @Override
         public void clearCompletionReceipt() {
             registry.clearSuccessfulCompletion(instance);
@@ -431,7 +467,7 @@ public final class NightmareService {
 
         @Override
         public void teardownActiveInstance() {
-            teardown(server, instance);
+            teardownTechnicalExit(server, registry, instance);
         }
     }
 
