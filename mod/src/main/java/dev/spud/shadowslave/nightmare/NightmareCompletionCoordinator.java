@@ -29,9 +29,9 @@ public final class NightmareCompletionCoordinator {
 
         if (plan.returnPlayer()) {
             checked.returnPlayer();
-            if (checked.playerInNightmare()) {
+            if (!checked.returnDestinationReached()) {
                 throw new IllegalStateException(
-                        "Successful Nightmare return did not move the player out of the Nightmare dimension"
+                        "Successful Nightmare return did not reach the recorded return dimension"
                 );
             }
             checked.persistPlayer();
@@ -65,6 +65,7 @@ public final class NightmareCompletionCoordinator {
         NightmareCompletionPhase phase();
         boolean appraisalApplied();
         boolean playerInNightmare();
+        boolean returnDestinationReached();
         boolean activeOwnershipPresent();
         void applyAppraisal();
         void returnPlayer();
