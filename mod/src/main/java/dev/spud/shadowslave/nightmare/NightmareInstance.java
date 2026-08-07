@@ -72,6 +72,8 @@ public record NightmareInstance(
     }
 
     public CompoundTag save() {
+        LastSignalScenario.validatePersistedLayout(this);
+
         CompoundTag tag = new CompoundTag();
         tag.putUUID("instance_id", instanceId);
         tag.putUUID("player_id", playerId);
@@ -92,7 +94,7 @@ public record NightmareInstance(
     }
 
     public static NightmareInstance load(CompoundTag tag) {
-        return new NightmareInstance(
+        NightmareInstance loaded = new NightmareInstance(
                 tag.getUUID("instance_id"),
                 tag.getUUID("player_id"),
                 tag.getInt("slot"),
@@ -109,6 +111,8 @@ public record NightmareInstance(
                 tag.hasUUID("pursuer_id") ? Optional.of(tag.getUUID("pursuer_id")) : Optional.empty(),
                 tag.getLong("created_game_time")
         );
+        LastSignalScenario.validatePersistedLayout(loaded);
+        return loaded;
     }
 
     private static String requireText(String value, String name) {
