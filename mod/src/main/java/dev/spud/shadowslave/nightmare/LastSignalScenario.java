@@ -91,6 +91,24 @@ public final class LastSignalScenario {
         });
     }
 
+    /**
+     * Rolls back world state from an entry attempt that already allocated this
+     * scenario slot. The physical namespace comes from the immutable slot, not
+     * from the instance's persisted layout fields, because registry.update(...)
+     * may have failed before the prepared layout became authoritative.
+     */
+    static void rollbackFailedEntryWorld(ServerLevel level, NightmareInstance attempted) {
+        BlockPos origin = rollbackOriginFor(attempted);
+        NightmarePreparationTransaction.rollbackAll(
+                () -> removeOwnedEntities(level, attempted),
+                () -> clearVolume(level, origin)
+        );
+    }
+
+    static BlockPos rollbackOriginFor(NightmareInstance attempted) {
+        return originForSlot(attempted.slot());
+    }
+
     private static void clearVolume(ServerLevel level, BlockPos origin) {
         for (BlockPos cursor : BlockPos.betweenClosed(
                 origin.offset(-7, 0, -5),
