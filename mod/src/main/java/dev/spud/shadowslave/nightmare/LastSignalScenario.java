@@ -30,6 +30,24 @@ public final class LastSignalScenario {
         return origin.offset(0, 1, 28);
     }
 
+    /**
+     * Validates the persisted physical namespace for the current handcrafted scenario.
+     * Future scenarios may use different layout rules and must define their own validator.
+     */
+    static void validatePersistedLayout(NightmareInstance instance) {
+        if (!SCENARIO_ID.equals(instance.scenarioId())) {
+            return;
+        }
+
+        BlockPos expectedOrigin = originForSlot(instance.slot());
+        BlockPos expectedAltar = altarForOrigin(expectedOrigin);
+        if (!expectedOrigin.equals(instance.origin()) || !expectedAltar.equals(instance.altar())) {
+            throw new IllegalStateException(
+                    "Persisted Last Signal layout does not match the instance's allocated slot"
+            );
+        }
+    }
+
     public static NightmareInstance prepare(
             ServerLevel level,
             ServerPlayer player,
