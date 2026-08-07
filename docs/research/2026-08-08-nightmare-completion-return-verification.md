@@ -15,7 +15,9 @@ Therefore the coordinator could treat a cancelled return as committed, then remo
 
 For successful completion, return is not durable merely because the return operation returned normally. Before the player save, `RETURN_COMMITTED`, or teardown, the coordinator requires `playerInNightmare()` to be false.
 
-If the return operation returns but the player remains in the Nightmare:
+Codex review identified an important precondition for that rule: if a new Nightmare could begin while the player was already physically in `NIGHTMARE_LEVEL`, that dimension could be recorded as the legitimate return destination and the outside-Nightmare check would reject a valid same-dimension return forever. The corrected slice therefore rejects `tryEnter(...)` before registry creation whenever the player is already in `NIGHTMARE_LEVEL`. A player physically stranded there without active ownership is a technical recovery condition, not a valid origin for creating another Nightmare instance.
+
+With that entry invariant established, if the return operation returns but the player remains in the Nightmare:
 
 - the coordinator throws;
 - the already-durable appraisal remains committed;
@@ -31,13 +33,15 @@ The check is intentionally dimension-based. The verified defect is cancelled cro
 
 - **CANON:** unchanged Issue #34 / PR #39 evidence for terminal Nightmare resolution before appraisal, progression and return. No lore mechanic changes here.
 - **INFERRED:** unchanged association between one durable successful-completion transaction and one resolved Nightmare instance.
-- **DESIGN:** a successful-return operation must be observed to have moved the player out of the Nightmare before the technical transaction can commit return or teardown.
+- **DESIGN:** a successful-return operation must be observed to have moved the player out of the Nightmare before the technical transaction can commit return or teardown; creating a new Nightmare while already physically inside the shared Nightmare dimension is rejected as an invalid technical origin state.
 - **UNKNOWN:** live NeoForge cancellation fault injection is not executed here; exact handling of a third-party redirect into some other non-Nightmare dimension remains outside this slice.
-- **COMPATIBILITY:** normal successful return and restart replay are unchanged; a cancelled return now remains retryable instead of being misclassified as committed.
+- **COMPATIBILITY:** normal successful return and restart replay are unchanged; a cancelled return now remains retryable instead of being misclassified as committed. Ordinary entry from non-Nightmare dimensions is unchanged.
 
 ## Tests
 
 `NightmareCompletionCoordinatorTest.cancelledReturnDoesNotCommitReturnOrTeardown` models a return operation that returns normally but leaves `playerInNightmare()` true. It asserts that appraisal is retained, the receipt remains at `APPRAISAL_COMMITTED`, ownership remains present, and neither return persistence nor teardown occurs.
+
+`NightmareEntryCommitBoundaryTest` additionally proves the required precondition: a player already in `NIGHTMARE_LEVEL` is not an allowed origin for a new Nightmare, while an ordinary overworld origin remains allowed.
 
 The existing restart-after-every-durable-boundary test continues to cover the valid successful path.
 
