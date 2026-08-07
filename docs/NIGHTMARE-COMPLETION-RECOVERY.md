@@ -54,6 +54,8 @@ Observed state determines which idempotent action still needs to run:
 - teardown is replayed only while the exact active ownership remains;
 - persisted reconstruction rejects a player whose active Nightmare instance differs from the instance named by that player's retained successful-completion receipt;
 - persisted reconstruction also rejects one Nightmare instance UUID being assigned to different players across active ownership and retained completion state;
+- persisted reconstruction treats each allocated scenario slot as belonging to one instance UUID across active and retained completion state;
+- an active instance cannot change its allocated slot through `update`;
 - phase markers advance monotonically and cannot skip a milestone;
 - unrelated Soul or identity state is rejected rather than overwritten;
 - `preview_reset` explicitly clears the retained receipt before publishing the reset snapshot.
@@ -61,6 +63,8 @@ Observed state determines which idempotent action still needs to run:
 The cross-instance reconstruction check is deliberately fail-closed. Without it, corrupted SavedData could retain completion X while also restoring a newer active Nightmare Y for the same player. Completion recovery would correctly refuse to tear down Y, but could still return the player using X's recorded return location and then suppress normal active-instance login handling. The supported transaction never creates that pairing, so recovery must reject it instead of guessing which instance owns the player.
 
 Instance UUIDs are likewise global persisted identities, not merely keys local to one map. If active ownership for Alice and a retained completion receipt for Bob claim the same instance UUID, exact-instance recovery and audit history become contradictory. The supported transaction cannot create that state, so reconstruction rejects it in either load order rather than choosing one owner.
+
+Slots are persistent physical namespaces in the current preview: `LastSignalScenario.originForSlot` maps a slot directly to a separated region of the shared Nightmare dimension. The allocator is monotonic and retained completion receipts keep the original slot, so two different instance UUIDs claiming one slot is not a supported historical state. Allowing it could make restart reconstruction accept overlapping scenario geometry or make later ownership/history disagree about which instance owns that region. Reconstruction therefore rejects duplicate slot ownership across active instances and retained receipts, while still allowing one active instance and its own receipt to carry the same slot during normal completion recovery.
 
 `PreviewAppraisalService` accepts the exact already-appraised state and repairs only the two safe split states:
 
@@ -79,7 +83,9 @@ It does not replace unrelated progression or identity.
 - phase progression is ordered and replay-idempotent;
 - duplicate owners, instance IDs and receipts fail closed;
 - a retained completion receipt cannot coexist with a different active instance for the same player, regardless of reconstruction order;
-- one instance UUID cannot belong to different players across active and completed state, regardless of reconstruction order.
+- one instance UUID cannot belong to different players across active and completed state, regardless of reconstruction order;
+- one physical slot cannot belong to different instance UUIDs across active or retained completion state;
+- registered active instances cannot move to another allocated slot through the update path.
 
 `NightmareCompletionRecoveryPlanTest` proves that replay actions follow actual durable player/registry state rather than phase alone.
 
