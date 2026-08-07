@@ -242,6 +242,9 @@ public final class NightmareRegistryData extends SavedData {
                     "Active Nightmare and retained successful completion disagree on the instance slot"
             );
         }
+        if (completion != null) {
+            ensureSameInstanceLayout(checked, completion.instance());
+        }
         boolean completionUsesInstanceForAnotherPlayer = successfulCompletions.values().stream()
                 .anyMatch(existing -> existing.instance().instanceId().equals(checked.instanceId())
                         && !existing.instance().playerId().equals(checked.playerId()));
@@ -280,6 +283,9 @@ public final class NightmareRegistryData extends SavedData {
                     "Retained successful completion and active Nightmare disagree on the instance slot"
             );
         }
+        if (activeWithSameInstanceId != null) {
+            ensureSameInstanceLayout(activeWithSameInstanceId, checked.instance());
+        }
         UUID activeInstanceId = instanceByPlayer.get(playerId);
         if (activeInstanceId != null && !activeInstanceId.equals(checked.instance().instanceId())) {
             throw new IllegalStateException(
@@ -289,6 +295,14 @@ public final class NightmareRegistryData extends SavedData {
         ensureSlotOwnedOnlyBy(checked.instance().slot(), checked.instance().instanceId());
         successfulCompletions.put(playerId, checked);
         nextSlot = Math.max(nextSlot, checked.instance().slot() + 1);
+    }
+
+    private static void ensureSameInstanceLayout(NightmareInstance active, NightmareInstance completed) {
+        if (!active.origin().equals(completed.origin()) || !active.altar().equals(completed.altar())) {
+            throw new IllegalStateException(
+                    "Active Nightmare and retained successful completion disagree on persisted scenario layout"
+            );
+        }
     }
 
     private void ensureSlotOwnedOnlyBy(int slot, UUID instanceId) {
