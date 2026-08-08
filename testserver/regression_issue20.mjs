@@ -69,6 +69,20 @@ async function score(objective, holder) {
   return match ? Number.parseInt(match[1], 10) : null
 }
 
+// A heavily loaded vanilla server can execute a scoreboard query after the harness's one-shot
+// message window. Null therefore means "no authoritative numeric observation yet", not a score.
+// Poll until the expected numeric state is actually observed; fail closed on timeout.
+async function waitScore(objective, holder, predicate, timeoutMs = 10000) {
+  const deadline = Date.now() + timeoutMs
+  let last = null
+  while (Date.now() < deadline) {
+    last = await score(objective, holder)
+    if (typeof last === 'number' && predicate(last)) return last
+    await sleep(200)
+  }
+  return last
+}
+
 async function dimension(player, waitMs = 350) {
   const output = await cmd(`/data get entity ${player} Dimension`, waitMs)
   const match = output.match(/"([a-z_]+:[a-z0-9_/.-]+)"/)
@@ -187,7 +201,7 @@ async function run() {
   const aliceReturnDimension = await waitDimension('alice', notNightmare)
   const aliceRank = await score('ss_rank', 'alice')
   const aliceStillActive = await hasTag('alice', 'ss_in_nightmare')
-  const releasedLock = await score('ss_trial_lock', '$global')
+  const releasedLock = await waitScore('ss_trial_lock', '$global', (value) => value === 0)
   if (aliceRank !== 1) {
     fail(`Alice did not receive completion progression (ss_rank=${aliceRank})`)
   }
@@ -198,7 +212,7 @@ async function run() {
     fail('Alice retained ss_in_nightmare after normal teardown')
   }
   if (releasedLock !== 0) {
-    fail(`Normal teardown did not release the persistent slot (lock=${releasedLock})`)
+    fail(`Normal teardown did not release the persistent slot (last observed lock=${releasedLock})`)
   }
 
   console.log('5) Bob enters after Alice releases the slot')
