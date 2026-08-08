@@ -9,7 +9,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -86,15 +85,27 @@ class AttributeContentCatalogTest {
     @Test
     void evidenceBiasChangesSelectionDistribution() {
         AttributeContentCatalog.Catalog catalog = AttributeContentCatalog.waveOne();
-        Set<ResourceLocation> warningSelections = selections(catalog, Map.of("warning", 8, "sound", 6));
-        Set<ResourceLocation> pathSelections = selections(catalog, Map.of("path", 8, "guidance", 6));
+        Map<String, Integer> warningEvidence = Map.of("warning", 8, "sound", 6);
+        Map<String, Integer> pathEvidence = Map.of("path", 8, "guidance", 6);
+        Set<ResourceLocation> warningProfiles = Set.of(
+                id("generation/attribute/bell_sense"),
+                id("generation/attribute/watchers_mark"),
+                id("generation/attribute/tide_listener")
+        );
+        Set<ResourceLocation> pathProfiles = Set.of(
+                id("generation/attribute/borrowed_compass"),
+                id("generation/attribute/roadwise")
+        );
 
-        assertNotEquals(warningSelections, pathSelections);
-        assertTrue(warningSelections.contains(id("generation/attribute/bell_sense"))
-                || warningSelections.contains(id("generation/attribute/watchers_mark"))
-                || warningSelections.contains(id("generation/attribute/tide_listener")));
-        assertTrue(pathSelections.contains(id("generation/attribute/borrowed_compass"))
-                || pathSelections.contains(id("generation/attribute/roadwise")));
+        long warningUnderWarningEvidence = countSelections(catalog, warningEvidence, warningProfiles);
+        long warningUnderPathEvidence = countSelections(catalog, pathEvidence, warningProfiles);
+        long pathUnderPathEvidence = countSelections(catalog, pathEvidence, pathProfiles);
+        long pathUnderWarningEvidence = countSelections(catalog, warningEvidence, pathProfiles);
+
+        assertTrue(warningUnderWarningEvidence > warningUnderPathEvidence * 3,
+                "warning evidence should materially favor warning-affinity Attributes");
+        assertTrue(pathUnderPathEvidence > pathUnderWarningEvidence * 3,
+                "path evidence should materially favor path-affinity Attributes");
     }
 
     @Test
@@ -118,12 +129,18 @@ class AttributeContentCatalogTest {
         ), obscured);
     }
 
-    private static Set<ResourceLocation> selections(AttributeContentCatalog.Catalog catalog, Map<String, Integer> evidence) {
-        HashSet<ResourceLocation> selected = new HashSet<>();
-        for (long seed = 0; seed < 256; seed++) {
-            selected.add(catalog.select(seed, evidence).id());
+    private static long countSelections(
+            AttributeContentCatalog.Catalog catalog,
+            Map<String, Integer> evidence,
+            Set<ResourceLocation> targets
+    ) {
+        long count = 0L;
+        for (long seed = 0; seed < 4096; seed++) {
+            if (targets.contains(catalog.select(seed, evidence).id())) {
+                count++;
+            }
         }
-        return Set.copyOf(selected);
+        return count;
     }
 
     private static ResourceLocation id(String path) {
