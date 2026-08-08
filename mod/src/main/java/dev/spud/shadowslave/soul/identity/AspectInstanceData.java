@@ -7,16 +7,17 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.spud.shadowslave.soul.SoulRank;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-/** Persistent Aspect identity, independent from any execution provider or name-revelation state. */
+/** Persistent Aspect identity, independent from execution providers and name-revelation state. */
 public record AspectInstanceData(
         ResourceLocation instanceId,
         Optional<String> formalName,
         SoulRank aspectRank,
         ResourceLocation natureId,
-        ResourceLocation abilityId,
+        AspectAbilitySetData abilitySet,
         String provenance
 ) {
     private static final MapCodec<StoredAspectInstanceData> STORED_CODEC =
@@ -25,7 +26,8 @@ public record AspectInstanceData(
                     Codec.STRING.optionalFieldOf("formal_name").forGetter(StoredAspectInstanceData::formalName),
                     SoulRank.CODEC.fieldOf("aspect_rank").forGetter(StoredAspectInstanceData::aspectRank),
                     ResourceLocation.CODEC.fieldOf("nature_id").forGetter(StoredAspectInstanceData::natureId),
-                    ResourceLocation.CODEC.fieldOf("ability_id").forGetter(StoredAspectInstanceData::abilityId),
+                    AspectAbilityData.CODEC.codec().listOf().optionalFieldOf("abilities").forGetter(StoredAspectInstanceData::abilities),
+                    ResourceLocation.CODEC.optionalFieldOf("ability_id").forGetter(StoredAspectInstanceData::legacyAbilityId),
                     Codec.STRING.fieldOf("provenance").forGetter(StoredAspectInstanceData::provenance)
             ).apply(instance, StoredAspectInstanceData::new));
 
@@ -39,11 +41,52 @@ public record AspectInstanceData(
         formalName = normalizeOptionalName(formalName);
         aspectRank = Objects.requireNonNull(aspectRank, "aspectRank");
         natureId = Objects.requireNonNull(natureId, "natureId");
-        abilityId = Objects.requireNonNull(abilityId, "abilityId");
+        abilitySet = Objects.requireNonNull(abilitySet, "abilitySet");
+        if (abilitySet.abilities().isEmpty()) {
+            throw new IllegalArgumentException("abilitySet cannot be empty for an Aspect identity");
+        }
         provenance = requireText(provenance, "provenance");
     }
 
-    /** Source-compatible constructor for existing revealed identities. */
+    /** Source-compatible constructor for existing revealed identities using the set model. */
+    public AspectInstanceData(
+            ResourceLocation instanceId,
+            String formalName,
+            SoulRank aspectRank,
+            ResourceLocation natureId,
+            AspectAbilitySetData abilitySet,
+            String provenance
+    ) {
+        this(
+                instanceId,
+                Optional.of(Objects.requireNonNull(formalName, "formalName")),
+                aspectRank,
+                natureId,
+                abilitySet,
+                provenance
+        );
+    }
+
+    /** Compatibility constructor for an unrevealed identity still supplied with one legacy ability ID. */
+    public AspectInstanceData(
+            ResourceLocation instanceId,
+            Optional<String> formalName,
+            SoulRank aspectRank,
+            ResourceLocation natureId,
+            ResourceLocation abilityId,
+            String provenance
+    ) {
+        this(
+                instanceId,
+                formalName,
+                aspectRank,
+                natureId,
+                legacyAbilitySet(abilityId),
+                provenance
+        );
+    }
+
+    /** Source-compatible constructor for existing revealed single-ability call sites during migration. */
     public AspectInstanceData(
             ResourceLocation instanceId,
             String formalName,
@@ -57,23 +100,48 @@ public record AspectInstanceData(
                 Optional.of(Objects.requireNonNull(formalName, "formalName")),
                 aspectRank,
                 natureId,
-                abilityId,
+                legacyAbilitySet(abilityId),
                 provenance
         );
+    }
+
+    /** Compatibility accessor retained until all execution-provider call sites query the set directly. */
+    public ResourceLocation abilityId() {
+        return abilitySet.abilities().getFirst().abilityId();
     }
 
     public String displayedName() {
         return formalName.orElse("");
     }
 
+    private static AspectAbilitySetData legacyAbilitySet(ResourceLocation abilityId) {
+        return new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
+                Objects.requireNonNull(abilityId, "abilityId"),
+                "compatibility: legacy single AspectInstanceData ability"
+        )));
+    }
+
     private static DataResult<AspectInstanceData> construct(StoredAspectInstanceData stored) {
         try {
+            boolean hasAbilities = stored.abilities().isPresent();
+            boolean hasLegacyAbility = stored.legacyAbilityId().isPresent();
+            if (hasAbilities == hasLegacyAbility) {
+                return DataResult.error(() -> "Invalid AspectInstanceData: exactly one of abilities or legacy ability_id is required");
+            }
+
+            AspectAbilitySetData abilities = hasAbilities
+                    ? new AspectAbilitySetData(stored.abilities().orElseThrow())
+                    : new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
+                            stored.legacyAbilityId().orElseThrow(),
+                            "compatibility: decoded legacy AspectInstanceData.ability_id"
+                    )));
+
             return DataResult.success(new AspectInstanceData(
                     stored.instanceId(),
                     stored.formalName(),
                     stored.aspectRank(),
                     stored.natureId(),
-                    stored.abilityId(),
+                    abilities,
                     stored.provenance()
             ));
         } catch (IllegalArgumentException | NullPointerException exception) {
@@ -106,7 +174,8 @@ public record AspectInstanceData(
             Optional<String> formalName,
             SoulRank aspectRank,
             ResourceLocation natureId,
-            ResourceLocation abilityId,
+            Optional<List<AspectAbilityData>> abilities,
+            Optional<ResourceLocation> legacyAbilityId,
             String provenance
     ) {
         private static StoredAspectInstanceData from(AspectInstanceData data) {
@@ -115,7 +184,8 @@ public record AspectInstanceData(
                     data.formalName(),
                     data.aspectRank(),
                     data.natureId(),
-                    data.abilityId(),
+                    Optional.of(data.abilitySet().abilities()),
+                    Optional.empty(),
                     data.provenance()
             );
         }
