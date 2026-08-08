@@ -44,14 +44,16 @@ commands:
       a new recovery attempt invalidates stale recovery logs/status for that row.
 
   verify <point> <instance-uuid>
-      Verify the retained fault marker plus exactly one instance-keyed preview
-      appraisal and exactly one successful-completion teardown across the
-      fault/recovery console logs. This does not prove the manual Soul/status/
-      relog observations.
+      Verify the retained fault marker, a successful recovery process exit,
+      absence of an accidentally armed recovery-stage fault, plus exactly one
+      instance-keyed preview appraisal and exactly one successful-completion
+      teardown across the fault/recovery console logs. This does not prove the
+      manual Soul/status/relog observations.
 
   self-test
-      Exercise point validation, stale-evidence invalidation and evidence-count
-      checking using synthetic files/logs; does not launch Minecraft.
+      Exercise point validation, stale-evidence invalidation, recovery-process
+      authentication and evidence-count checking using synthetic files/logs;
+      does not launch Minecraft.
 
 Accepted points:
   after_terminal_registry_save
@@ -224,13 +226,29 @@ verify_evidence() {
   local point="$1" instance="$2"
   require_point "$point"
   local dir="$(row_dir "$point")"
-  [[ -f "$dir/point.txt" && -f "$dir/fault-console.log" && -f "$dir/recovery-console.log" ]] || {
-    echo "FAIL: successful fault-stage evidence plus fault/recovery console logs are required for $point." >&2
+  [[ -f "$dir/point.txt" \
+      && -f "$dir/fault-console.log" \
+      && -f "$dir/recovery-console.log" \
+      && -f "$dir/recovery-gradle-exit-status.txt" ]] || {
+    echo "FAIL: successful fault-stage evidence plus authenticated recovery console/status evidence are required for $point." >&2
     return 1
   }
 
   if [[ "$(cat "$dir/point.txt")" != "$point" ]]; then
     echo "FAIL: retained point.txt does not authenticate the requested fault point $point." >&2
+    return 1
+  fi
+
+  local recovery_status
+  recovery_status="$(cat "$dir/recovery-gradle-exit-status.txt")"
+  if [[ "$recovery_status" != "0" ]]; then
+    echo "FAIL: retained recovery process did not stop successfully (Gradle status $recovery_status)." >&2
+    return 1
+  fi
+
+  if grep -Fq 'INTENTIONAL COMPLETION FAULT' "$dir/recovery-console.log" \
+      || grep -Fq 'INTENTIONAL COMPLETION FAULT' "$dir/recovery-latest.log" 2>/dev/null; then
+    echo "FAIL: retained recovery evidence contains an armed completion fault." >&2
     return 1
   fi
 
@@ -261,7 +279,7 @@ verify_evidence() {
     return 1
   fi
 
-  echo "PASS: retained logs contain one appraisal and one successful-completion teardown for $instance at $point."
+  echo "PASS: retained logs contain one appraisal and one successful-completion teardown for $instance at $point, and the recovery process exited successfully without a fault still armed."
   echo "MANUAL EVIDENCE STILL REQUIRED: Dreamer/Dormant + expected identity, no active Nightmare, same world/JAR/player, and a completed second relog with unchanged counts."
 }
 
@@ -308,6 +326,31 @@ EOF
   cat >"$dir/recovery-console.log" <<EOF
 Nightmare $instance successful-completion teardown completed
 EOF
+  printf '0\n' >"$dir/recovery-gradle-exit-status.txt"
+  verify_evidence "$point" "$instance" >/dev/null
+
+  # The final verifier must independently authenticate the recovery process.
+  # A failed recovery can still emit expected gameplay markers before crashing;
+  # those markers must never be enough to turn the row green.
+  printf '1\n' >"$dir/recovery-gradle-exit-status.txt"
+  if verify_evidence "$point" "$instance" >/dev/null 2>&1; then
+    rm -rf "$tmp"
+    EVIDENCE_ROOT="$old_root"
+    echo "FAIL: non-zero recovery process status unexpectedly passed evidence verification." >&2
+    return 1
+  fi
+  printf '0\n' >"$dir/recovery-gradle-exit-status.txt"
+
+  cat >"$dir/recovery-latest.log" <<EOF
+INTENTIONAL COMPLETION FAULT after durable boundary $point. Halting with exit code 86.
+EOF
+  if verify_evidence "$point" "$instance" >/dev/null 2>&1; then
+    rm -rf "$tmp"
+    EVIDENCE_ROOT="$old_root"
+    echo "FAIL: recovery-stage intentional-fault marker unexpectedly passed final evidence verification." >&2
+    return 1
+  fi
+  rm -f "$dir/recovery-latest.log"
   verify_evidence "$point" "$instance" >/dev/null
 
   # A new recovery attempt must not be able to reuse a prior recovery latest.log
@@ -324,6 +367,7 @@ EOF
   cat >"$dir/recovery-console.log" <<EOF
 Nightmare $instance successful-completion teardown completed
 EOF
+  printf '0\n' >"$dir/recovery-gradle-exit-status.txt"
   verify_evidence "$point" "$instance" >/dev/null
 
   printf 'Nightmare %s successful-completion teardown completed\n' "$instance" >>"$dir/recovery-console.log"
