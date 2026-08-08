@@ -218,6 +218,23 @@ public final class NightmareService {
         return exit(player, NightmareExitReason.ADMIN_ABORT);
     }
 
+    /**
+     * Clears a retained successful-completion receipt during an explicit development reset.
+     * This is ordinary reset compatibility only; restart-atomic compound reset remains separate work.
+     */
+    public static void clearSuccessfulCompletionForPreviewReset(ServerPlayer player) {
+        Objects.requireNonNull(player, "player");
+        MinecraftServer server = player.getServer();
+        NightmareRegistryData registry = NightmareRegistryData.get(server);
+        NightmareCompletionRecord completion = registry.findSuccessfulCompletionByPlayer(player.getUUID()).orElse(null);
+        if (completion == null) {
+            return;
+        }
+        registry.clearSuccessfulCompletion(completion.instance())
+                .orElseThrow(() -> new IllegalStateException("Successful Nightmare receipt disappeared during preview reset"));
+        SavedDataPersistence.saveAndWait(server);
+    }
+
     public static void canonicalDeath(ServerPlayer player) {
         NightmareInstance instance = activeFor(player).orElse(null);
         if (instance == null) {
