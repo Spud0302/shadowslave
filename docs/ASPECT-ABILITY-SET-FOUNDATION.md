@@ -1,6 +1,6 @@
 # Aspect ability-set foundation
 
-**Status:** bounded Java identity foundation; not wired into `AspectInstanceData` yet.
+**Status:** persistent Java identity migration integrated with optional/unrevealed Aspect names.
 
 ## Lore evidence
 
@@ -12,27 +12,43 @@
 - **INFERRED:** persistent identity therefore needs an ordered collection of ability identities rather than one universal `abilityId`.
 - **DESIGN:** Java distinguishes `INNATE` from `RANK_GRANTED` and records an acquisition Soul Rank for rank-granted abilities.
 - **UNKNOWN:** canon does not establish one universal storage taxonomy for every exceptional ability, evolution, or natural-awakening discovery sequence.
-- **COMPATIBILITY:** the current `AspectInstanceData.abilityId` remains untouched until a separate migration slice can preserve old saves and current preview mechanics.
+- **COMPATIBILITY:** legacy `AspectInstanceData.ability_id` saves do not record whether the ability was innate or rank-granted, or when it was acquired. They decode as `LEGACY_UNCLASSIFIED` with no acquisition rank rather than inventing either fact. Optional/unrevealed formal-name state is preserved independently.
 
 Aspect Legacies are deliberately excluded. They are a distinct canonical system and must not be flattened into ordinary Aspect abilities.
 
-## Runtime model
+## Persistent migration
 
-`AspectAbilityData` stores:
+`AspectInstanceData` now stores:
 
-- stable ability ID;
-- ability kind;
-- optional acquisition rank constrained by kind;
+- stable instance ID;
+- optional formal name/revelation state;
+- Aspect Rank;
+- stable nature ID;
+- non-empty ordered `AspectAbilitySetData`;
 - provenance.
 
-`AspectAbilitySetData` stores an immutable ordered list, rejects duplicate IDs, and provides a codec that fails closed on invalid persisted combinations.
+The codec accepts exactly one ability storage shape:
 
-## Integration boundary
+- current `abilities`, containing fully classified ability records; or
+- legacy `ability_id`, migrated to one `LEGACY_UNCLASSIFIED` compatibility entry.
 
-This PR does not alter player saves, snapshots, commands, ability execution, or the current fixed preview. A later schema migration should:
+Supplying both forms or neither form fails closed. New encoding writes only `abilities`; it does not preserve the obsolete scalar field. `formal_name` remains optional and is omitted for identities whose authoritative name is not yet established.
 
-1. add the ability set to the persistent Aspect record;
-2. decode legacy `ability_id` as one compatibility entry;
-3. preserve the old field during a defined compatibility window if required;
-4. update snapshots and provider authorization to query by stable ability ID;
-5. prove old named and unnamed identities still round-trip.
+Existing Java call sites remain source-compatible during this migration through constructors that accept a single legacy ability ID and a temporary `abilityId()` first-entry accessor. Both are deliberately temporary and are removed by later migration slices once all runtime consumers use the complete set.
+
+## Evidence boundary
+
+The migration preserves stable identity without fabricating historical facts absent from old saves. It does not infer:
+
+- an innate/rank-granted category for a legacy scalar ability;
+- an acquisition rank;
+- a formal name that was previously unrevealed;
+- evolution history;
+- natural-awakening discovery order.
+
+## Follow-up
+
+1. update snapshots and provider authorization to query the set directly;
+2. remove the scalar compatibility accessor and constructor only after all call sites and stored fixtures are migrated;
+3. add explicit evolution metadata only after a separately researched schema decision;
+4. keep exceptional ability categories and natural-awakening ordering `UNKNOWN` until evidence supports a model.
