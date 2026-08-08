@@ -25,6 +25,7 @@ public final class PreviewResetService {
     static void reset(Operations operations) {
         Operations checkedOperations = Objects.requireNonNull(operations, "operations");
         checkedOperations.abortNightmareIfActive();
+        checkedOperations.clearSuccessfulCompletion();
         SoulData resetSoul = checkedOperations.resetSoulWithoutSync();
         checkedOperations.clearSoulIdentity();
         checkedOperations.clearImportedIdentity();
@@ -34,6 +35,8 @@ public final class PreviewResetService {
 
     interface Operations {
         void abortNightmareIfActive();
+
+        void clearSuccessfulCompletion();
 
         SoulData resetSoulWithoutSync();
 
@@ -52,6 +55,11 @@ public final class PreviewResetService {
             if (NightmareService.activeFor(player).isPresent()) {
                 NightmareService.abortForPreviewReset(player);
             }
+        }
+
+        @Override
+        public void clearSuccessfulCompletion() {
+            NightmareService.clearSuccessfulCompletionForPreviewReset(player);
         }
 
         @Override
