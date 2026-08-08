@@ -34,11 +34,14 @@ commands:
       A real player must perform the normal First Nightmare completion. The
       command passes only if the Minecraft child reports exit value 86 and the
       exact intentional-fault marker is retained in the row evidence directory.
+      Starting a new fault attempt invalidates stale evidence from an older
+      attempt for the same point.
 
   recover <point>
       Restart the same run directory WITHOUT the fault property. Reconnect the
       same player, collect the documented state readouts, relog once more, then
-      stop the server normally. The complete console log is retained.
+      stop the server normally. The complete console log is retained. Starting
+      a new recovery attempt invalidates stale recovery logs/status for that row.
 
   verify <point> <instance-uuid>
       Verify the retained fault marker plus exactly one instance-keyed preview
@@ -47,8 +50,8 @@ commands:
       relog observations.
 
   self-test
-      Exercise point validation and evidence-count checking using synthetic logs;
-      does not launch Minecraft.
+      Exercise point validation, stale-evidence invalidation and evidence-count
+      checking using synthetic files/logs; does not launch Minecraft.
 
 Accepted points:
   after_terminal_registry_save
@@ -102,6 +105,26 @@ copy_latest_log() {
   fi
 }
 
+clear_fault_attempt_evidence() {
+  local dir="$1"
+  rm -f \
+    "$dir/fault-console.log" \
+    "$dir/fault-latest.log" \
+    "$dir/point.txt" \
+    "$dir/gradle-exit-status.txt" \
+    "$dir/recovery-console.log" \
+    "$dir/recovery-latest.log" \
+    "$dir/recovery-gradle-exit-status.txt"
+}
+
+clear_recovery_attempt_evidence() {
+  local dir="$1"
+  rm -f \
+    "$dir/recovery-console.log" \
+    "$dir/recovery-latest.log" \
+    "$dir/recovery-gradle-exit-status.txt"
+}
+
 run_fault() {
   local point="$1"
   require_point "$point"
@@ -110,6 +133,7 @@ run_fault() {
   local dir console latest status
   dir="$(row_dir "$point")"
   mkdir -p "$dir"
+  clear_fault_attempt_evidence "$dir"
   console="$dir/fault-console.log"
   latest="$dir/fault-latest.log"
   : >"$console"
@@ -162,6 +186,7 @@ run_recovery() {
     return 1
   }
 
+  clear_recovery_attempt_evidence "$dir"
   console="$dir/recovery-console.log"
   latest="$dir/recovery-latest.log"
   : >"$console"
@@ -181,7 +206,8 @@ run_recovery() {
     tail -40 "$console" >&2 || true
     return 1
   fi
-  if grep -Fq 'INTENTIONAL COMPLETION FAULT' "$console"; then
+  if grep -Fq 'INTENTIONAL COMPLETION FAULT' "$console" \
+      || grep -Fq 'INTENTIONAL COMPLETION FAULT' "$latest" 2>/dev/null; then
     echo "FAIL: recovery stage still contains an armed completion fault." >&2
     return 1
   fi
@@ -198,10 +224,15 @@ verify_evidence() {
   local point="$1" instance="$2"
   require_point "$point"
   local dir="$(row_dir "$point")"
-  [[ -f "$dir/fault-console.log" && -f "$dir/recovery-console.log" ]] || {
-    echo "FAIL: both fault and recovery console logs are required for $point." >&2
+  [[ -f "$dir/point.txt" && -f "$dir/fault-console.log" && -f "$dir/recovery-console.log" ]] || {
+    echo "FAIL: successful fault-stage evidence plus fault/recovery console logs are required for $point." >&2
     return 1
   }
+
+  if [[ "$(cat "$dir/point.txt")" != "$point" ]]; then
+    echo "FAIL: retained point.txt does not authenticate the requested fault point $point." >&2
+    return 1
+  fi
 
   local fault_marker appraisal_marker teardown_marker appraisals teardowns
   fault_marker="INTENTIONAL COMPLETION FAULT after durable boundary $point. Halting with exit code 86."
@@ -248,12 +279,48 @@ self_test() {
   instance=11111111-2222-3333-4444-555555555555
   dir="$(row_dir "$point")"
   mkdir -p "$dir"
+
+  # A new fault attempt must invalidate every artifact that could authenticate
+  # or contaminate a prior attempt for the same row.
+  touch \
+    "$dir/fault-console.log" \
+    "$dir/fault-latest.log" \
+    "$dir/point.txt" \
+    "$dir/gradle-exit-status.txt" \
+    "$dir/recovery-console.log" \
+    "$dir/recovery-latest.log" \
+    "$dir/recovery-gradle-exit-status.txt"
+  clear_fault_attempt_evidence "$dir"
+  if find "$dir" -mindepth 1 -maxdepth 1 -type f | grep -q .; then
+    rm -rf "$tmp"
+    EVIDENCE_ROOT="$old_root"
+    echo "FAIL: stale fault-row evidence survived new-attempt invalidation." >&2
+    return 1
+  fi
+
   cat >"$dir/fault-console.log" <<EOF
 Preview appraisal completed for Nightmare $instance
 EOF
   cat >"$dir/fault-latest.log" <<EOF
 INTENTIONAL COMPLETION FAULT after durable boundary $point. Halting with exit code 86.
 EOF
+  printf '%s\n' "$point" >"$dir/point.txt"
+  cat >"$dir/recovery-console.log" <<EOF
+Nightmare $instance successful-completion teardown completed
+EOF
+  verify_evidence "$point" "$instance" >/dev/null
+
+  # A new recovery attempt must not be able to reuse a prior recovery latest.log
+  # or status file if the current Minecraft launch fails before creating them.
+  touch "$dir/recovery-latest.log" "$dir/recovery-gradle-exit-status.txt"
+  clear_recovery_attempt_evidence "$dir"
+  if [[ -e "$dir/recovery-console.log" || -e "$dir/recovery-latest.log" || -e "$dir/recovery-gradle-exit-status.txt" ]]; then
+    rm -rf "$tmp"
+    EVIDENCE_ROOT="$old_root"
+    echo "FAIL: stale recovery evidence survived new-attempt invalidation." >&2
+    return 1
+  fi
+
   cat >"$dir/recovery-console.log" <<EOF
 Nightmare $instance successful-completion teardown completed
 EOF
