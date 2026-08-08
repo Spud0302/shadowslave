@@ -35,14 +35,26 @@ public final class NightmareEvents {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-        NightmareService.activeFor(player).ifPresent(instance -> {
-            if (player.serverLevel().dimension().equals(NightmareService.NIGHTMARE_LEVEL)) {
-                player.sendSystemMessage(Component.literal(
-                        "Active First Nightmare restored: The Last Signal. Reach and right-click the unlit soul campfire."
-                ).withStyle(ChatFormatting.LIGHT_PURPLE));
-            } else {
-                NightmareService.technicalRecover(player);
+
+        boolean completionPresent = NightmareService.successfulCompletionFor(player).isPresent();
+        boolean activePresent = NightmareService.activeFor(player).isPresent();
+        boolean playerInNightmare = player.serverLevel().dimension().equals(NightmareService.NIGHTMARE_LEVEL);
+
+        switch (NightmareLoginRecoveryPolicy.select(completionPresent, activePresent, playerInNightmare)) {
+            case SUCCESSFUL_COMPLETION -> {
+                if (!NightmareService.resumeSuccessfulCompletion(player)) {
+                    throw new IllegalStateException(
+                            "Successful Nightmare receipt disappeared after login recovery selected it"
+                    );
+                }
             }
-        });
+            case ACTIVE_IN_NIGHTMARE -> player.sendSystemMessage(Component.literal(
+                    "Active First Nightmare restored: The Last Signal. Reach and right-click the unlit soul campfire."
+            ).withStyle(ChatFormatting.LIGHT_PURPLE));
+            case TECHNICAL_RECOVERY -> NightmareService.technicalRecover(player);
+            case NONE -> {
+                // No Nightmare-owned recovery state exists for this player.
+            }
+        }
     }
 }
