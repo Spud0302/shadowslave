@@ -42,8 +42,9 @@ commands:
 
   verify <point> <instance-uuid>
       Verify the retained fault marker plus exactly one instance-keyed preview
-      appraisal and exactly one teardown across the fault/recovery console logs.
-      This does not prove the manual Soul/status/relog observations.
+      appraisal and exactly one successful-completion teardown across the
+      fault/recovery console logs. This does not prove the manual Soul/status/
+      relog observations.
 
   self-test
       Exercise point validation and evidence-count checking using synthetic logs;
@@ -205,7 +206,7 @@ verify_evidence() {
   local fault_marker appraisal_marker teardown_marker appraisals teardowns
   fault_marker="INTENTIONAL COMPLETION FAULT after durable boundary $point. Halting with exit code 86."
   appraisal_marker="Preview appraisal completed for Nightmare $instance"
-  teardown_marker="Nightmare $instance teardown completed"
+  teardown_marker="Nightmare $instance successful-completion teardown completed"
 
   # Collection accepts the server-side marker from either Gradle's console or
   # Minecraft's retained latest.log because ModDev can route child logging
@@ -220,7 +221,7 @@ verify_evidence() {
   teardowns="$(count_marker "$dir" "$teardown_marker")"
 
   if [[ "$appraisals" != "1" || "$teardowns" != "1" ]]; then
-    echo "FAIL: expected exactly one appraisal and one teardown for $instance; got appraisal=$appraisals teardown=$teardowns." >&2
+    echo "FAIL: expected exactly one appraisal and one successful-completion teardown for $instance; got appraisal=$appraisals teardown=$teardowns." >&2
     return 1
   fi
 
@@ -229,7 +230,7 @@ verify_evidence() {
     return 1
   fi
 
-  echo "PASS: retained logs contain one appraisal and one teardown for $instance at $point."
+  echo "PASS: retained logs contain one appraisal and one successful-completion teardown for $instance at $point."
   echo "MANUAL EVIDENCE STILL REQUIRED: Dreamer/Dormant + expected identity, no active Nightmare, same world/JAR/player, and a completed second relog with unchanged counts."
 }
 
@@ -254,11 +255,11 @@ EOF
 INTENTIONAL COMPLETION FAULT after durable boundary $point. Halting with exit code 86.
 EOF
   cat >"$dir/recovery-console.log" <<EOF
-Nightmare $instance teardown completed
+Nightmare $instance successful-completion teardown completed
 EOF
   verify_evidence "$point" "$instance" >/dev/null
 
-  printf 'Nightmare %s teardown completed\n' "$instance" >>"$dir/recovery-console.log"
+  printf 'Nightmare %s successful-completion teardown completed\n' "$instance" >>"$dir/recovery-console.log"
   if verify_evidence "$point" "$instance" >/dev/null 2>&1; then
     rm -rf "$tmp"
     EVIDENCE_ROOT="$old_root"
