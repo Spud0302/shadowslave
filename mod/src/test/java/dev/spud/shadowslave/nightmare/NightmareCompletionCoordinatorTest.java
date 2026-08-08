@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NightmareCompletionCoordinatorTest {
@@ -33,6 +34,30 @@ class NightmareCompletionCoordinatorTest {
     }
 
     @Test
+    void cancelledReturnDoesNotCommitReturnOrTeardown() {
+        FakeOperations operations = new FakeOperations(null);
+        operations.returnMovesPlayer = false;
+
+        IllegalStateException failure = assertThrows(
+                IllegalStateException.class,
+                () -> NightmareCompletionCoordinator.resume(operations)
+        );
+
+        assertEquals(
+                "Successful Nightmare return did not move the player out of the Nightmare dimension",
+                failure.getMessage()
+        );
+        assertEquals(NightmareCompletionPhase.APPRAISAL_COMMITTED, operations.volatilePhase);
+        assertTrue(operations.volatileAppraisalApplied);
+        assertTrue(operations.volatilePlayerInNightmare);
+        assertTrue(operations.volatileActiveOwnershipPresent);
+        assertEquals(1, operations.volatileReturnExecutions);
+        assertEquals(0, operations.volatileTeardownExecutions);
+        assertEquals(2, operations.persistCalls,
+                "cancelled return must fail before the return player save or RETURN_COMMITTED registry save");
+    }
+
+    @Test
     void replayOfFullyCommittedReceiptDoesNothing() {
         FakeOperations operations = FakeOperations.completed();
         NightmareCompletionCoordinator.resume(operations);
@@ -47,6 +72,7 @@ class NightmareCompletionCoordinatorTest {
     private static final class FakeOperations implements NightmareCompletionCoordinator.Operations {
         private final NightmareCompletionFaultPoint crashPoint;
         private boolean crashTriggered;
+        private boolean returnMovesPlayer = true;
         private int persistCalls;
         private NightmareCompletionPhase durablePhase = NightmareCompletionPhase.TERMINAL_RESOLUTION_RECORDED;
         private boolean durableAppraisalApplied;
@@ -93,7 +119,12 @@ class NightmareCompletionCoordinatorTest {
         public boolean playerInNightmare() { return volatilePlayerInNightmare; }
         public boolean activeOwnershipPresent() { return volatileActiveOwnershipPresent; }
         public void applyAppraisal() { volatileAppraisalApplied = true; volatileAppraisalExecutions++; }
-        public void returnPlayer() { volatilePlayerInNightmare = false; volatileReturnExecutions++; }
+        public void returnPlayer() {
+            if (returnMovesPlayer) {
+                volatilePlayerInNightmare = false;
+            }
+            volatileReturnExecutions++;
+        }
         public void teardownActiveInstance() { volatileActiveOwnershipPresent = false; volatileTeardownExecutions++; }
         public void advancePhase(NightmareCompletionPhase target) {
             if (target.ordinal() <= volatilePhase.ordinal()) return;
