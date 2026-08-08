@@ -5,10 +5,13 @@ import dev.spud.shadowslave.migration.ImportedIdentityData;
 import dev.spud.shadowslave.migration.ImportedIdentityService;
 import dev.spud.shadowslave.network.SoulSyncService;
 import dev.spud.shadowslave.nightmare.NightmareService;
+import dev.spud.shadowslave.persistence.SavedDataPersistence;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Objects;
@@ -25,7 +28,15 @@ public final class PreviewResetService {
     /** Replays a durable compound preview reset before Nightmare recovery on login. */
     public static boolean resumePending(ServerPlayer player) {
         ServerPlayer checkedPlayer = Objects.requireNonNull(player, "player");
-        if (!PreviewResetRegistryData.get(checkedPlayer.getServer()).isPending(checkedPlayer.getUUID())) {
+        PreviewResetRegistryData registry = PreviewResetRegistryData.get(checkedPlayer.getServer());
+        if (registry.recoveryBlocked()) {
+            checkedPlayer.sendSystemMessage(Component.literal(
+                    "Preview reset recovery is blocked because persisted reset metadata is unreadable. "
+                            + "Administrator repair is required before Nightmare recovery can continue."
+            ).withStyle(ChatFormatting.RED));
+            return true;
+        }
+        if (!registry.isPending(checkedPlayer.getUUID())) {
             return false;
         }
         reset(new ServerOperations(checkedPlayer));
@@ -88,7 +99,7 @@ public final class PreviewResetService {
 
         @Override
         public void persistRegistry() {
-            player.getServer().overworld().getDataStorage().save();
+            SavedDataPersistence.saveAndWait(player.getServer());
         }
 
         @Override
