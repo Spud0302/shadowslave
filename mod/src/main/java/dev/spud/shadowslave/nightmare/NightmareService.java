@@ -97,22 +97,41 @@ public final class NightmareService {
             return false;
         }
 
-        // Validate the authored terminal objective before durable success authority is created.
-        // Once the receipt is persisted, the campfire's lit state is only replayable world presentation.
-        LastSignalScenario.requireResolvableAltar(player.serverLevel(), instance);
-
         MinecraftServer server = player.getServer();
         NightmareRegistryData registry = NightmareRegistryData.get(server);
-        registry.beginSuccessfulCompletion(instance, player.serverLevel().getGameTime());
-        SavedDataPersistence.saveAndWait(server);
-        NightmareCompletionFaultInjector.afterDurableBoundary(
-                NightmareCompletionFaultPoint.AFTER_TERMINAL_REGISTRY_SAVE
-        );
+        NightmareSuccessfulCompletionActivation.run(new NightmareSuccessfulCompletionActivation.Operations() {
+            @Override
+            public void validateTerminalResolution() {
+                LastSignalScenario.requireResolvableAltar(player.serverLevel(), instance);
+            }
 
-        LastSignalScenario.igniteAltar(player.serverLevel(), instance);
-        if (!resumeSuccessfulCompletion(player)) {
-            throw new IllegalStateException("Successful Nightmare receipt disappeared before completion recovery");
-        }
+            @Override
+            public void recordTerminalResolution() {
+                registry.beginSuccessfulCompletion(instance, player.serverLevel().getGameTime());
+            }
+
+            @Override
+            public void persistRegistry() {
+                SavedDataPersistence.saveAndWait(server);
+            }
+
+            @Override
+            public void afterTerminalRegistryDurable() {
+                NightmareCompletionFaultInjector.afterDurableBoundary(
+                        NightmareCompletionFaultPoint.AFTER_TERMINAL_REGISTRY_SAVE
+                );
+            }
+
+            @Override
+            public void applyWorldResolutionPresentation() {
+                LastSignalScenario.igniteAltar(player.serverLevel(), instance);
+            }
+
+            @Override
+            public boolean resumeCompletion() {
+                return resumeSuccessfulCompletion(player);
+            }
+        });
         return true;
     }
 
