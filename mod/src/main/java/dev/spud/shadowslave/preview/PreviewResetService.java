@@ -22,18 +22,41 @@ public final class PreviewResetService {
         reset(new ServerOperations(Objects.requireNonNull(player, "player")));
     }
 
+    /** Replays a durable compound preview reset before Nightmare recovery on login. */
+    public static boolean resumePending(ServerPlayer player) {
+        ServerPlayer checkedPlayer = Objects.requireNonNull(player, "player");
+        if (!PreviewResetRegistryData.get(checkedPlayer.getServer()).isPending(checkedPlayer.getUUID())) {
+            return false;
+        }
+        reset(new ServerOperations(checkedPlayer));
+        return true;
+    }
+
     static void reset(Operations operations) {
         Operations checkedOperations = Objects.requireNonNull(operations, "operations");
+
+        checkedOperations.beginResetIntent();
+        checkedOperations.persistRegistry();
+
         checkedOperations.abortNightmareIfActive();
         checkedOperations.clearNightmareCompletion();
         SoulData resetSoul = checkedOperations.resetSoulWithoutSync();
         checkedOperations.clearSoulIdentity();
         checkedOperations.clearImportedIdentity();
         checkedOperations.clearPreviewPower();
+        checkedOperations.persistPlayer();
+
         checkedOperations.sync(resetSoul);
+
+        checkedOperations.completeResetIntent();
+        checkedOperations.persistRegistry();
     }
 
     interface Operations {
+        void beginResetIntent();
+
+        void persistRegistry();
+
         void abortNightmareIfActive();
 
         void clearNightmareCompletion();
@@ -46,10 +69,28 @@ public final class PreviewResetService {
 
         void clearPreviewPower();
 
+        void persistPlayer();
+
         void sync(SoulData resetSoul);
+
+        void completeResetIntent();
     }
 
     private record ServerOperations(ServerPlayer player) implements Operations {
+        private PreviewResetRegistryData registry() {
+            return PreviewResetRegistryData.get(player.getServer());
+        }
+
+        @Override
+        public void beginResetIntent() {
+            registry().begin(player.getUUID());
+        }
+
+        @Override
+        public void persistRegistry() {
+            player.getServer().overworld().getDataStorage().save();
+        }
+
         @Override
         public void abortNightmareIfActive() {
             if (NightmareService.activeFor(player).isPresent()) {
@@ -83,8 +124,18 @@ public final class PreviewResetService {
         }
 
         @Override
+        public void persistPlayer() {
+            player.getServer().getPlayerList().saveAll();
+        }
+
+        @Override
         public void sync(SoulData resetSoul) {
             SoulSyncService.sync(player, resetSoul, false);
+        }
+
+        @Override
+        public void completeResetIntent() {
+            registry().complete(player.getUUID());
         }
     }
 }
