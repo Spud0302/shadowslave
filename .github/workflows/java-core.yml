@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   pull_request:
     types:
+      - opened
+      - synchronize
       - ready_for_review
       - reopened
     paths:
@@ -46,6 +48,10 @@ jobs:
 
       - name: Compile, unit test and package
         run: ./mod/gradlew -p mod build --stacktrace
+
+      - name: Self-test completion fault evidence runner
+        shell: bash
+        run: bash mod/run-completion-fault-row.sh self-test
 
       - name: Boot physical NeoForge client
         shell: bash
