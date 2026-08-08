@@ -6,6 +6,8 @@ import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.SpellState;
+import dev.spud.shadowslave.soul.identity.AspectAbilityData;
+import dev.spud.shadowslave.soul.identity.AspectAbilitySetData;
 import dev.spud.shadowslave.soul.identity.AspectInstanceData;
 import dev.spud.shadowslave.soul.identity.FlawInstanceData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
@@ -13,6 +15,7 @@ import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -102,7 +105,10 @@ public final class PreviewAppraisalService {
                 "Last Light",
                 SoulRank.AWAKENED,
                 id("preview/nature/ember_resolve"),
-                ABILITY_ID,
+                new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
+                        ABILITY_ID,
+                        "compatibility: fixed preview ability predates ability classification"
+                ))),
                 "preview_appraisal_design"
         );
         FlawInstanceData flaw = new FlawInstanceData(
