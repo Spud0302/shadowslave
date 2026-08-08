@@ -91,57 +91,46 @@ public final class NightmareRegistryData extends SavedData {
     }
 
     public void update(NightmareInstance instance) {
-        NightmareInstance existing = instances.get(instance.instanceId());
-        if (existing == null || !existing.playerId().equals(instance.playerId())) {
+        NightmareInstance checked = Objects.requireNonNull(instance, "instance");
+        NightmareInstance existing = instances.get(checked.instanceId());
+        if (existing == null || !existing.playerId().equals(checked.playerId())) {
             throw new IllegalStateException("Cannot update an unregistered Nightmare instance");
         }
-        if (existing.slot() != instance.slot()) {
+        if (existing.slot() != checked.slot()) {
             throw new IllegalStateException("Cannot change a Nightmare instance's allocated slot");
         }
-        ensureSamePersistentIdentity(existing, instance);
-        NightmareCompletionRecord completion = successfulCompletions.get(instance.playerId());
-        if (completion != null) {
-            if (!completion.instance().instanceId().equals(instance.instanceId())) {
-                throw new IllegalStateException("Player retained successful completion belongs to another Nightmare");
-            }
-            if (!completion.instance().equals(instance)) {
-                throw new IllegalStateException(
-                        "Cannot mutate a Nightmare instance after its successful completion receipt is recorded"
-                );
-            }
+        ensureSamePersistentIdentity(existing, checked);
+
+        NightmareCompletionRecord completion = successfulCompletions.get(checked.playerId());
+        if (completion != null && !completion.instance().equals(checked)) {
+            throw new IllegalStateException(
+                    "Cannot mutate a Nightmare instance after its successful completion receipt is recorded"
+            );
         }
-        ensureSlotOwnedOnlyBy(instance.slot(), instance.instanceId());
-        instances.put(instance.instanceId(), instance);
-        instanceByPlayer.put(instance.playerId(), instance.instanceId());
+
+        ensureSlotOwnedOnlyBy(checked.slot(), checked.instanceId());
+        instances.put(checked.instanceId(), checked);
+        instanceByPlayer.put(checked.playerId(), checked.instanceId());
         setDirty();
     }
 
     /** Records terminal success while the exact active instance still exists. */
     public NightmareCompletionRecord beginSuccessfulCompletion(NightmareInstance expected, long resolvedGameTime) {
-        NightmareInstance checked = Objects.requireNonNull(expected, "expected");
-        UUID registeredInstanceId = instanceByPlayer.get(checked.playerId());
-        if (!checked.instanceId().equals(registeredInstanceId)) {
-            throw new IllegalStateException("Cannot complete a Nightmare that is not the player's active instance");
-        }
-        NightmareInstance registered = instances.get(registeredInstanceId);
-        if (registered == null || !registered.equals(checked)) {
-            throw new IllegalStateException("Cannot complete a stale or modified Nightmare instance snapshot");
-        }
-
+        NightmareInstance checked = requireExactActive(expected, "complete");
         NightmareCompletionRecord existing = successfulCompletions.get(checked.playerId());
         if (existing != null) {
-            if (!existing.instance().instanceId().equals(checked.instanceId())) {
-                throw new IllegalStateException("Player already has a completion receipt for another Nightmare");
+            if (!existing.instance().equals(checked)) {
+                throw new IllegalStateException("Player already has a completion receipt for another or stale Nightmare snapshot");
             }
             return existing;
         }
 
         NightmareCompletionRecord created = new NightmareCompletionRecord(
-                registered,
+                checked,
                 NightmareCompletionPhase.TERMINAL_RESOLUTION_RECORDED,
                 resolvedGameTime
         );
-        successfulCompletions.put(registered.playerId(), created);
+        successfulCompletions.put(checked.playerId(), created);
         setDirty();
         return created;
     }
@@ -154,11 +143,8 @@ public final class NightmareRegistryData extends SavedData {
         NightmareInstance checked = Objects.requireNonNull(expected, "expected");
         NightmareCompletionPhase checkedTarget = Objects.requireNonNull(target, "target");
         NightmareCompletionRecord existing = successfulCompletions.get(checked.playerId());
-        if (existing == null || !existing.instance().instanceId().equals(checked.instanceId())) {
+        if (existing == null || !existing.instance().equals(checked)) {
             throw new IllegalStateException("No matching successful Nightmare completion receipt exists");
-        }
-        if (!existing.instance().equals(checked)) {
-            throw new IllegalStateException("Cannot advance completion from a stale or modified Nightmare instance snapshot");
         }
         if (checkedTarget.ordinal() <= existing.phase().ordinal()) {
             return existing;
@@ -185,7 +171,6 @@ public final class NightmareRegistryData extends SavedData {
         if (!existing.instance().equals(checked)) {
             throw new IllegalStateException("Cannot clear completion from a stale or modified Nightmare instance snapshot");
         }
-
         successfulCompletions.remove(checked.playerId());
         setDirty();
         return Optional.of(existing);
@@ -260,21 +245,18 @@ public final class NightmareRegistryData extends SavedData {
         if (instanceByPlayer.containsKey(checked.playerId())) {
             throw new IllegalStateException("Player owns multiple active Nightmares in SavedData");
         }
+
         NightmareCompletionRecord completion = successfulCompletions.get(checked.playerId());
-        if (completion != null && !completion.instance().instanceId().equals(checked.instanceId())) {
-            throw new IllegalStateException("Player active Nightmare does not match retained successful completion in SavedData");
-        }
-        if (completion != null && completion.instance().slot() != checked.slot()) {
-            throw new IllegalStateException("Active Nightmare and retained successful completion disagree on the instance slot");
-        }
-        if (completion != null) {
-            ensureSameInstanceRecoveryIdentity(checked, completion.instance());
+        if (completion != null && !completion.instance().equals(checked)) {
+            throw new IllegalStateException("Active Nightmare does not exactly match retained successful completion in SavedData");
         }
         boolean completionUsesInstanceForAnotherPlayer = successfulCompletions.values().stream()
                 .anyMatch(existing -> existing.instance().instanceId().equals(checked.instanceId())
                         && !existing.instance().playerId().equals(checked.playerId()));
         if (completionUsesInstanceForAnotherPlayer) {
-            throw new IllegalStateException("Nightmare instance ID belongs to another player's retained successful completion in SavedData");
+            throw new IllegalStateException(
+                    "Nightmare instance ID belongs to another player's retained successful completion in SavedData"
+            );
         }
         ensureSlotOwnedOnlyBy(checked.slot(), checked.instanceId());
 
@@ -285,32 +267,39 @@ public final class NightmareRegistryData extends SavedData {
 
     void restoreSuccessfulCompletion(NightmareCompletionRecord completion) {
         NightmareCompletionRecord checked = Objects.requireNonNull(completion, "completion");
-        UUID playerId = checked.instance().playerId();
+        NightmareInstance completed = checked.instance();
+        UUID playerId = completed.playerId();
         if (successfulCompletions.containsKey(playerId)) {
             throw new IllegalStateException("Player has multiple successful Nightmare receipts in SavedData");
         }
         boolean duplicateInstance = successfulCompletions.values().stream()
-                .anyMatch(existing -> existing.instance().instanceId().equals(checked.instance().instanceId()));
+                .anyMatch(existing -> existing.instance().instanceId().equals(completed.instanceId()));
         if (duplicateInstance) {
             throw new IllegalStateException("Duplicate successful Nightmare instance ID in SavedData");
         }
-        NightmareInstance activeWithSameInstanceId = instances.get(checked.instance().instanceId());
-        if (activeWithSameInstanceId != null && !activeWithSameInstanceId.playerId().equals(playerId)) {
-            throw new IllegalStateException("Nightmare instance ID belongs to another player's active Nightmare in SavedData");
-        }
-        if (activeWithSameInstanceId != null && activeWithSameInstanceId.slot() != checked.instance().slot()) {
-            throw new IllegalStateException("Retained successful completion and active Nightmare disagree on the instance slot");
-        }
-        if (activeWithSameInstanceId != null) {
-            ensureSameInstanceRecoveryIdentity(activeWithSameInstanceId, checked.instance());
+
+        NightmareInstance activeWithSameInstanceId = instances.get(completed.instanceId());
+        if (activeWithSameInstanceId != null && !activeWithSameInstanceId.equals(completed)) {
+            throw new IllegalStateException("Retained successful completion does not exactly match active Nightmare in SavedData");
         }
         UUID activeInstanceId = instanceByPlayer.get(playerId);
-        if (activeInstanceId != null && !activeInstanceId.equals(checked.instance().instanceId())) {
+        if (activeInstanceId != null && !activeInstanceId.equals(completed.instanceId())) {
             throw new IllegalStateException("Player retained successful completion does not match active Nightmare in SavedData");
         }
-        ensureSlotOwnedOnlyBy(checked.instance().slot(), checked.instance().instanceId());
+        ensureSlotOwnedOnlyBy(completed.slot(), completed.instanceId());
+
         successfulCompletions.put(playerId, checked);
-        nextSlot = Math.max(nextSlot, checked.instance().slot() + 1);
+        nextSlot = Math.max(nextSlot, completed.slot() + 1);
+    }
+
+    private NightmareInstance requireExactActive(NightmareInstance expected, String operation) {
+        NightmareInstance checked = Objects.requireNonNull(expected, "expected");
+        UUID registeredId = instanceByPlayer.get(checked.playerId());
+        NightmareInstance registered = registeredId == null ? null : instances.get(registeredId);
+        if (registered == null || !registered.equals(checked)) {
+            throw new IllegalStateException("Cannot " + operation + " a stale or inactive Nightmare instance snapshot");
+        }
+        return registered;
     }
 
     private static void ensureSamePersistentIdentity(NightmareInstance expected, NightmareInstance actual) {
@@ -324,13 +313,6 @@ public final class NightmareRegistryData extends SavedData {
                 || Float.compare(expected.returnPitch(), actual.returnPitch()) != 0
                 || expected.createdGameTime() != actual.createdGameTime()) {
             throw new IllegalStateException("Cannot change a Nightmare instance's persistent recovery identity");
-        }
-    }
-
-    private static void ensureSameInstanceRecoveryIdentity(NightmareInstance active, NightmareInstance completed) {
-        ensureSamePersistentIdentity(active, completed);
-        if (!active.origin().equals(completed.origin()) || !active.altar().equals(completed.altar())) {
-            throw new IllegalStateException("Active Nightmare and retained successful completion disagree on persisted scenario layout");
         }
     }
 
