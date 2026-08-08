@@ -2,6 +2,7 @@ package dev.spud.shadowslave.nightmare;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.appraisal.PreviewAppraisalService;
+import dev.spud.shadowslave.persistence.SavedDataPersistence;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.SoulTransitions;
@@ -423,7 +424,7 @@ public final class NightmareService {
     }
 
     private static void persistRegistry(MinecraftServer server) {
-        server.overworld().getDataStorage().save();
+        SavedDataPersistence.saveAndWait(server);
     }
 
     private static void persistPlayer(ServerPlayer player) {
