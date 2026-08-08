@@ -2,8 +2,10 @@ package dev.spud.shadowslave.nightmare;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Opt-in process termination for physical restart verification.
@@ -20,8 +22,27 @@ public final class NightmareCompletionFaultInjector {
     private NightmareCompletionFaultInjector() {
     }
 
+    /**
+     * Returns the configured one-shot completion boundary.
+     *
+     * <p>A non-blank but unknown value is a harness configuration error. Failing
+     * closed here prevents a misspelled physical-fault run from silently executing
+     * a normal successful completion and being mistaken for restart evidence.</p>
+     */
     public static Optional<NightmareCompletionFaultPoint> configuredPoint() {
-        return NightmareCompletionFaultPoint.parse(System.getProperty(PROPERTY));
+        String configured = System.getProperty(PROPERTY);
+        if (configured == null || configured.isBlank()) {
+            return Optional.empty();
+        }
+        return NightmareCompletionFaultPoint.parse(configured)
+                .or(() -> {
+                    String expected = Arrays.stream(NightmareCompletionFaultPoint.values())
+                            .map(NightmareCompletionFaultPoint::serializedName)
+                            .collect(Collectors.joining(", "));
+                    throw new IllegalStateException(
+                            "Invalid -D" + PROPERTY + "='" + configured + "'. Expected one of: " + expected
+                    );
+                });
     }
 
     public static void afterDurableBoundary(NightmareCompletionFaultPoint point) {
