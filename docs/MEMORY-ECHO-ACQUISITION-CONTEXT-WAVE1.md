@@ -26,21 +26,21 @@ Research followed the repository source hierarchy and rechecked direct chapter m
 
 **CANON:** Echoes are rare rewards that Awakened can receive after slaying Nightmare Creatures. The chapter also establishes that an Echo is represented in the owner's Soul Sea and is a distinct player-facing possession.
 
-### Chapters 81 and 110 — Memory acquisition from slain creatures
+### Chapters 15, 81 and 110 — Memory acquisition from defeated creatures
 
-**CANON:** Sunny receives Memories associated with slain Nightmare Creatures. Chapter 110 retrospectively identifies several Memories by the creatures/events that produced them. This supports a creature-slaying acquisition context without supporting any universal drop probability or deterministic reward-selection formula.
+**CANON:** Sunny receives Memories associated with defeated Nightmare Creatures. Chapter 15 identifies the Puppeteer's Shroud as belonging to the Mountain King; Chapter 81 presents another direct Memory acquisition; Chapter 110 retrospectively links several Memories to the beings/events that produced them. This supports a creature-defeat acquisition context without supporting any universal drop probability or deterministic reward-selection formula.
 
-### Chapters 1529 / 1541 and later transfer examples
+### Chapters 104 and 263 — Memory transfer / trade
 
-**CANON:** Memories can be deliberately transferred between owners. Later material repeatedly uses transfer for upgrade, gifting and redistribution. Physical/social mechanics beyond the observed transfer remain outside this content slice.
+**CANON:** a Memory can pass deliberately between owners. Chapter 104 identifies the Endless Spring as a farewell gift from Cassie. Chapter 263 explicitly describes Sunny trading soul shards for Memories from other cohort members. Present ownership therefore does not uniquely identify acquisition history.
 
-### Chapters 263 / 1362 / 1373 — Echo transfers
+### Chapters 263 and 1373 — Echo gifts / transfer
 
-**CANON:** Echo ownership can be transferred/given to another person. This means an Echo's present owner need not be the person who originally received it from a slain creature.
+**CANON:** Echo ownership can be deliberately given to another person. Chapter 263 states that two of Cassie's Echoes were given to her by Nephis and Kai; Chapter 1373 later reiterates that Nephis regularly gave away earned Echoes and that two of Cassie's three came from her. An Echo's present owner therefore need not be the person who originally earned it.
 
-### Chapter 1609 — Reclusive Saint
+### Chapters 1373 and 1609 — artificial Echoes
 
-**CANON:** practical mount Echoes are deliberately hunted for, and Nephis uses a steel stallion described as an artificial Echo created by Great Clan Valor enchanters. Therefore artificial Echo provenance must not invent a slain-creature Rank/Class/source.
+**CANON:** artificial Echoes exist. Chapter 1373 shows a steel mannequin artificial Echo associated with Valor enchanters; Chapter 1609 later describes Nephis's steel stallion as an artificial Echo created by Great Clan Valor enchanters. Artificial Echo provenance must not invent a slain-creature Rank/Class/source.
 
 ### Chapter 1960 — Master Weaver
 
@@ -48,7 +48,7 @@ Research followed the repository source hierarchy and rechecked direct chapter m
 
 ## Evidence boundary
 
-- **CANON:** Memories and Echoes can be received in connection with slain Nightmare Creatures; Memories and Echoes can be transferred; Memories can be artificially created through weaving; artificial Echoes exist.
+- **CANON:** Memories and Echoes can be received in connection with defeated Nightmare Creatures; Memories and Echoes can be transferred; Memories can be artificially created through weaving; artificial Echoes exist.
 - **INFERRED:** acquisition provenance is useful separable Java content from the owned Memory/Echo identity itself, because present ownership does not uniquely determine how the object was obtained.
 - **DESIGN:** the exact source enum, visibility enum, stable context IDs, wording, evidence tags, scenario-authored discovery contexts, deterministic presentation selection and generator version.
 - **UNKNOWN:** canonical Memory/Echo drop probabilities; reward-selection formulas; whether every creature can produce either reward; universal transfer timing/UI; artificial-Echo construction method; universal Memory-crafting recipe; provenance information exposed by the Spell; any generic scenario-discovery reward rule.
@@ -60,10 +60,10 @@ No canonical generation, drop or reward formula is claimed.
 
 The focused unit suite requires:
 
-- every source family for both subject kinds has authored coverage where valid;
-- incompatible source/subject combinations fail closed;
+- every source family for both subject kinds has authored coverage;
+- authoritative subject/source cannot be changed by evidence or seed;
 - identical seed + authoritative source + evidence produces identical presentation;
-- evidence map order and positive magnitude do not alter selection;
+- evidence map order and positive magnitude do not alter composition;
 - negative evidence fails closed;
 - returned matched-evidence tags are traceable to the selected authored primitive;
 - unknown provenance remains hidden and does not imply a creature/crafter source;
