@@ -1,5 +1,7 @@
 package dev.spud.shadowslave.nightmare;
 
+import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.appraisal.PreviewAppraisalService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,17 +38,30 @@ public final class NightmareEvents {
             return;
         }
 
-        boolean completionPresent = NightmareService.successfulCompletionFor(player).isPresent();
+        var completion = NightmareService.successfulCompletionFor(player);
+        boolean completionPresent = completion.isPresent();
         boolean activePresent = NightmareService.activeFor(player).isPresent();
         boolean playerInNightmare = player.serverLevel().dimension().equals(NightmareService.NIGHTMARE_LEVEL);
 
         switch (NightmareLoginRecoveryPolicy.select(completionPresent, activePresent, playerInNightmare)) {
             case SUCCESSFUL_COMPLETION -> {
+                NightmareCompletionRecord record = completion.orElseThrow(() -> new IllegalStateException(
+                        "Successful Nightmare receipt disappeared after login recovery selected it"
+                ));
                 if (!NightmareService.resumeSuccessfulCompletion(player)) {
                     throw new IllegalStateException(
                             "Successful Nightmare receipt disappeared after login recovery selected it"
                     );
                 }
+
+                NightmareCompletionRecoveryEvidence evidence = new NightmareCompletionRecoveryEvidence(
+                        record.instance().instanceId(),
+                        player.getUUID(),
+                        PreviewAppraisalService.isApplied(player, record.instance()),
+                        NightmareService.activeFor(player).isPresent(),
+                        player.serverLevel().dimension().equals(NightmareService.NIGHTMARE_LEVEL)
+                );
+                ShadowSlaveMod.LOGGER.info(evidence.logMarker());
             }
             case ACTIVE_IN_NIGHTMARE -> player.sendSystemMessage(Component.literal(
                     "Active First Nightmare restored: The Last Signal. Reach and right-click the unlit soul campfire."
