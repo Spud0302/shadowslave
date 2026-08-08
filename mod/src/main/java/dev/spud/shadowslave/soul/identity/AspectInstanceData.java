@@ -105,11 +105,6 @@ public record AspectInstanceData(
         );
     }
 
-    /** Compatibility accessor retained until all execution-provider call sites query the set directly. */
-    public ResourceLocation abilityId() {
-        return abilitySet.abilities().getFirst().abilityId();
-    }
-
     public String displayedName() {
         return formalName.orElse("");
     }
