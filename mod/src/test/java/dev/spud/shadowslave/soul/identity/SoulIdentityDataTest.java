@@ -8,6 +8,7 @@ import dev.spud.shadowslave.soul.SoulRank;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -24,7 +25,7 @@ class SoulIdentityDataTest {
                         "Last Light",
                         SoulRank.AWAKENED,
                         id("preview/nature/ember_resolve"),
-                        id("preview/ability/kindle"),
+                        legacyAbilitySet(id("preview/ability/kindle")),
                         "preview_appraisal_design"
                 )),
                 Optional.of(new FlawInstanceData(
@@ -53,7 +54,7 @@ class SoulIdentityDataTest {
                         Optional.empty(),
                         SoulRank.SACRED,
                         id("nature/unresolved"),
-                        id("ability/unresolved"),
+                        legacyAbilitySet(id("ability/unresolved")),
                         "natural_awakening_observation"
                 )),
                 Optional.of(new FlawInstanceData(
@@ -94,6 +95,9 @@ class SoulIdentityDataTest {
                 .getOrThrow();
 
         assertEquals(Optional.of("Last Light"), decoded.formalName());
+        AspectAbilityData migrated = decoded.abilitySet().abilities().getFirst();
+        assertEquals(id("preview/ability/kindle"), migrated.abilityId());
+        assertEquals(AspectAbilityKind.LEGACY_UNCLASSIFIED, migrated.kind());
     }
 
     @Test
@@ -166,7 +170,7 @@ class SoulIdentityDataTest {
                                 "Last Light",
                                 SoulRank.AWAKENED,
                                 id("preview/nature/ember_resolve"),
-                                id("preview/ability/kindle"),
+                                legacyAbilitySet(id("preview/ability/kindle")),
                                 "test"
                         )),
                         Optional.empty()
@@ -183,7 +187,7 @@ class SoulIdentityDataTest {
                         "   ",
                         SoulRank.AWAKENED,
                         id("preview/nature/ember_resolve"),
-                        id("preview/ability/kindle"),
+                        legacyAbilitySet(id("preview/ability/kindle")),
                         "test"
                 )
         );
@@ -207,7 +211,7 @@ class SoulIdentityDataTest {
                         (String) null,
                         SoulRank.AWAKENED,
                         id("preview/nature/ember_resolve"),
-                        id("preview/ability/kindle"),
+                        legacyAbilitySet(id("preview/ability/kindle")),
                         "test"
                 )
         );
@@ -220,6 +224,13 @@ class SoulIdentityDataTest {
                         "test"
                 )
         );
+    }
+
+    private static AspectAbilitySetData legacyAbilitySet(ResourceLocation abilityId) {
+        return new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
+                abilityId,
+                "compatibility: test fixture predates ability classification"
+        )));
     }
 
     private static ResourceLocation id(String path) {
