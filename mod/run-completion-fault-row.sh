@@ -238,7 +238,6 @@ self_test() {
 
   local old_root="$EVIDENCE_ROOT" tmp point instance dir
   tmp="$(mktemp -d)"
-  trap 'rm -rf "$tmp"' RETURN
   EVIDENCE_ROOT="$tmp"
   point=after_appraisal_registry_save
   instance=11111111-2222-3333-4444-555555555555
@@ -255,10 +254,13 @@ EOF
 
   printf 'Nightmare %s teardown completed\n' "$instance" >>"$dir/recovery-console.log"
   if verify_evidence "$point" "$instance" >/dev/null 2>&1; then
+    rm -rf "$tmp"
+    EVIDENCE_ROOT="$old_root"
     echo "FAIL: duplicate teardown unexpectedly passed evidence verification." >&2
     return 1
   fi
 
+  rm -rf "$tmp"
   EVIDENCE_ROOT="$old_root"
   echo "PASS: completion fault runner self-test"
 }
