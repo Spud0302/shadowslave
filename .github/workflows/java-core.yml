@@ -53,6 +53,10 @@ jobs:
         shell: bash
         run: bash mod/run-completion-fault-row.sh self-test
 
+      - name: Self-test completion player recovery verifier
+        shell: bash
+        run: bash mod/verify-completion-player-recovery.sh self-test
+
       - name: Boot physical NeoForge client
         shell: bash
         run: |
