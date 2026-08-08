@@ -35,7 +35,7 @@ class NightmareCompletionReceiptStorageTest {
     }
 
     @Test
-    void receiptRejectsCrossInstanceAndSnapshotMismatchOnRestore() {
+    void receiptRejectsCrossInstanceAndAnySnapshotMismatchOnRestore() {
         UUID playerId = UUID.randomUUID();
         NightmareInstance active = instance(UUID.randomUUID(), playerId, 1, 10.0);
         NightmareInstance other = instance(UUID.randomUUID(), playerId, 2, 20.0);
@@ -56,6 +56,17 @@ class NightmareCompletionReceiptStorageTest {
         assertThrows(IllegalStateException.class, () -> registry.restoreSuccessfulCompletion(
                 new NightmareCompletionRecord(moved, NightmareCompletionPhase.TERMINAL_RESOLUTION_RECORDED, 5L)
         ));
+
+        NightmareInstance changedPursuer = new NightmareInstance(
+                active.instanceId(), active.playerId(), active.slot(), active.scenarioId(), active.historicalRoleId(),
+                active.returnDimension(), active.returnX(), active.returnY(), active.returnZ(), active.returnYaw(),
+                active.returnPitch(), active.origin(), active.altar(), Optional.of(UUID.randomUUID()), active.createdGameTime()
+        );
+        assertThrows(IllegalStateException.class, () -> registry.restoreSuccessfulCompletion(
+                new NightmareCompletionRecord(changedPursuer, NightmareCompletionPhase.TERMINAL_RESOLUTION_RECORDED, 5L)
+        ));
+        assertTrue(registry.findSuccessfulCompletionByPlayer(playerId).isEmpty());
+        assertEquals(active, registry.findByPlayer(playerId).orElseThrow());
     }
 
     @Test
