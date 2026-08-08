@@ -48,7 +48,7 @@ public record AspectInstanceData(
         provenance = requireText(provenance, "provenance");
     }
 
-    /** Source-compatible constructor for existing revealed identities using the set model. */
+    /** Source-compatible constructor for existing revealed identities using the explicit set model. */
     public AspectInstanceData(
             ResourceLocation instanceId,
             String formalName,
@@ -67,53 +67,8 @@ public record AspectInstanceData(
         );
     }
 
-    /** Compatibility constructor for an unrevealed identity still supplied with one legacy ability ID. */
-    public AspectInstanceData(
-            ResourceLocation instanceId,
-            Optional<String> formalName,
-            SoulRank aspectRank,
-            ResourceLocation natureId,
-            ResourceLocation abilityId,
-            String provenance
-    ) {
-        this(
-                instanceId,
-                formalName,
-                aspectRank,
-                natureId,
-                legacyAbilitySet(abilityId),
-                provenance
-        );
-    }
-
-    /** Source-compatible constructor for existing revealed single-ability call sites during migration. */
-    public AspectInstanceData(
-            ResourceLocation instanceId,
-            String formalName,
-            SoulRank aspectRank,
-            ResourceLocation natureId,
-            ResourceLocation abilityId,
-            String provenance
-    ) {
-        this(
-                instanceId,
-                Optional.of(Objects.requireNonNull(formalName, "formalName")),
-                aspectRank,
-                natureId,
-                legacyAbilitySet(abilityId),
-                provenance
-        );
-    }
-
     public String displayedName() {
         return formalName.orElse("");
-    }
-
-    private static AspectAbilitySetData legacyAbilitySet(ResourceLocation abilityId) {
-        return new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
-                Objects.requireNonNull(abilityId, "abilityId"),
-                "compatibility: legacy single AspectInstanceData ability"
-        )));
     }
 
     private static DataResult<AspectInstanceData> construct(StoredAspectInstanceData stored) {
