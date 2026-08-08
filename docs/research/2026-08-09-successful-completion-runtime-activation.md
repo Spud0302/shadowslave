@@ -38,6 +38,12 @@ else                                   -> no Nightmare recovery
 
 This remains a technical Minecraft recovery rule. It is not presented as behavior of the Nightmare Spell.
 
+## Preview reset compatibility
+
+Activation also makes the retained receipt observable during ordinary completed-preview reset. Previously `PreviewResetService` only aborted an active Nightmare. After successful teardown there is intentionally no active instance, so the receipt would survive `/shadowslave preview_reset`, and the registry's retained-receipt guard would reject the next preview entry.
+
+The ordinary reset path now explicitly clears the exact retained completion receipt, persists that clear through the joined SavedData barrier, and only then clears Soul/identity/imported/power state and publishes the existing final snapshot. This restores expected development-reset behavior without claiming crash-atomic reset semantics.
+
 ## Lore evidence checked
 
 Research followed `docs/LORE-SOURCE-POLICY.md` and rechecked primary chapter material plus later clarification.
@@ -53,9 +59,9 @@ Official WebNovel was checked for the later clarification. At research time its 
 
 - **CANON:** Nightmare terminal resolution/end is distinct from appraisal; ordinary successful post-Nightmare progression follows the ended Nightmare rather than being the event that ends it.
 - **INFERRED:** one incomplete successful-completion recovery transaction remains associated with the exact resolved Nightmare instance until reconciliation is finished.
-- **DESIGN:** durable receipt ordering, joined SavedData checkpoint, login recovery precedence, deterministic process-fault point and treating the validated campfire's lit state as replayable world presentation are Minecraft implementation choices.
-- **UNKNOWN:** real same-world dedicated-server process-kill convergence at all six boundaries remains unproven; a crash after terminal receipt persistence can leave the campfire visually unlit because world presentation is deliberately not progression authority; filesystem/power-loss semantics beyond NeoForge's joined worker and administrator repair of blocked state remain unproven.
-- **COMPATIBILITY:** the fixed Last Signal scenario/appraisal identity is unchanged; no new appraisal formula, Aspect/Flaw rule, Memory/Echo rule or save schema is introduced by this activation slice. Existing active-Nightmare and technical recovery routing remains unchanged when no successful-completion receipt exists.
+- **DESIGN:** durable receipt ordering, joined SavedData checkpoint, login recovery precedence, deterministic process-fault point, exact development-reset receipt clearing, and treating the validated campfire's lit state as replayable world presentation are Minecraft implementation choices.
+- **UNKNOWN:** real same-world dedicated-server process-kill convergence at all six boundaries remains unproven; a crash after terminal receipt persistence can leave the campfire visually unlit because world presentation is deliberately not progression authority; compound preview reset itself is not yet restart-atomic; filesystem/power-loss semantics beyond NeoForge's joined worker and administrator repair of blocked state remain unproven.
+- **COMPATIBILITY:** the fixed Last Signal scenario/appraisal identity is unchanged; no new appraisal formula, Aspect/Flaw rule, Memory/Echo rule or save schema is introduced by this activation slice. Existing active-Nightmare and technical recovery routing remains unchanged when no successful-completion receipt exists, and ordinary `/shadowslave preview_reset` can again release the completed preview for another run.
 
 No canonical scoring, generation or universal campfire-completion rule is claimed.
 
@@ -73,10 +79,12 @@ No canonical scoring, generation or universal campfire-completion rule is claime
 - ordinary active-in-Nightmare restoration and outside-Nightmare technical recovery remain distinct when no receipt exists;
 - no Nightmare-owned state results in no recovery action.
 
+`PreviewResetServiceTest` now requires the retained completion receipt to be cleared after any active Nightmare abort and before permanent preview state is reset/published.
+
 Existing coordinator tests continue to cover replay after the later appraisal/return/teardown durability boundaries and cancelled-return safety.
 
 ## Deliberate limits / next work
 
-This slice does not port the historical technical-exit, preview-reset or canonical-death transaction stacks. Those remain separate correctness work and must not be silently inferred from successful-completion activation.
+This slice does not port the historical restart-replayable technical-exit, compound preview-reset or canonical-death transaction stacks. The ordinary preview reset now clears a retained successful-completion receipt so activation does not strand the development loop, but a process crash during that compound reset remains separate correctness work and must not be silently treated as fixed.
 
 It also does not claim physical restart evidence. The next highest-value slice is to port the isolated ModDev completion-fault runner plus the retained-`latest.log` verifier correction onto this current consolidation, then execute the six same-world Issue #34 process-kill rows. Any failure should be recorded against the exact boundary/output rather than answered by adding speculative transaction state.
