@@ -37,6 +37,7 @@ class PreviewResetServiceTest {
 
         assertEquals(List.of(
                 "abort_nightmare",
+                "clear_successful_completion",
                 "reset_soul",
                 "clear_soul_identity",
                 "clear_imported_identity",
@@ -44,6 +45,7 @@ class PreviewResetServiceTest {
                 "sync"
         ), operations.calls);
         assertFalse(operations.nightmareActive);
+        assertFalse(operations.successfulCompletionPresent);
         assertEquals(SoulData.uninfected(), operations.soul);
         assertEquals(SoulIdentityData.empty(), operations.identity);
         assertEquals(ImportedIdentityData.empty(), operations.importedIdentity);
@@ -63,6 +65,7 @@ class PreviewResetServiceTest {
         private final List<String> calls = new ArrayList<>();
         private final List<SoulSnapshot> snapshots = new ArrayList<>();
         private boolean nightmareActive = true;
+        private boolean successfulCompletionPresent = true;
         private SoulData soul = SoulTransitions.completeFirstNightmare(
                 SoulTransitions.beginFirstNightmare(SoulTransitions.infect(SoulData.uninfected())),
                 ASPECT,
@@ -111,6 +114,12 @@ class PreviewResetServiceTest {
         public void abortNightmareIfActive() {
             calls.add("abort_nightmare");
             nightmareActive = false;
+        }
+
+        @Override
+        public void clearSuccessfulCompletion() {
+            calls.add("clear_successful_completion");
+            successfulCompletionPresent = false;
         }
 
         @Override
