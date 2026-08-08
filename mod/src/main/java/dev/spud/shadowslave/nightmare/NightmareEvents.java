@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.nightmare;
 
+import dev.spud.shadowslave.preview.PreviewResetService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,6 +34,10 @@ public final class NightmareEvents {
 
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+
+        if (PreviewResetService.resumePending(player)) {
             return;
         }
 
