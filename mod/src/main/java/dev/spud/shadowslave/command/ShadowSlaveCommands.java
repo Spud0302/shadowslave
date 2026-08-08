@@ -74,12 +74,12 @@ public final class ShadowSlaveCommands {
         SoulIdentityData identity = SoulIdentityService.get(player);
         ImportedIdentityData importedIdentity = ImportedIdentityService.get(player);
         String aspect = identity.aspect()
-                .map(value -> value.formalName() + " [" + value.instanceId() + "]")
+                .map(value -> value.formalName().orElse("<name unrevealed>") + " [" + value.instanceId() + "]")
                 .orElseGet(() -> importedIdentity.aspect()
                         .map(value -> value.formalName() + " [" + value.instanceId() + "]")
                         .orElseGet(() -> soul.aspectId().map(ResourceLocation::toString).orElse("—")));
         String flaw = identity.flaw()
-                .map(value -> value.formalName() + " [" + value.instanceId() + "]")
+                .map(value -> value.formalName().orElse("<name unrevealed>") + " [" + value.instanceId() + "]")
                 .orElseGet(() -> importedIdentity.flaw()
                         .map(value -> value.formalName() + " [" + value.instanceId() + "]")
                         .orElseGet(() -> soul.flawId().map(ResourceLocation::toString).orElse("—")));

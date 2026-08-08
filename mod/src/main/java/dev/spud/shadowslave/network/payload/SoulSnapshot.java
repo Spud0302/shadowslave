@@ -73,11 +73,11 @@ public record SoulSnapshot(
                 soul.awakeningPath().serializedName(),
                 soul.soulRank().map(SoulRank::serializedName).orElse(""),
                 soul.aspectId().map(ResourceLocation::toString).orElse(""),
-                identity.aspect().map(value -> value.formalName()).orElse(""),
+                identity.aspect().flatMap(value -> value.formalName()).orElse(""),
                 soul.aspectRank().map(SoulRank::serializedName).orElse(""),
                 identity.aspect().map(value -> value.abilityId().toString()).orElse(""),
                 soul.flawId().map(ResourceLocation::toString).orElse(""),
-                identity.flaw().map(value -> value.formalName()).orElse(""),
+                identity.flaw().flatMap(value -> value.formalName()).orElse(""),
                 identity.flaw().map(value -> value.effectId().toString()).orElse(""),
                 soul.importedFromDatapack()
         );
