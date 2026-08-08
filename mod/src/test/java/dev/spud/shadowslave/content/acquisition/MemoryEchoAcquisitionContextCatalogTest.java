@@ -1,5 +1,8 @@
 package dev.spud.shadowslave.content.acquisition;
 
+import dev.spud.shadowslave.content.acquisition.MemoryEchoAcquisitionContextCatalog.AcquisitionSource;
+import dev.spud.shadowslave.content.acquisition.MemoryEchoAcquisitionContextCatalog.ProvenanceVisibility;
+import dev.spud.shadowslave.content.acquisition.MemoryEchoAcquisitionContextCatalog.SubjectKind;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
@@ -8,9 +11,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static dev.spud.shadowslave.content.acquisition.MemoryEchoAcquisitionContextCatalog.AcquisitionSource;
-import static dev.spud.shadowslave.content.acquisition.MemoryEchoAcquisitionContextCatalog.ProvenanceVisibility;
-import static dev.spud.shadowslave.content.acquisition.MemoryEchoAcquisitionContextCatalog.SubjectKind;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
