@@ -4,6 +4,7 @@ import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.identity.AspectAbilityData;
 import dev.spud.shadowslave.soul.identity.AspectAbilitySetData;
 import dev.spud.shadowslave.soul.identity.AspectInstanceData;
+import dev.spud.shadowslave.soul.identity.FlawInstanceData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,13 @@ class PreviewPowerServiceTest {
                 new AspectAbilitySetData(List.of(abilities)),
                 "test"
         );
-        return new SoulIdentityData(Optional.of(aspect), Optional.empty());
+        FlawInstanceData flaw = new FlawInstanceData(
+                id("preview/flaw/test"),
+                "Test Flaw",
+                id("preview/flaw_effect/test"),
+                "test"
+        );
+        return new SoulIdentityData(Optional.of(aspect), Optional.of(flaw));
     }
 
     private static ResourceLocation id(String path) {
