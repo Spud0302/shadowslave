@@ -5,10 +5,13 @@ import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+
+import java.util.Objects;
 
 /** Server-authoritative mechanics for the fixed preview Aspect and Flaw. */
 public final class PreviewPowerService {
@@ -20,8 +23,7 @@ public final class PreviewPowerService {
 
     public static boolean activateKindle(ServerPlayer player) {
         SoulIdentityData identity = SoulIdentityService.get(player);
-        if (identity.aspect().isEmpty()
-                || !PreviewAppraisalService.ABILITY_ID.equals(identity.aspect().orElseThrow().abilityId())) {
+        if (!possessesAspectAbility(identity, PreviewAppraisalService.ABILITY_ID)) {
             player.sendSystemMessage(Component.literal("Your revealed Aspect does not possess the preview Kindle ability."));
             return false;
         }
@@ -39,6 +41,14 @@ public final class PreviewPowerService {
         player.setData(ModAttachments.PREVIEW_POWER, new PreviewPowerData(now + KINDLE_COOLDOWN_TICKS));
         player.sendSystemMessage(Component.literal("[Last Light] Kindle — the dark yields for a moment."));
         return true;
+    }
+
+    static boolean possessesAspectAbility(SoulIdentityData identity, ResourceLocation abilityId) {
+        Objects.requireNonNull(identity, "identity");
+        ResourceLocation checkedAbilityId = Objects.requireNonNull(abilityId, "abilityId");
+        return identity.aspect()
+                .map(aspect -> aspect.abilitySet().contains(checkedAbilityId))
+                .orElse(false);
     }
 
     public static void onPlayerTick(PlayerTickEvent.Post event) {
