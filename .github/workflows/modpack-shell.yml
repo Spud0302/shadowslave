@@ -1,0 +1,97 @@
+name: Modpack shell
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - ready_for_review
+      - reopened
+    paths:
+      - 'modpack/**'
+      - '.github/workflows/modpack-shell.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'modpack/**'
+      - '.github/workflows/modpack-shell.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out claimed source repository and commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Validate manifest
+        run: python3 modpack/tools/validate_manifest.py
+
+      - name: Run manifest and packaging tests
+        run: python3 -m unittest discover -s modpack/tests -v
+
+      - name: Build and verify deterministic fixture package
+        run: |
+          printf 'ci-core-fixture' > "$RUNNER_TEMP/shadowslave-core.jar"
+          python3 modpack/tools/build_package.py \
+            --core-jar "$RUNNER_TEMP/shadowslave-core.jar" \
+            --output "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
+          python3 modpack/tools/verify_package.py \
+            "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
+          unzip -t "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
+          sha256sum "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
+
+      - name: Upload fixture package
+        id: package-upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: nightmare-spell-modpack-shell
+          path: ${{ runner.temp }}/nightmare-spell-modpack-dev.zip
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Create and verify external build provenance
+        env:
+          SOURCE_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+          PACKAGE_ARTIFACT_ID: ${{ steps.package-upload.outputs.artifact-id }}
+          PACKAGE_ARTIFACT_NAME: nightmare-spell-modpack-shell
+        run: |
+          python3 modpack/tools/build_provenance.py create \
+            --archive "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip" \
+            --core-jar "$RUNNER_TEMP/shadowslave-core.jar" \
+            --repository "$SOURCE_REPOSITORY" \
+            --commit-sha "$SOURCE_COMMIT" \
+            --workflow-run-id "$GITHUB_RUN_ID" \
+            --workflow-run-attempt "$GITHUB_RUN_ATTEMPT" \
+            --artifact-id "$PACKAGE_ARTIFACT_ID" \
+            --artifact-name "$PACKAGE_ARTIFACT_NAME" \
+            --output "$RUNNER_TEMP/nightmare-spell-modpack-dev.provenance.json"
+          python3 modpack/tools/build_provenance.py verify \
+            --statement "$RUNNER_TEMP/nightmare-spell-modpack-dev.provenance.json" \
+            --archive "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip" \
+            --core-jar "$RUNNER_TEMP/shadowslave-core.jar" \
+            --expected-repository "$SOURCE_REPOSITORY" \
+            --expected-commit "$SOURCE_COMMIT" \
+            --expected-run-id "$GITHUB_RUN_ID" \
+            --expected-run-attempt "$GITHUB_RUN_ATTEMPT" \
+            --expected-artifact-id "$PACKAGE_ARTIFACT_ID" \
+            --expected-artifact-name "$PACKAGE_ARTIFACT_NAME"
+
+      - name: Upload external build provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: nightmare-spell-modpack-shell-provenance
+          path: ${{ runner.temp }}/nightmare-spell-modpack-dev.provenance.json
+          if-no-files-found: error
+          retention-days: 7
