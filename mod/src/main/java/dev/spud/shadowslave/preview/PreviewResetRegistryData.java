@@ -9,6 +9,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,6 +23,15 @@ public final class PreviewResetRegistryData extends SavedData {
     );
 
     private final Set<UUID> pendingPlayers = new LinkedHashSet<>();
+    private final String loadFailure;
+
+    public PreviewResetRegistryData() {
+        this(null);
+    }
+
+    private PreviewResetRegistryData(String loadFailure) {
+        this.loadFailure = loadFailure;
+    }
 
     public static PreviewResetRegistryData get(MinecraftServer server) {
         return Objects.requireNonNull(server, "server")
@@ -30,12 +40,23 @@ public final class PreviewResetRegistryData extends SavedData {
                 .computeIfAbsent(FACTORY, DATA_NAME);
     }
 
+    /** A corrupt marker has unknown ownership, so Nightmare recovery must stop globally rather than guess. */
+    public boolean recoveryBlocked() {
+        return loadFailure != null;
+    }
+
+    public Optional<String> loadFailure() {
+        return Optional.ofNullable(loadFailure);
+    }
+
     public boolean isPending(UUID playerId) {
+        requireHealthy();
         return pendingPlayers.contains(Objects.requireNonNull(playerId, "playerId"));
     }
 
     /** Idempotently records reset intent before any other durable reset mutation. */
     public void begin(UUID playerId) {
+        requireHealthy();
         if (pendingPlayers.add(Objects.requireNonNull(playerId, "playerId"))) {
             setDirty();
         }
@@ -43,6 +64,7 @@ public final class PreviewResetRegistryData extends SavedData {
 
     /** Clears reset intent only after player state has been saved and the final snapshot has been published. */
     public void complete(UUID playerId) {
+        requireHealthy();
         if (pendingPlayers.remove(Objects.requireNonNull(playerId, "playerId"))) {
             setDirty();
         }
@@ -50,6 +72,7 @@ public final class PreviewResetRegistryData extends SavedData {
 
     @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+        requireHealthy();
         ListTag encoded = new ListTag();
         for (UUID playerId : pendingPlayers) {
             CompoundTag entry = new CompoundTag();
@@ -61,18 +84,35 @@ public final class PreviewResetRegistryData extends SavedData {
     }
 
     static PreviewResetRegistryData load(CompoundTag tag, HolderLookup.Provider registries) {
+        Tag pendingTag = tag.get("pending");
+        if (!(pendingTag instanceof ListTag encoded)) {
+            return blocked("Preview reset marker is missing a pending list");
+        }
+
         PreviewResetRegistryData data = new PreviewResetRegistryData();
-        ListTag encoded = tag.getList("pending", Tag.TAG_COMPOUND);
         for (int index = 0; index < encoded.size(); index++) {
-            CompoundTag entry = encoded.getCompound(index);
+            Tag rawEntry = encoded.get(index);
+            if (!(rawEntry instanceof CompoundTag entry)) {
+                return blocked("Preview reset marker entry " + index + " is not a compound");
+            }
             if (!entry.hasUUID("player_id")) {
-                throw new IllegalStateException("Preview reset marker is missing player_id");
+                return blocked("Preview reset marker entry " + index + " is missing player_id");
             }
             UUID playerId = entry.getUUID("player_id");
             if (!data.pendingPlayers.add(playerId)) {
-                throw new IllegalStateException("Duplicate preview reset marker for player " + playerId);
+                return blocked("Duplicate preview reset marker for player " + playerId);
             }
         }
         return data;
+    }
+
+    private static PreviewResetRegistryData blocked(String loadFailure) {
+        return new PreviewResetRegistryData(Objects.requireNonNull(loadFailure, "loadFailure"));
+    }
+
+    private void requireHealthy() {
+        if (loadFailure != null) {
+            throw new IllegalStateException("Preview reset recovery is blocked: " + loadFailure);
+        }
     }
 }
