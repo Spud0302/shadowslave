@@ -55,11 +55,23 @@ public final class LastSignalScenario {
         return instance.withLayout(origin, altar).withPursuer(pursuer.getUUID());
     }
 
-    public static boolean igniteAltar(ServerLevel level, NightmareInstance instance) {
+    /**
+     * Validates the authored terminal objective without mutating world state.
+     *
+     * <p>The successful-completion receipt becomes the durable authority once this
+     * validation succeeds. Lighting the campfire afterward is presentation/world
+     * state and may be replayed idempotently.</p>
+     */
+    public static void requireResolvableAltar(ServerLevel level, NightmareInstance instance) {
         BlockState state = level.getBlockState(instance.altar());
         if (!state.is(Blocks.SOUL_CAMPFIRE) || !state.hasProperty(CampfireBlock.LIT)) {
             throw new IllegalStateException("The Last Signal altar is missing or corrupt");
         }
+    }
+
+    public static boolean igniteAltar(ServerLevel level, NightmareInstance instance) {
+        requireResolvableAltar(level, instance);
+        BlockState state = level.getBlockState(instance.altar());
         if (!state.getValue(CampfireBlock.LIT)) {
             level.setBlockAndUpdate(instance.altar(), state.setValue(CampfireBlock.LIT, true));
         }
