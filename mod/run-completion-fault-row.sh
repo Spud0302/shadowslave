@@ -207,10 +207,16 @@ verify_evidence() {
   appraisal_marker="Preview appraisal completed for Nightmare $instance"
   teardown_marker="Nightmare $instance teardown completed"
 
-  grep -Fq "$fault_marker" "$dir/fault-console.log" || {
-    echo "FAIL: exact fault marker is missing from retained fault console evidence." >&2
+  # The fault collection stage deliberately accepts the server-side marker from
+  # either Gradle's console capture or Minecraft's retained latest.log because
+  # ModDev can route child logging differently. Verification must honor the same
+  # evidence contract or a row can pass collection and fail later solely because
+  # the marker landed in fault-latest.log.
+  if ! grep -Fq "$fault_marker" "$dir/fault-console.log" \
+      && ! grep -Fq "$fault_marker" "$dir/fault-latest.log" 2>/dev/null; then
+    echo "FAIL: exact fault marker is missing from retained fault evidence." >&2
     return 1
-  }
+  fi
 
   appraisals="$(count_marker "$dir" "$appraisal_marker")"
   teardowns="$(count_marker "$dir" "$teardown_marker")"
@@ -244,8 +250,10 @@ self_test() {
   dir="$(row_dir "$point")"
   mkdir -p "$dir"
   cat >"$dir/fault-console.log" <<EOF
-INTENTIONAL COMPLETION FAULT after durable boundary $point. Halting with exit code 86.
 Preview appraisal completed for Nightmare $instance
+EOF
+  cat >"$dir/fault-latest.log" <<EOF
+INTENTIONAL COMPLETION FAULT after durable boundary $point. Halting with exit code 86.
 EOF
   cat >"$dir/recovery-console.log" <<EOF
 Nightmare $instance teardown completed
