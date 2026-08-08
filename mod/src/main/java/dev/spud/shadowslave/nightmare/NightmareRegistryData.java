@@ -29,30 +29,53 @@ public final class NightmareRegistryData extends SavedData {
     private final Map<UUID, NightmareInstance> instances = new LinkedHashMap<>();
     private final Map<UUID, UUID> instanceByPlayer = new LinkedHashMap<>();
     private final Map<UUID, NightmareCompletionRecord> successfulCompletions = new LinkedHashMap<>();
+    private final String loadFailure;
     private int nextSlot;
+
+    public NightmareRegistryData() {
+        this(null);
+    }
+
+    private NightmareRegistryData(String loadFailure) {
+        this.loadFailure = loadFailure;
+    }
 
     public static NightmareRegistryData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
     }
 
+    /** Corrupt ownership/completion metadata has uncertain authority, so recovery must stop rather than guess. */
+    public boolean recoveryBlocked() {
+        return loadFailure != null;
+    }
+
+    public Optional<String> loadFailure() {
+        return Optional.ofNullable(loadFailure);
+    }
+
     public Optional<NightmareInstance> findByPlayer(UUID playerId) {
-        UUID instanceId = instanceByPlayer.get(playerId);
+        requireHealthy();
+        UUID instanceId = instanceByPlayer.get(Objects.requireNonNull(playerId, "playerId"));
         return instanceId == null ? Optional.empty() : Optional.ofNullable(instances.get(instanceId));
     }
 
     public Optional<NightmareCompletionRecord> findSuccessfulCompletionByPlayer(UUID playerId) {
-        return Optional.ofNullable(successfulCompletions.get(playerId));
+        requireHealthy();
+        return Optional.ofNullable(successfulCompletions.get(Objects.requireNonNull(playerId, "playerId")));
     }
 
     public Collection<NightmareInstance> activeInstances() {
+        requireHealthy();
         return List.copyOf(instances.values());
     }
 
     public Collection<NightmareCompletionRecord> successfulCompletionRecords() {
+        requireHealthy();
         return List.copyOf(successfulCompletions.values());
     }
 
     public NightmareInstance create(ServerPlayer player, String scenarioId, String historicalRoleId) {
+        requireHealthy();
         UUID playerId = player.getUUID();
         ensurePlayerCanCreate(playerId);
 
@@ -81,6 +104,7 @@ public final class NightmareRegistryData extends SavedData {
     }
 
     void ensurePlayerCanCreate(UUID playerId) {
+        requireHealthy();
         UUID checkedPlayerId = Objects.requireNonNull(playerId, "playerId");
         if (findByPlayer(checkedPlayerId).isPresent()) {
             throw new IllegalStateException("Player already owns an active Nightmare instance");
@@ -91,6 +115,7 @@ public final class NightmareRegistryData extends SavedData {
     }
 
     public void update(NightmareInstance instance) {
+        requireHealthy();
         NightmareInstance checked = Objects.requireNonNull(instance, "instance");
         NightmareInstance existing = instances.get(checked.instanceId());
         if (existing == null || !existing.playerId().equals(checked.playerId())) {
@@ -116,6 +141,7 @@ public final class NightmareRegistryData extends SavedData {
 
     /** Records terminal success while the exact active instance still exists. */
     public NightmareCompletionRecord beginSuccessfulCompletion(NightmareInstance expected, long resolvedGameTime) {
+        requireHealthy();
         NightmareInstance checked = requireExactActive(expected, "complete");
         NightmareCompletionRecord existing = successfulCompletions.get(checked.playerId());
         if (existing != null) {
@@ -140,6 +166,7 @@ public final class NightmareRegistryData extends SavedData {
             NightmareInstance expected,
             NightmareCompletionPhase target
     ) {
+        requireHealthy();
         NightmareInstance checked = Objects.requireNonNull(expected, "expected");
         NightmareCompletionPhase checkedTarget = Objects.requireNonNull(target, "target");
         NightmareCompletionRecord existing = successfulCompletions.get(checked.playerId());
@@ -163,6 +190,7 @@ public final class NightmareRegistryData extends SavedData {
 
     /** Clears only the receipt owned by the supplied authoritative instance snapshot. */
     public Optional<NightmareCompletionRecord> clearSuccessfulCompletion(NightmareInstance expected) {
+        requireHealthy();
         NightmareInstance checked = Objects.requireNonNull(expected, "expected");
         NightmareCompletionRecord existing = successfulCompletions.get(checked.playerId());
         if (existing == null || !existing.instance().instanceId().equals(checked.instanceId())) {
@@ -178,6 +206,7 @@ public final class NightmareRegistryData extends SavedData {
 
     /** Removes only the exact ownership record that the caller previously resolved. */
     public Optional<NightmareInstance> remove(NightmareInstance expected) {
+        requireHealthy();
         NightmareInstance checked = Objects.requireNonNull(expected, "expected");
         UUID registeredInstanceId = instanceByPlayer.get(checked.playerId());
         if (!checked.instanceId().equals(registeredInstanceId)) {
@@ -205,6 +234,7 @@ public final class NightmareRegistryData extends SavedData {
 
     @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+        requireHealthy();
         tag.putInt("next_slot", nextSlot);
 
         ListTag encodedInstances = new ListTag();
@@ -222,22 +252,36 @@ public final class NightmareRegistryData extends SavedData {
     }
 
     static NightmareRegistryData load(CompoundTag tag, HolderLookup.Provider registries) {
-        NightmareRegistryData data = new NightmareRegistryData();
-        data.nextSlot = Math.max(0, tag.getInt("next_slot"));
+        try {
+            NightmareRegistryData data = new NightmareRegistryData();
+            data.nextSlot = Math.max(0, tag.getInt("next_slot"));
 
-        ListTag encodedInstances = tag.getList("instances", Tag.TAG_COMPOUND);
-        for (int index = 0; index < encodedInstances.size(); index++) {
-            data.restore(NightmareInstance.load(encodedInstances.getCompound(index)));
-        }
+            ListTag encodedInstances = optionalCompoundList(tag, "instances");
+            for (int index = 0; index < encodedInstances.size(); index++) {
+                Tag rawEntry = encodedInstances.get(index);
+                if (!(rawEntry instanceof CompoundTag entry)) {
+                    throw new IllegalStateException("Nightmare instance entry " + index + " is not a compound");
+                }
+                data.restore(NightmareInstance.load(entry));
+            }
 
-        ListTag encodedCompletions = tag.getList("successful_completions", Tag.TAG_COMPOUND);
-        for (int index = 0; index < encodedCompletions.size(); index++) {
-            data.restoreSuccessfulCompletion(NightmareCompletionRecord.load(encodedCompletions.getCompound(index)));
+            ListTag encodedCompletions = optionalCompoundList(tag, "successful_completions");
+            for (int index = 0; index < encodedCompletions.size(); index++) {
+                Tag rawEntry = encodedCompletions.get(index);
+                if (!(rawEntry instanceof CompoundTag entry)) {
+                    throw new IllegalStateException("Nightmare completion entry " + index + " is not a compound");
+                }
+                data.restoreSuccessfulCompletion(NightmareCompletionRecord.load(entry));
+            }
+            return data;
+        } catch (RuntimeException failure) {
+            String detail = failure.getMessage();
+            return blocked("Nightmare registry decode failed" + (detail == null ? "" : ": " + detail));
         }
-        return data;
     }
 
     void restore(NightmareInstance instance) {
+        requireHealthy();
         NightmareInstance checked = Objects.requireNonNull(instance, "instance");
         if (instances.containsKey(checked.instanceId())) {
             throw new IllegalStateException("Duplicate Nightmare instance ID in SavedData");
@@ -266,6 +310,7 @@ public final class NightmareRegistryData extends SavedData {
     }
 
     void restoreSuccessfulCompletion(NightmareCompletionRecord completion) {
+        requireHealthy();
         NightmareCompletionRecord checked = Objects.requireNonNull(completion, "completion");
         NightmareInstance completed = checked.instance();
         UUID playerId = completed.playerId();
@@ -300,6 +345,27 @@ public final class NightmareRegistryData extends SavedData {
             throw new IllegalStateException("Cannot " + operation + " a stale or inactive Nightmare instance snapshot");
         }
         return registered;
+    }
+
+    private static ListTag optionalCompoundList(CompoundTag tag, String key) {
+        Tag raw = tag.get(key);
+        if (raw == null) {
+            return new ListTag();
+        }
+        if (!(raw instanceof ListTag list)) {
+            throw new IllegalStateException("Nightmare registry " + key + " is not a list");
+        }
+        return list;
+    }
+
+    private static NightmareRegistryData blocked(String loadFailure) {
+        return new NightmareRegistryData(Objects.requireNonNull(loadFailure, "loadFailure"));
+    }
+
+    private void requireHealthy() {
+        if (loadFailure != null) {
+            throw new IllegalStateException("Nightmare recovery is blocked: " + loadFailure);
+        }
     }
 
     private static void ensureSamePersistentIdentity(NightmareInstance expected, NightmareInstance actual) {
