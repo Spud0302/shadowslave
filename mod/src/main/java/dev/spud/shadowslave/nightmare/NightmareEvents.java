@@ -9,7 +9,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
-/** NeoForge event bridge; all actual state changes route through NightmareService. */
+/** NeoForge event bridge; all actual state changes route through Nightmare services. */
 public final class NightmareEvents {
     private NightmareEvents() {
     }
@@ -28,12 +28,16 @@ public final class NightmareEvents {
         if (event.getEntity() instanceof ServerPlayer player
                 && player.serverLevel().dimension().equals(NightmareService.NIGHTMARE_LEVEL)
                 && NightmareService.activeFor(player).isPresent()) {
-            NightmareService.canonicalDeath(player);
+            NightmareDeathService.record(player);
         }
     }
 
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+
+        if (NightmareDeathService.resumePending(player)) {
             return;
         }
 
