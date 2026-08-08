@@ -22,6 +22,7 @@ class PreviewResetRegistryDataTest {
 
         CompoundTag saved = data.save(new CompoundTag(), null);
         PreviewResetRegistryData restored = PreviewResetRegistryData.load(saved, null);
+        assertFalse(restored.recoveryBlocked());
         assertTrue(restored.isPending(playerId));
 
         restored.complete(playerId);
@@ -30,7 +31,7 @@ class PreviewResetRegistryDataTest {
     }
 
     @Test
-    void duplicatePersistedMarkersFailClosed() {
+    void duplicatePersistedMarkersRemainLoadedAsGloballyBlockedRecoveryState() {
         UUID playerId = UUID.randomUUID();
         CompoundTag saved = new CompoundTag();
         ListTag pending = new ListTag();
@@ -38,17 +39,37 @@ class PreviewResetRegistryDataTest {
         pending.add(marker(playerId));
         saved.put("pending", pending);
 
-        assertThrows(IllegalStateException.class, () -> PreviewResetRegistryData.load(saved, null));
+        PreviewResetRegistryData restored = PreviewResetRegistryData.load(saved, null);
+
+        assertTrue(restored.recoveryBlocked());
+        assertTrue(restored.loadFailure().orElseThrow().contains("Duplicate"));
+        assertThrows(IllegalStateException.class, () -> restored.isPending(playerId));
+        assertThrows(IllegalStateException.class, () -> restored.begin(UUID.randomUUID()));
     }
 
     @Test
-    void malformedPersistedMarkerFailsClosed() {
+    void malformedPersistedMarkerRemainsLoadedAsGloballyBlockedRecoveryState() {
         CompoundTag saved = new CompoundTag();
         ListTag pending = new ListTag();
         pending.add(new CompoundTag());
         saved.put("pending", pending);
 
-        assertThrows(IllegalStateException.class, () -> PreviewResetRegistryData.load(saved, null));
+        PreviewResetRegistryData restored = PreviewResetRegistryData.load(saved, null);
+
+        assertTrue(restored.recoveryBlocked());
+        assertTrue(restored.loadFailure().orElseThrow().contains("missing player_id"));
+        assertThrows(IllegalStateException.class, () -> restored.complete(UUID.randomUUID()));
+    }
+
+    @Test
+    void wrongPersistedMarkerTypeRemainsLoadedAsBlockedInsteadOfBecomingAnEmptyRegistry() {
+        CompoundTag saved = new CompoundTag();
+        saved.putString("pending", "not-a-list");
+
+        PreviewResetRegistryData restored = PreviewResetRegistryData.load(saved, null);
+
+        assertTrue(restored.recoveryBlocked());
+        assertTrue(restored.loadFailure().orElseThrow().contains("pending list"));
     }
 
     private static CompoundTag marker(UUID playerId) {
