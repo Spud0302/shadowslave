@@ -1,6 +1,6 @@
 # Aspect ability-set foundation
 
-**Status:** persistent Java identity migration integrated with optional/unrevealed Aspect names.
+**Status:** persistent Java identity migration integrated with optional/unrevealed Aspect names and complete runtime set consumers.
 
 ## Lore evidence
 
@@ -34,7 +34,7 @@ The codec accepts exactly one ability storage shape:
 
 Supplying both forms or neither form fails closed. New encoding writes only `abilities`; it does not preserve the obsolete scalar field. `formal_name` remains optional and is omitted for identities whose authoritative name is not yet established.
 
-Existing Java call sites remain source-compatible during this migration through constructors that accept a single legacy ability ID and a temporary `abilityId()` first-entry accessor. Both are deliberately temporary and are removed by later migration slices once all runtime consumers use the complete set.
+Runtime provider authorization now checks stable ability-set membership, and `SoulSnapshot` transports the complete ordered set of ability IDs rather than silently privileging one entry. The temporary scalar `abilityId()` accessor and scalar-ability `AspectInstanceData` constructors have been removed. New Java construction therefore requires an explicit `AspectAbilitySetData`, while legacy scalar save compatibility remains confined to the codec boundary.
 
 ## Evidence boundary
 
@@ -48,7 +48,6 @@ The migration preserves stable identity without fabricating historical facts abs
 
 ## Follow-up
 
-1. update snapshots and provider authorization to query the set directly;
-2. remove the scalar compatibility accessor and constructor only after all call sites and stored fixtures are migrated;
-3. add explicit evolution metadata only after a separately researched schema decision;
-4. keep exceptional ability categories and natural-awakening ordering `UNKNOWN` until evidence supports a model.
+1. add explicit evolution metadata only after a separately researched schema decision;
+2. keep exceptional ability categories and natural-awakening ordering `UNKNOWN` until evidence supports a model;
+3. keep execution providers keyed by stable ability identity and removable from canonical state.
