@@ -1,7 +1,7 @@
 package dev.spud.shadowslave.nightmare;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
-import dev.spud.shadowslave.appraisal.PreviewAppraisalService;
+import dev.spud.shadowslave.persistence.SavedDataPersistence;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.SoulTransitions;
@@ -97,22 +97,78 @@ public final class NightmareService {
             return false;
         }
 
+        // Validate the authored terminal objective before durable success authority is created.
+        // Once the receipt is persisted, the campfire's lit state is only replayable world presentation.
+        LastSignalScenario.requireResolvableAltar(player.serverLevel(), instance);
+
+        MinecraftServer server = player.getServer();
+        NightmareRegistryData registry = NightmareRegistryData.get(server);
+        registry.beginSuccessfulCompletion(instance, player.serverLevel().getGameTime());
+        SavedDataPersistence.saveAndWait(server);
+        NightmareCompletionFaultInjector.afterDurableBoundary(
+                NightmareCompletionFaultPoint.AFTER_TERMINAL_REGISTRY_SAVE
+        );
+
         LastSignalScenario.igniteAltar(player.serverLevel(), instance);
-        NightmareInstance completed = exit(player, NightmareExitReason.SUCCESS);
-        try {
-            PreviewAppraisalService.appraise(player, completed);
-        } catch (RuntimeException exception) {
-            SoulIdentityService.replace(player, SoulIdentityData.empty());
-            SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
-            throw new IllegalStateException(
-                    "The preview appraisal failed after lifecycle teardown; Java state was recovered to Carrier",
-                    exception
-            );
+        if (!resumeSuccessfulCompletion(player)) {
+            throw new IllegalStateException("Successful Nightmare receipt disappeared before completion recovery");
         }
-        player.sendSystemMessage(Component.literal("The signal answers. The Spell appraises the life you lived in the borrowed role.")
-                .withStyle(ChatFormatting.LIGHT_PURPLE));
-        player.sendSystemMessage(Component.literal("Aspect revealed: [Last Light] — Awakened Rank. Flaw revealed: [Cold Ash].")
-                .withStyle(ChatFormatting.AQUA));
+        return true;
+    }
+
+    /**
+     * Reconciles and finishes a durable successful completion receipt.
+     *
+     * <p>Safe to call after the terminal event and on login. The coordinator derives
+     * required actions from the retained receipt plus authoritative player/registry
+     * state rather than assuming separate persistence surfaces committed together.</p>
+     */
+    public static boolean resumeSuccessfulCompletion(ServerPlayer player) {
+        Objects.requireNonNull(player, "player");
+        MinecraftServer server = player.getServer();
+        NightmareRegistryData registry = NightmareRegistryData.get(server);
+        NightmareCompletionRecord completion = registry
+                .findSuccessfulCompletionByPlayer(player.getUUID())
+                .orElse(null);
+        if (completion == null) {
+            return false;
+        }
+        if (!completion.instance().playerId().equals(player.getUUID())) {
+            throw new IllegalStateException("Successful Nightmare receipt belongs to another player");
+        }
+
+        ServerNightmareCompletionOperations operations = new ServerNightmareCompletionOperations(
+                player,
+                server,
+                registry,
+                completion.instance()
+        );
+        boolean recoveryDidWork = !operations.appraisalApplied()
+                || operations.playerInNightmare()
+                || operations.activeOwnershipPresent();
+        NightmareCompletionPhase startingPhase = completion.phase();
+
+        NightmareCompletionCoordinator.resume(operations);
+        NightmareCompletionRecord finished = ServerNightmareCompletionOperations.requireMatchingReceipt(
+                completion.instance(),
+                registry.findSuccessfulCompletionByPlayer(player.getUUID())
+        );
+
+        if (startingPhase != NightmareCompletionPhase.TEARDOWN_COMMITTED || recoveryDidWork) {
+            player.sendSystemMessage(Component.literal(
+                    "The signal answers. The Spell appraises the life you lived in the borrowed role."
+            ).withStyle(ChatFormatting.LIGHT_PURPLE));
+            player.sendSystemMessage(Component.literal(
+                    "Aspect revealed: [Last Light] — Awakened Rank. Flaw revealed: [Cold Ash]."
+            ).withStyle(ChatFormatting.AQUA));
+        }
+
+        ShadowSlaveMod.LOGGER.info(
+                "Nightmare {} successful completion reconciled for player {} at phase {}",
+                completion.instance().instanceId(),
+                player.getScoreboardName(),
+                finished.phase()
+        );
         return true;
     }
 
@@ -158,6 +214,11 @@ public final class NightmareService {
 
     public static Optional<NightmareInstance> activeFor(ServerPlayer player) {
         return NightmareRegistryData.get(player.getServer()).findByPlayer(player.getUUID());
+    }
+
+    public static Optional<NightmareCompletionRecord> successfulCompletionFor(ServerPlayer player) {
+        return NightmareRegistryData.get(player.getServer())
+                .findSuccessfulCompletionByPlayer(player.getUUID());
     }
 
     static boolean entryOriginAllowed(ResourceKey<Level> currentDimension) {
