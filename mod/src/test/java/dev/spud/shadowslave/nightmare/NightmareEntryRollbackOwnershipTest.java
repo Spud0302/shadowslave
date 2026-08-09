@@ -56,6 +56,28 @@ class NightmareEntryRollbackOwnershipTest {
         assertEquals(newer, registry.findByPlayer(playerId).orElseThrow());
     }
 
+    @Test
+    void pendingTechnicalExitBlocksFailedEntryOwnershipRollbackAndRetainsAuthority() {
+        NightmareInstance attempted = instance(UUID.randomUUID(), UUID.randomUUID(), 7);
+        NightmareRegistryData registry = new NightmareRegistryData();
+        registry.restore(attempted);
+        registry.beginTechnicalExit(attempted, NightmareExitReason.ADMIN_ABORT);
+
+        IllegalStateException failure = assertThrows(
+                IllegalStateException.class,
+                () -> NightmareService.removeMatchingEntryOwnership(registry, attempted)
+        );
+
+        assertTrue(failure.getMessage().contains("Pending technical Nightmare exit"));
+        assertEquals(attempted, registry.findByPlayer(attempted.playerId()).orElseThrow(),
+                "failed-entry rollback must not consume ownership behind a stronger retained exit transaction");
+        assertEquals(
+                NightmareExitReason.ADMIN_ABORT,
+                registry.findTechnicalExitReasonByPlayer(attempted.playerId()).orElseThrow(),
+                "the competing durable recovery authority must remain intact"
+        );
+    }
+
     private static NightmareInstance instance(UUID instanceId, UUID playerId, int slot) {
         return new NightmareInstance(
                 instanceId,
