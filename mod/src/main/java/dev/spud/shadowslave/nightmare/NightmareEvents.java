@@ -42,6 +42,10 @@ public final class NightmareEvents {
             return;
         }
 
+        if (NightmareService.resumeTechnicalExit(player)) {
+            return;
+        }
+
         var completion = NightmareService.successfulCompletionFor(player);
         boolean completionPresent = completion.isPresent();
         boolean activePresent = NightmareService.activeFor(player).isPresent();
