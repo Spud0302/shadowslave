@@ -366,7 +366,7 @@ public final class NightmareService {
     private static void rollbackFailedEntry(MinecraftServer server, NightmareInstance attempted) {
         ServerLevel nightmareLevel = server.getLevel(NIGHTMARE_LEVEL);
         if (nightmareLevel != null) {
-            LastSignalScenario.removeOwnedEntities(nightmareLevel, attempted);
+            LastSignalScenario.rollbackFailedEntryWorld(nightmareLevel, attempted);
         }
 
         NightmareRegistryData registry = NightmareRegistryData.get(server);
