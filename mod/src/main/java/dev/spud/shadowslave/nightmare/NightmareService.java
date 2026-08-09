@@ -235,19 +235,6 @@ public final class NightmareService {
         SavedDataPersistence.saveAndWait(server);
     }
 
-    public static void canonicalDeath(ServerPlayer player) {
-        NightmareInstance instance = activeFor(player).orElse(null);
-        if (instance == null) {
-            return;
-        }
-        teardown(player.getServer(), instance);
-        SoulIdentityService.replace(player, SoulIdentityData.empty());
-        SoulService.reset(player);
-        player.sendSystemMessage(Component.literal(
-                "Canonical First-Nightmare outcome: death. Minecraft respawn is a development accommodation; the Spell did not safely eject you."
-        ).withStyle(ChatFormatting.RED));
-    }
-
     public static Optional<NightmareInstance> activeFor(ServerPlayer player) {
         return NightmareRegistryData.get(player.getServer()).findByPlayer(player.getUUID());
     }
