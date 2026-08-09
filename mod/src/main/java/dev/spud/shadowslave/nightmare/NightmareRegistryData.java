@@ -29,6 +29,7 @@ public final class NightmareRegistryData extends SavedData {
     private final Map<UUID, NightmareInstance> instances = new LinkedHashMap<>();
     private final Map<UUID, UUID> instanceByPlayer = new LinkedHashMap<>();
     private final Map<UUID, NightmareCompletionRecord> successfulCompletions = new LinkedHashMap<>();
+    private final Map<UUID, TechnicalExitMarker> technicalExits = new LinkedHashMap<>();
     private final String loadFailure;
     private int nextSlot;
 
@@ -62,6 +63,12 @@ public final class NightmareRegistryData extends SavedData {
     public Optional<NightmareCompletionRecord> findSuccessfulCompletionByPlayer(UUID playerId) {
         requireHealthy();
         return Optional.ofNullable(successfulCompletions.get(Objects.requireNonNull(playerId, "playerId")));
+    }
+
+    public Optional<NightmareExitReason> findTechnicalExitReasonByPlayer(UUID playerId) {
+        requireHealthy();
+        TechnicalExitMarker marker = technicalExits.get(Objects.requireNonNull(playerId, "playerId"));
+        return marker == null ? Optional.empty() : Optional.of(marker.reason());
     }
 
     public Collection<NightmareInstance> activeInstances() {
@@ -112,6 +119,9 @@ public final class NightmareRegistryData extends SavedData {
         if (successfulCompletions.containsKey(checkedPlayerId)) {
             throw new IllegalStateException("Player still has a retained successful Nightmare completion receipt");
         }
+        if (technicalExits.containsKey(checkedPlayerId)) {
+            throw new IllegalStateException("Player still has a pending technical Nightmare exit");
+        }
     }
 
     public void update(NightmareInstance instance) {
@@ -132,6 +142,10 @@ public final class NightmareRegistryData extends SavedData {
                     "Cannot mutate a Nightmare instance after its successful completion receipt is recorded"
             );
         }
+        TechnicalExitMarker technicalExit = technicalExits.get(checked.playerId());
+        if (technicalExit != null && !technicalExit.instanceId().equals(checked.instanceId())) {
+            throw new IllegalStateException("Player pending technical exit belongs to another Nightmare");
+        }
 
         ensureSlotOwnedOnlyBy(checked.slot(), checked.instanceId());
         instances.put(checked.instanceId(), checked);
@@ -143,6 +157,9 @@ public final class NightmareRegistryData extends SavedData {
     public NightmareCompletionRecord beginSuccessfulCompletion(NightmareInstance expected, long resolvedGameTime) {
         requireHealthy();
         NightmareInstance checked = requireExactActive(expected, "complete");
+        if (technicalExits.containsKey(checked.playerId())) {
+            throw new IllegalStateException("Cannot complete a Nightmare while a technical exit is pending");
+        }
         NightmareCompletionRecord existing = successfulCompletions.get(checked.playerId());
         if (existing != null) {
             if (!existing.instance().equals(checked)) {
@@ -204,10 +221,60 @@ public final class NightmareRegistryData extends SavedData {
         return Optional.of(existing);
     }
 
+    /** Records technical/admin exit intent while exact active ownership is still authoritative. */
+    NightmareExitReason beginTechnicalExit(NightmareInstance expected, NightmareExitReason reason) {
+        requireHealthy();
+        NightmareInstance checked = requireExactActive(expected, "begin technical exit for");
+        NightmareExitReason checkedReason = requireTechnicalExitReason(reason);
+        TechnicalExitMarker existing = technicalExits.get(checked.playerId());
+        if (existing != null) {
+            if (!existing.instanceId().equals(checked.instanceId())) {
+                throw new IllegalStateException("Player already has a technical exit for another Nightmare");
+            }
+            if (existing.reason() != checkedReason) {
+                throw new IllegalStateException("Cannot change the reason of a pending technical Nightmare exit");
+            }
+            return existing.reason();
+        }
+
+        technicalExits.put(
+                checked.playerId(),
+                new TechnicalExitMarker(checked.playerId(), checked.instanceId(), checkedReason)
+        );
+        setDirty();
+        return checkedReason;
+    }
+
+    /**
+     * Completes the exact pending technical/admin exit and consumes active ownership in one SavedData mutation.
+     * Any successful-completion receipt must already have been cleared durably by the coordinator.
+     */
+    Optional<NightmareInstance> completeTechnicalExit(NightmareInstance expected) {
+        requireHealthy();
+        NightmareInstance checked = Objects.requireNonNull(expected, "expected");
+        TechnicalExitMarker marker = technicalExits.get(checked.playerId());
+        if (marker == null || !marker.instanceId().equals(checked.instanceId())) {
+            throw new IllegalStateException("No matching pending technical Nightmare exit exists");
+        }
+        if (successfulCompletions.containsKey(checked.playerId())) {
+            throw new IllegalStateException("Cannot consume technical Nightmare ownership while completion receipt remains");
+        }
+
+        NightmareInstance registered = requireExactActive(checked, "complete technical exit from");
+        instanceByPlayer.remove(checked.playerId());
+        instances.remove(checked.instanceId());
+        technicalExits.remove(checked.playerId());
+        setDirty();
+        return Optional.of(registered);
+    }
+
     /** Removes only the exact ownership record that the caller previously resolved. */
     public Optional<NightmareInstance> remove(NightmareInstance expected) {
         requireHealthy();
         NightmareInstance checked = Objects.requireNonNull(expected, "expected");
+        if (technicalExits.containsKey(checked.playerId())) {
+            throw new IllegalStateException("Pending technical Nightmare exit must use completeTechnicalExit");
+        }
         UUID registeredInstanceId = instanceByPlayer.get(checked.playerId());
         if (!checked.instanceId().equals(registeredInstanceId)) {
             return Optional.empty();
@@ -248,6 +315,12 @@ public final class NightmareRegistryData extends SavedData {
             encodedCompletions.add(completion.save());
         }
         tag.put("successful_completions", encodedCompletions);
+
+        ListTag encodedTechnicalExits = new ListTag();
+        for (TechnicalExitMarker marker : technicalExits.values()) {
+            encodedTechnicalExits.add(marker.save());
+        }
+        tag.put("technical_exits", encodedTechnicalExits);
         return tag;
     }
 
@@ -272,6 +345,15 @@ public final class NightmareRegistryData extends SavedData {
                     throw new IllegalStateException("Nightmare completion entry " + index + " is not a compound");
                 }
                 data.restoreSuccessfulCompletion(NightmareCompletionRecord.load(entry));
+            }
+
+            ListTag encodedTechnicalExits = optionalCompoundList(tag, "technical_exits");
+            for (int index = 0; index < encodedTechnicalExits.size(); index++) {
+                Tag rawEntry = encodedTechnicalExits.get(index);
+                if (!(rawEntry instanceof CompoundTag entry)) {
+                    throw new IllegalStateException("Technical Nightmare exit entry " + index + " is not a compound");
+                }
+                data.restoreTechnicalExit(TechnicalExitMarker.load(entry));
             }
             return data;
         } catch (RuntimeException failure) {
@@ -337,6 +419,26 @@ public final class NightmareRegistryData extends SavedData {
         nextSlot = Math.max(nextSlot, completed.slot() + 1);
     }
 
+    private void restoreTechnicalExit(TechnicalExitMarker marker) {
+        requireHealthy();
+        TechnicalExitMarker checked = Objects.requireNonNull(marker, "marker");
+        if (technicalExits.containsKey(checked.playerId())) {
+            throw new IllegalStateException("Player has multiple technical Nightmare exits in SavedData");
+        }
+        NightmareInstance active = findByPlayer(checked.playerId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Technical Nightmare exit has no active ownership in SavedData"
+                ));
+        if (!active.instanceId().equals(checked.instanceId())) {
+            throw new IllegalStateException("Technical Nightmare exit does not match active ownership in SavedData");
+        }
+        NightmareCompletionRecord completion = successfulCompletions.get(checked.playerId());
+        if (completion != null && !completion.instance().equals(active)) {
+            throw new IllegalStateException("Technical Nightmare exit does not match retained completion in SavedData");
+        }
+        technicalExits.put(checked.playerId(), checked);
+    }
+
     private NightmareInstance requireExactActive(NightmareInstance expected, String operation) {
         NightmareInstance checked = Objects.requireNonNull(expected, "expected");
         UUID registeredId = instanceByPlayer.get(checked.playerId());
@@ -368,6 +470,14 @@ public final class NightmareRegistryData extends SavedData {
         }
     }
 
+    private static NightmareExitReason requireTechnicalExitReason(NightmareExitReason reason) {
+        NightmareExitReason checked = Objects.requireNonNull(reason, "reason");
+        if (checked != NightmareExitReason.TECHNICAL_RECOVERY && checked != NightmareExitReason.ADMIN_ABORT) {
+            throw new IllegalArgumentException("Reason is not a technical/admin Nightmare exit: " + checked);
+        }
+        return checked;
+    }
+
     private static void ensureSamePersistentIdentity(NightmareInstance expected, NightmareInstance actual) {
         if (!expected.scenarioId().equals(actual.scenarioId())
                 || !expected.historicalRoleId().equals(actual.historicalRoleId())
@@ -390,6 +500,36 @@ public final class NightmareRegistryData extends SavedData {
                 .anyMatch(existing -> existing.slot() == slot && !existing.instanceId().equals(instanceId));
         if (activeConflict || completionConflict) {
             throw new IllegalStateException("Nightmare slot belongs to another instance in SavedData");
+        }
+    }
+
+    private record TechnicalExitMarker(UUID playerId, UUID instanceId, NightmareExitReason reason) {
+        private TechnicalExitMarker {
+            Objects.requireNonNull(playerId, "playerId");
+            Objects.requireNonNull(instanceId, "instanceId");
+            requireTechnicalExitReason(reason);
+        }
+
+        private CompoundTag save() {
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID("player_id", playerId);
+            tag.putUUID("instance_id", instanceId);
+            tag.putString("reason", reason.name());
+            return tag;
+        }
+
+        private static TechnicalExitMarker load(CompoundTag tag) {
+            NightmareExitReason reason;
+            try {
+                reason = NightmareExitReason.valueOf(tag.getString("reason"));
+            } catch (IllegalArgumentException exception) {
+                throw new IllegalStateException("Unknown technical Nightmare exit reason in SavedData", exception);
+            }
+            return new TechnicalExitMarker(
+                    tag.getUUID("player_id"),
+                    tag.getUUID("instance_id"),
+                    reason
+            );
         }
     }
 }
