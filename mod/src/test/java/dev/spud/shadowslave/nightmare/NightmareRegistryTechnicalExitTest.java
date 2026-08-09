@@ -108,7 +108,7 @@ class NightmareRegistryTechnicalExitTest {
         NightmareRegistryData restarted = NightmareRegistryData.load(saved, null);
 
         assertTrue(restarted.recoveryBlocked());
-        assertTrue(restarted.loadFailure().orElseThrow().contains("technical Nightmare exit"));
+        assertTrue(restarted.loadFailure().orElseThrow().startsWith("Nightmare registry decode failed"));
         assertThrows(IllegalStateException.class, () -> restarted.findByPlayer(playerId));
     }
 
