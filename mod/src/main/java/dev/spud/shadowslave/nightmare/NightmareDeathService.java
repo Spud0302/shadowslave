@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.nightmare;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.persistence.PersistenceFileCheckpoint;
 import dev.spud.shadowslave.persistence.SavedDataPersistence;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
@@ -10,7 +11,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.LevelResource;
 
+import java.nio.file.Path;
 import java.util.Objects;
 
 /** Canonical First-Nightmare death handling, distinct from technical/admin recovery. */
@@ -51,6 +54,10 @@ public final class NightmareDeathService {
         MinecraftServer server = player.getServer();
         NightmareRegistryData registry = NightmareRegistryData.get(server);
         NightmareDeathRegistryData deaths = NightmareDeathRegistryData.get(server);
+        Path deathRegistryFile = server.getWorldPath(LevelResource.ROOT)
+                .resolve("data")
+                .resolve("shadowslave_nightmare_deaths.dat");
+        PersistenceFileCheckpoint.Snapshot[] deathIntentBaseline = new PersistenceFileCheckpoint.Snapshot[1];
 
         NightmareInstance active = registry.findByPlayer(player.getUUID()).orElse(null);
         if (active != null && !active.equals(instance)) {
@@ -59,6 +66,11 @@ public final class NightmareDeathService {
 
         NightmareDeathCoordinator.commit(new NightmareDeathCoordinator.Operations() {
             @Override
+            public void captureDeathIntentBaseline() {
+                deathIntentBaseline[0] = PersistenceFileCheckpoint.capture(deathRegistryFile);
+            }
+
+            @Override
             public void recordDeathIntent() {
                 deaths.begin(instance);
             }
@@ -66,6 +78,24 @@ public final class NightmareDeathService {
             @Override
             public void persistDeathIntent() {
                 SavedDataPersistence.saveAndWait(server);
+            }
+
+            @Override
+            public void verifyDeathIntentPersisted() {
+                PersistenceFileCheckpoint.Snapshot before = deathIntentBaseline[0];
+                if (before == null) {
+                    throw new IllegalStateException("Canonical death persistence checkpoint was not captured before recording death intent");
+                }
+                PersistenceFileCheckpoint.requireChanged(
+                        deathRegistryFile,
+                        before,
+                        "Canonical Nightmare death intent"
+                );
+            }
+
+            @Override
+            public void discardUnverifiedDeathIntent() {
+                deaths.complete(instance);
             }
 
             @Override
