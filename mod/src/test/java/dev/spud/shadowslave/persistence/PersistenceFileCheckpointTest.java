@@ -6,8 +6,11 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -18,28 +21,28 @@ class PersistenceFileCheckpointTest {
     @Test
     void newlyCreatedPersistenceFileSatisfiesCheckpoint() throws IOException {
         Path file = tempDir.resolve("state.dat");
-        PersistenceFileCheckpoint.Snapshot before = PersistenceFileCheckpoint.capture(file);
+        PersistenceFileCheckpoint.Snapshot before = PersistenceFileCheckpoint.capture(file, () -> {});
         Files.writeString(file, "first-image");
-        assertDoesNotThrow(() -> PersistenceFileCheckpoint.requireChanged(file, before, "state"));
+        assertDoesNotThrow(() -> PersistenceFileCheckpoint.requireChanged(file, before, "state", () -> {}));
     }
 
     @Test
     void changedPersistenceFileSatisfiesCheckpoint() throws IOException {
         Path file = tempDir.resolve("state.dat");
         Files.writeString(file, "before");
-        PersistenceFileCheckpoint.Snapshot before = PersistenceFileCheckpoint.capture(file);
+        PersistenceFileCheckpoint.Snapshot before = PersistenceFileCheckpoint.capture(file, () -> {});
         Files.writeString(file, "after");
-        assertDoesNotThrow(() -> PersistenceFileCheckpoint.requireChanged(file, before, "state"));
+        assertDoesNotThrow(() -> PersistenceFileCheckpoint.requireChanged(file, before, "state", () -> {}));
     }
 
     @Test
     void unchangedPersistenceFileFailsClosed() throws IOException {
         Path file = tempDir.resolve("state.dat");
         Files.writeString(file, "same-image");
-        PersistenceFileCheckpoint.Snapshot before = PersistenceFileCheckpoint.capture(file);
+        PersistenceFileCheckpoint.Snapshot before = PersistenceFileCheckpoint.capture(file, () -> {});
         IllegalStateException thrown = assertThrows(
                 IllegalStateException.class,
-                () -> PersistenceFileCheckpoint.requireChanged(file, before, "state")
+                () -> PersistenceFileCheckpoint.requireChanged(file, before, "state", () -> {})
         );
         assertTrue(thrown.getMessage().contains("did not change"));
     }
@@ -47,11 +50,35 @@ class PersistenceFileCheckpointTest {
     @Test
     void missingPersistenceFileFailsClosed() {
         Path file = tempDir.resolve("state.dat");
-        PersistenceFileCheckpoint.Snapshot before = PersistenceFileCheckpoint.capture(file);
+        PersistenceFileCheckpoint.Snapshot before = PersistenceFileCheckpoint.capture(file, () -> {});
         IllegalStateException thrown = assertThrows(
                 IllegalStateException.class,
-                () -> PersistenceFileCheckpoint.requireChanged(file, before, "state")
+                () -> PersistenceFileCheckpoint.requireChanged(file, before, "state", () -> {})
         );
         assertTrue(thrown.getMessage().contains("does not exist"));
+    }
+
+    @Test
+    void captureDrainsPendingWritesBeforeReadingBaseline() throws IOException {
+        Path file = tempDir.resolve("state.dat");
+        Files.writeString(file, "old-image");
+        List<String> calls = new ArrayList<>();
+
+        PersistenceFileCheckpoint.Snapshot before = PersistenceFileCheckpoint.capture(file, () -> {
+            calls.add("drain");
+            try {
+                Files.writeString(file, "previous-queued-image");
+            } catch (IOException exception) {
+                throw new RuntimeException(exception);
+            }
+        });
+
+        IllegalStateException thrown = assertThrows(
+                IllegalStateException.class,
+                () -> PersistenceFileCheckpoint.requireChanged(file, before, "state", () -> calls.add("verify-drain"))
+        );
+
+        assertEquals(List.of("drain", "verify-drain"), calls);
+        assertTrue(thrown.getMessage().contains("did not change"));
     }
 }
