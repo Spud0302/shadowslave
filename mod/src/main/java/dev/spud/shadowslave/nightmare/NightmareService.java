@@ -291,7 +291,7 @@ public final class NightmareService {
             ResourceKey<Level> actualDimension,
             ResourceKey<Level> expectedDimension
     ) {
-        return Objects.requireNonNull(expectedReturnDimension, "expectedDimension")
+        return Objects.requireNonNull(expectedDimension, "expectedDimension")
                 .equals(Objects.requireNonNull(actualDimension, "actualDimension"));
     }
 
