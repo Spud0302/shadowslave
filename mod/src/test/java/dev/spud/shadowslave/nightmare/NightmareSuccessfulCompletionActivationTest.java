@@ -6,85 +6,115 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class NightmareSuccessfulCompletionActivationTest {
+final class NightmareSuccessfulCompletionActivationTest {
     @Test
-    void durableTerminalReceiptPrecedesWorldPresentationAndRecovery() {
-        FakeOperations operations = new FakeOperations();
+    void verifiesReceiptDurabilityBeforePublishingWorldResolutionOrRecovery() {
+        List<String> calls = new ArrayList<>();
 
-        NightmareSuccessfulCompletionActivation.run(operations);
-
-        assertEquals(
-                List.of("validate", "record", "persist", "boundary", "world", "resume"),
-                operations.calls
-        );
-    }
-
-    @Test
-    void terminalFaultStopsBeforeReplayableWorldPresentation() {
-        FakeOperations operations = new FakeOperations();
-        operations.failAtBoundary = true;
-
-        assertThrows(SimulatedFault.class, () -> NightmareSuccessfulCompletionActivation.run(operations));
-
-        assertEquals(
-                List.of("validate", "record", "persist", "boundary"),
-                operations.calls
-        );
-    }
-
-    @Test
-    void missingReceiptAfterWorldPresentationFailsClosed() {
-        FakeOperations operations = new FakeOperations();
-        operations.resumeResult = false;
-
-        IllegalStateException failure = assertThrows(
-                IllegalStateException.class,
-                () -> NightmareSuccessfulCompletionActivation.run(operations)
-        );
-
-        assertEquals("Successful Nightmare receipt disappeared before completion recovery", failure.getMessage());
-        assertEquals(
-                List.of("validate", "record", "persist", "boundary", "world", "resume"),
-                operations.calls
-        );
-    }
-
-    private static final class SimulatedFault extends RuntimeException {
-    }
-
-    private static final class FakeOperations implements NightmareSuccessfulCompletionActivation.Operations {
-        private final List<String> calls = new ArrayList<>();
-        private boolean failAtBoundary;
-        private boolean resumeResult = true;
-
-        public void validateTerminalResolution() {
-            calls.add("validate");
-        }
-
-        public void recordTerminalResolution() {
-            calls.add("record");
-        }
-
-        public void persistRegistry() {
-            calls.add("persist");
-        }
-
-        public void afterTerminalRegistryDurable() {
-            calls.add("boundary");
-            if (failAtBoundary) {
-                throw new SimulatedFault();
+        NightmareSuccessfulCompletionActivation.run(new NightmareSuccessfulCompletionActivation.Operations() {
+            @Override
+            public void validateTerminalResolution() {
+                calls.add("validate");
             }
-        }
 
-        public void applyWorldResolutionPresentation() {
-            calls.add("world");
-        }
+            @Override
+            public void captureRegistryBeforeTerminalResolution() {
+                calls.add("capture");
+            }
 
-        public boolean resumeCompletion() {
-            calls.add("resume");
-            return resumeResult;
-        }
+            @Override
+            public void recordTerminalResolution() {
+                calls.add("record");
+            }
+
+            @Override
+            public void persistRegistry() {
+                calls.add("persist");
+            }
+
+            @Override
+            public void verifyTerminalRegistryDurable() {
+                calls.add("verify");
+            }
+
+            @Override
+            public void afterTerminalRegistryDurable() {
+                calls.add("durable-boundary");
+            }
+
+            @Override
+            public void applyWorldResolutionPresentation() {
+                calls.add("presentation");
+            }
+
+            @Override
+            public boolean resumeCompletion() {
+                calls.add("resume");
+                return true;
+            }
+        });
+
+        assertEquals(
+                List.of("validate", "capture", "record", "persist", "verify", "durable-boundary", "presentation", "resume"),
+                calls
+        );
+    }
+
+    @Test
+    void failedReceiptVerificationStopsBeforeDurableBoundaryAndPresentation() {
+        List<String> calls = new ArrayList<>();
+        RuntimeException failure = new RuntimeException("completion receipt did not reach disk");
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () ->
+                NightmareSuccessfulCompletionActivation.run(new NightmareSuccessfulCompletionActivation.Operations() {
+                    @Override
+                    public void validateTerminalResolution() {
+                        calls.add("validate");
+                    }
+
+                    @Override
+                    public void captureRegistryBeforeTerminalResolution() {
+                        calls.add("capture");
+                    }
+
+                    @Override
+                    public void recordTerminalResolution() {
+                        calls.add("record");
+                    }
+
+                    @Override
+                    public void persistRegistry() {
+                        calls.add("persist");
+                    }
+
+                    @Override
+                    public void verifyTerminalRegistryDurable() {
+                        calls.add("verify");
+                        throw failure;
+                    }
+
+                    @Override
+                    public void afterTerminalRegistryDurable() {
+                        calls.add("durable-boundary");
+                    }
+
+                    @Override
+                    public void applyWorldResolutionPresentation() {
+                        calls.add("presentation");
+                    }
+
+                    @Override
+                    public boolean resumeCompletion() {
+                        calls.add("resume");
+                        return true;
+                    }
+                })
+        );
+
+        assertSame(failure, thrown);
+        assertEquals(List.of("validate", "capture", "record", "persist", "verify"), calls);
     }
 }
