@@ -36,7 +36,7 @@ class NightmareSuccessfulCompletionActivationTest {
     }
 
     @Test
-    void failedReceiptVerificationStopsBeforeDurableBoundaryAndPresentation() {
+    void failedReceiptVerificationQuarantinesReceiptBeforeReturningFailure() {
         FakeOperations operations = new FakeOperations();
         RuntimeException failure = new RuntimeException("completion receipt did not reach disk");
         operations.verificationFailure = failure;
@@ -48,7 +48,46 @@ class NightmareSuccessfulCompletionActivationTest {
 
         assertSame(failure, thrown);
         assertEquals(
-                List.of("validate", "capture", "record", "persist", "verify"),
+                List.of("validate", "capture", "record", "persist", "verify", "discard"),
+                operations.calls
+        );
+    }
+
+    @Test
+    void failedReceiptPersistenceQuarantinesReceiptBeforeReturningFailure() {
+        FakeOperations operations = new FakeOperations();
+        RuntimeException failure = new RuntimeException("registry save failed");
+        operations.persistenceFailure = failure;
+
+        RuntimeException thrown = assertThrows(
+                RuntimeException.class,
+                () -> NightmareSuccessfulCompletionActivation.run(operations)
+        );
+
+        assertSame(failure, thrown);
+        assertEquals(
+                List.of("validate", "capture", "record", "persist", "discard"),
+                operations.calls
+        );
+    }
+
+    @Test
+    void quarantineFailureIsSuppressedWithoutReplacingPersistenceFailure() {
+        FakeOperations operations = new FakeOperations();
+        RuntimeException persistenceFailure = new RuntimeException("registry save failed");
+        RuntimeException discardFailure = new RuntimeException("receipt quarantine failed");
+        operations.persistenceFailure = persistenceFailure;
+        operations.discardFailure = discardFailure;
+
+        RuntimeException thrown = assertThrows(
+                RuntimeException.class,
+                () -> NightmareSuccessfulCompletionActivation.run(operations)
+        );
+
+        assertSame(persistenceFailure, thrown);
+        assertEquals(List.of(discardFailure), List.of(thrown.getSuppressed()));
+        assertEquals(
+                List.of("validate", "capture", "record", "persist", "discard"),
                 operations.calls
         );
     }
@@ -76,7 +115,9 @@ class NightmareSuccessfulCompletionActivationTest {
     private static final class FakeOperations implements NightmareSuccessfulCompletionActivation.Operations {
         private final List<String> calls = new ArrayList<>();
         private boolean failAtBoundary;
+        private RuntimeException persistenceFailure;
         private RuntimeException verificationFailure;
+        private RuntimeException discardFailure;
         private boolean resumeResult = true;
 
         public void validateTerminalResolution() {
@@ -93,12 +134,22 @@ class NightmareSuccessfulCompletionActivationTest {
 
         public void persistRegistry() {
             calls.add("persist");
+            if (persistenceFailure != null) {
+                throw persistenceFailure;
+            }
         }
 
         public void verifyTerminalRegistryDurable() {
             calls.add("verify");
             if (verificationFailure != null) {
                 throw verificationFailure;
+            }
+        }
+
+        public void discardUnverifiedTerminalResolution() {
+            calls.add("discard");
+            if (discardFailure != null) {
+                throw discardFailure;
             }
         }
 
