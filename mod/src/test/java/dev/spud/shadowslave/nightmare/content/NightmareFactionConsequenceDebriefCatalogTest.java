@@ -56,6 +56,20 @@ class NightmareFactionConsequenceDebriefCatalogTest {
     }
 
     @Test
+    void playerFacingCopyDoesNotLeakBackendTerminology() {
+        for (var primitive : NightmareFactionConsequenceDebriefCatalog.waveOne()) {
+            String playerCopy = String.join(" ",
+                    primitive.title(), primitive.consequenceRead(), primitive.carryForwardPrompt(),
+                    String.join(" ", primitive.playerResponses()), String.join(" ", primitive.presentationCues()))
+                    .toLowerCase();
+            assertFalse(playerCopy.contains("java"), primitive.id());
+            assertFalse(playerCopy.contains("caller-owned"), primitive.id());
+            assertFalse(playerCopy.contains("authoritative"), primitive.id());
+            assertFalse(playerCopy.contains("resolutiongraph"), primitive.id());
+        }
+    }
+
+    @Test
     void composePreservesOpaqueAuthorityAndExactJavaOwnedKindAcrossSeeds() {
         String scenarioId = "Scenario::Mictlan/CaseSensitive";
         String factionId = "Faction::NorthWatch/CaseSensitive";
