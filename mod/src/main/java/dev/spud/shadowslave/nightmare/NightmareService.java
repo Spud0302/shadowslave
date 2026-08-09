@@ -248,6 +248,14 @@ public final class NightmareService {
         return !NIGHTMARE_LEVEL.equals(Objects.requireNonNull(currentDimension, "currentDimension"));
     }
 
+    static boolean returnTeleportCommitted(
+            ResourceKey<Level> actualDimension,
+            ResourceKey<Level> expectedDimension
+    ) {
+        return Objects.requireNonNull(expectedDimension, "expectedDimension")
+                .equals(Objects.requireNonNull(actualDimension, "actualDimension"));
+    }
+
     private static NightmareInstance exit(ServerPlayer player, NightmareExitReason reason) {
         MinecraftServer server = player.getServer();
         NightmareInstance instance = activeFor(player)
@@ -262,6 +270,7 @@ public final class NightmareService {
             returnLevel = server.overworld();
         }
 
+        ResourceKey<Level> expectedReturnDimension = returnLevel.dimension();
         player.teleportTo(
                 returnLevel,
                 instance.returnX(),
@@ -271,6 +280,11 @@ public final class NightmareService {
                 instance.returnYaw(),
                 instance.returnPitch()
         );
+        if (!returnTeleportCommitted(player.serverLevel().dimension(), expectedReturnDimension)) {
+            throw new IllegalStateException(
+                    "Nightmare exit teleport did not reach its selected return dimension; ownership was retained"
+            );
+        }
         teardown(server, instance);
         ShadowSlaveMod.LOGGER.info(
                 "Nightmare {} exited for player {} with reason {}",
