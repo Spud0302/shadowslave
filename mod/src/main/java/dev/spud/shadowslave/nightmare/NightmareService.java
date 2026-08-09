@@ -169,10 +169,20 @@ public final class NightmareService {
 
         MinecraftServer server = player.getServer();
         NightmareRegistryData registry = NightmareRegistryData.get(server);
+        Path nightmareRegistryFile = server.getWorldPath(LevelResource.ROOT)
+                .resolve("data")
+                .resolve("shadowslave_nightmares.dat");
+        PersistenceFileCheckpoint.Snapshot[] registryBeforeTerminalResolution =
+                new PersistenceFileCheckpoint.Snapshot[1];
         NightmareSuccessfulCompletionActivation.run(new NightmareSuccessfulCompletionActivation.Operations() {
             @Override
             public void validateTerminalResolution() {
                 LastSignalScenario.requireResolvableAltar(player.serverLevel(), instance);
+            }
+
+            @Override
+            public void captureRegistryBeforeTerminalResolution() {
+                registryBeforeTerminalResolution[0] = PersistenceFileCheckpoint.capture(nightmareRegistryFile);
             }
 
             @Override
@@ -183,6 +193,21 @@ public final class NightmareService {
             @Override
             public void persistRegistry() {
                 SavedDataPersistence.saveAndWait(server);
+            }
+
+            @Override
+            public void verifyTerminalRegistryDurable() {
+                PersistenceFileCheckpoint.Snapshot before = registryBeforeTerminalResolution[0];
+                if (before == null) {
+                    throw new IllegalStateException(
+                            "Nightmare registry persistence checkpoint was not captured before terminal resolution"
+                    );
+                }
+                PersistenceFileCheckpoint.requireChanged(
+                        nightmareRegistryFile,
+                        before,
+                        "Successful Nightmare completion receipt"
+                );
             }
 
             @Override
