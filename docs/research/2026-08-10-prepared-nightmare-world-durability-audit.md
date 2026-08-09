@@ -2,19 +2,19 @@
 
 ## Scope
 
-This audit follows the green combined entry-durability candidate on PR #152 (`6fa5b117619eeb1f3747201116825ba97911b37e`, Preview Gates run #120).
+This audit follows the green combined #152/#153 entry-durability lineage after PR #153 was incorporated into PR #152. The audited combined head is `6fa5b117619eeb1f3747201116825ba97911b37e` on PR #152, with #153 supplying the settled persistence-file checkpoint correction; that combined head passed Preview Gates run #120.
 
 The question is deliberately narrower than successful-completion recovery: after `LastSignalScenario.prepare(...)` has built the scenario and created its pursuer, can the Java entry transaction prove that the prepared Nightmare **world state** is durable before it allows player-side entry state to become durable?
 
 ## Evidence checked
 
-Current entry order on PR #152:
+Current entry order on the combined #152/#153 lineage:
 
 1. `LastSignalScenario.prepare(...)` clears/builds the allocated slot and adds the persistent pursuer entity.
 2. `NightmareRegistryData.update(prepared)` records the prepared layout/entity identity in memory.
-3. `PersistenceFileCheckpoint` + `SavedDataPersistence.saveAndWait(...)` prove that the overworld `shadowslave_nightmares.dat` file changed across a settled I/O boundary.
+3. #153's `PersistenceFileCheckpoint` around #152's `SavedDataPersistence.saveAndWait(...)` proves that the overworld `shadowslave_nightmares.dat` file changed across a settled I/O boundary.
 4. only then does the player become Aspirant and teleport into `shadowslave:nightmare`.
-5. after observed dimension commit, the player data file must change across its own settled checkpoint before normal entry success is published.
+5. after observed dimension commit, #153's player-data checkpoint requires the player data file to change across its own settled boundary before normal entry success is published.
 
 `SavedDataPersistence.saveAndWait(...)` is intentionally scoped to the overworld `DimensionDataStorage`: it schedules `overworld().getDataStorage().save()` and joins NeoForge's I/O worker. It does not itself save or flush the Nightmare dimension's chunks/entities.
 
@@ -28,7 +28,7 @@ The current transaction therefore has three distinct persistence surfaces:
 - prepared Nightmare blocks/entities in the Nightmare dimension's chunk/entity storage;
 - player Soul/dimension/location in player data.
 
-PR #152 now orders and verifies the first and third surfaces, but it does not prove the second surface reached durable storage.
+The combined #152/#153 lineage orders and verifies the first and third surfaces, but it does not prove the second surface reached durable storage.
 
 A process loss after durable ownership/player entry but before the prepared Nightmare chunks/entities have been saved can therefore plausibly reconstruct an active owner and a player in the Nightmare while the authored slot/pursuer is older or absent on disk.
 
@@ -50,7 +50,7 @@ Adding the flush without defining/replaying the matching rollback durability bou
 - **INFERRED:** unchanged one-instance technical ownership of an active prepared scenario.
 - **DESIGN:** prepared-world/chunk durability and rollback durability are Java transaction concerns. Any future barrier/intent/receipt used to order those writes is implementation design, not Spell behavior.
 - **UNKNOWN:** physical process-loss reconstruction at this boundary; exact chunk/entity save timing on the configured server; storage guarantees below Minecraft/NeoForge save APIs; whether a safe solution should flush prepared world state, persist a preparation intent, rebuild idempotently on login, or use another recovery contract; restoration of arbitrary pre-existing blocks in an allocated preview slot.
-- **COMPATIBILITY:** the current #136/#139/#140/#145/#146/#148/#152 entry/rollback semantics, save schemas, successful-completion/death/technical/reset transactions, and lore-facing behavior remain unchanged by this audit.
+- **COMPATIBILITY:** the current #136/#139/#140/#145/#146/#148/#152/#153 entry/rollback semantics, save schemas, successful-completion/death/technical/reset transactions, and lore-facing behavior remain unchanged by this audit.
 
 ## Blocker and exact resume condition
 
