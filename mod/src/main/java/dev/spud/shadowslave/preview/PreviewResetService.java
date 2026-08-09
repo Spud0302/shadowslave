@@ -63,6 +63,28 @@ public final class PreviewResetService {
         checkedOperations.persistRegistry();
     }
 
+    /**
+     * Production reset reconciliation policy shared by the live adapter and restart-boundary tests.
+     * A narrower retained technical/admin exit must finish before ordinary preview teardown is attempted.
+     */
+    static void reconcileNightmareForReset(NightmareResetOperations operations) {
+        NightmareResetOperations checkedOperations = Objects.requireNonNull(operations, "operations");
+        if (checkedOperations.resumeTechnicalExit()) {
+            return;
+        }
+        if (checkedOperations.activeNightmarePresent()) {
+            checkedOperations.abortForPreviewReset();
+        }
+    }
+
+    interface NightmareResetOperations {
+        boolean resumeTechnicalExit();
+
+        boolean activeNightmarePresent();
+
+        void abortForPreviewReset();
+    }
+
     interface Operations {
         void beginResetIntent();
 
@@ -104,15 +126,22 @@ public final class PreviewResetService {
 
         @Override
         public void abortNightmareIfActive() {
-            // A preview reset may be invoked after a crash left the narrower technical/admin
-            // transaction pending. Finish that transaction first so its marker cannot make the
-            // preview-reset replay permanently fail behind the higher reset precedence.
-            if (NightmareService.resumeTechnicalExit(player)) {
-                return;
-            }
-            if (NightmareService.activeFor(player).isPresent()) {
-                NightmareService.abortForPreviewReset(player);
-            }
+            reconcileNightmareForReset(new NightmareResetOperations() {
+                @Override
+                public boolean resumeTechnicalExit() {
+                    return NightmareService.resumeTechnicalExit(player);
+                }
+
+                @Override
+                public boolean activeNightmarePresent() {
+                    return NightmareService.activeFor(player).isPresent();
+                }
+
+                @Override
+                public void abortForPreviewReset() {
+                    NightmareService.abortForPreviewReset(player);
+                }
+            });
         }
 
         @Override
