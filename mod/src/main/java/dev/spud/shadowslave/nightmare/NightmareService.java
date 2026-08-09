@@ -64,22 +64,38 @@ public final class NightmareService {
         try {
             prepared = LastSignalScenario.prepare(nightmareLevel, player, instance);
             registry.update(prepared);
-            SoulService.beginFirstNightmare(player);
-            player.teleportTo(
-                    nightmareLevel,
-                    prepared.origin().getX() + 0.5,
-                    prepared.origin().getY() + 1.0,
-                    prepared.origin().getZ() - 1.5,
-                    Set.of(),
-                    0.0F,
-                    0.0F
-            );
-            teleportCommitted = entryTeleportCommitted(player.serverLevel().dimension());
-            if (!teleportCommitted) {
-                throw new IllegalStateException(
-                        "Nightmare entry teleport returned without moving the player into the Nightmare dimension"
-                );
-            }
+            NightmareInstance committedPrepared = prepared;
+            NightmareEntryDurabilityCoordinator.commit(new NightmareEntryDurabilityCoordinator.Operations() {
+                @Override
+                public void persistPreparedOwnership() {
+                    SavedDataPersistence.saveAndWait(server);
+                }
+
+                @Override
+                public void applyPlayerEntry() {
+                    SoulService.beginFirstNightmare(player);
+                    player.teleportTo(
+                            nightmareLevel,
+                            committedPrepared.origin().getX() + 0.5,
+                            committedPrepared.origin().getY() + 1.0,
+                            committedPrepared.origin().getZ() - 1.5,
+                            Set.of(),
+                            0.0F,
+                            0.0F
+                    );
+                    if (!entryTeleportCommitted(player.serverLevel().dimension())) {
+                        throw new IllegalStateException(
+                                "Nightmare entry teleport returned without moving the player into the Nightmare dimension"
+                        );
+                    }
+                }
+
+                @Override
+                public void persistCommittedPlayer() {
+                    server.getPlayerList().saveAll();
+                }
+            });
+            teleportCommitted = true;
             player.sendSystemMessage(Component.literal("First Nightmare — The Last Signal")
                     .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD));
             player.sendSystemMessage(Component.literal(
