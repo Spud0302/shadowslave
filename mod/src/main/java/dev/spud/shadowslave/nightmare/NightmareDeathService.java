@@ -58,6 +58,9 @@ public final class NightmareDeathService {
                 .resolve("data")
                 .resolve("shadowslave_nightmare_deaths.dat");
         PersistenceFileCheckpoint.Snapshot[] deathIntentBaseline = new PersistenceFileCheckpoint.Snapshot[1];
+        boolean deathIntentAlreadyDurable = deaths.findByPlayer(player.getUUID())
+                .filter(instance::equals)
+                .isPresent();
 
         NightmareInstance active = registry.findByPlayer(player.getUUID()).orElse(null);
         if (active != null && !active.equals(instance)) {
@@ -65,6 +68,11 @@ public final class NightmareDeathService {
         }
 
         NightmareDeathCoordinator.commit(new NightmareDeathCoordinator.Operations() {
+            @Override
+            public boolean deathIntentAlreadyDurable() {
+                return deathIntentAlreadyDurable;
+            }
+
             @Override
             public void captureDeathIntentBaseline() {
                 deathIntentBaseline[0] = PersistenceFileCheckpoint.capture(deathRegistryFile);
