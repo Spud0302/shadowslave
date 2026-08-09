@@ -60,6 +60,7 @@ public final class NightmareService {
                 LastSignalScenario.ROLE_ID
         );
         NightmareInstance prepared = instance;
+        boolean teleportCommitted = false;
         try {
             prepared = LastSignalScenario.prepare(nightmareLevel, player, instance);
             registry.update(prepared);
@@ -73,6 +74,12 @@ public final class NightmareService {
                     0.0F,
                     0.0F
             );
+            teleportCommitted = entryTeleportCommitted(player.serverLevel().dimension());
+            if (!teleportCommitted) {
+                throw new IllegalStateException(
+                        "Nightmare entry teleport returned without moving the player into the Nightmare dimension"
+                );
+            }
             player.sendSystemMessage(Component.literal("First Nightmare — The Last Signal")
                     .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD));
             player.sendSystemMessage(Component.literal(
@@ -83,9 +90,15 @@ public final class NightmareService {
             ).withStyle(ChatFormatting.LIGHT_PURPLE));
             return prepared;
         } catch (RuntimeException exception) {
-            rollbackFailedEntry(server, prepared);
-            SoulService.replace(player, beforeSoul);
-            throw new IllegalStateException("Nightmare entry failed and was rolled back", exception);
+            if (shouldRollbackFailedEntry(teleportCommitted)) {
+                rollbackFailedEntry(server, prepared);
+                SoulService.replace(player, beforeSoul);
+                throw new IllegalStateException("Nightmare entry failed and was rolled back", exception);
+            }
+            throw new IllegalStateException(
+                    "Nightmare entry committed at teleport but post-entry handling failed; ownership was retained",
+                    exception
+            );
         }
     }
 
@@ -253,6 +266,14 @@ public final class NightmareService {
 
     static boolean entryOriginAllowed(ResourceKey<Level> currentDimension) {
         return !NIGHTMARE_LEVEL.equals(Objects.requireNonNull(currentDimension, "currentDimension"));
+    }
+
+    static boolean entryTeleportCommitted(ResourceKey<Level> actualDimension) {
+        return NIGHTMARE_LEVEL.equals(Objects.requireNonNull(actualDimension, "actualDimension"));
+    }
+
+    static boolean shouldRollbackFailedEntry(boolean teleportCommitted) {
+        return !teleportCommitted;
     }
 
     static boolean returnTeleportCommitted(
