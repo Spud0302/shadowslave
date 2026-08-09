@@ -131,7 +131,7 @@ class LanternBelowScenarioDefinitionTest {
         ResolutionState state = graph.initial();
         for (String event : events) {
             ResolutionStep step = graph.apply(state, event);
-            assertTrue(step.accepted(), () -> "Expected event to be accepted: " + event + " from " + state.stateId());
+            assertTrue(step.accepted(), "Expected event to be accepted: " + event + " from " + state.stateId());
             state = step.state();
         }
         assertEquals(expectedResolution, state.terminalResolutionId().orElseThrow());
