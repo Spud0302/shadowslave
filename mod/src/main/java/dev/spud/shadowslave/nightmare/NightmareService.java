@@ -90,6 +90,10 @@ public final class NightmareService {
             ).withStyle(ChatFormatting.LIGHT_PURPLE));
             return prepared;
         } catch (RuntimeException exception) {
+            teleportCommitted = entryCommittedAtFailure(
+                    teleportCommitted,
+                    player.serverLevel().dimension()
+            );
             if (shouldRollbackFailedEntry(teleportCommitted)) {
                 rollbackFailedEntry(server, prepared);
                 SoulService.replace(player, beforeSoul);
@@ -272,6 +276,13 @@ public final class NightmareService {
         return NIGHTMARE_LEVEL.equals(Objects.requireNonNull(actualDimension, "actualDimension"));
     }
 
+    static boolean entryCommittedAtFailure(
+            boolean teleportCommitted,
+            ResourceKey<Level> actualDimension
+    ) {
+        return teleportCommitted || entryTeleportCommitted(actualDimension);
+    }
+
     static boolean shouldRollbackFailedEntry(boolean teleportCommitted) {
         return !teleportCommitted;
     }
@@ -280,7 +291,7 @@ public final class NightmareService {
             ResourceKey<Level> actualDimension,
             ResourceKey<Level> expectedDimension
     ) {
-        return Objects.requireNonNull(expectedDimension, "expectedDimension")
+        return Objects.requireNonNull(expectedReturnDimension, "expectedDimension")
                 .equals(Objects.requireNonNull(actualDimension, "actualDimension"));
     }
 
