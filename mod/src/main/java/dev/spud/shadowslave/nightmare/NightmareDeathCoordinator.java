@@ -10,18 +10,20 @@ public final class NightmareDeathCoordinator {
     public static void commit(Operations operations) {
         Operations checked = Objects.requireNonNull(operations, "operations");
 
-        checked.captureDeathIntentBaseline();
-        checked.recordDeathIntent();
-        try {
-            checked.persistDeathIntent();
-            checked.verifyDeathIntentPersisted();
-        } catch (RuntimeException persistenceFailure) {
+        if (!checked.deathIntentAlreadyDurable()) {
+            checked.captureDeathIntentBaseline();
+            checked.recordDeathIntent();
             try {
-                checked.discardUnverifiedDeathIntent();
-            } catch (RuntimeException quarantineFailure) {
-                persistenceFailure.addSuppressed(quarantineFailure);
+                checked.persistDeathIntent();
+                checked.verifyDeathIntentPersisted();
+            } catch (RuntimeException persistenceFailure) {
+                try {
+                    checked.discardUnverifiedDeathIntent();
+                } catch (RuntimeException quarantineFailure) {
+                    persistenceFailure.addSuppressed(quarantineFailure);
+                }
+                throw persistenceFailure;
             }
-            throw persistenceFailure;
         }
 
         checked.clearCompletionReceipt();
@@ -38,6 +40,8 @@ public final class NightmareDeathCoordinator {
     }
 
     public interface Operations {
+        boolean deathIntentAlreadyDurable();
+
         void captureDeathIntentBaseline();
 
         void recordDeathIntent();
