@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.nightmare;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.persistence.PersistenceFileCheckpoint;
 import dev.spud.shadowslave.persistence.SavedDataPersistence;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
@@ -17,7 +18,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.LevelResource;
 
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -65,14 +68,27 @@ public final class NightmareService {
             prepared = LastSignalScenario.prepare(nightmareLevel, player, instance);
             registry.update(prepared);
             NightmareInstance committedPrepared = prepared;
+            Path nightmareRegistryFile = server.getWorldPath(LevelResource.ROOT)
+                    .resolve("data")
+                    .resolve("shadowslave_nightmares.dat");
+            Path playerDataFile = server.getWorldPath(LevelResource.PLAYER_DATA_DIR)
+                    .resolve(player.getStringUUID() + ".dat");
+            PersistenceFileCheckpoint.Snapshot[] playerFileBeforeEntry = new PersistenceFileCheckpoint.Snapshot[1];
             NightmareEntryDurabilityCoordinator.commit(new NightmareEntryDurabilityCoordinator.Operations() {
                 @Override
                 public void persistPreparedOwnership() {
+                    PersistenceFileCheckpoint.Snapshot before = PersistenceFileCheckpoint.capture(nightmareRegistryFile);
                     SavedDataPersistence.saveAndWait(server);
+                    PersistenceFileCheckpoint.requireChanged(
+                            nightmareRegistryFile,
+                            before,
+                            "Prepared Nightmare ownership"
+                    );
                 }
 
                 @Override
                 public void applyPlayerEntry() {
+                    playerFileBeforeEntry[0] = PersistenceFileCheckpoint.capture(playerDataFile);
                     SoulService.beginFirstNightmare(player);
                     player.teleportTo(
                             nightmareLevel,
@@ -92,7 +108,16 @@ public final class NightmareService {
 
                 @Override
                 public void persistCommittedPlayer() {
+                    PersistenceFileCheckpoint.Snapshot before = playerFileBeforeEntry[0];
+                    if (before == null) {
+                        throw new IllegalStateException("Player persistence checkpoint was not captured before Nightmare entry");
+                    }
                     server.getPlayerList().saveAll();
+                    PersistenceFileCheckpoint.requireChanged(
+                            playerDataFile,
+                            before,
+                            "Committed Nightmare player state"
+                    );
                 }
             });
             teleportCommitted = true;
