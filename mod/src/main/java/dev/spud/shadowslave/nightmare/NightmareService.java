@@ -95,8 +95,20 @@ public final class NightmareService {
                     player.serverLevel().dimension()
             );
             if (shouldRollbackFailedEntry(teleportCommitted)) {
-                rollbackFailedEntry(server, prepared);
-                SoulService.replace(player, beforeSoul);
+                NightmareInstance attempted = prepared;
+                NightmareFailedEntryRollbackCoordinator.rollback(
+                        new NightmareFailedEntryRollbackCoordinator.Operations() {
+                            @Override
+                            public void rollbackAuthoritativeState() {
+                                rollbackFailedEntry(server, attempted);
+                            }
+
+                            @Override
+                            public void restoreSoul() {
+                                SoulService.replace(player, beforeSoul);
+                            }
+                        }
+                );
                 throw new IllegalStateException("Nightmare entry failed and was rolled back", exception);
             }
             throw new IllegalStateException(
