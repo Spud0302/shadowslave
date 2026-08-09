@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.nightmare;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /** Small fail-closed transaction helper for scenario preparation side effects. */
@@ -24,6 +25,12 @@ final class NightmarePreparationTransaction {
     }
 
     static void rollbackAll(Runnable... steps) {
+        rollbackAllBestEffort(steps).ifPresent(failure -> {
+            throw failure;
+        });
+    }
+
+    static Optional<RuntimeException> rollbackAllBestEffort(Runnable... steps) {
         RuntimeException firstFailure = null;
         for (Runnable step : Objects.requireNonNull(steps, "steps")) {
             Runnable checkedStep = Objects.requireNonNull(step, "rollback step");
@@ -37,8 +44,6 @@ final class NightmarePreparationTransaction {
                 }
             }
         }
-        if (firstFailure != null) {
-            throw firstFailure;
-        }
+        return Optional.ofNullable(firstFailure);
     }
 }
