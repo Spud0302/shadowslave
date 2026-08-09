@@ -211,6 +211,14 @@ public final class NightmareService {
             }
 
             @Override
+            public void discardUnverifiedTerminalResolution() {
+                registry.clearSuccessfulCompletion(instance)
+                        .orElseThrow(() -> new IllegalStateException(
+                                "Unverified successful Nightmare completion receipt disappeared before quarantine"
+                        ));
+            }
+
+            @Override
             public void afterTerminalRegistryDurable() {
                 NightmareCompletionFaultInjector.afterDurableBoundary(
                         NightmareCompletionFaultPoint.AFTER_TERMINAL_REGISTRY_SAVE
