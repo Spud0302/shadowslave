@@ -54,7 +54,7 @@ public final class NightmareDeathRegistryData extends SavedData {
     }
 
     /** Idempotently records the exact active instance before any death-side durable mutation. */
-    public void begin(NightmareInstance instance) {
+    void begin(NightmareInstance instance) {
         requireHealthy();
         NightmareInstance checked = Objects.requireNonNull(instance, "instance");
         NightmareInstance existing = pendingByPlayer.get(checked.playerId());
@@ -69,7 +69,7 @@ public final class NightmareDeathRegistryData extends SavedData {
     }
 
     /** Clears only the exact marker after player reset and Nightmare teardown are durably committed. */
-    public void complete(NightmareInstance instance) {
+    void complete(NightmareInstance instance) {
         requireHealthy();
         NightmareInstance checked = Objects.requireNonNull(instance, "instance");
         NightmareInstance existing = pendingByPlayer.get(checked.playerId());
