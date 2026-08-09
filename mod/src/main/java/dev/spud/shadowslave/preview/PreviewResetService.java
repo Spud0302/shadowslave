@@ -104,6 +104,12 @@ public final class PreviewResetService {
 
         @Override
         public void abortNightmareIfActive() {
+            // A preview reset may be invoked after a crash left the narrower technical/admin
+            // transaction pending. Finish that transaction first so its marker cannot make the
+            // preview-reset replay permanently fail behind the higher reset precedence.
+            if (NightmareService.resumeTechnicalExit(player)) {
+                return;
+            }
             if (NightmareService.activeFor(player).isPresent()) {
                 NightmareService.abortForPreviewReset(player);
             }
