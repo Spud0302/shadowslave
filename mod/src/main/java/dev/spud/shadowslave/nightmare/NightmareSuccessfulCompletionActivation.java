@@ -19,8 +19,17 @@ final class NightmareSuccessfulCompletionActivation {
         checked.validateTerminalResolution();
         checked.captureRegistryBeforeTerminalResolution();
         checked.recordTerminalResolution();
-        checked.persistRegistry();
-        checked.verifyTerminalRegistryDurable();
+        try {
+            checked.persistRegistry();
+            checked.verifyTerminalRegistryDurable();
+        } catch (RuntimeException persistenceFailure) {
+            try {
+                checked.discardUnverifiedTerminalResolution();
+            } catch (RuntimeException discardFailure) {
+                persistenceFailure.addSuppressed(discardFailure);
+            }
+            throw persistenceFailure;
+        }
         checked.afterTerminalRegistryDurable();
         checked.applyWorldResolutionPresentation();
         if (!checked.resumeCompletion()) {
@@ -34,6 +43,7 @@ final class NightmareSuccessfulCompletionActivation {
         void recordTerminalResolution();
         void persistRegistry();
         void verifyTerminalRegistryDurable();
+        void discardUnverifiedTerminalResolution();
         void afterTerminalRegistryDurable();
         void applyWorldResolutionPresentation();
         boolean resumeCompletion();
