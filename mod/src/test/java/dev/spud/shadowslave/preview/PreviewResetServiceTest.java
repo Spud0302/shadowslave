@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PreviewResetServiceTest {
     private static final ResourceLocation ASPECT = id("preview/aspect/last_light");
@@ -30,19 +31,24 @@ class PreviewResetServiceTest {
     private static final ResourceLocation EFFECT = id("preview/flaw_effect/cold_ash");
 
     @Test
-    void resetCompletesAllMutationsBeforeOneAuthoritativeSnapshot() {
+    void resetPersistsIntentBeforeMutationsAndClearsItAfterOneAuthoritativeSnapshot() {
         FakeOperations operations = new FakeOperations();
 
         PreviewResetService.reset(operations);
 
         assertEquals(List.of(
+                "begin_reset_intent",
+                "persist_registry",
                 "abort_nightmare",
                 "clear_successful_completion",
                 "reset_soul",
                 "clear_soul_identity",
                 "clear_imported_identity",
                 "clear_preview_power",
-                "sync"
+                "persist_player",
+                "sync",
+                "complete_reset_intent",
+                "persist_registry"
         ), operations.calls);
         assertFalse(operations.nightmareActive);
         assertFalse(operations.successfulCompletionPresent);
@@ -53,6 +59,9 @@ class PreviewResetServiceTest {
         assertEquals(1, operations.snapshots.size());
         assertEquals(ImportedIdentityData.empty(), operations.importedIdentityAtSync);
         assertEquals(PreviewPowerData.empty(), operations.previewPowerAtSync);
+        assertTrue(operations.playerStatePersistedBeforeSync);
+        assertTrue(operations.resetIntentPresentAtSync);
+        assertFalse(operations.resetIntentPresent);
 
         assertEquals(
                 SoulSnapshot.from(SoulData.uninfected(), SoulIdentityData.empty()),
@@ -61,11 +70,36 @@ class PreviewResetServiceTest {
         );
     }
 
+    @Test
+    void replayIsIdempotentWhenDurableResetIntentAlreadyExists() {
+        FakeOperations operations = new FakeOperations();
+        operations.resetIntentPresent = true;
+        operations.nightmareActive = false;
+        operations.successfulCompletionPresent = false;
+        operations.soul = SoulData.uninfected();
+        operations.identity = SoulIdentityData.empty();
+        operations.importedIdentity = ImportedIdentityData.empty();
+        operations.previewPower = PreviewPowerData.empty();
+
+        PreviewResetService.reset(operations);
+
+        assertFalse(operations.resetIntentPresent);
+        assertEquals(SoulData.uninfected(), operations.soul);
+        assertEquals(SoulIdentityData.empty(), operations.identity);
+        assertEquals(ImportedIdentityData.empty(), operations.importedIdentity);
+        assertEquals(PreviewPowerData.empty(), operations.previewPower);
+        assertEquals(1, operations.snapshots.size());
+        assertTrue(operations.playerStatePersistedBeforeSync);
+    }
+
     private static final class FakeOperations implements PreviewResetService.Operations {
         private final List<String> calls = new ArrayList<>();
         private final List<SoulSnapshot> snapshots = new ArrayList<>();
+        private boolean resetIntentPresent;
         private boolean nightmareActive = true;
         private boolean successfulCompletionPresent = true;
+        private boolean playerStatePersistedBeforeSync;
+        private boolean resetIntentPresentAtSync;
         private SoulData soul = SoulTransitions.completeFirstNightmare(
                 SoulTransitions.beginFirstNightmare(SoulTransitions.infect(SoulData.uninfected())),
                 ASPECT,
@@ -111,6 +145,17 @@ class PreviewResetServiceTest {
         private PreviewPowerData previewPowerAtSync;
 
         @Override
+        public void beginResetIntent() {
+            calls.add("begin_reset_intent");
+            resetIntentPresent = true;
+        }
+
+        @Override
+        public void persistRegistry() {
+            calls.add("persist_registry");
+        }
+
+        @Override
         public void abortNightmareIfActive() {
             calls.add("abort_nightmare");
             nightmareActive = false;
@@ -148,11 +193,27 @@ class PreviewResetServiceTest {
         }
 
         @Override
+        public void persistPlayer() {
+            calls.add("persist_player");
+            playerStatePersistedBeforeSync = soul.equals(SoulData.uninfected())
+                    && identity.equals(SoulIdentityData.empty())
+                    && importedIdentity.equals(ImportedIdentityData.empty())
+                    && previewPower.equals(PreviewPowerData.empty());
+        }
+
+        @Override
         public void sync(SoulData resetSoul) {
             calls.add("sync");
             snapshots.add(SoulSnapshot.from(resetSoul, identity));
             importedIdentityAtSync = importedIdentity;
             previewPowerAtSync = previewPower;
+            resetIntentPresentAtSync = resetIntentPresent;
+        }
+
+        @Override
+        public void completeResetIntent() {
+            calls.add("complete_reset_intent");
+            resetIntentPresent = false;
         }
     }
 
