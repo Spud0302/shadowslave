@@ -4,11 +4,11 @@
 
 ## Context
 
-PR #136 made `LastSignalScenario.prepare(...)` transactional when preparation itself fails. PR #139 corrected failed-entry registry teardown so it removes the exact authoritative active snapshot rather than a locally modified copy. PR #140 then established the authoritative entry commit boundary: destructive failed-entry rollback is allowed only while the player has not been observed in `NightmareService.NIGHTMARE_LEVEL`.
+PR #136 made `LastSignalScenario.prepare(...)` transactional when preparation itself fails. PR #139 corrected failed-entry registry teardown so it removes the exact authoritative active snapshot rather than a locally modified copy. Corrected PR #140 exact head `2caf62fb33c842db5739b3e689842c3f22afdddf` then passed Preview Gates run #104 and established the authoritative entry commit boundary on both normal and exceptional teleport paths: destructive failed-entry rollback is allowed only while the player has not been observed in `NightmareService.NIGHTMARE_LEVEL`.
 
 Historical PR #69 identified one remaining pre-entry leak. If preparation succeeds but a later pre-commit step throws, the prepared slot geometry exists even though entry ultimately fails. Removing the pursuer and registry ownership without clearing the slot leaves ownerless world state in the shared Nightmare dimension.
 
-Historical #69 originally attempted that cleanup before the commit boundary existed. Codex correctly found that destructive rollback could then run after the player had already moved into the Nightmare. Current PR #140 resolves that prerequisite: once authoritative player state is observed in the Nightmare dimension, `tryEnter(...)` retains ownership instead of invoking failed-entry rollback.
+Historical #69 originally attempted that cleanup before the commit boundary existed. Codex correctly found that destructive rollback could then run after the player had already moved into the Nightmare. Corrected #140 resolves that prerequisite, including the throw-after-level-switch case: once authoritative player state has demonstrated Nightmare entry, `tryEnter(...)` retains ownership instead of invoking failed-entry rollback.
 
 ## Current correction
 
@@ -22,7 +22,7 @@ The failed-entry world rollback now:
 
 The physical namespace deliberately does **not** come from persisted layout fields. `registry.update(prepared)` itself may be the failing boundary, so the registry can still own the pre-preparation snapshot whose layout remains `BlockPos.ZERO` even though world preparation already used the allocated slot.
 
-Ordinary successful, technical/admin and terminal teardown continue to remove owned entities only. Destructive slot clearing is restricted to the pre-entry rollback side established by #140.
+Ordinary successful, technical/admin and terminal teardown continue to remove owned entities only. Destructive slot clearing is restricted to the pre-entry rollback side established by corrected #140.
 
 ## Evidence classification
 
@@ -30,7 +30,7 @@ Ordinary successful, technical/admin and terminal teardown continue to remove ow
 - **INFERRED:** unchanged one-instance ownership of technical scenario state during an active First Nightmare.
 - **DESIGN:** a failed Java entry transaction should not leave ownerless scenario geometry; the immutable allocated slot is the physical rollback namespace.
 - **UNKNOWN:** live NeoForge fault injection after successful preparation; process-crash atomicity during entry; exact behavior if world rollback itself ultimately throws; restoration of arbitrary blocks that may have pre-existed in an allocated preview slot.
-- **COMPATIBILITY:** successful entry, #136 preparation-failure cleanup, #139 authoritative ownership rollback, #140 observed-dimension commit behavior, persistence formats, and all completion/death/recovery transactions remain unchanged.
+- **COMPATIBILITY:** successful entry, #136 preparation-failure cleanup, #139 authoritative ownership rollback, corrected #140 observed-dimension/exception-path commit behavior, persistence formats, and all completion/death/recovery transactions remain unchanged.
 
 No canon rule is introduced or generalized.
 
