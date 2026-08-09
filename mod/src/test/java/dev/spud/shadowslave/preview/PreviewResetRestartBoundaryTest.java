@@ -46,15 +46,40 @@ class PreviewResetRestartBoundaryTest {
     }
 
     @Test
-    void retainedTechnicalExitIsFinishedInsidePendingPreviewResetBeforeFinalConvergence() {
+    void retainedTechnicalExitUsesProductionReconciliationBeforeFinalConvergence() {
         DurableState durable = DurableState.dirtyPreview();
         durable.resetIntentPresent = true;
         durable.technicalExitPending = true;
 
-        PreviewResetService.reset(new SimulatedOperations(durable, Fault.NONE));
+        SimulatedOperations operations = new SimulatedOperations(durable, Fault.NONE);
+        PreviewResetService.reset(operations);
 
         assertConverged(durable);
         assertFalse(durable.technicalExitPending);
+        assertTrue(operations.technicalExitResumeCalled);
+        assertFalse(operations.previewAbortCalled);
+    }
+
+    @Test
+    void productionReconciliationFallsBackToPreviewAbortWithoutTechnicalExit() {
+        ReconciliationProbe probe = new ReconciliationProbe(false, true);
+
+        PreviewResetService.reconcileNightmareForReset(probe);
+
+        assertTrue(probe.resumeCalled);
+        assertTrue(probe.activeCheckCalled);
+        assertTrue(probe.abortCalled);
+    }
+
+    @Test
+    void productionReconciliationStopsAfterTechnicalExitResume() {
+        ReconciliationProbe probe = new ReconciliationProbe(true, true);
+
+        PreviewResetService.reconcileNightmareForReset(probe);
+
+        assertTrue(probe.resumeCalled);
+        assertFalse(probe.activeCheckCalled);
+        assertFalse(probe.abortCalled);
     }
 
     private static void assertConverged(DurableState durable) {
@@ -101,6 +126,8 @@ class PreviewResetRestartBoundaryTest {
         private boolean workingNightmareActive;
         private boolean workingSuccessfulCompletion;
         private boolean workingPlayerCleared;
+        private boolean technicalExitResumeCalled;
+        private boolean previewAbortCalled;
         private int registrySaveCount;
 
         private SimulatedOperations(DurableState durable, Fault fault) {
@@ -132,12 +159,29 @@ class PreviewResetRestartBoundaryTest {
 
         @Override
         public void abortNightmareIfActive() {
-            if (workingTechnicalExit) {
-                workingTechnicalExit = false;
-                workingNightmareActive = false;
-                return;
-            }
-            workingNightmareActive = false;
+            PreviewResetService.reconcileNightmareForReset(new PreviewResetService.NightmareResetOperations() {
+                @Override
+                public boolean resumeTechnicalExit() {
+                    technicalExitResumeCalled = true;
+                    if (!workingTechnicalExit) {
+                        return false;
+                    }
+                    workingTechnicalExit = false;
+                    workingNightmareActive = false;
+                    return true;
+                }
+
+                @Override
+                public boolean activeNightmarePresent() {
+                    return workingNightmareActive;
+                }
+
+                @Override
+                public void abortForPreviewReset() {
+                    previewAbortCalled = true;
+                    workingNightmareActive = false;
+                }
+            });
         }
 
         @Override
@@ -182,6 +226,36 @@ class PreviewResetRestartBoundaryTest {
         @Override
         public void completeResetIntent() {
             workingResetIntent = false;
+        }
+    }
+
+    private static final class ReconciliationProbe implements PreviewResetService.NightmareResetOperations {
+        private final boolean technicalExitResumed;
+        private final boolean activeNightmare;
+        private boolean resumeCalled;
+        private boolean activeCheckCalled;
+        private boolean abortCalled;
+
+        private ReconciliationProbe(boolean technicalExitResumed, boolean activeNightmare) {
+            this.technicalExitResumed = technicalExitResumed;
+            this.activeNightmare = activeNightmare;
+        }
+
+        @Override
+        public boolean resumeTechnicalExit() {
+            resumeCalled = true;
+            return technicalExitResumed;
+        }
+
+        @Override
+        public boolean activeNightmarePresent() {
+            activeCheckCalled = true;
+            return activeNightmare;
+        }
+
+        @Override
+        public void abortForPreviewReset() {
+            abortCalled = true;
         }
     }
 }
