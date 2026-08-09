@@ -135,6 +135,18 @@ public final class NightmareService {
         return true;
     }
 
+    /** Replays a durable technical/admin exit intent before any competing completion recovery. */
+    public static boolean resumeTechnicalExit(ServerPlayer player) {
+        Objects.requireNonNull(player, "player");
+        NightmareRegistryData registry = NightmareRegistryData.get(player.getServer());
+        NightmareExitReason reason = registry.findTechnicalExitReasonByPlayer(player.getUUID()).orElse(null);
+        if (reason == null) {
+            return false;
+        }
+        technicalExit(player, reason);
+        return true;
+    }
+
     /**
      * Reconciles and finishes a durable successful completion receipt.
      *
@@ -192,9 +204,7 @@ public final class NightmareService {
     }
 
     public static NightmareInstance technicalRecover(ServerPlayer player) {
-        NightmareInstance instance = exit(player, NightmareExitReason.TECHNICAL_RECOVERY);
-        SoulIdentityService.replace(player, SoulIdentityData.empty());
-        SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
+        NightmareInstance instance = technicalExit(player, NightmareExitReason.TECHNICAL_RECOVERY);
         player.sendSystemMessage(Component.literal(
                 "Technical recovery completed. This is an administrative path, not mercy from the Nightmare Spell."
         ).withStyle(ChatFormatting.YELLOW));
@@ -202,10 +212,7 @@ public final class NightmareService {
     }
 
     public static NightmareInstance adminAbort(ServerPlayer player) {
-        NightmareInstance instance = exit(player, NightmareExitReason.ADMIN_ABORT);
-        SoulIdentityService.replace(player, SoulIdentityData.empty());
-        SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
-        return instance;
+        return technicalExit(player, NightmareExitReason.ADMIN_ABORT);
     }
 
     /**
@@ -256,11 +263,63 @@ public final class NightmareService {
                 .equals(Objects.requireNonNull(actualDimension, "actualDimension"));
     }
 
+    private static NightmareInstance technicalExit(ServerPlayer player, NightmareExitReason reason) {
+        Objects.requireNonNull(player, "player");
+        MinecraftServer server = player.getServer();
+        NightmareRegistryData registry = NightmareRegistryData.get(server);
+        NightmareInstance instance = activeFor(player)
+                .orElseThrow(() -> new IllegalStateException("Player does not own an active Nightmare"));
+
+        ResourceKey<Level> expectedReturnDimension = teleportToReturn(player, instance, reason);
+        if (!returnTeleportCommitted(player.serverLevel().dimension(), expectedReturnDimension)) {
+            throw new IllegalStateException(
+                    "Nightmare exit teleport did not reach its selected return dimension; ownership was retained"
+            );
+        }
+
+        NightmareTechnicalExitCoordinator.commit(new ServerTechnicalExitOperations(
+                player,
+                server,
+                registry,
+                instance,
+                reason
+        ));
+        ShadowSlaveMod.LOGGER.info(
+                "Nightmare {} exited for player {} with reason {}",
+                instance.instanceId(),
+                player.getScoreboardName(),
+                reason
+        );
+        return instance;
+    }
+
     private static NightmareInstance exit(ServerPlayer player, NightmareExitReason reason) {
         MinecraftServer server = player.getServer();
         NightmareInstance instance = activeFor(player)
                 .orElseThrow(() -> new IllegalStateException("Player does not own an active Nightmare"));
 
+        ResourceKey<Level> expectedReturnDimension = teleportToReturn(player, instance, reason);
+        if (!returnTeleportCommitted(player.serverLevel().dimension(), expectedReturnDimension)) {
+            throw new IllegalStateException(
+                    "Nightmare exit teleport did not reach its selected return dimension; ownership was retained"
+            );
+        }
+        teardown(server, instance);
+        ShadowSlaveMod.LOGGER.info(
+                "Nightmare {} exited for player {} with reason {}",
+                instance.instanceId(),
+                player.getScoreboardName(),
+                reason
+        );
+        return instance;
+    }
+
+    private static ResourceKey<Level> teleportToReturn(
+            ServerPlayer player,
+            NightmareInstance instance,
+            NightmareExitReason reason
+    ) {
+        MinecraftServer server = player.getServer();
         ResourceKey<Level> returnKey = ResourceKey.create(Registries.DIMENSION, instance.returnDimension());
         ServerLevel returnLevel = server.getLevel(returnKey);
         if (returnLevel == null) {
@@ -280,19 +339,7 @@ public final class NightmareService {
                 instance.returnYaw(),
                 instance.returnPitch()
         );
-        if (!returnTeleportCommitted(player.serverLevel().dimension(), expectedReturnDimension)) {
-            throw new IllegalStateException(
-                    "Nightmare exit teleport did not reach its selected return dimension; ownership was retained"
-            );
-        }
-        teardown(server, instance);
-        ShadowSlaveMod.LOGGER.info(
-                "Nightmare {} exited for player {} with reason {}",
-                instance.instanceId(),
-                player.getScoreboardName(),
-                reason
-        );
-        return instance;
+        return expectedReturnDimension;
     }
 
     private static void teardown(MinecraftServer server, NightmareInstance instance) {
@@ -317,7 +364,63 @@ public final class NightmareService {
         }
     }
 
+    private static void teardownTechnicalExit(
+            MinecraftServer server,
+            NightmareRegistryData registry,
+            NightmareInstance instance
+    ) {
+        ServerLevel nightmareLevel = server.getLevel(NIGHTMARE_LEVEL);
+        if (nightmareLevel != null) {
+            LastSignalScenario.removeOwnedEntities(nightmareLevel, instance);
+        }
+        registry.completeTechnicalExit(instance);
+        ShadowSlaveMod.LOGGER.info(
+                "Nightmare {} technical-exit teardown completed for player {}",
+                instance.instanceId(),
+                instance.playerId()
+        );
+    }
+
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, path);
+    }
+
+    private record ServerTechnicalExitOperations(
+            ServerPlayer player,
+            MinecraftServer server,
+            NightmareRegistryData registry,
+            NightmareInstance instance,
+            NightmareExitReason reason
+    ) implements NightmareTechnicalExitCoordinator.Operations {
+        @Override
+        public void recordTechnicalExitIntent() {
+            registry.beginTechnicalExit(instance, reason);
+        }
+
+        @Override
+        public void clearCompletionReceipt() {
+            registry.clearSuccessfulCompletion(instance);
+        }
+
+        @Override
+        public void persistRegistry() {
+            SavedDataPersistence.saveAndWait(server);
+        }
+
+        @Override
+        public void resetPlayerState() {
+            SoulIdentityService.replace(player, SoulIdentityData.empty());
+            SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
+        }
+
+        @Override
+        public void persistPlayer() {
+            server.getPlayerList().saveAll();
+        }
+
+        @Override
+        public void teardownActiveInstance() {
+            teardownTechnicalExit(server, registry, instance);
+        }
     }
 }
