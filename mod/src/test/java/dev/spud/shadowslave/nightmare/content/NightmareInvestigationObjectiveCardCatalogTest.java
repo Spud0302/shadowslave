@@ -41,11 +41,11 @@ class NightmareInvestigationObjectiveCardCatalogTest {
     }
 
     @Test
-    void compositionPreservesCallerOwnedAuthorityAcrossSeedSweep() {
-        String scenario = "lantern_below";
-        String actor = "survey_clerk_assistant";
-        String plan = "test_route_marker";
-        String objective = "verify_lower_gallery_route";
+    void compositionPreservesOpaqueCallerOwnedAuthorityAcrossSeedSweep() {
+        String scenario = "shadow:LanternBelow/V2";
+        String actor = "Role:SurveyClerkAssistant";
+        String plan = "Plan:TestRouteMarker";
+        String objective = "Objective:VerifyLowerGalleryRoute";
         for (NightmareInvestigationObjectiveCardCatalog.State state : NightmareInvestigationObjectiveCardCatalog.State.values()) {
             for (long seed = 0; seed < 4096; seed++) {
                 NightmareInvestigationObjectiveCardCatalog.Selection selection = NightmareInvestigationObjectiveCardCatalog.compose(
@@ -87,15 +87,18 @@ class NightmareInvestigationObjectiveCardCatalogTest {
         second.put("route", 999);
 
         NightmareInvestigationObjectiveCardCatalog.Selection a = NightmareInvestigationObjectiveCardCatalog.compose(
-                77L, "scenario", "actor", "plan", "objective", NightmareInvestigationObjectiveCardCatalog.State.ACTIVE, first);
+                77L, "Scenario:Opaque", "Actor:Opaque", "Plan:Opaque", "Objective:Opaque",
+                NightmareInvestigationObjectiveCardCatalog.State.ACTIVE, first);
         NightmareInvestigationObjectiveCardCatalog.Selection b = NightmareInvestigationObjectiveCardCatalog.compose(
-                77L, "scenario", "actor", "plan", "objective", NightmareInvestigationObjectiveCardCatalog.State.ACTIVE, second);
+                77L, "Scenario:Opaque", "Actor:Opaque", "Plan:Opaque", "Objective:Opaque",
+                NightmareInvestigationObjectiveCardCatalog.State.ACTIVE, second);
 
         assertEquals(a.primitive().id(), b.primitive().id());
         assertEquals(a.presentationCue(), b.presentationCue());
         assertEquals(Set.of("route", "record"), a.matchedEvidenceTags());
         assertEquals(a.matchedEvidenceTags(), b.matchedEvidenceTags());
         assertEquals(NightmareInvestigationObjectiveCardCatalog.State.ACTIVE, a.state());
+        assertEquals("Scenario:Opaque", a.scenarioId());
     }
 
     @Test
