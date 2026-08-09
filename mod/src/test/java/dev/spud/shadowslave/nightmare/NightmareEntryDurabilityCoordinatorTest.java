@@ -91,4 +91,33 @@ final class NightmareEntryDurabilityCoordinatorTest {
         assertSame(failure, thrown);
         assertEquals(List.of("registry", "player-entry"), calls);
     }
+
+    @Test
+    void committedPlayerPersistenceFailureIsSurfacedAfterEntryMutation() {
+        List<String> calls = new ArrayList<>();
+        RuntimeException failure = new RuntimeException("player persistence failed");
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () ->
+                NightmareEntryDurabilityCoordinator.commit(new NightmareEntryDurabilityCoordinator.Operations() {
+                    @Override
+                    public void persistPreparedOwnership() {
+                        calls.add("registry");
+                    }
+
+                    @Override
+                    public void applyPlayerEntry() {
+                        calls.add("player-entry");
+                    }
+
+                    @Override
+                    public void persistCommittedPlayer() {
+                        calls.add("player-save");
+                        throw failure;
+                    }
+                })
+        );
+
+        assertSame(failure, thrown);
+        assertEquals(List.of("registry", "player-entry", "player-save"), calls);
+    }
 }
