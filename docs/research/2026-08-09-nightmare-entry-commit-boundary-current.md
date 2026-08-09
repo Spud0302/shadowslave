@@ -7,41 +7,47 @@
 
 PR #139 passed Preview Gates run #99, unblocking the next failed-entry correction. Historical PR #69 looked like the next direct port because it clears prepared Last Signal geometry after later entry failure. However, #69's own Codex review found a P2 interaction: the catch path can still execute after `ServerPlayer.teleportTo(...)` has already moved the player into the Nightmare, so destructive slot clearing can remove the platform beneath an already-entered player and then erase ownership.
 
-Historical PR #70 corrected the prerequisite boundary. This current-lineage slice therefore ports that prerequisite first instead of knowingly reproducing #69's reviewed defect.
+Historical PR #70 corrected the normal-return prerequisite boundary. The first current-lineage #140 head then passed Preview Gates run #100, but review exposed a stronger exceptional-path case: `teleportTo(...)` can throw after the player's server level has already changed. If the catch trusted only the boolean assignment after the call, destructive rollback could still run while the player was physically inside the Nightmare.
+
+The corrected #140 head therefore handles both normal-return and exceptional-return paths before historical #69 is allowed to add destructive slot cleanup.
 
 ## Current-lineage correction
 
-`NightmareService.tryEnter(...)` now distinguishes pre-entry failure from post-entry presentation failure.
+`NightmareService.tryEnter(...)` now distinguishes pre-entry failure from committed entry by authoritative server-side state.
 
 1. The service prepares the scenario, updates authoritative ownership and transitions the player to Aspirant as before.
 2. It calls `ServerPlayer.teleportTo(...)`.
-3. Normal return from that call is not treated as proof that cross-dimension travel committed.
-4. The service observes `player.serverLevel().dimension()` and commits entry only if the authoritative dimension is exactly `NIGHTMARE_LEVEL`.
-5. A returned-but-cancelled/redirection result that leaves the player outside the Nightmare becomes an explicit pre-entry failure and uses the existing world/entity, authoritative ownership and Soul rollback.
-6. Once the player is observed inside the Nightmare, later presentation/message failure is surfaced but does not erase active ownership or restore the pre-entry Soul state.
+3. On normal return, the service observes `player.serverLevel().dimension()` and commits only if the dimension is exactly `NIGHTMARE_LEVEL`.
+4. A returned-but-cancelled/redirection result that leaves the player outside the Nightmare becomes an explicit pre-entry failure and uses the existing entity, authoritative-ownership and Soul rollback.
+5. If any runtime exception reaches the catch before the normal post-call assignment can run, the catch re-observes the player's authoritative dimension. A player already in `NIGHTMARE_LEVEL` is treated as committed and retains ownership/Aspirant state.
+6. Once entry has been observed as committed, a later failure cannot erase that fact merely because the player's dimension is different by the time another exception is handled.
+7. Post-entry presentation/message failure is surfaced but cannot invalidate active ownership.
 
-This mirrors the repository's already-adopted exit-side rule: teleport success is an observed authoritative state boundary, not merely a method-return boundary.
+This mirrors the repository's exit-side principle that teleport success is an observed authoritative-state boundary rather than merely a method-return boundary, while adding the exceptional-path observation the first #140 head lacked.
 
 ## Evidence classification
 
 - **CANON:** unchanged. No Nightmare role, ending, appraisal, progression, death, Seed, Aspect or Flaw rule changes.
 - **INFERRED:** unchanged one-instance ownership of technical scenario state while an active First Nightmare exists.
-- **DESIGN:** Java entry commits only after the server-side player is observed in the Nightmare dimension; post-entry presentation failure cannot invalidate authoritative ownership.
-- **UNKNOWN:** live NeoForge `EntityTravelToDimensionEvent` cancellation injection on this exact head; exact positional verification; process-crash atomicity during entry; arbitrary third-party teleport behavior beyond the observed-dimension check.
-- **COMPATIBILITY:** normal successful entry, preparation rollback, authoritative failed-entry ownership rollback, completion/death/technical-exit transactions and save formats are unchanged. A cancelled/redirection entry now rolls back instead of being treated as committed.
+- **DESIGN:** Java entry commits when authoritative server state demonstrates that the player has entered the Nightmare, including when a teleport call throws after the level switch; a previously observed commit is monotonic for that entry attempt.
+- **UNKNOWN:** live NeoForge fault injection that throws from a changed-dimension callback after the level switch; exact positional verification; process-crash atomicity during entry; arbitrary third-party teleport behavior beyond the observed-dimension boundary.
+- **COMPATIBILITY:** normal successful entry, cancelled/non-moving entry rollback, preparation rollback, authoritative failed-entry ownership rollback, completion/death/technical-exit transactions and save formats are unchanged.
 
 No canon rule is invented.
 
 ## Tests
 
-`NightmareEntryCommitBoundaryTest` locks three boundaries:
+`NightmareEntryCommitBoundaryTest` now locks both ordinary and exceptional paths:
 
 - pre-teleport failure remains rollback-eligible;
-- normal teleport return while the player is still in the Overworld does not commit entry;
-- an observed Nightmare-dimension player commits entry and protects authoritative ownership from later presentation failure.
+- normal teleport return while still in the Overworld does not commit entry;
+- an observed Nightmare-dimension player commits entry;
+- an exception observed before any dimension switch remains rollback-eligible;
+- an exception after the player has already switched into the Nightmare retains ownership even when the normal assignment after `teleportTo(...)` was never reached;
+- a commit already observed earlier is not erased by a later failure observation.
 
 ## Remaining entry work
 
-After this head is green, historical PR #69 can be ported safely as a separate bounded slice: destructive prepared-slot cleanup should run only on the pre-entry rollback side now guarded by the observed-dimension commit boundary. That later slice must still derive the physical rollback namespace from the immutable allocated slot rather than possibly-uncommitted layout fields.
+Only after this corrected head is green should historical PR #69 be ported as a separate bounded slice. Destructive prepared-slot cleanup will then be confined to a pre-entry rollback side that accounts for both normal and exceptional teleport completion.
 
-Physical teleport-cancellation and process-crash evidence remain unproven and should be recorded honestly rather than inferred from unit tests.
+Physical cancellation/throw-after-switch injection and process-crash evidence remain unproven and should be recorded honestly rather than inferred from unit tests.
