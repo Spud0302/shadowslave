@@ -1,5 +1,7 @@
 package dev.spud.shadowslave.persistence;
 
+import net.neoforged.neoforge.common.IOUtilities;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,21 +16,40 @@ public final class PersistenceFileCheckpoint {
     }
 
     public static Snapshot capture(Path path) {
+        return capture(path, IOUtilities::waitUntilIOWorkerComplete);
+    }
+
+    static Snapshot capture(Path path, Runnable awaitPendingWrites) {
         Path checkedPath = Objects.requireNonNull(path, "path");
-        return Files.exists(checkedPath) ? new Snapshot(true, digest(checkedPath)) : Snapshot.missing();
+        Objects.requireNonNull(awaitPendingWrites, "awaitPendingWrites").run();
+        return captureSettled(checkedPath);
     }
 
     public static void requireChanged(Path path, Snapshot before, String description) {
+        requireChanged(path, before, description, IOUtilities::waitUntilIOWorkerComplete);
+    }
+
+    static void requireChanged(
+            Path path,
+            Snapshot before,
+            String description,
+            Runnable awaitPendingWrites
+    ) {
         Path checkedPath = Objects.requireNonNull(path, "path");
         Snapshot checkedBefore = Objects.requireNonNull(before, "before");
         String checkedDescription = Objects.requireNonNull(description, "description");
-        Snapshot after = capture(checkedPath);
+        Objects.requireNonNull(awaitPendingWrites, "awaitPendingWrites").run();
+        Snapshot after = captureSettled(checkedPath);
         if (!after.exists()) {
             throw new IllegalStateException(checkedDescription + " was not persisted: " + checkedPath + " does not exist");
         }
         if (checkedBefore.exists() && Arrays.equals(checkedBefore.sha256(), after.sha256())) {
             throw new IllegalStateException(checkedDescription + " was not persisted: " + checkedPath + " did not change");
         }
+    }
+
+    private static Snapshot captureSettled(Path path) {
+        return Files.exists(path) ? new Snapshot(true, digest(path)) : Snapshot.missing();
     }
 
     private static byte[] digest(Path path) {
