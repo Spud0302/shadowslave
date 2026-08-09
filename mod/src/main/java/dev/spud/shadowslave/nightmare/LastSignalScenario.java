@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.nightmare;
 
+import dev.spud.shadowslave.ShadowSlaveMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -108,13 +109,21 @@ public final class LastSignalScenario {
      * scenario slot. The physical namespace comes from the immutable slot, not
      * from persisted layout fields, because registry.update(...) may fail before
      * the prepared layout becomes authoritative.
+     *
+     * <p>This cleanup is deliberately best-effort. A block/entity cleanup failure
+     * is retained in the server log but does not abort the caller's authoritative
+     * registry ownership and Soul rollback.</p>
      */
     static void rollbackFailedEntryWorld(ServerLevel level, NightmareInstance attempted) {
         BlockPos origin = rollbackOriginFor(attempted);
-        NightmarePreparationTransaction.rollbackAll(
+        NightmarePreparationTransaction.rollbackAllBestEffort(
                 () -> removeOwnedEntities(level, attempted),
                 () -> clearVolume(level, origin)
-        );
+        ).ifPresent(failure -> ShadowSlaveMod.LOGGER.error(
+                "Nightmare {} failed-entry world rollback was incomplete; authoritative ownership/Soul rollback will continue",
+                attempted.instanceId(),
+                failure
+        ));
     }
 
     static BlockPos rollbackOriginFor(NightmareInstance attempted) {
