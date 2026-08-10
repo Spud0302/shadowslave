@@ -60,6 +60,20 @@ public record EchoInstanceData(
             DataResult::success
     );
 
+    /** Backward-compatible constructor for callers created before command state existed. */
+    public EchoInstanceData(
+            ResourceLocation echoId,
+            String formalName,
+            String acquisitionSource,
+            String provenance,
+            Optional<String> manifestationEntityUuid,
+            Optional<ResourceLocation> manifestationDimension,
+            Optional<Long> manifestationBlockPos
+    ) {
+        this(echoId, formalName, acquisitionSource, provenance, EchoContentCatalog.CommandMode.HOLD,
+                manifestationEntityUuid, manifestationDimension, manifestationBlockPos);
+    }
+
     public EchoInstanceData {
         echoId = Objects.requireNonNull(echoId, "echoId");
         formalName = requireText(formalName, "formalName");
