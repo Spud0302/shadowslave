@@ -584,6 +584,9 @@ public final class NightmareService {
         @Override
         public void persistPlayer() {
             server.getPlayerList().saveAll();
+            Path playerDataFile = server.getWorldPath(LevelResource.PLAYER_DATA_DIR)
+                    .resolve(player.getStringUUID() + ".dat");
+            PersistedTechnicalExitPlayerVerifier.requireRecovered(playerDataFile);
         }
 
         @Override
