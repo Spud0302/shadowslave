@@ -246,7 +246,9 @@ public final class NightmareFactionInformationThreadSummaryCatalog {
     }
 
     private static String opaqueId(String value, String field) {
-        return text(value, field);
+        Objects.requireNonNull(value, field);
+        if (value.trim().isEmpty()) throw new IllegalArgumentException(field + " must not be blank");
+        return value;
     }
 
     private static String text(String value, String field) {
