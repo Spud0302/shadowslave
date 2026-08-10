@@ -1,18 +1,13 @@
 package dev.spud.shadowslave.nightmare;
 
+import dev.spud.shadowslave.nightmare.content.DrownedBellScenarioDefinition;
 import dev.spud.shadowslave.nightmare.content.NightmareRoleScenarioCompatibilityCatalog;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Resolves the Java-owned authored identity used when a playable Nightmare instance is created.
- *
- * <p>The current runtime exposes only The Last Signal as a physically playable scenario. Historical
- * role selection is therefore constrained to that scenario and uses the existing authored DESIGN
- * compatibility catalogue. The exact Nightmare Spell assignment principle remains UNKNOWN.</p>
- */
+/** Resolves the Java-owned authored identity used when a playable Nightmare instance is created. */
 public final class NightmareEntryAssignment {
     private NightmareEntryAssignment() {
     }
@@ -34,21 +29,19 @@ public final class NightmareEntryAssignment {
         }
     }
 
-    /**
-     * Resolves a fresh First-Nightmare assignment once, immediately before registry creation.
-     * The returned stable IDs are persisted by {@link NightmareRegistryData} and are never rerolled
-     * when an active instance is resumed.
-     */
+    /** Resolves one of the physically implemented First Nightmares and a compatible authored role exactly once. */
     public static Assignment resolveFirstNightmare(UUID playerId, long gameTime) {
         Objects.requireNonNull(playerId, "playerId");
         if (gameTime < 0) {
             throw new IllegalArgumentException("gameTime cannot be negative");
         }
 
-        String scenarioId = LastSignalScenario.SCENARIO_ID;
         long seed = mix(playerId, gameTime);
+        String scenarioId = (seed & 1L) == 0L
+                ? LastSignalScenario.SCENARIO_ID
+                : DrownedBellScenarioDefinition.SCENARIO_ID;
         NightmareRoleScenarioCompatibilityCatalog.ScenarioRoleMatch roleMatch =
-                NightmareRoleScenarioCompatibilityCatalog.match(scenarioId, seed, Map.of());
+                NightmareRoleScenarioCompatibilityCatalog.match(scenarioId, Long.rotateLeft(seed, 17), Map.of());
         return new Assignment(scenarioId, roleMatch);
     }
 
