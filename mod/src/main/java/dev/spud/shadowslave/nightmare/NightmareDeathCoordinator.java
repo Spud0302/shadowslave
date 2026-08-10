@@ -27,6 +27,7 @@ public final class NightmareDeathCoordinator {
 
         checked.teardownActiveInstance();
         checked.persistNightmareRegistry();
+        checked.verifyOwnershipTeardownPersisted();
 
         checked.clearDeathIntent();
         checked.persistDeathIntent();
@@ -56,6 +57,8 @@ public final class NightmareDeathCoordinator {
         void verifyPlayerPersisted();
 
         void teardownActiveInstance();
+
+        void verifyOwnershipTeardownPersisted();
 
         void clearDeathIntent();
     }
