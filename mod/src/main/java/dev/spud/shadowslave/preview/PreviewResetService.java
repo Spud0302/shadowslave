@@ -7,6 +7,8 @@ import dev.spud.shadowslave.network.SoulSyncService;
 import dev.spud.shadowslave.nightmare.NightmareService;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
+import dev.spud.shadowslave.soul.identity.AttributeOwnershipData;
+import dev.spud.shadowslave.soul.identity.AttributeOwnershipService;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,6 +29,7 @@ public final class PreviewResetService {
         checkedOperations.abortNightmareIfActive();
         SoulData resetSoul = checkedOperations.resetSoulWithoutSync();
         checkedOperations.clearSoulIdentity();
+        checkedOperations.clearAttributes();
         checkedOperations.clearImportedIdentity();
         checkedOperations.clearPreviewPower();
         checkedOperations.sync(resetSoul);
@@ -38,6 +41,8 @@ public final class PreviewResetService {
         SoulData resetSoulWithoutSync();
 
         void clearSoulIdentity();
+
+        void clearAttributes();
 
         void clearImportedIdentity();
 
@@ -62,6 +67,11 @@ public final class PreviewResetService {
         @Override
         public void clearSoulIdentity() {
             SoulIdentityService.replace(player, SoulIdentityData.empty());
+        }
+
+        @Override
+        public void clearAttributes() {
+            AttributeOwnershipService.replace(player, AttributeOwnershipData.empty());
         }
 
         @Override
