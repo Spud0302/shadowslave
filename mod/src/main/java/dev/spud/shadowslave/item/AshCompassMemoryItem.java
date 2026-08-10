@@ -2,6 +2,9 @@ package dev.spud.shadowslave.item;
 
 import dev.spud.shadowslave.dreamrealm.DreamRealmPreviewService;
 import dev.spud.shadowslave.memory.MemoryOwnershipService;
+import dev.spud.shadowslave.world.entity.AshBurrowerEntity;
+import dev.spud.shadowslave.world.entity.ChainbackEntity;
+import dev.spud.shadowslave.world.entity.DrownedListenerEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -9,10 +12,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+
+import java.util.OptionalDouble;
 
 /** Physical execution adapter for the authored Ash Compass Memory. */
 public final class AshCompassMemoryItem extends Item {
@@ -42,6 +49,14 @@ public final class AshCompassMemoryItem extends Item {
             serverPlayer.sendSystemMessage(Component.literal("Ash Compass: " + reading)
                     .withStyle(ChatFormatting.AQUA));
         }
+
+        OptionalDouble nearestThreatDistanceSquared = nearestAuthoredThreatDistanceSquared(serverPlayer);
+        if (nearestThreatDistanceSquared.isPresent()
+                && AshCompassWarmNeedleBinding.detects(nearestThreatDistanceSquared.getAsDouble())) {
+            serverPlayer.sendSystemMessage(Component.literal("Ash Compass: the needle grows warm.")
+                    .withStyle(ChatFormatting.GOLD));
+        }
+
         serverPlayer.getCooldowns().addCooldown(this, 20);
         return InteractionResultHolder.sidedSuccess(stack, false);
     }
@@ -69,5 +84,28 @@ public final class AshCompassMemoryItem extends Item {
             case 6 -> "east";
             default -> "southeast";
         };
+    }
+
+    private static OptionalDouble nearestAuthoredThreatDistanceSquared(ServerPlayer player) {
+        double range = AshCompassWarmNeedleBinding.DETECTION_RANGE;
+        AABB bounds = player.getBoundingBox().inflate(range);
+        return player.level().getEntitiesOfClass(Mob.class, bounds, AshCompassMemoryItem::isAuthoredWarmNeedleThreat)
+                .stream()
+                .mapToDouble(player::distanceToSqr)
+                .min();
+    }
+
+    private static boolean isAuthoredWarmNeedleThreat(Mob mob) {
+        String contentId;
+        if (mob instanceof AshBurrowerEntity) {
+            contentId = "ash_burrower";
+        } else if (mob instanceof ChainbackEntity) {
+            contentId = "chainback";
+        } else if (mob instanceof DrownedListenerEntity) {
+            contentId = "drowned_listener";
+        } else {
+            return false;
+        }
+        return mob.isAlive() && AshCompassWarmNeedleBinding.isThreatContentId(contentId);
     }
 }
