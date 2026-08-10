@@ -6,6 +6,8 @@ import dev.spud.shadowslave.memory.MemoryInstanceData;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.memory.MemoryOwnershipService;
 import dev.spud.shadowslave.nightmare.NightmareCompletionReceiptData;
+import dev.spud.shadowslave.nightmare.NightmareInstance;
+import dev.spud.shadowslave.nightmare.NightmareService;
 import dev.spud.shadowslave.persistence.SavedDataPersistence;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
@@ -72,6 +74,16 @@ public final class GeneratedAppraisalRecoveryService {
         }
 
         RecoveryPlan plan = plan(currentState(checkedPlayer), receipt.appraisal());
+
+        // A crash can leave both the durable receipt and its active Nightmare ownership on disk.
+        // Consume only the exact matching instance through the normal successful teardown path,
+        // and persist that teardown while the receipt still remains independent recovery authority.
+        Optional<NightmareInstance> active = activeInstanceForReplay(NightmareService.activeFor(checkedPlayer), receipt);
+        if (active.isPresent()) {
+            NightmareService.recoverSuccessfulCompletion(checkedPlayer, active.orElseThrow());
+            SavedDataPersistence.saveAndWait(server);
+        }
+
         apply(checkedPlayer, plan.target());
 
         // Persist the converged player attachments before consuming the independent recovery authority.
@@ -85,6 +97,22 @@ public final class GeneratedAppraisalRecoveryService {
                         : "Recovered your completed First Nightmare appraisal from its durable receipt."
         ).withStyle(ChatFormatting.YELLOW));
         return true;
+    }
+
+    static Optional<NightmareInstance> activeInstanceForReplay(
+            Optional<NightmareInstance> active,
+            NightmareCompletionReceiptData.Receipt receipt
+    ) {
+        Optional<NightmareInstance> checkedActive = Objects.requireNonNull(active, "active");
+        NightmareCompletionReceiptData.Receipt checkedReceipt = Objects.requireNonNull(receipt, "receipt");
+        if (checkedActive.isEmpty()) {
+            return Optional.empty();
+        }
+        NightmareInstance instance = checkedActive.orElseThrow();
+        if (!instance.equals(checkedReceipt.instance())) {
+            throw new IllegalStateException("Active Nightmare ownership contradicts the completion receipt");
+        }
+        return Optional.of(instance);
     }
 
     public static RecoveryPlan plan(PlayerState current, GeneratedAppraisalRecoverySnapshot snapshot) {
