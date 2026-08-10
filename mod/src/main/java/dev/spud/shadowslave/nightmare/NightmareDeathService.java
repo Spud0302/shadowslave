@@ -54,6 +54,9 @@ public final class NightmareDeathService {
         MinecraftServer server = player.getServer();
         NightmareRegistryData registry = NightmareRegistryData.get(server);
         NightmareDeathRegistryData deaths = NightmareDeathRegistryData.get(server);
+        Path nightmareRegistryFile = server.getWorldPath(LevelResource.ROOT)
+                .resolve("data")
+                .resolve("shadowslave_nightmares.dat");
         Path deathRegistryFile = server.getWorldPath(LevelResource.ROOT)
                 .resolve("data")
                 .resolve("shadowslave_nightmare_deaths.dat");
@@ -141,6 +144,15 @@ public final class NightmareDeathService {
                 if (registry.findByPlayer(player.getUUID()).isPresent()) {
                     registry.remove(instance);
                 }
+            }
+
+            @Override
+            public void verifyOwnershipTeardownPersisted() {
+                PersistedNightmareOwnershipVerifier.requireAbsent(
+                        nightmareRegistryFile,
+                        player.getUUID(),
+                        instance.instanceId()
+                );
             }
 
             @Override
