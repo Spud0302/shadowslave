@@ -1,96 +1,40 @@
 # Shadow Slave project status
 
-**Status date:** 2026-08-09  
-**Stable main:** `e9f676a9b2ef58cf1e0cc18d45d1420b9e62c2f4`  
-**Active correctness candidate:** PR #119 / `gpt/gate-completion-player-recovery-verifier`  
-**Correctness candidate head:** `93da9d43df160995097a5108f0e73ef6a5762046`
+**Status date:** 2026-08-10  
+**Stable main:** `96a3422c2469a832f9a977a4521cc3f3b62edc5b`  
+**Active correctness edge:** PR #178 / `gpt/verify-canonical-death-ownership-teardown-persistence`  
+**Correctness head:** `a802a68cd1f0c007cef586c38a92683de87a63dc`
 
-## Products
+## Current state
 
-| Product | Current state | Public release |
-| --- | --- | --- |
-| Vanilla datapack | completed reference; one supported First Nightmare at a time | `datapack-v1.0.0` |
-| Java main | persistent Soul/lifecycle foundation plus merged procedural identity, Nightmare scenario, Dream Realm region, Memory, Echo and creature content foundations | none |
-| Java correctness candidate | restart-recoverable successful-Nightmare completion stack through PR #119; physical same-world restart matrix still outstanding | not a release |
-| Nightmare Spell modpack | shared Java-core/content foundations in progress; broad adapter/modpack integration remains future work | none |
+`main` contains the shared Java/core foundations plus merged Nightmare role/scenario compatibility work. Active gameplay integration is separately owned by PRs #179, #181 and #182; do not duplicate that stack from correctness work.
 
-## Current main
+Issue #34 remains the primary persistence/restart tracker. The active correctness lineage now covers replayable successful completion plus strengthened first-authority and final-authority persistence boundaries for canonical death, technical/admin exit and preview reset.
 
-Current `main` includes the playable Java preview foundation plus later merged shared-core/content work, including:
+The exact corrected PR #178 head `a802a68cd1f0c007cef586c38a92683de87a63dc` passed **Preview Gates run #164 / ID `31368518381`**. Its only inline review finding was corrected by requiring every persisted unrelated Nightmare instance to decode through the production `NightmareInstance.load(...)` path before canonical-death recovery authority can be consumed; that review thread is resolved.
 
-- explicit multi-ability Aspect identity migration;
-- The Drowned Bell authored Nightmare scenario;
-- reusable Nightmare Creature catalogue;
-- authored Memory and Echo catalogue foundations;
-- Dream Realm region catalogue;
-- stabilized frozen-datapack trial-lock regression coverage.
+## Remaining blockers and evidence gaps
 
-The older `0.1.0-preview.2` JAR remains historical preview evidence only. It is not evidence for the newer merged content or the open restart-recovery stack.
+Prepared Nightmare world/chunk durability remains **BLOCKED** under PR #158 / Issue #34. Resume only with new reconstruction or live process-kill evidence, stronger Minecraft/NeoForge save-path evidence, an owner choice of convergence policy, a dependency/code change, or another credible transaction design. Do not retry it automatically without one of those conditions.
 
-## Active correctness stack
+Real process-kill/restart convergence remains stronger evidence than hosted smoke/CI. The persistence verifiers prove readable recovery authority and fail-closed ordering, not physical fsync guarantees below the observed file images.
 
-Issue #34 tracks the zero-appraisal crash window in successful Nightmare completion. The current review lineage is intentionally stacked and has rebuilt the recovery work on top of current main rather than merging the historical branch wholesale.
+The repeatedly observed hosted frozen-datapack Nightmare-dimension generation stall is also not a reason for blind timeout increases or reruns; collect new lag/protocol evidence before changing that budget again.
 
-The active stack now includes:
+## Lore/evidence boundary
 
-1. deterministic successful-completion fault points;
-2. replayable completion coordinator phases;
-3. durable completion receipt storage with fail-closed reconstruction;
-4. idempotent split-save appraisal reconciliation;
-5. joined SavedData persistence checkpoints;
-6. successful-return observation before commit;
-7. server-backed completion operations;
-8. live terminal-success and login-recovery routing;
-9. six-boundary physical fault runner;
-10. stale-evidence, recovery-status and source/world provenance authentication;
-11. structured same-player/two-login recovery evidence;
-12. hosted CI execution of both completion evidence self-tests.
+Follow `docs/LORE-SOURCE-POLICY.md`, `docs/JAVA-LORE-ALIGNMENT.md`, and `docs/NIGHTMARE-SEED-ROADMAP.md` before lore-sensitive work.
 
-Exact PR #119 head `93da9d43df160995097a5108f0e73ef6a5762046` passed **Preview Gates run #89 / ID `31280686707`** on 2026-08-09. That run is evidence for hosted compile/unit/package, both completion evidence self-tests, physical NeoForge client/server smoke, and the frozen-datapack gate on that exact stacked head.
-
-## Remaining correctness blocker
-
-Hosted CI does **not** prove Issue #34's required real same-world process-kill/restart behavior.
-
-The next required row is:
-
-```text
-after_terminal_registry_save
-```
-
-It must be executed with a real player on the disposable completion-fault world, then recovered on the same world/source and followed by a second relog. Retained evidence must prove:
-
-- the intended fault boundary actually halted the Minecraft child;
-- recovery ran successfully with the fault disabled;
-- exactly one appraisal and exactly one successful-completion teardown occurred;
-- source and world provenance match across fault/recovery;
-- both recovery logins refer to the same player and Nightmare;
-- appraisal is applied, no active Nightmare remains, and the player is outside the Nightmare dimension on both observations.
-
-This GitHub-only automation environment cannot perform the required interactive player actions. Do not replace the missing physical row with another speculative persistence layer. Resume Issue #34 implementation only if the physical row exposes a concrete defect or new owner/runtime evidence changes the recovery boundary.
-
-## Frozen datapack
-
-The datapack remains deliberately limited to one supported First Nightmare at a time. The persistent global lock covers ordinary concurrent/disconnect overlap, while deeper global `ss_creature` selector behavior remains documented in Issue #20 and `testserver/defect_issue20_stray_creature.mjs`.
-
-A transient Issue #20 regression timeout occurred in PR #117 Preview Gates run #88, while the Java job passed. Descendant PR #119 run #89 passed the complete Preview Gates workflow, so that single timeout is not treated as a current Java or datapack blocker.
-
-## Lore boundary
-
-Novel mechanics remain authoritative. Follow `docs/LORE-SOURCE-POLICY.md`, `docs/JAVA-LORE-ALIGNMENT.md`, and `docs/NIGHTMARE-SEED-ROADMAP.md` before any lore-sensitive change.
-
-For the restart-recovery work:
-
-- **CANON:** unchanged by the technical persistence stack;
-- **INFERRED:** an incomplete successful-completion recovery transaction remains associated with its resolved Nightmare until reconciliation completes;
-- **DESIGN:** receipts, durability checkpoints, fault injection, login replay, provenance and verification tooling;
-- **UNKNOWN:** real process-kill convergence until the physical matrix is executed;
-- **COMPATIBILITY:** technical recovery must not be presented as normal in-world Spell mercy.
+- **CANON:** no new lore proposition is introduced by the current persistence lineage.
+- **INFERRED:** none added by the persistence verifiers.
+- **DESIGN:** recovery receipts/markers, semantic persisted-state verification, fail-closed ordering, provenance/fault tooling and technical/admin recovery behavior.
+- **UNKNOWN:** physical power-loss/fsync guarantees, post-verification storage corruption, and unexecuted real process-kill rows.
+- **COMPATIBILITY:** crash/admin/development recovery remains technical and must not masquerade as ordinary in-world Spell mercy; valid older persisted state remains readable unless a documented schema migration says otherwise.
 
 ## Next actions
 
-1. Review/land the stacked Issue #34 correctness lineage in dependency order rather than cherry-picking later heads without prerequisites.
-2. Execute `after_terminal_registry_save` as the first real same-world physical recovery row against the #119 lineage.
-3. If it passes, execute the remaining five durable-boundary rows with retained evidence.
-4. If a row fails, record exact logs/state on Issue #34 and fix only the demonstrated defect.
-5. Continue independent content work only where it does not duplicate or obscure the correctness stack.
+1. Finish review/merge evaluation of green PR #178 before stacking another canonical-death persistence edge.
+2. Audit only transactions where loss of the **last meaningful replay authority** can demonstrably create an unrecoverable persisted split; do not add checkpoints mechanically after every save.
+3. Keep PR #158 blocked until its recorded resume condition changes.
+4. Let #179/#181/#182 own their current role/scenario/physical-creature gameplay integration and avoid duplicate content work.
+5. Update `GPT_HANDOFF.md` and `ISSUES.md` in this same documentation PR as the correctness/gameplay baseline advances; do not open a competing status-sync PR.
