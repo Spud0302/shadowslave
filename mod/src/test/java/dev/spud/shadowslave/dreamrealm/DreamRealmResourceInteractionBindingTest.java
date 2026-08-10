@@ -3,6 +3,9 @@ package dev.spud.shadowslave.dreamrealm;
 import dev.spud.shadowslave.dreamrealm.content.DreamRealmRegionContentCatalog;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -11,6 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DreamRealmResourceInteractionBindingTest {
+    private static final Path RUNTIME = Path.of(
+            "src/main/java/dev/spud/shadowslave/dreamrealm/DreamRealmResourceInteractionRuntime.java");
+
     @Test
     void bindsEveryAuthoredAshenExpanseResourceWithoutInventingRewards() {
         var interactions = DreamRealmResourceInteractionBinding.ashenExpanseResources();
@@ -61,5 +67,17 @@ class DreamRealmResourceInteractionBindingTest {
                         other, owner.x() + 1, owner.y() + 1, owner.z()));
             }
         }
+    }
+
+    @Test
+    void runtimeConsumesMatchingInteractionBeforeServerOnlyPresentation() throws IOException {
+        String runtime = Files.readString(RUNTIME);
+
+        assertTrue(runtime.contains("event.getLevel().dimension().equals(DreamRealmPreviewService.DREAM_REALM_LEVEL)"));
+        assertFalse(runtime.contains("event.getLevel().isClientSide() ||"));
+        assertTrue(runtime.contains("event.setCanceled(true);"));
+        assertTrue(runtime.contains("event.getHand() != InteractionHand.MAIN_HAND"));
+        assertTrue(runtime.indexOf("event.setCanceled(true);") < runtime.indexOf("instanceof ServerPlayer player"));
+        assertTrue(runtime.indexOf("event.getHand() != InteractionHand.MAIN_HAND") < runtime.indexOf("sendSystemMessage"));
     }
 }
