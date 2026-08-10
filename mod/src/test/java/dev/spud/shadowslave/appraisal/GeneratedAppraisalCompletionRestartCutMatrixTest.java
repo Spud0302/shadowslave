@@ -92,7 +92,7 @@ class GeneratedAppraisalCompletionRestartCutMatrixTest {
 
     @Test
     void repeatedRestartPlanningCannotDuplicateGeneratedOwnership() {
-        NightmareCompletionReceiptData.Receipt receipt = reloadedReceipt(instance("signal_preserved"));
+        NightmareCompletionReceiptData.Receipt receipt = reloadedReceipt(instance("flood_diverted"));
         GeneratedAppraisalRecoverySnapshot snapshot = receipt.appraisal();
 
         GeneratedAppraisalRecoveryService.PlayerState once = GeneratedAppraisalRecoveryService.plan(
