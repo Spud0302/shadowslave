@@ -7,6 +7,7 @@ import dev.spud.shadowslave.network.ModPayloads;
 import dev.spud.shadowslave.network.SoulPlayerEvents;
 import dev.spud.shadowslave.nightmare.NightmareEvents;
 import dev.spud.shadowslave.preview.PreviewPowerService;
+import dev.spud.shadowslave.world.entity.DrownedBellListenerEntityAdapter;
 import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -32,6 +33,7 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(NightmareEvents::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(NightmareEvents::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(NightmareEvents::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(DrownedBellListenerEntityAdapter::onEntityJoinLevel);
         NeoForge.EVENT_BUS.addListener(PreviewPowerService::onPlayerTick);
         LOGGER.info("Shadow Slave Java core is loading");
     }
