@@ -131,7 +131,7 @@ public final class NightmareFactionInformationThreadNextStepCatalog {
                         List.of("Shared and differing details are grouped separately.", "Neither source receives a truth marker from agreement alone."),
                         "Comparison cannot determine who lied, assign guilt, calculate reliability, or settle trust, allegiance, or reputation."),
                 p("compare_claim_record", Family.COMPARE, "Compare Claim and Record",
-                        "A faction claim and retained record can be checked against the same bounded subject without assuming either is authoritative.",
+                        "A faction claim and retained record can be checked against the same bounded subject without assuming either settles the matter.",
                         "What exactly aligns or diverges between the claim and record?",
                         List.of("Match the shared subject.", "Keep record provenance visible.", "Preserve any unresolved mismatch."),
                         Set.of("compare", "claim", "record"),
