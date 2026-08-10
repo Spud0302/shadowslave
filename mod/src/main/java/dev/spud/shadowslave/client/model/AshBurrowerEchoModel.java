@@ -11,8 +11,8 @@ public final class AshBurrowerEchoModel extends GeoModel<AshBurrowerEchoEntity> 
             ShadowSlaveMod.MOD_ID, "geo/ash_burrower.geo.json");
     private static final ResourceLocation ANIMATIONS = ResourceLocation.fromNamespaceAndPath(
             ShadowSlaveMod.MOD_ID, "animations/ash_burrower.animation.json");
-    private static final ResourceLocation PLACEHOLDER_TEXTURE = ResourceLocation.withDefaultNamespace(
-            "textures/entity/silverfish.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
+            ShadowSlaveMod.MOD_ID, "textures/entity/ash_burrower.png");
 
     @Override
     public ResourceLocation getModelResource(AshBurrowerEchoEntity animatable) {
@@ -21,7 +21,7 @@ public final class AshBurrowerEchoModel extends GeoModel<AshBurrowerEchoEntity> 
 
     @Override
     public ResourceLocation getTextureResource(AshBurrowerEchoEntity animatable) {
-        return PLACEHOLDER_TEXTURE;
+        return TEXTURE;
     }
 
     @Override
