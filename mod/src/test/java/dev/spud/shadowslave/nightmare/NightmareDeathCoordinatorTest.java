@@ -31,6 +31,8 @@ class NightmareDeathCoordinatorTest {
         assertTrue(operations.playerWasResetWhenOwnershipRemoved);
         assertTrue(operations.playerPersistenceWasVerifiedWhenOwnershipRemoved);
         assertFalse(operations.receiptWasPresentWhenOwnershipRemoved);
+        assertTrue(operations.ownershipTeardownVerified);
+        assertTrue(operations.deathIntentWasClearedAfterOwnershipVerification);
     }
 
     @Test
@@ -46,6 +48,22 @@ class NightmareDeathCoordinatorTest {
         assertTrue(operations.volatileDeathIntentPresent);
         assertTrue(operations.volatileActiveOwnershipPresent);
         assertFalse(operations.playerPersistenceVerified);
+    }
+
+    @Test
+    void ownershipTeardownVerificationFailureRetainsDeathAuthority() {
+        FakeOperations operations = new FakeOperations(null);
+        operations.failOwnershipTeardownVerification = true;
+
+        assertThrows(IllegalStateException.class, () -> NightmareDeathCoordinator.commit(operations));
+
+        assertTrue(operations.durableDeathIntentPresent);
+        assertFalse(operations.durableCompletionReceiptPresent);
+        assertTrue(operations.durablePlayerReset);
+        assertFalse(operations.volatileActiveOwnershipPresent);
+        assertTrue(operations.volatileDeathIntentPresent);
+        assertFalse(operations.ownershipTeardownVerified);
+        assertFalse(operations.deathIntentWasClearedAfterOwnershipVerification);
     }
 
     @Test
@@ -130,6 +148,7 @@ class NightmareDeathCoordinatorTest {
         private final Checkpoint crashCheckpoint;
         private boolean crashTriggered;
         private boolean failPlayerPersistenceVerification;
+        private boolean failOwnershipTeardownVerification;
 
         private boolean durableDeathIntentPresent;
         private boolean durableCompletionReceiptPresent = true;
@@ -146,6 +165,8 @@ class NightmareDeathCoordinatorTest {
         private boolean playerPersistenceVerified;
         private boolean playerPersistenceWasVerifiedWhenOwnershipRemoved;
         private boolean receiptWasPresentWhenOwnershipRemoved;
+        private boolean ownershipTeardownVerified;
+        private boolean deathIntentWasClearedAfterOwnershipVerification;
         private int deathPersistCount;
         private int registryPersistCount;
 
@@ -160,6 +181,7 @@ class NightmareDeathCoordinatorTest {
             volatilePlayerReset = durablePlayerReset;
             volatileActiveOwnershipPresent = durableActiveOwnershipPresent;
             playerPersistenceVerified = false;
+            ownershipTeardownVerified = false;
             deathPersistCount = 0;
             registryPersistCount = 0;
         }
@@ -248,7 +270,19 @@ class NightmareDeathCoordinatorTest {
         }
 
         @Override
+        public void verifyOwnershipTeardownPersisted() {
+            if (failOwnershipTeardownVerification) {
+                throw new IllegalStateException("simulated canonical-death ownership teardown proof failure");
+            }
+            if (durableActiveOwnershipPresent) {
+                throw new IllegalStateException("persisted active ownership remains");
+            }
+            ownershipTeardownVerified = true;
+        }
+
+        @Override
         public void clearDeathIntent() {
+            deathIntentWasClearedAfterOwnershipVerification = ownershipTeardownVerified;
             volatileDeathIntentPresent = false;
         }
     }
@@ -331,6 +365,10 @@ class NightmareDeathCoordinatorTest {
 
         @Override
         public void teardownActiveInstance() {
+        }
+
+        @Override
+        public void verifyOwnershipTeardownPersisted() {
         }
 
         @Override
