@@ -41,7 +41,15 @@ class NightmareRoleContentCatalogTest {
             assertFalse(role.presentationCue().isBlank());
         });
 
-        assertEquals(Set.of(NightmareRoleContentCatalog.SocialPosition.values()), positions);
+        assertEquals(Set.of(
+                NightmareRoleContentCatalog.SocialPosition.BOUND,
+                NightmareRoleContentCatalog.SocialPosition.DEPENDENT,
+                NightmareRoleContentCatalog.SocialPosition.OUTSIDER,
+                NightmareRoleContentCatalog.SocialPosition.LABOURER,
+                NightmareRoleContentCatalog.SocialPosition.RETAINER,
+                NightmareRoleContentCatalog.SocialPosition.INITIATE,
+                NightmareRoleContentCatalog.SocialPosition.AUXILIARY
+        ), positions);
         assertTrue(conditions.containsAll(Set.of(NightmareRoleContentCatalog.Condition.values())));
         assertTrue(relationships.containsAll(Set.of(NightmareRoleContentCatalog.Relationship.values())));
         assertTrue(knowledge.containsAll(Set.of(NightmareRoleContentCatalog.Knowledge.values())));
