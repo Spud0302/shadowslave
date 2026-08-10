@@ -3,8 +3,11 @@ package dev.spud.shadowslave.item;
 import dev.spud.shadowslave.dreamrealm.DreamRealmPreviewService;
 import dev.spud.shadowslave.memory.MemoryOwnershipService;
 import dev.spud.shadowslave.world.entity.AshBurrowerEntity;
+import dev.spud.shadowslave.world.entity.AshBurrowerExecutionBinding;
 import dev.spud.shadowslave.world.entity.ChainbackEntity;
+import dev.spud.shadowslave.world.entity.ChainbackExecutionBinding;
 import dev.spud.shadowslave.world.entity.DrownedListenerEntity;
+import dev.spud.shadowslave.world.entity.DrownedListenerExecutionBinding;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -98,11 +101,11 @@ public final class AshCompassMemoryItem extends Item {
     private static boolean isAuthoredWarmNeedleThreat(Mob mob) {
         String contentId;
         if (mob instanceof AshBurrowerEntity) {
-            contentId = "ash_burrower";
+            contentId = AshBurrowerExecutionBinding.CONTENT_ID;
         } else if (mob instanceof ChainbackEntity) {
-            contentId = "chainback";
+            contentId = ChainbackExecutionBinding.CONTENT_ID;
         } else if (mob instanceof DrownedListenerEntity) {
-            contentId = "drowned_listener";
+            contentId = DrownedListenerExecutionBinding.CONTENT_ID;
         } else {
             return false;
         }
