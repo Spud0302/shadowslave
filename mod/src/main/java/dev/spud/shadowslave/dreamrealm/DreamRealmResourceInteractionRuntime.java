@@ -4,6 +4,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -18,8 +19,7 @@ public final class DreamRealmResourceInteractionRuntime {
     private DreamRealmResourceInteractionRuntime() {}
 
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        if (event.getLevel().isClientSide() || !(event.getEntity() instanceof ServerPlayer player)) return;
-        if (!DreamRealmPreviewService.isInside(player)) return;
+        if (!event.getLevel().dimension().equals(DreamRealmPreviewService.DREAM_REALM_LEVEL)) return;
 
         BlockPos local = event.getPos().subtract(PREVIEW_ORIGIN);
         var interaction = DreamRealmResourceInteractionBinding.ashenExpanseResources().stream()
@@ -30,11 +30,16 @@ public final class DreamRealmResourceInteractionRuntime {
         if (interaction == null) return;
         if (!event.getLevel().getBlockState(event.getPos()).is(expectedPlaceholder(interaction.placeholderBlockId()))) return;
 
+        // Consume the same bounded interaction on both logical sides so vanilla does not
+        // fall through to off-hand/item use. Presentation remains server-only.
+        event.setCancellationResult(InteractionResult.SUCCESS);
+        event.setCanceled(true);
+        if (event.getHand() != InteractionHand.MAIN_HAND) return;
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+
         player.sendSystemMessage(Component.literal("[Ashen Expanse] " + interaction.inspection())
                 .withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(interaction.boundary()).withStyle(ChatFormatting.DARK_GRAY));
-        event.setCancellationResult(InteractionResult.SUCCESS);
-        event.setCanceled(true);
     }
 
     private static Block expectedPlaceholder(String placeholderBlockId) {
