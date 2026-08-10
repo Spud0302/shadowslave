@@ -77,15 +77,18 @@ public final class GeneratedAppraisalRecoveryService {
 
         RecoveryPlan plan = plan(currentState(checkedPlayer), receipt.appraisal());
 
-        // A crash can leave both the durable receipt and its active Nightmare ownership on disk.
-        // Consume only the exact matching instance through the normal successful teardown path.
-        // The exit also returns the player to the stored waking-world location, so persist that
-        // player image before checkpointing registry removal; the receipt remains independent
-        // recovery authority throughout both writes.
+        // A crash can leave the durable receipt with either exact active Nightmare ownership or with
+        // ownership already absent while the player's last persisted location is still inside the
+        // Nightmare. Contradictory ownership fails closed. Otherwise always replay the stored successful
+        // return destination from the receipt; absence of active ownership is not proof that teleport
+        // persistence completed. Keep the receipt independent throughout the player/registry writes.
         Optional<NightmareInstance> active = activeInstanceForReplay(NightmareService.activeFor(checkedPlayer), receipt);
-        if (active.isPresent()) {
-            NightmareService.recoverSuccessfulCompletion(checkedPlayer, active.orElseThrow());
-            server.getPlayerList().saveAll();
+        boolean ownershipRemoved = NightmareService.recoverSuccessfulCompletion(checkedPlayer, receipt.instance());
+        if (ownershipRemoved != active.isPresent()) {
+            throw new IllegalStateException("Successful-completion replay changed unexpected Nightmare ownership");
+        }
+        server.getPlayerList().saveAll();
+        if (ownershipRemoved) {
             SavedDataPersistence.saveAndWait(server);
         }
 
@@ -101,8 +104,7 @@ public final class GeneratedAppraisalRecoveryService {
                 plan.target(),
                 receipt.appraisal()
         );
-        receipts.clear(receipt);
-        SavedDataPersistence.saveAndWait(server);
+        receipts.clearAndVerify(receipt);
 
         checkedPlayer.sendSystemMessage(Component.literal(
                 plan.alreadyComplete()
@@ -166,7 +168,6 @@ public final class GeneratedAppraisalRecoveryService {
                 checkedCurrent.memories(), checkedSnapshot.memory());
         EchoOwnershipData targetEchoes;
         try {
-            // Echo award preserves later command/manifestation state when the immutable acquired identity matches.
             targetEchoes = checkedCurrent.echoes().award(checkedSnapshot.echo());
         } catch (IllegalArgumentException exception) {
             throw new IllegalStateException("Persisted Echo ownership contradicts the completion receipt", exception);
