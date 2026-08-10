@@ -41,8 +41,24 @@ class NightmareRoleContentCatalogTest {
             assertFalse(role.presentationCue().isBlank());
         });
 
-        assertEquals(Set.of(NightmareRoleContentCatalog.SocialPosition.values()), positions);
-        assertTrue(conditions.containsAll(Set.of(NightmareRoleContentCatalog.Condition.values())));
+        assertEquals(Set.of(
+                NightmareRoleContentCatalog.SocialPosition.BOUND,
+                NightmareRoleContentCatalog.SocialPosition.DEPENDENT,
+                NightmareRoleContentCatalog.SocialPosition.OUTSIDER,
+                NightmareRoleContentCatalog.SocialPosition.LABOURER,
+                NightmareRoleContentCatalog.SocialPosition.RETAINER,
+                NightmareRoleContentCatalog.SocialPosition.INITIATE,
+                NightmareRoleContentCatalog.SocialPosition.AUXILIARY
+        ), positions);
+        assertEquals(Set.of(
+                NightmareRoleContentCatalog.Condition.EXHAUSTED,
+                NightmareRoleContentCatalog.Condition.WOUNDED,
+                NightmareRoleContentCatalog.Condition.HUNGRY,
+                NightmareRoleContentCatalog.Condition.RESTRAINED,
+                NightmareRoleContentCatalog.Condition.ISOLATED,
+                NightmareRoleContentCatalog.Condition.DISTRUSTED,
+                NightmareRoleContentCatalog.Condition.UNDER_OBSERVATION
+        ), conditions);
         assertTrue(relationships.containsAll(Set.of(NightmareRoleContentCatalog.Relationship.values())));
         assertTrue(knowledge.containsAll(Set.of(NightmareRoleContentCatalog.Knowledge.values())));
         assertTrue(pressures.containsAll(Set.of(NightmareRoleContentCatalog.AlignmentPressure.values())));
@@ -83,7 +99,7 @@ class NightmareRoleContentCatalogTest {
         }
 
         assertTrue(warningMatches > neutralMatches * 2,
-                () -> "warning evidence should materially bias authored matching: " + warningMatches + " vs " + neutralMatches);
+                "warning evidence should materially bias authored matching: " + warningMatches + " vs " + neutralMatches);
     }
 
     @Test
