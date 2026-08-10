@@ -158,6 +158,13 @@ class PreviewResetRestartBoundaryTest {
         }
 
         @Override
+        public void verifyResetIntentDurable() {
+            if (!durable.resetIntentPresent) {
+                throw new IllegalStateException("simulated persisted reset marker is absent");
+            }
+        }
+
+        @Override
         public void abortNightmareIfActive() {
             PreviewResetService.reconcileNightmareForReset(new PreviewResetService.NightmareResetOperations() {
                 @Override
