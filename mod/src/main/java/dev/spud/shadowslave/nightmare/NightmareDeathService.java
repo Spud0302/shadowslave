@@ -57,6 +57,8 @@ public final class NightmareDeathService {
         Path deathRegistryFile = server.getWorldPath(LevelResource.ROOT)
                 .resolve("data")
                 .resolve("shadowslave_nightmare_deaths.dat");
+        Path playerDataFile = server.getWorldPath(LevelResource.PLAYER_DATA_DIR)
+                .resolve(player.getStringUUID() + ".dat");
         PersistenceFileCheckpoint.Snapshot[] deathIntentBaseline = new PersistenceFileCheckpoint.Snapshot[1];
         boolean deathIntentAlreadyDurable = deaths.isDurablyTrusted(instance);
 
@@ -123,6 +125,11 @@ public final class NightmareDeathService {
             @Override
             public void persistPlayer() {
                 server.getPlayerList().saveAll();
+            }
+
+            @Override
+            public void verifyPlayerPersisted() {
+                PersistedCanonicalDeathPlayerVerifier.requireReset(playerDataFile);
             }
 
             @Override
