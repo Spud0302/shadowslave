@@ -105,7 +105,9 @@ class PreviewResetServiceTest {
                 new MemoryInstanceData(MEMORY, "Ash Compass", "test_award", "test")
         ));
         private EchoOwnershipData echoes = new EchoOwnershipData(List.of(
-                new EchoInstanceData(ECHO, "Ash Burrower", "test_award", "test", Optional.empty())
+                new EchoInstanceData(
+                        ECHO, "Ash Burrower", "test_award", "test",
+                        Optional.empty(), Optional.empty(), Optional.empty())
         ));
         private ImportedIdentityData importedIdentity = new ImportedIdentityData(
                 Optional.of(new ImportedAspect(
