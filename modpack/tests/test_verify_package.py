@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import tempfile
 import unittest
@@ -12,14 +13,26 @@ from modpack.tools.verify_package import VerificationError, verify_package
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "modpack" / "manifest.json"
+COMPONENT_ID = "geckolib-4"
+COMPONENT_BYTES = b"verified-geckolib-fixture"
 
 
 class PackageVerificationTest(unittest.TestCase):
     def build_fixture(self, root: Path) -> Path:
+        modpack = root / "modpack"
+        modpack.mkdir()
+        (modpack / "README.md").write_text("fixture", encoding="utf-8")
+        manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        manifest["components"][0]["source"]["sha256"] = hashlib.sha256(COMPONENT_BYTES).hexdigest()
+        manifest_path = modpack / "manifest.json"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+        component = root / manifest["components"][0]["source"]["file"]
+        component.write_bytes(COMPONENT_BYTES)
         core = root / "core.jar"
         core.write_bytes(b"verified-core-fixture")
         archive = root / "pack.zip"
-        build_package(MANIFEST, core, archive)
+        build_package(manifest_path, core, archive, {COMPONENT_ID: component})
         return archive
 
     def rewrite(self, source: Path, destination: Path, transform) -> None:
