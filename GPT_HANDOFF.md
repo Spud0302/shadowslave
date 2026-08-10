@@ -3,101 +3,52 @@
 **Read first in a new GPT or Claude session.**  
 **Repository:** `Spud0302/shadowslave`  
 **Baseline branch:** `main`  
-**Baseline commit:** `e9f676a9b2ef58cf1e0cc18d45d1420b9e62c2f4`  
-**Active correctness candidate:** PR #119, head `93da9d43df160995097a5108f0e73ef6a5762046`
+**Baseline commit:** `96a3422c2469a832f9a977a4521cc3f3b62edc5b`  
+**Active correctness edge:** PR #178, head `a802a68cd1f0c007cef586c38a92683de87a63dc`
 
-## Mandatory lore source
+## Mandatory lore/source procedure
 
-Before any lore-sensitive design, implementation, naming or review, read `docs/LORE-SOURCE-POLICY.md` and then `docs/JAVA-LORE-ALIGNMENT.md` plus the relevant roadmap/research notes.
+Before lore-sensitive work, read `docs/LORE-SOURCE-POLICY.md`, `docs/JAVA-LORE-ALIGNMENT.md`, the relevant roadmap, and current research notes. Novel chapter text is authoritative; the owner-designated access host is only a research access layer. Check later clarifications and keep **CANON**, **INFERRED**, **DESIGN**, **UNKNOWN**, and **COMPATIBILITY** distinct.
 
-Novel chapter text is authoritative. NovelFull is the owner-designated working access layer, not canon by itself; official WebNovel is the publication/wording cross-check. Verify later clarifications, summarize rather than copy source text, and keep **CANON**, **INFERRED**, **DESIGN**, **UNKNOWN**, and compatibility consequences distinct.
+## Current repository state
 
-## Current main
+`main` has moved materially beyond the August 1 preview baseline and now includes shared Java/core foundations plus merged Nightmare role/scenario compatibility content. Active gameplay integration is owned by PRs #179, #181 and #182; do not duplicate that work from the correctness lineage.
 
-`main` has moved materially beyond the August 1 preview baseline. It now includes, among other merged foundations:
+Issue #34 remains the persistence/restart tracker. The active correctness lineage includes replayable successful completion plus explicit persistence verification for recovery-critical canonical-death, technical/admin-exit and preview-reset authority boundaries.
 
-- explicit multi-ability Aspect identity migration;
-- The Drowned Bell authored Nightmare scenario;
-- reusable Nightmare Creature content;
-- authored Memory and Echo catalogues;
-- Dream Realm region content;
-- stabilized frozen-datapack trial-lock regression behavior.
+Corrected PR #178 head `a802a68cd1f0c007cef586c38a92683de87a63dc` passed Preview Gates #164 / run `31368518381`. Its only review finding was fixed by validating all surviving persisted Nightmare instances through the production loader before canonical-death authority may be consumed; the review thread is resolved.
 
-Do not treat the old `0.1.0-preview.2` artifact as evidence for these newer changes.
+## Persistence audit rule
 
-## Highest-priority correctness work
+Do **not** add a file/digest checkpoint after every save. Add another recovery boundary only when loss of the last meaningful replay authority can demonstrably leave an unrecoverable persisted split.
 
-Issue #34 remains the primary persistence blocker: successful Nightmare completion must survive a real server/process failure without zero appraisal, duplicate appraisal, duplicate teardown, stale ownership, or incorrect return state.
+Prepared Nightmare world/chunk durability is separately **BLOCKED** under #158. Resume it only when one of its recorded conditions changes: new reconstruction/live fault evidence, stronger save-path evidence, owner convergence-policy input, dependency/code change, or another credible design.
 
-The active stacked lineage through PR #119 has implemented and tested the software side of that recovery path:
-
-- durable completion phases/receipt;
-- fail-closed registry reconstruction;
-- idempotent appraisal reconciliation;
-- joined SavedData durability checkpoints;
-- return-success observation before commit;
-- server runtime adapter;
-- live terminal and login recovery routing;
-- deterministic six-boundary process fault injection;
-- stale-attempt invalidation;
-- recovery-process authentication;
-- source/world provenance checks;
-- same-player two-login convergence evidence;
-- hosted self-tests for both evidence verifiers.
-
-Exact PR #119 head `93da9d43df160995097a5108f0e73ef6a5762046` passed Preview Gates run #89 / ID `31280686707`.
-
-## Do not add more speculative persistence state
-
-The next required proof is physical:
-
-```text
-after_terminal_registry_save
-```
-
-Run the Issue #34 completion-fault procedure with a real player, preserve the disposable world, restart on the same source/world, reconnect the same player, relog once more, and retain the authenticated logs/state.
-
-This connector-only/GitHub-only environment cannot perform the real player actions. Treat that as an execution blocker, not as evidence that another transaction layer is needed. Resume code changes only if the physical row demonstrates a concrete defect, owner input changes the requirement, or a new runtime/dependency behavior provides a credible new approach.
+The hosted frozen-datapack Nightmare-dimension generation stall has repeated without a deterministic gameplay defect. Do not blind-rerun or raise budgets again without fresh lag/protocol evidence.
 
 ## Verification rules
 
-For Java/core changes:
+For Java/core changes, the expected hosted gate covers Gradle compile/JUnit/package, completion recovery self-tests, physical NeoForge client boot, dedicated-server boot and artifact upload. The frozen datapack gate separately builds/validates/deploys and runs its live harnesses. Report hosted evidence only for the exact tested head.
 
-```bash
-./mod/gradlew -p mod clean build
-mod/verify-smoke.sh
-```
+Physical NeoForge smoke is not proof of fsync/power-loss behavior or a real process-kill/restart matrix. Those remain stronger evidence requirements where Issue #34 calls for them.
 
-For the frozen datapack:
+## Evidence classification for the current correctness lineage
 
-```bash
-cd testserver
-npm run deploy
-npm test
-```
-
-For completion evidence infrastructure on the #119 lineage:
-
-```bash
-bash mod/run-completion-fault-row.sh self-test
-bash mod/verify-completion-player-recovery.sh self-test
-```
-
-Hosted CI may be reported only for the exact tested commit. Physical NeoForge boot is not equivalent to Issue #34's process-kill/restart matrix.
-
-## Frozen datapack boundary
-
-Issue #20 remains a known command-era architecture limitation. The supported datapack contract is one active First Nightmare at a time with a persistent global lock. The deeper global `@e[tag=ss_creature]` selector limitation remains deliberately documented and outside the supported concurrent model.
-
-A single Issue #20 dimension-transition timeout occurred on PR #117 run #88; its Java job passed. Descendant PR #119 run #89 passed the complete workflow, so do not repeatedly retry or redesign that harness without new failure evidence.
+- **CANON:** unchanged by the persistence infrastructure.
+- **INFERRED:** none newly added by the current verifiers.
+- **DESIGN:** receipts/markers, persisted-state verification, fail-closed transaction ordering, fault/provenance tooling and technical recovery.
+- **UNKNOWN:** physical power-loss/fsync guarantees, post-verification storage corruption and unexecuted real process-kill rows.
+- **COMPATIBILITY:** crash/admin/development recovery remains technical rather than ordinary in-world Spell mercy; no schema change should be assumed unless explicitly documented.
 
 ## Workflow rules
 
-- Never write directly to or merge into `main`; use a new `gpt/` branch and reviewable PR.
-- Every GPT commit includes `Co-Authored-By: ChatGPT <gpt@openai.com>`.
-- Read current main, open issues/PRs, status docs, lore policy/alignment and current roadmap/research notes before selecting work.
-- Avoid duplicating active PRs.
-- Prioritize correctness/persistence blockers over new content.
-- After two consecutive no-progress runs on the same blocker, record attempts/evidence and exact resume condition, mark/comment it blocked, and move to the next unblocked slice.
-- Do not invent canon. When source access or owner decisions block lore-sensitive implementation, record the blocker and do research/design/test work instead.
-- Preserve historical findings; append/supersede them explicitly rather than rewriting old evidence as though it never happened.
+- Never write directly to or merge into `main`; use `gpt/` branches and reviewable PRs.
+- Avoid duplicating active PRs; update an existing owner when the same slice is already open.
+- Prioritize correctness/persistence blockers before new content.
+- After two consecutive no-progress runs on one blocker, record attempts, evidence and the exact resume condition; mark/comment it blocked and move on.
+- Do not invent canon. If source access or owner decisions block a lore-sensitive change, do research/design/test work and record the blocker instead.
+- Preserve historical findings and supersede them explicitly rather than rewriting history.
+
+## Next recommended slice
+
+Finish review/merge evaluation of green #178 first. Then audit another transaction only if loss of its final replay authority can be demonstrated. Leave #158 blocked, and let #179/#181/#182 own the active role/scenario/physical-creature integration stack.
