@@ -9,10 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ChainbackEntityBindingTest {
     @Test
     void executionAdapterConsumesExistingJavaOwnedProfile() {
-        NightmareCreatureContentCatalog.CreatureProfile profile = ChainbackEntity.contentProfile();
+        NightmareCreatureContentCatalog.CreatureProfile profile = ChainbackExecutionBinding.contentProfile();
 
-        assertEquals("chainback", ChainbackEntity.CONTENT_ID);
-        assertEquals(ChainbackEntity.CONTENT_ID, profile.id());
+        assertEquals("chainback", ChainbackExecutionBinding.CONTENT_ID);
+        assertEquals(ChainbackExecutionBinding.CONTENT_ID, profile.id());
         assertEquals("Chainback", profile.displayName());
         assertEquals(NightmareCreatureContentCatalog.Rank.AWAKENED, profile.rank());
         assertEquals(NightmareCreatureContentCatalog.CreatureClass.MONSTER, profile.creatureClass());
