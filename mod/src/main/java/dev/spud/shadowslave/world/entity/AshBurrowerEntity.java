@@ -9,6 +9,11 @@ import net.minecraft.world.entity.monster.Silverfish;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.constant.DefaultAnimations;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,12 +23,15 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Placeholder Minecraft executor for the Java-owned Ash Burrower Nightmare Creature.
- * Vanilla-sized body/melee/navigation remain removable execution, not canonical creature state.
+ * Minecraft executor for the Java-owned Ash Burrower Nightmare Creature.
+ *
+ * <p>GeckoLib owns only visual animation execution. Creature identity, authored senses/pressures,
+ * combat authority, progression and rewards remain Java-owned outside GeckoLib.</p>
  */
-public final class AshBurrowerEntity extends Silverfish {
+public final class AshBurrowerEntity extends Silverfish implements GeoEntity {
     private static final int VIBRATION_SAMPLE_INTERVAL_TICKS = 4;
 
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private final Map<UUID, Vec3> sampledPlayerPositions = new HashMap<>();
     private int vibrationPursuitTicks;
     private UUID vibrationTargetId;
@@ -46,6 +54,20 @@ public final class AshBurrowerEntity extends Silverfish {
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         // There is intentionally no generic nearest-player target goal. Player acquisition is driven
         // by the authored VIBRATION sense through the bounded executor below.
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        // These controllers only present already-existing movement/swing state.
+        // They never feed back into creature identity, AI, combat resolution or progression.
+        controllers.add(
+                DefaultAnimations.genericWalkIdleController(this),
+                DefaultAnimations.genericAttackAnimation(this, DefaultAnimations.ATTACK_STRIKE));
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
     }
 
     @Override
