@@ -7,10 +7,12 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.saveddata.SavedData;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /** Durable canonical-death intent retained until player reset and Nightmare teardown are both committed. */
@@ -23,14 +25,17 @@ public final class NightmareDeathRegistryData extends SavedData {
     );
 
     private final Map<UUID, NightmareInstance> pendingByPlayer = new LinkedHashMap<>();
+    private final Set<UUID> unverifiedByPlayer = new HashSet<>();
     private final String loadFailure;
+    private long persistenceRevision;
 
     public NightmareDeathRegistryData() {
-        this(null);
+        this(null, 0L);
     }
 
-    private NightmareDeathRegistryData(String loadFailure) {
+    private NightmareDeathRegistryData(String loadFailure, long persistenceRevision) {
         this.loadFailure = loadFailure;
+        this.persistenceRevision = persistenceRevision;
     }
 
     public static NightmareDeathRegistryData get(MinecraftServer server) {
@@ -62,10 +67,33 @@ public final class NightmareDeathRegistryData extends SavedData {
             if (!existing.equals(checked)) {
                 throw new IllegalStateException("Player already has canonical death intent for another Nightmare snapshot");
             }
+            if (unverifiedByPlayer.contains(checked.playerId())) {
+                advancePersistenceRevision();
+            }
             return;
         }
         pendingByPlayer.put(checked.playerId(), checked);
-        setDirty();
+        unverifiedByPlayer.add(checked.playerId());
+        advancePersistenceRevision();
+    }
+
+    /** Returns true only for an exact marker already proven durable in this process or loaded from disk. */
+    boolean isDurablyTrusted(NightmareInstance instance) {
+        requireHealthy();
+        NightmareInstance checked = Objects.requireNonNull(instance, "instance");
+        NightmareInstance existing = pendingByPlayer.get(checked.playerId());
+        return checked.equals(existing) && !unverifiedByPlayer.contains(checked.playerId());
+    }
+
+    /** Promotes only the exact live marker after its settled persistence checkpoint succeeds. */
+    void markDurablyTrusted(NightmareInstance instance) {
+        requireHealthy();
+        NightmareInstance checked = Objects.requireNonNull(instance, "instance");
+        NightmareInstance existing = pendingByPlayer.get(checked.playerId());
+        if (!checked.equals(existing)) {
+            throw new IllegalStateException("Cannot trust canonical death intent without the exact live marker");
+        }
+        unverifiedByPlayer.remove(checked.playerId());
     }
 
     /** Clears only the exact marker after player reset and Nightmare teardown are durably committed. */
@@ -80,6 +108,7 @@ public final class NightmareDeathRegistryData extends SavedData {
             throw new IllegalStateException("Cannot clear canonical death intent with a stale or modified snapshot");
         }
         pendingByPlayer.remove(checked.playerId());
+        unverifiedByPlayer.remove(checked.playerId());
         setDirty();
     }
 
@@ -91,6 +120,7 @@ public final class NightmareDeathRegistryData extends SavedData {
             encoded.add(instance.save());
         }
         tag.put("pending", encoded);
+        tag.putLong("persistence_revision", persistenceRevision);
         return tag;
     }
 
@@ -100,7 +130,7 @@ public final class NightmareDeathRegistryData extends SavedData {
             return blocked("Canonical death marker is missing a pending list");
         }
 
-        NightmareDeathRegistryData data = new NightmareDeathRegistryData();
+        NightmareDeathRegistryData data = new NightmareDeathRegistryData(null, tag.getLong("persistence_revision"));
         for (int index = 0; index < encoded.size(); index++) {
             Tag rawEntry = encoded.get(index);
             if (!(rawEntry instanceof CompoundTag entry)) {
@@ -120,8 +150,13 @@ public final class NightmareDeathRegistryData extends SavedData {
         return data;
     }
 
+    private void advancePersistenceRevision() {
+        persistenceRevision++;
+        setDirty();
+    }
+
     private static NightmareDeathRegistryData blocked(String loadFailure) {
-        return new NightmareDeathRegistryData(Objects.requireNonNull(loadFailure, "loadFailure"));
+        return new NightmareDeathRegistryData(Objects.requireNonNull(loadFailure, "loadFailure"), 0L);
     }
 
     private void requireHealthy() {
