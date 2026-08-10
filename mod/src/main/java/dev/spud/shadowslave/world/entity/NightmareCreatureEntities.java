@@ -17,7 +17,7 @@ public final class NightmareCreatureEntities {
             DeferredRegister.create(Registries.ENTITY_TYPE, ShadowSlaveMod.MOD_ID);
 
     public static final Supplier<EntityType<ChainbackEntity>> CHAINBACK = ENTITY_TYPES.register(
-            ChainbackEntity.CONTENT_ID,
+            ChainbackExecutionBinding.CONTENT_ID,
             registryName -> EntityType.Builder.of(ChainbackEntity::new, MobCategory.MONSTER)
                     .sized(1.4F, 0.9F)
                     .clientTrackingRange(8)
