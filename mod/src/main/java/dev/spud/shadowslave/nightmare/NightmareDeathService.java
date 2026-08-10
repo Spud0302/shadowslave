@@ -58,9 +58,7 @@ public final class NightmareDeathService {
                 .resolve("data")
                 .resolve("shadowslave_nightmare_deaths.dat");
         PersistenceFileCheckpoint.Snapshot[] deathIntentBaseline = new PersistenceFileCheckpoint.Snapshot[1];
-        boolean deathIntentAlreadyDurable = deaths.findByPlayer(player.getUUID())
-                .filter(instance::equals)
-                .isPresent();
+        boolean deathIntentAlreadyDurable = deaths.isDurablyTrusted(instance);
 
         NightmareInstance active = registry.findByPlayer(player.getUUID()).orElse(null);
         if (active != null && !active.equals(instance)) {
@@ -102,8 +100,8 @@ public final class NightmareDeathService {
             }
 
             @Override
-            public void discardUnverifiedDeathIntent() {
-                deaths.complete(instance);
+            public void markDeathIntentDurable() {
+                deaths.markDurablyTrusted(instance);
             }
 
             @Override
