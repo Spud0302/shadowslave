@@ -30,49 +30,50 @@ Normal `commitPrepared(...)` now performs the player save and semantic verificat
 
 ## Review corrections
 
-Fresh review found two additional P1 durability gaps in the same transaction.
-
 ### Receipt must be observable before teardown
 
 `SavedDataPersistence.saveAndWait(...)` alone does not prove that the exact completion receipt reached `world/data/shadowslave_nightmare_completion_receipts.dat`; the asynchronous save path can report/log an I/O failure without giving this transaction a trustworthy exact-receipt proof. `NightmareCompletionReceiptData.begin(...)` now owns the production persistence checkpoint: it re-dirties the registry, saves/waits, and directly reads back the exact expected receipt through `PersistedNightmareCompletionReceiptVerifier` before returning. Idempotent retries re-dirty before another write attempt. If persistence or verification fails, active Nightmare ownership has not yet been consumed.
 
-Focused receipt-verifier tests require exactly one production-loadable expected receipt and reject missing, duplicate, or malformed authority.
+### Returned player image must survive stale registry teardown
 
-### Return teleport must precede durable teardown
+A later review exposed a distinct split: the completion receipt may be durable while the active Nightmare registry image is already absent, even though the waking-world teleport was never persisted. Absence of active ownership therefore cannot be treated as proof that successful teardown fully completed.
 
-Login replay can restart with both the exact completion receipt and the matching active Nightmare. `recoverSuccessfulCompletion(...)` teleports the player back and removes active ownership in memory. Persisting the registry removal before saving the returned player location creates a split where a second restart can load no active ownership but still load the player inside the Nightmare.
+Login replay now always converges the return half of the receipt. If exact active ownership still exists, the normal successful teardown path performs the teleport and ownership removal. If ownership is already absent, recovery teleports directly to the exact return dimension, position and rotation retained in the receipt's `NightmareInstance`. The returned player image is then saved while the receipt still exists. Contradictory active ownership still fails closed.
 
-Replay now saves player data immediately after successful return/teardown and only then crosses the SavedData persistence barrier. The completion receipt remains present across both writes. A later crash can therefore replay from the retained receipt rather than strand a player in the Nightmare without active ownership.
+This deliberately makes the stored return destination idempotent recovery authority instead of relying on an inferred registry state.
+
+### Receipt deletion must itself be verified
+
+Another review finding showed that removing a receipt from memory and calling the async SavedData save barrier is not enough: a failed deletion write can leave the stale receipt on disk while the live process forgets it. A later preview reset or restart can then observe contradictory recovery state.
+
+`NightmareCompletionReceiptData.clear(...)` now treats persisted absence as part of the operation in production. It saves/waits, parses the persisted receipt registry through the production receipt loader, and rejects any surviving receipt with the consumed player or instance identity. On ambiguous save/read-back failure it restores the exact receipt in memory and re-dirties the registry before throwing. Missing receipt files are accepted as absence; malformed persisted registries fail closed.
+
+Because verification is owned by `clear(...)`, both normal completion and login replay receive the same deletion guarantee rather than depending on every caller to remember an extra checkpoint.
 
 ## Evidence classification
 
 - **CANON:** unchanged. Nightmare completion remains distinct from appraisal; no Aspect, Flaw, Attribute, Memory, Echo, progression or reward rule changes.
 - **INFERRED:** an appraisal already resolved before a technical crash should retain the same resolved identities/rewards rather than being regenerated from later code/catalogues.
-- **DESIGN:** exact persisted-player semantic verification, exact receipt read-back, retry re-dirtying, and return-before-registry persistence ordering are Java transaction/durability guards.
+- **DESIGN:** exact persisted-player semantic verification, exact receipt read-back, retry re-dirtying, replay of the stored return destination, persisted receipt-deletion verification, and fail-closed authority restoration are Java transaction/durability guards.
 - **UNKNOWN:** physical fsync/power-loss guarantees below readable file images, storage corruption after verification, and full physical process-kill convergence across every boundary.
-- **COMPATIBILITY:** no attachment or SavedData schema change. Existing unrelated Attribute/Memory/Echo ownership and mutable matching Echo command/manifestation state remain part of the exact expected image rather than being discarded.
+- **COMPATIBILITY:** no attachment or SavedData schema change. Existing unrelated Attribute/Memory/Echo ownership and mutable matching Echo command/manifestation state remain part of the exact expected image rather than being discarded. Successful-completion receipts retain the existing serialized `NightmareInstance`, so no new return-location field is required.
 
 No new lore proposition is introduced. `docs/LORE-SOURCE-POLICY.md`, `docs/JAVA-LORE-ALIGNMENT.md`, and `docs/NIGHTMARE-SEED-ROADMAP.md` remain the governing lore/architecture sources.
 
 ## Tests
 
-Focused persisted-player verifier tests cover:
-
-- exact committed persisted award acceptance;
-- stale/partial persisted ownership rejection;
-- malformed attachment rejection;
-- refusal to verify an expected state that does not itself contain the exact receipt award;
-- missing player-file rejection.
+Focused persisted-player verifier tests cover exact committed persisted award acceptance, stale/partial ownership, malformed attachments, invalid expected state, and missing player files.
 
 Focused persisted-receipt verifier tests cover:
 
 - exactly one production-loadable expected receipt;
-- missing expected receipt;
-- duplicate expected recovery authority;
-- malformed receipt rejected by the production loader.
+- missing and duplicate expected recovery authority;
+- malformed receipt data rejected by the production loader;
+- healthy persisted absence with unrelated receipts retained;
+- stale exact, same-player, or same-instance receipt identities rejected after consumption.
 
-Hosted Preview Gates remain required for Java compile/unit/package, physical NeoForge client boot, dedicated-server boot, development JAR and frozen-datapack/deployed harnesses.
+Existing recovery-plan tests continue to cover exact active ownership, absent active ownership, and contradictory ownership. Hosted Preview Gates remain required for Java compile/unit/package, physical NeoForge client boot, dedicated-server boot, development JAR and frozen-datapack/deployed harnesses.
 
 ## Remaining boundary
 
-These checkpoints are stronger than relying on save-call return alone, but they are not hardware-level durability claims. Issue #34 should remain open until restart-boundary/process-kill convergence evidence demonstrates that the retained receipt, returned location, registry teardown, and exact player award converge without duplicate appraisal or teardown across the supported crash points.
+These checkpoints are stronger than relying on save-call return or registry absence alone, but they are not hardware-level durability claims. Issue #34 should remain open until deterministic restart/process-loss evidence demonstrates that receipt creation, return, active-registry teardown, exact player award, and receipt consumption converge without duplicate appraisal or teardown across each supported durable boundary.
