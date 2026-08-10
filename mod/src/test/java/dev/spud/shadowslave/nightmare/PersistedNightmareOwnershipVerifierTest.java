@@ -5,20 +5,36 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PersistedNightmareOwnershipVerifierTest {
     @TempDir
     Path tempDir;
+
+    @Test
+    void exposesServerScopedVerificationBoundaryForCrossPackageRecovery() throws NoSuchMethodException {
+        var method = PersistedNightmareOwnershipVerifier.class.getMethod(
+                "requireAbsent",
+                MinecraftServer.class,
+                UUID.class,
+                UUID.class
+        );
+
+        assertTrue(Modifier.isPublic(method.getModifiers()));
+        assertTrue(Modifier.isStatic(method.getModifiers()));
+    }
 
     @Test
     void acceptsPersistedRegistryWithoutTargetOwnership() throws IOException {
