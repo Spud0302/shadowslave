@@ -18,7 +18,25 @@
     "artifact_glob": "mod/build/libs/*.jar",
     "package_path": "mods/shadowslave-core.jar"
   },
-  "components": [],
+  "components": [
+    {
+      "id": "geckolib-4",
+      "mod_id": "geckolib",
+      "version": "4.9.2",
+      "role": "presentation_provider",
+      "side": "both",
+      "required": true,
+      "owns_canonical_state": false,
+      "source": {
+        "type": "direct",
+        "project": "software.bernie.geckolib:geckolib-neoforge-1.21.1",
+        "file": "geckolib-neoforge-1.21.1-4.9.2.jar",
+        "sha256": "5e548466af9ab6aca7a91a7c7d4dc0dc8bc385e22958aed5da0e7bebd0fa3fba"
+      },
+      "license": "MIT",
+      "removal_behavior": "This build cannot render its GeckoLib-backed presentation without GeckoLib; canonical Soul, progression, Nightmare, creature, reward and ownership state remain entirely in shadowslave-core."
+    }
+  ],
   "packaging": {
     "format": "deterministic-zip-v1",
     "include": [
