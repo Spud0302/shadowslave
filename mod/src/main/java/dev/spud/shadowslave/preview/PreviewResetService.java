@@ -13,7 +13,9 @@ import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.LevelResource;
 
+import java.nio.file.Path;
 import java.util.Objects;
 
 /** Coordinates the complete preview reset before publishing one client snapshot. */
@@ -48,6 +50,7 @@ public final class PreviewResetService {
 
         checkedOperations.beginResetIntent();
         checkedOperations.persistRegistry();
+        checkedOperations.verifyResetIntentDurable();
 
         checkedOperations.abortNightmareIfActive();
         checkedOperations.clearSuccessfulCompletion();
@@ -90,6 +93,8 @@ public final class PreviewResetService {
 
         void persistRegistry();
 
+        void verifyResetIntentDurable();
+
         void abortNightmareIfActive();
 
         void clearSuccessfulCompletion();
@@ -116,12 +121,25 @@ public final class PreviewResetService {
 
         @Override
         public void beginResetIntent() {
-            registry().begin(player.getUUID());
+            PreviewResetRegistryData resetRegistry = registry();
+            resetRegistry.begin(player.getUUID());
+            // A same-process retry after an ambiguous write must serialize again even
+            // when the matching marker is already present in memory.
+            resetRegistry.setDirty();
         }
 
         @Override
         public void persistRegistry() {
             SavedDataPersistence.saveAndWait(player.getServer());
+        }
+
+        @Override
+        public void verifyResetIntentDurable() {
+            Path resetRegistryFile = player.getServer()
+                    .getWorldPath(LevelResource.ROOT)
+                    .resolve("data")
+                    .resolve("shadowslave_preview_resets.dat");
+            PersistedPreviewResetIntentVerifier.requirePresent(resetRegistryFile, player.getUUID());
         }
 
         @Override
