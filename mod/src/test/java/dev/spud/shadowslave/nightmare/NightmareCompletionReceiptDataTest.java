@@ -99,8 +99,10 @@ class NightmareCompletionReceiptDataTest {
                 0.0F,
                 new BlockPos(0, 64, 0),
                 new BlockPos(3, 64, 3),
-                Optional.of("flood_diverted"),
-                100L
+                Optional.empty(),
+                100L,
+                Optional.of("resolved"),
+                Optional.of("flood_diverted")
         );
     }
 }
