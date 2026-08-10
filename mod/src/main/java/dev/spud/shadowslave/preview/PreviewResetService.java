@@ -1,6 +1,9 @@
 package dev.spud.shadowslave.preview;
 
 import dev.spud.shadowslave.attachment.ModAttachments;
+import dev.spud.shadowslave.echo.EchoManifestationService;
+import dev.spud.shadowslave.echo.EchoOwnershipData;
+import dev.spud.shadowslave.echo.EchoOwnershipService;
 import dev.spud.shadowslave.memory.MemoryManifestationService;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.memory.MemoryOwnershipService;
@@ -34,6 +37,7 @@ public final class PreviewResetService {
         checkedOperations.clearSoulIdentity();
         checkedOperations.clearAttributes();
         checkedOperations.clearMemories();
+        checkedOperations.clearEchoes();
         checkedOperations.clearImportedIdentity();
         checkedOperations.clearPreviewPower();
         checkedOperations.sync(resetSoul);
@@ -49,6 +53,8 @@ public final class PreviewResetService {
         void clearAttributes();
 
         void clearMemories();
+
+        void clearEchoes();
 
         void clearImportedIdentity();
 
@@ -84,6 +90,12 @@ public final class PreviewResetService {
         public void clearMemories() {
             MemoryManifestationService.clearAshCompassManifestations(player);
             MemoryOwnershipService.replace(player, MemoryOwnershipData.empty());
+        }
+
+        @Override
+        public void clearEchoes() {
+            EchoManifestationService.clearOwnedManifestations(player);
+            EchoOwnershipService.replace(player, EchoOwnershipData.empty());
         }
 
         @Override
