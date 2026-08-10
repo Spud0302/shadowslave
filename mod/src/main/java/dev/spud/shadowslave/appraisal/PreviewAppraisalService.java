@@ -4,6 +4,11 @@ import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.appraisal.generation.AttributeContentCatalog;
 import dev.spud.shadowslave.appraisal.generation.GeneratedIdentityCandidate;
 import dev.spud.shadowslave.content.memory.MemoryContentCatalog;
+import dev.spud.shadowslave.echo.EchoInstanceData;
+import dev.spud.shadowslave.echo.EchoManifestationService;
+import dev.spud.shadowslave.echo.EchoOwnershipData;
+import dev.spud.shadowslave.echo.EchoOwnershipService;
+import dev.spud.shadowslave.echo.content.EchoContentCatalog;
 import dev.spud.shadowslave.item.AshCompassMemoryItem;
 import dev.spud.shadowslave.memory.MemoryInstanceData;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
@@ -47,48 +52,53 @@ public final class PreviewAppraisalService {
         GeneratedIdentityCandidate.Aspect generatedAspect = generated.aspect();
         GeneratedIdentityCandidate.Flaw generatedFlaw = generated.flaw();
 
-        AspectInstanceData aspect = new AspectInstanceData(
-                generatedAspect.instanceId(), generatedAspect.formalName(), generatedAspect.aspectRank(), generatedAspect.natureId(),
-                new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
-                        generatedAspect.abilityId(), "generated First-Nightmare Dormant ability; classification integration pending"))),
-                generated.provenance());
-        FlawInstanceData flaw = new FlawInstanceData(
-                generatedFlaw.instanceId(), generatedFlaw.formalName(), generatedFlaw.effectId(), generated.provenance());
+        AspectInstanceData aspect = new AspectInstanceData(generatedAspect.instanceId(), generatedAspect.formalName(),
+                generatedAspect.aspectRank(), generatedAspect.natureId(), new AspectAbilitySetData(List.of(
+                AspectAbilityData.legacyUnclassified(generatedAspect.abilityId(),
+                        "generated First-Nightmare Dormant ability; classification integration pending"))), generated.provenance());
+        FlawInstanceData flaw = new FlawInstanceData(generatedFlaw.instanceId(), generatedFlaw.formalName(),
+                generatedFlaw.effectId(), generated.provenance());
         AttributeContentCatalog.AttributeProfile profile = award.attribute();
-        AttributeInstanceData attribute = new AttributeInstanceData(
-                profile.id(), profile.formalName(), profile.origin().name().toLowerCase(Locale.ROOT),
-                profile.visibility().name().toLowerCase(Locale.ROOT), generated.provenance() + "/attribute-selection");
+        AttributeInstanceData attribute = new AttributeInstanceData(profile.id(), profile.formalName(),
+                profile.origin().name().toLowerCase(Locale.ROOT), profile.visibility().name().toLowerCase(Locale.ROOT),
+                generated.provenance() + "/attribute-selection");
 
         MemoryContentCatalog.MemoryProfile memoryProfile = MemoryContentCatalog.waveOne().memories().stream()
-                .filter(memory -> memory.id().equals(AshCompassMemoryItem.MEMORY_ID))
-                .findFirst()
+                .filter(memory -> memory.id().equals(AshCompassMemoryItem.MEMORY_ID)).findFirst()
                 .orElseThrow(() -> new IllegalStateException("Ash Compass Memory profile is missing"));
-        MemoryInstanceData memory = new MemoryInstanceData(
-                memoryProfile.id(), memoryProfile.formalName(), "first_nightmare_appraisal_design",
-                "nightmare/" + completedInstance.instanceId() + "/resolution/" + resolutionId);
+        String rewardProvenance = "nightmare/" + completedInstance.instanceId() + "/resolution/" + resolutionId;
+        MemoryInstanceData memory = new MemoryInstanceData(memoryProfile.id(), memoryProfile.formalName(),
+                "first_nightmare_appraisal_design", rewardProvenance);
+        EchoContentCatalog.EchoProfile echoProfile = EchoManifestationService.ashBurrowerProfile();
+        EchoInstanceData echo = new EchoInstanceData(EchoManifestationService.ASH_BURROWER_ID, echoProfile.displayName(),
+                "first_nightmare_appraisal_design", rewardProvenance,
+                Optional.empty(), Optional.empty(), Optional.empty());
 
         SoulIdentityData beforeIdentity = SoulIdentityService.get(player);
         AttributeOwnershipData beforeAttributes = AttributeOwnershipService.get(player);
         MemoryOwnershipData beforeMemories = MemoryOwnershipService.get(player);
+        EchoOwnershipData beforeEchoes = EchoOwnershipService.get(player);
         SoulIdentityService.replace(player, new SoulIdentityData(Optional.of(aspect), Optional.of(flaw)));
         AttributeOwnershipService.award(player, attribute);
         MemoryOwnershipService.award(player, memory);
+        EchoOwnershipService.award(player, echo);
         try {
             SoulService.completeFirstNightmare(player, generatedAspect.instanceId(), generatedAspect.aspectRank(), generatedFlaw.instanceId());
         } catch (RuntimeException exception) {
             SoulIdentityService.replace(player, beforeIdentity);
             AttributeOwnershipService.replace(player, beforeAttributes);
             MemoryOwnershipService.replace(player, beforeMemories);
+            EchoOwnershipService.replace(player, beforeEchoes);
             throw exception;
         }
 
-        player.sendSystemMessage(Component.literal(
-                "Memory acquired: [" + memory.formalName() + "]. Summon it with /shadowslave_memory summon ash_compass.")
-                .withStyle(ChatFormatting.GOLD));
-        ShadowSlaveMod.LOGGER.info(
-                "Generated appraisal {} committed for Nightmare {} and player {}: Aspect {}, Flaw {}, Attribute {}, Memory {}",
-                generated.generationFingerprint(), completedInstance.instanceId(), player.getScoreboardName(),
-                generatedAspect.instanceId(), generatedFlaw.instanceId(), profile.id(), memory.memoryId());
+        player.sendSystemMessage(Component.literal("Memory acquired: [" + memory.formalName()
+                + "]. Summon it with /shadowslave_memory summon ash_compass.").withStyle(ChatFormatting.GOLD));
+        player.sendSystemMessage(Component.literal("Echo acquired: [" + echo.formalName()
+                + "]. Summon it with /shadowslave_echo summon ash_burrower.").withStyle(ChatFormatting.AQUA));
+        ShadowSlaveMod.LOGGER.info("Generated appraisal {} committed for Nightmare {} and player {}: Aspect {}, Flaw {}, Attribute {}, Memory {}, Echo {}",
+                generated.generationFingerprint(), completedInstance.instanceId(), player.getScoreboardName(), generatedAspect.instanceId(),
+                generatedFlaw.instanceId(), profile.id(), memory.memoryId(), echo.echoId());
         return award;
     }
 }
