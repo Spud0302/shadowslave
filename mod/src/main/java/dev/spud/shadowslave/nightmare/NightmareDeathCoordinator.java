@@ -23,6 +23,7 @@ public final class NightmareDeathCoordinator {
 
         checked.resetPlayerState();
         checked.persistPlayer();
+        checked.verifyPlayerPersisted();
 
         checked.teardownActiveInstance();
         checked.persistNightmareRegistry();
@@ -51,6 +52,8 @@ public final class NightmareDeathCoordinator {
         void resetPlayerState();
 
         void persistPlayer();
+
+        void verifyPlayerPersisted();
 
         void teardownActiveInstance();
 
