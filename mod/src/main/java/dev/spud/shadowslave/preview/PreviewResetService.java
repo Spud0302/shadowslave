@@ -59,6 +59,7 @@ public final class PreviewResetService {
         checkedOperations.clearImportedIdentity();
         checkedOperations.clearPreviewPower();
         checkedOperations.persistPlayer();
+        checkedOperations.verifyPlayerPersisted();
 
         checkedOperations.sync(resetSoul);
 
@@ -108,6 +109,8 @@ public final class PreviewResetService {
         void clearPreviewPower();
 
         void persistPlayer();
+
+        void verifyPlayerPersisted();
 
         void sync(SoulData resetSoul);
 
@@ -190,6 +193,14 @@ public final class PreviewResetService {
         @Override
         public void persistPlayer() {
             player.getServer().getPlayerList().saveAll();
+        }
+
+        @Override
+        public void verifyPlayerPersisted() {
+            Path playerDataFile = player.getServer()
+                    .getWorldPath(LevelResource.PLAYER_DATA_DIR)
+                    .resolve(player.getStringUUID() + ".dat");
+            PersistedPreviewResetPlayerVerifier.requireReset(playerDataFile);
         }
 
         @Override
