@@ -65,6 +65,11 @@ public final class NightmareCompletionReceiptData extends SavedData {
         return created;
     }
 
+    /**
+     * Removes one receipt and, in production, proves its persisted identity is absent before returning.
+     * Ambiguous save/read-back restores and re-dirties the receipt in memory so callers cannot forget
+     * recovery authority that may still exist on disk.
+     */
     public Optional<Receipt> clear(Receipt expected) {
         requireHealthy();
         Receipt checked = Objects.requireNonNull(expected, "expected");
@@ -75,27 +80,16 @@ public final class NightmareCompletionReceiptData extends SavedData {
         if (!existing.equals(checked)) {
             throw new IllegalStateException("Cannot clear a stale successful Nightmare completion receipt");
         }
+
         receipts.remove(checked.instance().playerId());
         setDirty();
-        return Optional.of(existing);
-    }
-
-    /**
-     * Consumes one receipt only after the persisted SavedData image proves that authority is absent.
-     * If the async save or read-back is ambiguous, restore and re-dirty the in-memory receipt so the
-     * same process cannot forget recovery authority that may still exist on disk.
-     */
-    public void clearAndVerify(Receipt expected) {
-        Receipt checked = Objects.requireNonNull(expected, "expected");
-        Optional<Receipt> removed = clear(checked);
-        if (removed.isEmpty() || server == null) {
-            return;
+        if (server == null) {
+            return Optional.of(existing);
         }
 
-        Path receiptFile = receiptFile(server);
         try {
             SavedDataPersistence.saveAndWait(server);
-            PersistedNightmareCompletionReceiptVerifier.requireAbsent(receiptFile, checked);
+            PersistedNightmareCompletionReceiptVerifier.requireAbsent(receiptFile(server), checked);
         } catch (RuntimeException exception) {
             receipts.put(checked.instance().playerId(), checked);
             setDirty();
@@ -104,6 +98,11 @@ public final class NightmareCompletionReceiptData extends SavedData {
                     exception
             );
         }
+        return Optional.of(existing);
+    }
+
+    public void clearAndVerify(Receipt expected) {
+        clear(expected);
     }
 
     boolean isCorrupt() {
