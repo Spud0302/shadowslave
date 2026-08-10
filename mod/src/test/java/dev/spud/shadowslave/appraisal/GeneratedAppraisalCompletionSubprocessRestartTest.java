@@ -16,7 +16,6 @@ import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -124,6 +123,7 @@ public class GeneratedAppraisalCompletionSubprocessRestartTest {
         return "instance=" + receipt.instance().instanceId() + "\n"
                 + "player=" + receipt.instance().playerId() + "\n"
                 + "resolution=" + receipt.instance().terminalResolutionId().orElseThrow() + "\n"
+                + "snapshotNbt=" + snapshot.save() + "\n"
                 + "aspect=" + state.soul().aspectId().orElseThrow() + "\n"
                 + "flaw=" + state.soul().flawId().orElseThrow() + "\n"
                 + "identity=" + state.identity().equals(snapshot.identity()) + "\n"
