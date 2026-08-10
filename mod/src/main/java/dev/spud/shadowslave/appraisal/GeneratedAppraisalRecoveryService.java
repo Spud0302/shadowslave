@@ -8,6 +8,7 @@ import dev.spud.shadowslave.memory.MemoryOwnershipService;
 import dev.spud.shadowslave.nightmare.NightmareCompletionReceiptData;
 import dev.spud.shadowslave.nightmare.NightmareInstance;
 import dev.spud.shadowslave.nightmare.NightmareService;
+import dev.spud.shadowslave.nightmare.PersistedNightmareOwnershipVerifier;
 import dev.spud.shadowslave.persistence.SavedDataPersistence;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
@@ -95,6 +96,11 @@ public final class GeneratedAppraisalRecoveryService {
         server.getPlayerList().saveAll();
         if (ownershipRemoved) {
             SavedDataPersistence.saveAndWait(server);
+            PersistedNightmareOwnershipVerifier.requireAbsent(
+                    server,
+                    receipt.instance().playerId(),
+                    receipt.instance().instanceId()
+            );
         }
 
         apply(checkedPlayer, plan.target());
