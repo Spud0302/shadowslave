@@ -5,10 +5,13 @@ import dev.spud.shadowslave.appraisal.generation.DeterministicIdentityGenerator;
 import dev.spud.shadowslave.appraisal.generation.ExpandedIdentityContentCatalog;
 import dev.spud.shadowslave.appraisal.generation.GeneratedIdentityCandidate;
 import dev.spud.shadowslave.appraisal.generation.GenerationEvidence;
+import dev.spud.shadowslave.appraisal.generation.IdentityPrimitiveCatalog;
 import dev.spud.shadowslave.nightmare.NightmareInstance;
 import dev.spud.shadowslave.soul.SoulRank;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -18,9 +21,16 @@ import java.util.UUID;
  * Resolves the already-authored procedural identity content from one completed
  * First Nightmare. The weighting and seed mixing are Minecraft DESIGN, not a
  * claim about the Nightmare Spell's canonical appraisal algorithm.
+ *
+ * <p>The live preview deliberately narrows the broad definition catalogue to
+ * primitives that have real runtime executors. Definition-only abilities and
+ * Flaws remain available to future content work but cannot currently replace a
+ * player's working post-Nightmare mechanics.</p>
  */
 public final class FirstNightmareAppraisalResolver {
     private static final long ATTRIBUTE_SEED_SALT = 0x6A09E667F3BCC909L;
+    private static final ResourceLocation EXECUTABLE_ABILITY_ID = id("generation/ability/kindle");
+    private static final ResourceLocation EXECUTABLE_FLAW_ID = id("generation/flaw/cold_ash");
 
     private FirstNightmareAppraisalResolver() {
     }
@@ -48,7 +58,7 @@ public final class FirstNightmareAppraisalResolver {
                 weights
         );
         long seed = seedFrom(completedInstance.instanceId());
-        GeneratedIdentityCandidate identity = new DeterministicIdentityGenerator(ExpandedIdentityContentCatalog.waveOne())
+        GeneratedIdentityCandidate identity = new DeterministicIdentityGenerator(executableRuntimeCatalog())
                 .generate(seed, evidence, SoulRank.AWAKENED);
         AttributeContentCatalog.AttributeProfile attribute = AttributeContentCatalog.waveOne()
                 .select(seed ^ ATTRIBUTE_SEED_SALT, weights);
@@ -118,6 +128,30 @@ public final class FirstNightmareAppraisalResolver {
         return Map.copyOf(weights);
     }
 
+    private static IdentityPrimitiveCatalog executableRuntimeCatalog() {
+        IdentityPrimitiveCatalog broad = ExpandedIdentityContentCatalog.waveOne();
+        IdentityPrimitiveCatalog.Ability ability = broad.abilities().stream()
+                .filter(candidate -> candidate.id().equals(EXECUTABLE_ABILITY_ID))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Executable Kindle primitive is missing from the identity catalogue"));
+        IdentityPrimitiveCatalog.Flaw flaw = broad.flaws().stream()
+                .filter(candidate -> candidate.id().equals(EXECUTABLE_FLAW_ID))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Executable Cold Ash primitive is missing from the identity catalogue"));
+        List<IdentityPrimitiveCatalog.Nature> compatibleNatures = broad.natures().stream()
+                .filter(nature -> ability.supports(nature) && flaw.supports(nature))
+                .toList();
+        if (compatibleNatures.isEmpty()) {
+            throw new IllegalStateException("No authored nature supports the live executable Kindle / Cold Ash pair");
+        }
+        return new IdentityPrimitiveCatalog(
+                compatibleNatures,
+                broad.archetypes(),
+                List.of(ability),
+                List.of(flaw)
+        );
+    }
+
     private static long seedFrom(UUID instanceId) {
         UUID checked = Objects.requireNonNull(instanceId, "instanceId");
         return checked.getMostSignificantBits() ^ Long.rotateLeft(checked.getLeastSignificantBits(), 23);
@@ -125,6 +159,10 @@ public final class FirstNightmareAppraisalResolver {
 
     private static void add(Map<String, Integer> weights, String tag, int value) {
         weights.merge(tag, value, Math::addExact);
+    }
+
+    private static ResourceLocation id(String path) {
+        return ResourceLocation.fromNamespaceAndPath("shadowslave", path);
     }
 
     private static String requireText(String value, String name) {
