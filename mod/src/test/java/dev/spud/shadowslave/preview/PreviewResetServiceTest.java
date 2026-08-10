@@ -1,5 +1,7 @@
 package dev.spud.shadowslave.preview;
 
+import dev.spud.shadowslave.echo.EchoInstanceData;
+import dev.spud.shadowslave.echo.EchoOwnershipData;
 import dev.spud.shadowslave.memory.MemoryInstanceData;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.migration.ImportedAspect;
@@ -34,6 +36,7 @@ class PreviewResetServiceTest {
     private static final ResourceLocation EFFECT = id("preview/flaw_effect/cold_ash");
     private static final ResourceLocation ATTRIBUTE = id("generation/attribute/watchers_mark");
     private static final ResourceLocation MEMORY = id("memory/ash_compass");
+    private static final ResourceLocation ECHO = id("echo/ash_burrower");
 
     @Test
     void resetCompletesAllMutationsBeforeOneAuthoritativeSnapshot() {
@@ -47,6 +50,7 @@ class PreviewResetServiceTest {
                 "clear_soul_identity",
                 "clear_attributes",
                 "clear_memories",
+                "clear_echoes",
                 "clear_imported_identity",
                 "clear_preview_power",
                 "sync"
@@ -56,6 +60,7 @@ class PreviewResetServiceTest {
         assertEquals(SoulIdentityData.empty(), operations.identity);
         assertEquals(AttributeOwnershipData.empty(), operations.attributes);
         assertEquals(MemoryOwnershipData.empty(), operations.memories);
+        assertEquals(EchoOwnershipData.empty(), operations.echoes);
         assertEquals(ImportedIdentityData.empty(), operations.importedIdentity);
         assertEquals(PreviewPowerData.empty(), operations.previewPower);
         assertEquals(1, operations.snapshots.size());
@@ -98,6 +103,9 @@ class PreviewResetServiceTest {
         ));
         private MemoryOwnershipData memories = new MemoryOwnershipData(List.of(
                 new MemoryInstanceData(MEMORY, "Ash Compass", "test_award", "test")
+        ));
+        private EchoOwnershipData echoes = new EchoOwnershipData(List.of(
+                new EchoInstanceData(ECHO, "Ash Burrower", "test_award", "test", Optional.empty())
         ));
         private ImportedIdentityData importedIdentity = new ImportedIdentityData(
                 Optional.of(new ImportedAspect(
@@ -152,6 +160,12 @@ class PreviewResetServiceTest {
         public void clearMemories() {
             calls.add("clear_memories");
             memories = MemoryOwnershipData.empty();
+        }
+
+        @Override
+        public void clearEchoes() {
+            calls.add("clear_echoes");
+            echoes = EchoOwnershipData.empty();
         }
 
         @Override
