@@ -1,8 +1,11 @@
 package dev.spud.shadowslave.nightmare;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.appraisal.FirstNightmareSpellPresentation;
 import dev.spud.shadowslave.appraisal.PreviewAppraisalService;
+import dev.spud.shadowslave.content.spell.SpellPresentationCatalog;
 import dev.spud.shadowslave.nightmare.content.DrownedBellScenarioDefinition;
+import dev.spud.shadowslave.nightmare.content.NightmareRoleContentCatalog;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.SoulTransitions;
@@ -20,6 +23,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -121,8 +125,7 @@ public final class NightmareService {
         }
 
         LastSignalScenario.igniteAltar(player.serverLevel(), instance);
-        completePreview(player, instance,
-                "The signal answers. The Spell appraises the life you lived in the borrowed role.");
+        completePreview(player, instance);
         return true;
     }
 
@@ -153,8 +156,7 @@ public final class NightmareService {
             player.sendSystemMessage(Component.literal("Terminal resolution — " + resolution.name())
                     .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
             player.sendSystemMessage(Component.literal(resolution.description()).withStyle(ChatFormatting.GRAY));
-            completePreview(player, updated,
-                    "The reconstructed conflict has ended. The Spell appraises the life you lived in the borrowed role.");
+            completePreview(player, updated);
         } else {
             player.sendSystemMessage(Component.literal("Conflict event accepted: " + event.orElseThrow())
                     .withStyle(ChatFormatting.AQUA));
@@ -164,13 +166,15 @@ public final class NightmareService {
         return true;
     }
 
-    private static void completePreview(ServerPlayer player, NightmareInstance instance, String appraisalLead) {
+    private static void completePreview(ServerPlayer player, NightmareInstance instance) {
         NightmareInstance completed = exit(player, NightmareExitReason.SUCCESS);
         if (!completed.instanceId().equals(instance.instanceId())) {
             throw new IllegalStateException("Nightmare completion consumed the wrong active instance");
         }
+
+        PreviewAppraisalService.CommittedAppraisal committed;
         try {
-            PreviewAppraisalService.appraise(player, completed);
+            committed = PreviewAppraisalService.appraiseWithRewards(player, completed);
         } catch (RuntimeException exception) {
             SoulIdentityService.replace(player, SoulIdentityData.empty());
             SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
@@ -179,10 +183,27 @@ public final class NightmareService {
                     exception
             );
         }
-        player.sendSystemMessage(Component.literal(appraisalLead).withStyle(ChatFormatting.LIGHT_PURPLE));
-        player.sendSystemMessage(Component.literal(
-                "Preview compatibility appraisal: [Last Light] — Awakened Rank; Flaw [Cold Ash]. Generated appraisal identities are a separate integration slice."
-        ).withStyle(ChatFormatting.AQUA));
+
+        FirstNightmareSpellPresentation.ResolvedView view = FirstNightmareSpellPresentation.fromCommitted(
+                scenarioDisplayName(completed.scenarioId()),
+                historicalRoleDisplayName(completed.historicalRoleId()),
+                terminalResolutionDisplayName(completed),
+                committed
+        );
+        for (SpellPresentationCatalog.PresentationLine line : FirstNightmareSpellPresentation.render(view)) {
+            ChatFormatting style = line.surface() == SpellPresentationCatalog.Surface.VOICE
+                    ? ChatFormatting.LIGHT_PURPLE
+                    : ChatFormatting.AQUA;
+            player.sendSystemMessage(Component.literal(line.text()).withStyle(style));
+        }
+        if (view.revealedAttributeName().isEmpty()) {
+            player.sendSystemMessage(Component.literal("An Attribute was established, but its identity remains obscured.")
+                    .withStyle(ChatFormatting.DARK_GRAY));
+        }
+        player.sendSystemMessage(Component.literal("Summon Ash Compass with /shadowslave_memory summon ash_compass.")
+                .withStyle(ChatFormatting.GOLD));
+        player.sendSystemMessage(Component.literal("Summon Ash Burrower with /shadowslave_echo summon ash_burrower.")
+                .withStyle(ChatFormatting.AQUA));
     }
 
     public static NightmareInstance technicalRecover(ServerPlayer player) {
@@ -255,6 +276,41 @@ public final class NightmareService {
             return DrownedBellScenarioDefinition.content().displayName();
         }
         return scenarioId;
+    }
+
+    private static String historicalRoleDisplayName(String historicalRoleId) {
+        return NightmareRoleContentCatalog.waveOne().stream()
+                .filter(role -> role.id().equals(historicalRoleId))
+                .map(NightmareRoleContentCatalog.RoleProfile::displayName)
+                .findFirst()
+                .orElse(humanize(historicalRoleId));
+    }
+
+    private static String terminalResolutionDisplayName(NightmareInstance instance) {
+        if (instance.scenarioId().equals(LastSignalScenario.SCENARIO_ID)) {
+            return "Signal Restored";
+        }
+        if (instance.scenarioId().equals(DrownedBellScenarioDefinition.SCENARIO_ID)) {
+            return DrownedBellScenario.resolutionContent(instance)
+                    .map(DrownedBellScenarioDefinition.ResolutionContent::name)
+                    .orElseGet(() -> instance.terminalResolutionId().map(NightmareService::humanize).orElse("Completed"));
+        }
+        return instance.terminalResolutionId().map(NightmareService::humanize).orElse("Completed");
+    }
+
+    private static String humanize(String stableId) {
+        String[] words = Objects.requireNonNull(stableId, "stableId").trim().toLowerCase(Locale.ROOT).split("_");
+        StringBuilder builder = new StringBuilder();
+        for (String word : words) {
+            if (word.isBlank()) {
+                continue;
+            }
+            if (!builder.isEmpty()) {
+                builder.append(' ');
+            }
+            builder.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return builder.isEmpty() ? stableId : builder.toString();
     }
 
     private static String entryHint(NightmareInstance instance) {
