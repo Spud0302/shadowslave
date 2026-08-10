@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.preview;
 
 import dev.spud.shadowslave.attachment.ModAttachments;
+import dev.spud.shadowslave.memory.MemoryManifestationService;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.memory.MemoryOwnershipService;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
@@ -81,6 +82,7 @@ public final class PreviewResetService {
 
         @Override
         public void clearMemories() {
+            MemoryManifestationService.dismissAshCompass(player);
             MemoryOwnershipService.replace(player, MemoryOwnershipData.empty());
         }
 
