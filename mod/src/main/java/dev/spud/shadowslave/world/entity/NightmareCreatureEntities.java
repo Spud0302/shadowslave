@@ -5,6 +5,7 @@ import dev.spud.shadowslave.echo.AshBurrowerEchoEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.armadillo.Armadillo;
 import net.minecraft.world.entity.monster.Drowned;
 import net.minecraft.world.entity.monster.Silverfish;
@@ -28,7 +29,7 @@ public final class NightmareCreatureEntities {
                     .build(registryName.toString())
     );
 
-    /** Presentation executor only; Echo ownership and commands remain in EchoOwnershipData. */
+    /** Presentation/execution adapter only; Echo ownership and commands remain in EchoOwnershipData. */
     public static final Supplier<EntityType<AshBurrowerEchoEntity>> ASH_BURROWER_ECHO = ENTITY_TYPES.register(
             "ash_burrower_echo",
             registryName -> EntityType.Builder.of(AshBurrowerEchoEntity::new, MobCategory.CREATURE)
@@ -63,7 +64,9 @@ public final class NightmareCreatureEntities {
 
     public static void createDefaultAttributes(EntityAttributeCreationEvent event) {
         event.put(ASH_BURROWER.get(), Silverfish.createAttributes().build());
-        event.put(ASH_BURROWER_ECHO.get(), Armadillo.createAttributes().build());
+        event.put(ASH_BURROWER_ECHO.get(), Armadillo.createAttributes()
+                .add(Attributes.ATTACK_DAMAGE, 3.0D)
+                .build());
         event.put(CHAINBACK.get(), Spider.createAttributes().build());
         event.put(DROWNED_LISTENER.get(), Drowned.createAttributes().build());
     }
