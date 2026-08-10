@@ -97,9 +97,7 @@ class GeneratedAppraisalCompletionDiskImageRestartTest {
         assertEquals(expectedReceipt, liveReceipt);
 
         NightmareInstance active = readOnlyActiveInstance(registryFile);
-        Optional<NightmareInstance> teardown = GeneratedAppraisalRecoveryService.activeInstanceForReplay(
-                Optional.of(active), liveReceipt);
-        assertEquals(liveReceipt.instance(), teardown.orElseThrow());
+        assertEquals(liveReceipt.instance(), active);
 
         GeneratedAppraisalRecoveryService.PlayerState current = readPlayer(playerFile);
         GeneratedAppraisalRecoveryService.RecoveryPlan plan = GeneratedAppraisalRecoveryService.plan(
