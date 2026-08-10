@@ -78,11 +78,14 @@ public final class GeneratedAppraisalRecoveryService {
         RecoveryPlan plan = plan(currentState(checkedPlayer), receipt.appraisal());
 
         // A crash can leave both the durable receipt and its active Nightmare ownership on disk.
-        // Consume only the exact matching instance through the normal successful teardown path,
-        // and persist that teardown while the receipt still remains independent recovery authority.
+        // Consume only the exact matching instance through the normal successful teardown path.
+        // The exit also returns the player to the stored waking-world location, so persist that
+        // player image before checkpointing registry removal; the receipt remains independent
+        // recovery authority throughout both writes.
         Optional<NightmareInstance> active = activeInstanceForReplay(NightmareService.activeFor(checkedPlayer), receipt);
         if (active.isPresent()) {
             NightmareService.recoverSuccessfulCompletion(checkedPlayer, active.orElseThrow());
+            server.getPlayerList().saveAll();
             SavedDataPersistence.saveAndWait(server);
         }
 
