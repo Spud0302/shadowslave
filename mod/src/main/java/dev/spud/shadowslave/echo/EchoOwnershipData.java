@@ -3,6 +3,7 @@ package dev.spud.shadowslave.echo;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
@@ -71,20 +72,37 @@ public record EchoOwnershipData(List<EchoInstanceData> echoes) {
         return new EchoOwnershipData(next);
     }
 
-    public EchoOwnershipData withManifestation(ResourceLocation echoId, Optional<UUID> entityUuid) {
-        Objects.requireNonNull(entityUuid, "entityUuid");
+    public EchoOwnershipData withManifestation(
+            ResourceLocation echoId,
+            UUID entityUuid,
+            ResourceLocation dimension,
+            BlockPos position
+    ) {
+        return replaceManifestation(echoId, echo -> echo.withManifestation(entityUuid, dimension, position));
+    }
+
+    public EchoOwnershipData withoutManifestation(ResourceLocation echoId) {
+        return replaceManifestation(echoId, EchoInstanceData::withoutManifestation);
+    }
+
+    private EchoOwnershipData replaceManifestation(
+            ResourceLocation echoId,
+            java.util.function.UnaryOperator<EchoInstanceData> update
+    ) {
+        Objects.requireNonNull(echoId, "echoId");
+        Objects.requireNonNull(update, "update");
         ArrayList<EchoInstanceData> next = new ArrayList<>(echoes.size());
         boolean found = false;
         for (EchoInstanceData echo : echoes) {
             if (echo.echoId().equals(echoId)) {
                 found = true;
-                next.add(entityUuid.map(echo::withManifestation).orElseGet(echo::withoutManifestation));
+                next.add(update.apply(echo));
             } else {
                 next.add(echo);
             }
         }
         if (!found) {
-            throw new IllegalArgumentException("Cannot manifest unowned Echo: " + echoId);
+            throw new IllegalArgumentException("Cannot update unowned Echo: " + echoId);
         }
         return new EchoOwnershipData(next);
     }
