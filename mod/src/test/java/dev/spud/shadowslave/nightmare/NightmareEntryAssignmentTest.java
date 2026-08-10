@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.nightmare;
 
+import dev.spud.shadowslave.nightmare.content.DrownedBellScenarioDefinition;
 import dev.spud.shadowslave.nightmare.content.NightmareRoleScenarioCompatibilityCatalog;
 import org.junit.jupiter.api.Test;
 
@@ -14,21 +15,23 @@ class NightmareEntryAssignmentTest {
     private static final UUID PLAYER = UUID.fromString("8f7b0da4-4a83-4a79-8f25-9dbe26304927");
 
     @Test
-    void currentPlayableAssignmentUsesLastSignalAndACompatibleAuthoredRole() {
-        NightmareEntryAssignment.Assignment assignment = NightmareEntryAssignment.resolveFirstNightmare(PLAYER, 42L);
+    void playableAssignmentUsesImplementedScenarioAndCompatibleAuthoredRole() {
+        for (long gameTime = 0; gameTime < 512; gameTime++) {
+            NightmareEntryAssignment.Assignment assignment = NightmareEntryAssignment.resolveFirstNightmare(PLAYER, gameTime);
+            assertTrue(Set.of(LastSignalScenario.SCENARIO_ID, DrownedBellScenarioDefinition.SCENARIO_ID)
+                    .contains(assignment.scenarioId()));
+            assertEquals(assignment.roleMatch().role().id(), assignment.historicalRoleId());
+            assertEquals(assignment.scenarioId(), assignment.roleMatch().scenarioId());
 
-        assertEquals(LastSignalScenario.SCENARIO_ID, assignment.scenarioId());
-        assertEquals(assignment.roleMatch().role().id(), assignment.historicalRoleId());
-        assertEquals(LastSignalScenario.SCENARIO_ID, assignment.roleMatch().scenarioId());
-
-        Set<String> compatibleRoleIds = NightmareRoleScenarioCompatibilityCatalog.waveOne().stream()
-                .filter(module -> module.scenarioId().equals(LastSignalScenario.SCENARIO_ID))
-                .findFirst()
-                .orElseThrow()
-                .variants().stream()
-                .map(NightmareRoleScenarioCompatibilityCatalog.RoleVariant::roleId)
-                .collect(java.util.stream.Collectors.toSet());
-        assertTrue(compatibleRoleIds.contains(assignment.historicalRoleId()));
+            Set<String> compatibleRoleIds = NightmareRoleScenarioCompatibilityCatalog.waveOne().stream()
+                    .filter(module -> module.scenarioId().equals(assignment.scenarioId()))
+                    .findFirst()
+                    .orElseThrow()
+                    .variants().stream()
+                    .map(NightmareRoleScenarioCompatibilityCatalog.RoleVariant::roleId)
+                    .collect(java.util.stream.Collectors.toSet());
+            assertTrue(compatibleRoleIds.contains(assignment.historicalRoleId()));
+        }
     }
 
     @Test
@@ -40,17 +43,21 @@ class NightmareEntryAssignmentTest {
     }
 
     @Test
-    void successiveFreshEntriesCanReachMultipleCompatibleRoles() {
+    void freshEntriesReachBothPlayableScenariosAndMultipleRoles() {
+        Set<String> scenarios = new HashSet<>();
         Set<String> roles = new HashSet<>();
         for (long gameTime = 0; gameTime < 2048; gameTime++) {
-            roles.add(NightmareEntryAssignment.resolveFirstNightmare(PLAYER, gameTime).historicalRoleId());
+            NightmareEntryAssignment.Assignment assignment = NightmareEntryAssignment.resolveFirstNightmare(PLAYER, gameTime);
+            scenarios.add(assignment.scenarioId());
+            roles.add(assignment.historicalRoleId());
         }
 
-        assertTrue(roles.size() >= 4, "fresh entry seeds should expose authored role variety: " + roles);
+        assertEquals(Set.of(LastSignalScenario.SCENARIO_ID, DrownedBellScenarioDefinition.SCENARIO_ID), scenarios);
+        assertTrue(roles.size() >= 6, "fresh entry seeds should expose authored role variety: " + roles);
     }
 
     @Test
-    void persistedInstanceRoundTripKeepsResolvedScenarioAndRole() {
+    void persistedInstanceRoundTripKeepsResolvedScenarioRoleAndGraphState() {
         NightmareEntryAssignment.Assignment assignment = NightmareEntryAssignment.resolveFirstNightmare(PLAYER, 99L);
         NightmareInstance instance = new NightmareInstance(
                 UUID.fromString("c2ee7085-ea47-4ebd-8189-8d68fa22c872"),
@@ -68,10 +75,12 @@ class NightmareEntryAssignmentTest {
                 net.minecraft.core.BlockPos.ZERO,
                 java.util.Optional.empty(),
                 99L
-        );
+        ).withResolutionState("warning_ready", java.util.Optional.empty());
 
         NightmareInstance restored = NightmareInstance.load(instance.save());
         assertEquals(assignment.scenarioId(), restored.scenarioId());
         assertEquals(assignment.historicalRoleId(), restored.historicalRoleId());
+        assertEquals(java.util.Optional.of("warning_ready"), restored.resolutionStateId());
+        assertEquals(java.util.Optional.empty(), restored.terminalResolutionId());
     }
 }
