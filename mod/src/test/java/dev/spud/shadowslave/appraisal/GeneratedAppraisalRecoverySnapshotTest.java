@@ -26,6 +26,30 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class GeneratedAppraisalRecoverySnapshotTest {
     @Test
+    void preparedAwardProducesExactSnapshotBeforeAnyPlayerCommit() {
+        NightmareInstance completed = instance(new UUID(31L, 37L), "drowned_bell", "cistern_keeper");
+        PreviewAppraisalService.PreparedAppraisal prepared = PreviewAppraisalService.prepareWithRewards(
+                completed,
+                "flood_diverted"
+        );
+
+        GeneratedAppraisalRecoverySnapshot beforeCommit = GeneratedAppraisalRecoverySnapshot.fromPrepared(prepared);
+        PreviewAppraisalService.CommittedAppraisal committedShape = new PreviewAppraisalService.CommittedAppraisal(
+                prepared.award(),
+                prepared.identity(),
+                prepared.attribute(),
+                prepared.memory(),
+                prepared.echo()
+        );
+
+        assertEquals(beforeCommit, GeneratedAppraisalRecoverySnapshot.fromCommitted(committedShape));
+        assertEquals(prepared.identity(), beforeCommit.identity());
+        assertEquals(prepared.attribute(), beforeCommit.attribute());
+        assertEquals(prepared.memory(), beforeCommit.memory());
+        assertEquals(prepared.echo(), beforeCommit.echo());
+    }
+
+    @Test
     void exactCommittedAwardRoundTripsWithoutGeneratorOrCatalogueLookup() {
         NightmareInstance completed = instance(new UUID(41L, 73L), "drowned_bell", "cistern_keeper");
         FirstNightmareAppraisalResolver.Award award = FirstNightmareAppraisalResolver.resolve(completed, "flood_diverted");
@@ -49,8 +73,8 @@ class GeneratedAppraisalRecoverySnapshotTest {
         NightmareInstance completed = instance(new UUID(101L, 203L), "drowned_bell", "ferry_deckhand");
         FirstNightmareAppraisalResolver.Award tower = FirstNightmareAppraisalResolver.resolve(completed, "tower_held");
         FirstNightmareAppraisalResolver.Award evacuation = FirstNightmareAppraisalResolver.resolve(completed, "villagers_evacuated");
-        GeneratedAppraisalRecoverySnapshot stored = GeneratedAppraisalRecoverySnapshot.fromCommitted(
-                committed(tower, completed, "tower_held")
+        GeneratedAppraisalRecoverySnapshot stored = GeneratedAppraisalRecoverySnapshot.fromPrepared(
+                PreviewAppraisalService.prepareWithRewards(completed, "tower_held")
         );
 
         assertNotEquals(tower.identity().generationFingerprint(), evacuation.identity().generationFingerprint());
