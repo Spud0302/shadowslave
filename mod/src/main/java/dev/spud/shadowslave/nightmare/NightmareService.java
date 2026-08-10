@@ -202,6 +202,9 @@ public final class NightmareService {
             );
         }
 
+        // The generated award and Dreamer transition must reach player persistence before the
+        // independent receipt can be consumed. If saving fails, retain the receipt for login replay.
+        server.getPlayerList().saveAll();
         receipts.clear(receipt);
         SavedDataPersistence.saveAndWait(server);
 
@@ -250,6 +253,27 @@ public final class NightmareService {
      */
     public static NightmareInstance abortForPreviewReset(ServerPlayer player) {
         return exit(player, NightmareExitReason.ADMIN_ABORT);
+    }
+
+    /**
+     * Replays only the successful teardown half of a completion whose durable receipt survived a crash.
+     * The exact active instance must still match the receipt; contradictory ownership fails closed.
+     */
+    public static boolean recoverSuccessfulCompletion(ServerPlayer player, NightmareInstance expected) {
+        Objects.requireNonNull(player, "player");
+        NightmareInstance checkedExpected = Objects.requireNonNull(expected, "expected");
+        Optional<NightmareInstance> active = activeFor(player);
+        if (active.isEmpty()) {
+            return false;
+        }
+        if (!active.orElseThrow().equals(checkedExpected)) {
+            throw new IllegalStateException("Active Nightmare does not match the successful-completion receipt");
+        }
+        NightmareInstance completed = exit(player, NightmareExitReason.SUCCESS);
+        if (!completed.equals(checkedExpected)) {
+            throw new IllegalStateException("Successful-completion recovery consumed the wrong active Nightmare");
+        }
+        return true;
     }
 
     public static void canonicalDeath(ServerPlayer player) {
