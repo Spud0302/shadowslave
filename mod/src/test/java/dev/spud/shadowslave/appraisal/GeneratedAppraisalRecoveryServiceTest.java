@@ -2,6 +2,7 @@ package dev.spud.shadowslave.appraisal;
 
 import dev.spud.shadowslave.echo.EchoOwnershipData;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
+import dev.spud.shadowslave.nightmare.NightmareCompletionReceiptData;
 import dev.spud.shadowslave.nightmare.NightmareInstance;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulTransitions;
@@ -108,6 +109,36 @@ class GeneratedAppraisalRecoveryServiceTest {
                 () -> GeneratedAppraisalRecoveryService.plan(current, snapshot));
     }
 
+    @Test
+    void matchingActiveNightmareIsSelectedForSuccessfulReplayTeardown() {
+        NightmareInstance instance = instance("flood_diverted", new UUID(211L, 223L), new UUID(227L, 229L));
+        GeneratedAppraisalRecoverySnapshot snapshot = GeneratedAppraisalRecoverySnapshot.fromPrepared(
+                PreviewAppraisalService.prepareWithRewards(instance, "flood_diverted")
+        );
+        NightmareCompletionReceiptData.Receipt receipt = new NightmareCompletionReceiptData.Receipt(instance, snapshot);
+
+        assertEquals(
+                Optional.of(instance),
+                GeneratedAppraisalRecoveryService.activeInstanceForReplay(Optional.of(instance), receipt)
+        );
+        assertTrue(GeneratedAppraisalRecoveryService.activeInstanceForReplay(Optional.empty(), receipt).isEmpty());
+    }
+
+    @Test
+    void contradictoryActiveNightmareCannotBeConsumedByReceiptReplay() {
+        NightmareInstance expected = instance("tower_held", new UUID(233L, 239L), new UUID(241L, 251L));
+        NightmareInstance contradictory = instance("tower_held", new UUID(257L, 263L), expected.playerId());
+        GeneratedAppraisalRecoverySnapshot snapshot = GeneratedAppraisalRecoverySnapshot.fromPrepared(
+                PreviewAppraisalService.prepareWithRewards(expected, "tower_held")
+        );
+        NightmareCompletionReceiptData.Receipt receipt = new NightmareCompletionReceiptData.Receipt(expected, snapshot);
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> GeneratedAppraisalRecoveryService.activeInstanceForReplay(Optional.of(contradictory), receipt)
+        );
+    }
+
     private static GeneratedAppraisalRecoveryService.PlayerState emptyAspirant() {
         return new GeneratedAppraisalRecoveryService.PlayerState(
                 aspirantSoul(),
@@ -123,9 +154,16 @@ class GeneratedAppraisalRecoveryServiceTest {
     }
 
     private static GeneratedAppraisalRecoverySnapshot snapshot(String resolutionId) {
-        NightmareInstance instance = new NightmareInstance(
-                new UUID(211L, 223L),
-                new UUID(227L, 229L),
+        NightmareInstance instance = instance(resolutionId, new UUID(211L, 223L), new UUID(227L, 229L));
+        return GeneratedAppraisalRecoverySnapshot.fromPrepared(
+                PreviewAppraisalService.prepareWithRewards(instance, resolutionId)
+        );
+    }
+
+    private static NightmareInstance instance(String resolutionId, UUID instanceId, UUID playerId) {
+        return new NightmareInstance(
+                instanceId,
+                playerId,
                 2,
                 "drowned_bell",
                 "cistern_keeper",
@@ -137,11 +175,10 @@ class GeneratedAppraisalRecoveryServiceTest {
                 0.0F,
                 new BlockPos(0, 64, 0),
                 new BlockPos(3, 64, 3),
-                Optional.of(resolutionId),
-                100L
-        );
-        return GeneratedAppraisalRecoverySnapshot.fromPrepared(
-                PreviewAppraisalService.prepareWithRewards(instance, resolutionId)
+                Optional.empty(),
+                100L,
+                Optional.of("resolved"),
+                Optional.of(resolutionId)
         );
     }
 }
