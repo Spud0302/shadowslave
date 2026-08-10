@@ -2,7 +2,10 @@ package dev.spud.shadowslave.echo;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.echo.content.EchoContentCatalog;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -10,10 +13,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.level.Level;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * NeoForge/Minecraft executor for the first playable Echo manifestation.
@@ -52,12 +55,13 @@ public final class EchoManifestationService {
             return ManifestResult.NOT_OWNED;
         }
 
-        Optional<UUID> storedUuid = owned.get().manifestationUuid();
-        if (storedUuid.isPresent() && findManifestation(player, storedUuid.get()).isPresent()) {
-            return ManifestResult.ALREADY_SUMMONED;
-        }
-        if (storedUuid.isPresent()) {
-            EchoOwnershipService.setManifestation(player, ASH_BURROWER_ID, Optional.empty());
+        EchoInstanceData state = owned.get();
+        if (state.manifestationUuid().isPresent()) {
+            Optional<Entity> existing = findManifestation(player, state);
+            if (existing.isPresent()) {
+                return ManifestResult.ALREADY_SUMMONED;
+            }
+            EchoOwnershipService.clearManifestation(player, ASH_BURROWER_ID);
         }
 
         ServerLevel level = player.serverLevel();
@@ -70,12 +74,19 @@ public final class EchoManifestationService {
         echo.setCustomNameVisible(true);
         echo.setPersistenceRequired();
         echo.setInvulnerable(true);
+        echo.setNoAi(true);
         echo.addTag(MANIFESTATION_TAG);
         if (!level.addFreshEntity(echo)) {
             return ManifestResult.SPAWN_FAILED;
         }
 
-        EchoOwnershipService.setManifestation(player, ASH_BURROWER_ID, Optional.of(echo.getUUID()));
+        EchoOwnershipService.setManifestation(
+                player,
+                ASH_BURROWER_ID,
+                echo.getUUID(),
+                level.dimension().location(),
+                echo.blockPosition()
+        );
         return ManifestResult.SUMMONED;
     }
 
@@ -85,29 +96,45 @@ public final class EchoManifestationService {
         if (owned.isEmpty()) {
             return ManifestResult.NOT_OWNED;
         }
-        Optional<UUID> storedUuid = owned.get().manifestationUuid();
-        if (storedUuid.isEmpty()) {
+        EchoInstanceData state = owned.get();
+        if (state.manifestationUuid().isEmpty()) {
             return ManifestResult.NOT_SUMMONED;
         }
 
-        Optional<Entity> entity = findManifestation(player, storedUuid.get());
+        Optional<Entity> entity = findManifestation(player, state);
         entity.ifPresent(Entity::discard);
-        EchoOwnershipService.setManifestation(player, ASH_BURROWER_ID, Optional.empty());
+        EchoOwnershipService.clearManifestation(player, ASH_BURROWER_ID);
         return entity.isPresent() ? ManifestResult.DISMISSED : ManifestResult.NOT_SUMMONED;
     }
 
     public static void clearOwnedManifestations(ServerPlayer player) {
-        EchoOwnershipService.get(Objects.requireNonNull(player, "player")).echoes().forEach(echo ->
-                echo.manifestationUuid().flatMap(uuid -> findManifestation(player, uuid)).ifPresent(Entity::discard));
+        for (EchoInstanceData echo : EchoOwnershipService.get(Objects.requireNonNull(player, "player")).echoes()) {
+            findManifestation(player, echo).ifPresent(Entity::discard);
+        }
     }
 
-    private static Optional<Entity> findManifestation(ServerPlayer player, UUID entityUuid) {
+    /**
+     * Loads the exact stored manifestation chunk before checking the UUID. Ash Burrower
+     * is intentionally stationary in this first executor, so unloading must never be
+     * interpreted as entity absence and cannot create an orphaned duplicate.
+     */
+    private static Optional<Entity> findManifestation(ServerPlayer player, EchoInstanceData echo) {
+        if (echo.manifestationUuid().isEmpty()
+                || echo.manifestationDimension().isEmpty()
+                || echo.manifestationPos().isEmpty()) {
+            return Optional.empty();
+        }
         MinecraftServer server = Objects.requireNonNull(player.getServer(), "server");
-        for (ServerLevel level : server.getAllLevels()) {
-            Entity entity = level.getEntity(entityUuid);
-            if (entity != null && entity.getTags().contains(MANIFESTATION_TAG)) {
-                return Optional.of(entity);
-            }
+        ResourceKey<Level> levelKey = ResourceKey.create(Registries.DIMENSION, echo.manifestationDimension().get());
+        ServerLevel level = server.getLevel(levelKey);
+        if (level == null) {
+            return Optional.empty();
+        }
+        BlockPos storedPos = echo.manifestationPos().get();
+        level.getChunkAt(storedPos);
+        Entity entity = level.getEntity(echo.manifestationUuid().get());
+        if (entity != null && entity.getTags().contains(MANIFESTATION_TAG)) {
+            return Optional.of(entity);
         }
         return Optional.empty();
     }
