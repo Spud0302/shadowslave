@@ -23,11 +23,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Deterministic reconstruction matrix for persisted cuts in the successful-completion transaction.
  *
- * <p>Each test reconstructs the appraisal snapshot through its NBT codec first. That deliberately
- * models a new process reading durable receipt authority rather than retaining an in-memory generator
- * result. The matrix then proves the recovery planner converges the exact stored award without
- * duplicating player-owned records, whether active Nightmare ownership survived the cut or teardown
- * had already reached durable storage.</p>
+ * <p>Each test reconstructs the complete completion receipt through its production NBT codec first.
+ * That deliberately models a new process reading durable Nightmare-instance plus appraisal authority
+ * rather than retaining either object from the process that created the receipt. The matrix then proves
+ * the recovery planner converges the exact stored award without duplicating player-owned records,
+ * whether active Nightmare ownership survived the cut or teardown had already reached durable storage.</p>
  */
 class GeneratedAppraisalCompletionRestartCutMatrixTest {
     @Test
@@ -108,8 +108,8 @@ class GeneratedAppraisalCompletionRestartCutMatrixTest {
         GeneratedAppraisalRecoverySnapshot prepared = GeneratedAppraisalRecoverySnapshot.fromPrepared(
                 PreviewAppraisalService.prepareWithRewards(instance, instance.terminalResolutionId().orElseThrow())
         );
-        GeneratedAppraisalRecoverySnapshot loaded = GeneratedAppraisalRecoverySnapshot.load(prepared.save());
-        return new NightmareCompletionReceiptData.Receipt(instance, loaded);
+        NightmareCompletionReceiptData.Receipt persisted = new NightmareCompletionReceiptData.Receipt(instance, prepared);
+        return NightmareCompletionReceiptData.Receipt.load(persisted.save());
     }
 
     private static void assertExactSingleAward(
