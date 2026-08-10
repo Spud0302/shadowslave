@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PreviewResetServiceTest {
@@ -31,7 +32,7 @@ class PreviewResetServiceTest {
     private static final ResourceLocation EFFECT = id("preview/flaw_effect/cold_ash");
 
     @Test
-    void resetPersistsIntentBeforeMutationsAndClearsItAfterOneAuthoritativeSnapshot() {
+    void resetPersistsAndVerifiesIntentBeforeMutationsAndClearsItAfterOneAuthoritativeSnapshot() {
         FakeOperations operations = new FakeOperations();
 
         PreviewResetService.reset(operations);
@@ -39,6 +40,7 @@ class PreviewResetServiceTest {
         assertEquals(List.of(
                 "begin_reset_intent",
                 "persist_registry",
+                "verify_reset_intent",
                 "abort_nightmare",
                 "clear_successful_completion",
                 "reset_soul",
@@ -50,6 +52,7 @@ class PreviewResetServiceTest {
                 "complete_reset_intent",
                 "persist_registry"
         ), operations.calls);
+        assertTrue(operations.intentWasVerifiedBeforeNightmareMutation);
         assertFalse(operations.nightmareActive);
         assertFalse(operations.successfulCompletionPresent);
         assertEquals(SoulData.uninfected(), operations.soul);
@@ -68,6 +71,25 @@ class PreviewResetServiceTest {
                 operations.snapshots.getFirst(),
                 "the only published snapshot must contain the complete cleared state"
         );
+    }
+
+    @Test
+    void failedIntentVerificationStopsBeforeNightmareOrPlayerMutation() {
+        FakeOperations operations = new FakeOperations();
+        operations.failIntentVerification = true;
+
+        assertThrows(IllegalStateException.class, () -> PreviewResetService.reset(operations));
+
+        assertEquals(List.of(
+                "begin_reset_intent",
+                "persist_registry",
+                "verify_reset_intent"
+        ), operations.calls);
+        assertTrue(operations.resetIntentPresent);
+        assertTrue(operations.nightmareActive);
+        assertTrue(operations.successfulCompletionPresent);
+        assertFalse(operations.playerStatePersistedBeforeSync);
+        assertTrue(operations.snapshots.isEmpty());
     }
 
     @Test
@@ -98,6 +120,9 @@ class PreviewResetServiceTest {
         private boolean resetIntentPresent;
         private boolean nightmareActive = true;
         private boolean successfulCompletionPresent = true;
+        private boolean failIntentVerification;
+        private boolean resetIntentVerified;
+        private boolean intentWasVerifiedBeforeNightmareMutation;
         private boolean playerStatePersistedBeforeSync;
         private boolean resetIntentPresentAtSync;
         private SoulData soul = SoulTransitions.completeFirstNightmare(
@@ -156,8 +181,21 @@ class PreviewResetServiceTest {
         }
 
         @Override
+        public void verifyResetIntentDurable() {
+            calls.add("verify_reset_intent");
+            if (failIntentVerification) {
+                throw new IllegalStateException("simulated preview reset persistence verification failure");
+            }
+            if (!resetIntentPresent) {
+                throw new IllegalStateException("preview reset intent is missing");
+            }
+            resetIntentVerified = true;
+        }
+
+        @Override
         public void abortNightmareIfActive() {
             calls.add("abort_nightmare");
+            intentWasVerifiedBeforeNightmareMutation = resetIntentVerified;
             nightmareActive = false;
         }
 
