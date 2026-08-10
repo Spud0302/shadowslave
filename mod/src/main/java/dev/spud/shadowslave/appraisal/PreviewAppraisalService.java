@@ -3,6 +3,11 @@ package dev.spud.shadowslave.appraisal;
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.appraisal.generation.AttributeContentCatalog;
 import dev.spud.shadowslave.appraisal.generation.GeneratedIdentityCandidate;
+import dev.spud.shadowslave.content.memory.MemoryContentCatalog;
+import dev.spud.shadowslave.item.AshCompassMemoryItem;
+import dev.spud.shadowslave.memory.MemoryInstanceData;
+import dev.spud.shadowslave.memory.MemoryOwnershipData;
+import dev.spud.shadowslave.memory.MemoryOwnershipService;
 import dev.spud.shadowslave.nightmare.NightmareInstance;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.identity.AspectAbilityData;
@@ -22,12 +27,13 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Compatibility-named runtime appraisal boundary. It now resolves and persists
- * generated First-Nightmare Aspect, Flaw and Attribute identities from the
- * completed Java-owned Nightmare state instead of awarding the old fixed pair.
+ * Runtime appraisal boundary for the playable First-Nightmare slice.
+ * Generated Aspect, Flaw and Attribute identities plus the preview Memory award
+ * are persisted in Java-owned state before the progression transition completes.
  *
- * <p>The generator and evidence weights are Minecraft DESIGN. Canon establishes
- * the identity/appraisal concepts but does not provide this deterministic formula.</p>
+ * <p>The generator, evidence weights and exact Ash Compass reward are Minecraft
+ * DESIGN. Canon establishes the identity/appraisal and Memory concepts but does
+ * not provide these deterministic project formulas or reward tables.</p>
  */
 public final class PreviewAppraisalService {
     private PreviewAppraisalService() {
@@ -82,11 +88,23 @@ public final class PreviewAppraisalService {
                 profile.visibility().name().toLowerCase(Locale.ROOT),
                 generated.provenance() + "/attribute-selection"
         );
+        MemoryContentCatalog.MemoryProfile memoryProfile = MemoryContentCatalog.waveOne().memories().stream()
+                .filter(memory -> memory.id().equals(AshCompassMemoryItem.MEMORY_ID))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Ash Compass Memory profile is missing"));
+        MemoryInstanceData memory = new MemoryInstanceData(
+                memoryProfile.id(),
+                memoryProfile.formalName(),
+                "first_nightmare_appraisal_design",
+                "nightmare/" + completedInstance.instanceId() + "/resolution/" + resolutionId
+        );
 
         SoulIdentityData beforeIdentity = SoulIdentityService.get(player);
         AttributeOwnershipData beforeAttributes = AttributeOwnershipService.get(player);
+        MemoryOwnershipData beforeMemories = MemoryOwnershipService.get(player);
         SoulIdentityService.replace(player, new SoulIdentityData(Optional.of(aspect), Optional.of(flaw)));
         AttributeOwnershipService.award(player, attribute);
+        MemoryOwnershipService.award(player, memory);
         try {
             SoulService.completeFirstNightmare(
                     player,
@@ -97,17 +115,19 @@ public final class PreviewAppraisalService {
         } catch (RuntimeException exception) {
             SoulIdentityService.replace(player, beforeIdentity);
             AttributeOwnershipService.replace(player, beforeAttributes);
+            MemoryOwnershipService.replace(player, beforeMemories);
             throw exception;
         }
 
         ShadowSlaveMod.LOGGER.info(
-                "Generated appraisal {} committed for Nightmare {} and player {}: Aspect {}, Flaw {}, Attribute {}",
+                "Generated appraisal {} committed for Nightmare {} and player {}: Aspect {}, Flaw {}, Attribute {}, Memory {}",
                 generated.generationFingerprint(),
                 completedInstance.instanceId(),
                 player.getScoreboardName(),
                 generatedAspect.instanceId(),
                 generatedFlaw.instanceId(),
-                profile.id()
+                profile.id(),
+                memory.memoryId()
         );
         return award;
     }
