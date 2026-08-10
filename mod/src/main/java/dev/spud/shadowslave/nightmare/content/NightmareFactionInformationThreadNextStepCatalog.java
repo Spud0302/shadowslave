@@ -220,8 +220,9 @@ public final class NightmareFactionInformationThreadNextStepCatalog {
     private static Set<Family> nonEmptyFamilies(Set<Family> families) {
         Objects.requireNonNull(families, "allowedFamilies");
         if (families.isEmpty()) throw new IllegalArgumentException("allowedFamilies must not be empty");
-        if (families.contains(null)) throw new NullPointerException("allowedFamilies must not contain null");
-        return new LinkedHashSet<>(families);
+        LinkedHashSet<Family> checked = new LinkedHashSet<>();
+        for (Family family : families) checked.add(Objects.requireNonNull(family, "allowedFamilies element"));
+        return checked;
     }
 
     private static Set<String> positiveEvidence(Map<String, Integer> evidence) {
