@@ -1,6 +1,8 @@
 package dev.spud.shadowslave.preview;
 
 import dev.spud.shadowslave.attachment.ModAttachments;
+import dev.spud.shadowslave.memory.MemoryOwnershipData;
+import dev.spud.shadowslave.memory.MemoryOwnershipService;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
 import dev.spud.shadowslave.migration.ImportedIdentityService;
 import dev.spud.shadowslave.network.SoulSyncService;
@@ -30,6 +32,7 @@ public final class PreviewResetService {
         SoulData resetSoul = checkedOperations.resetSoulWithoutSync();
         checkedOperations.clearSoulIdentity();
         checkedOperations.clearAttributes();
+        checkedOperations.clearMemories();
         checkedOperations.clearImportedIdentity();
         checkedOperations.clearPreviewPower();
         checkedOperations.sync(resetSoul);
@@ -43,6 +46,8 @@ public final class PreviewResetService {
         void clearSoulIdentity();
 
         void clearAttributes();
+
+        void clearMemories();
 
         void clearImportedIdentity();
 
@@ -72,6 +77,11 @@ public final class PreviewResetService {
         @Override
         public void clearAttributes() {
             AttributeOwnershipService.replace(player, AttributeOwnershipData.empty());
+        }
+
+        @Override
+        public void clearMemories() {
+            MemoryOwnershipService.replace(player, MemoryOwnershipData.empty());
         }
 
         @Override
