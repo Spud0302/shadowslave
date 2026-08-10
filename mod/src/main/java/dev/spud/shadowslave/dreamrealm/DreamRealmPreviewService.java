@@ -2,6 +2,8 @@ package dev.spud.shadowslave.dreamrealm;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.dreamrealm.DreamRealmVerticalSliceDefinition.Placement;
+import dev.spud.shadowslave.world.entity.AshBurrowerEntity;
+import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -14,6 +16,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 import java.util.Set;
 
@@ -35,6 +38,8 @@ public final class DreamRealmPreviewService {
         build(level, integration.slice());
         DreamRealmStoryNpcRuntime.ensureAshenWatchCaptain(level,
                 ORIGIN.offset(integration.x(), integration.y(), integration.z()));
+        var encounter = DreamRealmCreatureEncounterBinding.ashenExpanseAshBurrower();
+        ensureAshBurrower(level, encounter);
         player.teleportTo(level, 0.5, ORIGIN.getY() + 2.0, 0.5, Set.of(), 0.0F, 0.0F);
         player.sendSystemMessage(Component.literal("Dream Realm preview — " + integration.slice().region().displayName())
                 .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD));
@@ -43,6 +48,7 @@ public final class DreamRealmPreviewService {
                 .withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal("The Watch Captain is inside the refuge; right-click them for Java-owned settlement information.")
                 .withStyle(ChatFormatting.YELLOW));
+        player.sendSystemMessage(Component.literal(encounter.creature().presentationCue()).withStyle(ChatFormatting.RED));
     }
 
     public static void exit(ServerPlayer player) {
@@ -56,6 +62,20 @@ public final class DreamRealmPreviewService {
 
     public static boolean isInside(ServerPlayer player) {
         return player.serverLevel().dimension().equals(DREAM_REALM_LEVEL);
+    }
+
+    private static void ensureAshBurrower(ServerLevel level, DreamRealmCreatureEncounterBinding.Encounter encounter) {
+        AABB sliceBounds = new AABB(
+                ORIGIN.getX() - RADIUS, ORIGIN.getY(), ORIGIN.getZ() - RADIUS,
+                ORIGIN.getX() + RADIUS + 1, ORIGIN.getY() + 19, ORIGIN.getZ() + RADIUS + 1);
+        if (!level.getEntitiesOfClass(AshBurrowerEntity.class, sliceBounds).isEmpty()) return;
+
+        AshBurrowerEntity creature = NightmareCreatureEntities.ASH_BURROWER.get().create(level);
+        if (creature == null) throw new IllegalStateException("Could not create Ash Burrower executor");
+        BlockPos spawn = ORIGIN.offset(encounter.x(), encounter.y(), encounter.z());
+        creature.moveTo(spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, 0.0F, 0.0F);
+        creature.setPersistenceRequired();
+        if (!level.addFreshEntity(creature)) throw new IllegalStateException("Could not place Ash Burrower executor");
     }
 
     private static void build(ServerLevel level, DreamRealmVerticalSliceDefinition.Slice slice) {
