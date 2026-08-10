@@ -83,7 +83,7 @@ class NightmareRoleContentCatalogTest {
         }
 
         assertTrue(warningMatches > neutralMatches * 2,
-                () -> "warning evidence should materially bias authored matching: " + warningMatches + " vs " + neutralMatches);
+                "warning evidence should materially bias authored matching: " + warningMatches + " vs " + neutralMatches);
     }
 
     @Test
