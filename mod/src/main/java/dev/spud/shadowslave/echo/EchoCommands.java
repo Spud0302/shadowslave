@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.echo;
 
 import com.mojang.brigadier.Command;
+import dev.spud.shadowslave.echo.content.EchoContentCatalog;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -19,7 +20,15 @@ public final class EchoCommands {
                                 .executes(context -> summonAshBurrower(context.getSource().getPlayerOrException()))))
                 .then(Commands.literal("dismiss")
                         .then(Commands.literal("ash_burrower")
-                                .executes(context -> dismissAshBurrower(context.getSource().getPlayerOrException())))));
+                                .executes(context -> dismissAshBurrower(context.getSource().getPlayerOrException()))))
+                .then(Commands.literal("follow")
+                        .then(Commands.literal("ash_burrower")
+                                .executes(context -> commandAshBurrower(
+                                        context.getSource().getPlayerOrException(), EchoContentCatalog.CommandMode.FOLLOW))))
+                .then(Commands.literal("hold")
+                        .then(Commands.literal("ash_burrower")
+                                .executes(context -> commandAshBurrower(
+                                        context.getSource().getPlayerOrException(), EchoContentCatalog.CommandMode.HOLD)))));
     }
 
     private static int summonAshBurrower(ServerPlayer player) {
@@ -54,5 +63,21 @@ public final class EchoCommands {
         return result == EchoManifestationService.ManifestResult.DISMISSED
                 || result == EchoManifestationService.ManifestResult.NOT_SUMMONED
                 ? Command.SINGLE_SUCCESS : 0;
+    }
+
+    private static int commandAshBurrower(ServerPlayer player, EchoContentCatalog.CommandMode commandMode) {
+        EchoManifestationService.CommandResult result = EchoManifestationService.commandAshBurrower(player, commandMode);
+        switch (result) {
+            case COMMAND_SET -> {
+                String verb = commandMode == EchoContentCatalog.CommandMode.FOLLOW ? "Follow." : "Hold here.";
+                player.sendSystemMessage(Component.literal("[Ash Burrower] — " + verb)
+                        .withStyle(ChatFormatting.AQUA));
+            }
+            case NOT_OWNED -> player.sendSystemMessage(Component.literal("Your soul does not contain [Ash Burrower].")
+                    .withStyle(ChatFormatting.RED));
+            case UNSUPPORTED -> player.sendSystemMessage(Component.literal("[Ash Burrower] cannot execute that command yet.")
+                    .withStyle(ChatFormatting.RED));
+        }
+        return result == EchoManifestationService.CommandResult.COMMAND_SET ? Command.SINGLE_SUCCESS : 0;
     }
 }
