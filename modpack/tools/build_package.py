@@ -29,6 +29,8 @@ def sha256_bytes(data: bytes) -> str:
 
 
 def safe_archive_path(value: str, field: str) -> str:
+    if "\\" in value:
+        raise PackageError(f"{field} must use canonical POSIX separators")
     path = PurePosixPath(value)
     if path.is_absolute() or ".." in path.parts or not path.parts:
         raise PackageError(f"{field} must be a safe relative archive path")
@@ -63,7 +65,7 @@ def component_target(component: dict[str, object]) -> str:
     source = component["source"]
     assert isinstance(source, dict)
     file_name = str(source["file"])
-    if PurePosixPath(file_name).name != file_name or not file_name.endswith(".jar"):
+    if "\\" in file_name or PurePosixPath(file_name).name != file_name or not file_name.endswith(".jar"):
         raise PackageError(f"component {component['id']} source.file must be a JAR filename")
     return safe_archive_path(f"mods/{file_name}", f"component {component['id']} package path")
 
