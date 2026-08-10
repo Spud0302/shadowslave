@@ -10,8 +10,10 @@ public final class NightmareTechnicalExitCoordinator {
     public static void commit(Operations operations) {
         Operations checked = Objects.requireNonNull(operations, "operations");
 
+        checked.captureRegistryBeforeTechnicalExitIntent();
         checked.recordTechnicalExitIntent();
         checked.persistRegistry();
+        checked.verifyTechnicalExitIntentDurable();
 
         checked.clearCompletionReceipt();
         checked.persistRegistry();
@@ -24,7 +26,11 @@ public final class NightmareTechnicalExitCoordinator {
     }
 
     public interface Operations {
+        void captureRegistryBeforeTechnicalExitIntent();
+
         void recordTechnicalExitIntent();
+
+        void verifyTechnicalExitIntentDurable();
 
         void clearCompletionReceipt();
 
