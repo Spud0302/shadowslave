@@ -12,11 +12,23 @@ Before lore-sensitive work, read `docs/LORE-SOURCE-POLICY.md`, `docs/JAVA-LORE-A
 
 ## Current repository state
 
-`main` has moved materially beyond the August 1 preview baseline and now includes shared Java/core foundations plus merged Nightmare role/scenario compatibility content. Active gameplay integration is owned by PRs #179, #181 and #182; do not duplicate that work from the correctness lineage.
+`main` has moved materially beyond the August 1 preview baseline and now includes shared Java/core foundations plus merged Nightmare role/scenario compatibility content.
+
+Active gameplay/world integration is consolidated in PR #184, stacked on #181 and carrying #182's physical Nightmare Creature work by ancestry. Generated First-Nightmare appraisal awards are separately owned by PR #183. Do not duplicate either branch from correctness or documentation work.
 
 Issue #34 remains the persistence/restart tracker. The active correctness lineage includes replayable successful completion plus explicit persistence verification for recovery-critical canonical-death, technical/admin-exit and preview-reset authority boundaries.
 
 Corrected PR #178 head `a802a68cd1f0c007cef586c38a92683de87a63dc` passed Preview Gates #164 / run `31368518381`. Its only review finding was fixed by validating all surviving persisted Nightmare instances through the production loader before canonical-death authority may be consumed; the review thread is resolved.
+
+PR #183 head `7f4a823c0252a563d2c5a5298edc6eb60c2c1f7c` passed Preview Gates #172 / run `31375808693` after correcting generated ability/Flaw runtime IDs. It persists deterministic generated Aspect/Flaw/Attribute awards on current `main`, but its PR explicitly leaves crash-atomic exactly-once completion to Issue #34's recovery lineage.
+
+## Generated-appraisal recovery integration
+
+Do not invent a parallel completion-receipt schema while #183 and #178 are separate active branches. The next integration is actionable only after #183 is review-stable and either merged/rebased onto a compatible correctness ancestry or an explicit integration base/order is chosen.
+
+When that condition is met, the receipt/recovery path must retain enough exact resolved award identity/provenance to replay the same Aspect, Flaw and Attribute after restart. Do not rerun a version-sensitive generator during recovery and assume it will choose the same identities after catalogue or algorithm changes.
+
+This is an integration/correctness dependency, not a new canon rule.
 
 ## Persistence audit rule
 
@@ -32,12 +44,12 @@ For Java/core changes, the expected hosted gate covers Gradle compile/JUnit/pack
 
 Physical NeoForge smoke is not proof of fsync/power-loss behavior or a real process-kill/restart matrix. Those remain stronger evidence requirements where Issue #34 calls for them.
 
-## Evidence classification for the current correctness lineage
+## Evidence classification for the current edge
 
-- **CANON:** unchanged by the persistence infrastructure.
-- **INFERRED:** none newly added by the current verifiers.
-- **DESIGN:** receipts/markers, persisted-state verification, fail-closed transaction ordering, fault/provenance tooling and technical recovery.
-- **UNKNOWN:** physical power-loss/fsync guarantees, post-verification storage corruption and unexecuted real process-kill rows.
+- **CANON:** unchanged by the persistence/status infrastructure.
+- **INFERRED:** a resolved appraisal identity should be retained exactly for restart replay rather than regenerated against potentially changed content/version state; this is the same inference explicitly recorded by #183.
+- **DESIGN:** receipts/markers, persisted-state verification, exact generated-award replay, fail-closed transaction ordering, fault/provenance tooling and technical recovery.
+- **UNKNOWN:** physical power-loss/fsync guarantees, post-verification storage corruption, unexecuted real process-kill rows, and the canonical Aspect/Flaw/Attribute determination formula/probabilities.
 - **COMPATIBILITY:** crash/admin/development recovery remains technical rather than ordinary in-world Spell mercy; no schema change should be assumed unless explicitly documented.
 
 ## Workflow rules
@@ -51,4 +63,4 @@ Physical NeoForge smoke is not proof of fsync/power-loss behavior or a real proc
 
 ## Next recommended slice
 
-Finish review/merge evaluation of green #178 first. Then audit another transaction only if loss of its final replay authority can be demonstrated. Leave #158 blocked, and let #179/#181/#182 own the active role/scenario/physical-creature integration stack.
+Keep green/review-clean #178 as the correctness edge. Let #184 own gameplay/world integration and #183 own generated appraisal. Once #183 is merged/rebased onto a compatible correctness base, integrate the exact generated Aspect/Flaw/Attribute award into Issue #34's completion receipt/replay path with restart/idempotence coverage. Until that condition changes, leave #158 blocked and do not manufacture another persistence schema.
