@@ -1,6 +1,167 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "gui_light": "front",
   "textures": {
-    "layer0": "minecraft:item/echo_shard"
+    "case": "minecraft:block/polished_blackstone",
+    "needle": "minecraft:block/oxidized_copper",
+    "ember": "minecraft:block/magma",
+    "particle": "minecraft:block/polished_blackstone"
+  },
+  "elements": [
+    {
+      "name": "compass_body",
+      "from": [3, 3, 6],
+      "to": [13, 13, 10],
+      "faces": {
+        "north": {"texture": "#case"},
+        "south": {"texture": "#case"},
+        "east": {"texture": "#case"},
+        "west": {"texture": "#case"},
+        "up": {"texture": "#case"},
+        "down": {"texture": "#case"}
+      }
+    },
+    {
+      "name": "face_recess",
+      "from": [4, 4, 5.5],
+      "to": [12, 12, 6.25],
+      "faces": {
+        "north": {"texture": "#ember"},
+        "south": {"texture": "#case"},
+        "east": {"texture": "#case"},
+        "west": {"texture": "#case"},
+        "up": {"texture": "#case"},
+        "down": {"texture": "#case"}
+      }
+    },
+    {
+      "name": "bezel_top",
+      "from": [3, 12, 5],
+      "to": [13, 13, 6.25],
+      "faces": {
+        "north": {"texture": "#case"},
+        "south": {"texture": "#case"},
+        "east": {"texture": "#case"},
+        "west": {"texture": "#case"},
+        "up": {"texture": "#case"},
+        "down": {"texture": "#case"}
+      }
+    },
+    {
+      "name": "bezel_bottom",
+      "from": [3, 3, 5],
+      "to": [13, 4, 6.25],
+      "faces": {
+        "north": {"texture": "#case"},
+        "south": {"texture": "#case"},
+        "east": {"texture": "#case"},
+        "west": {"texture": "#case"},
+        "up": {"texture": "#case"},
+        "down": {"texture": "#case"}
+      }
+    },
+    {
+      "name": "bezel_left",
+      "from": [3, 4, 5],
+      "to": [4, 12, 6.25],
+      "faces": {
+        "north": {"texture": "#case"},
+        "south": {"texture": "#case"},
+        "east": {"texture": "#case"},
+        "west": {"texture": "#case"},
+        "up": {"texture": "#case"},
+        "down": {"texture": "#case"}
+      }
+    },
+    {
+      "name": "bezel_right",
+      "from": [12, 4, 5],
+      "to": [13, 12, 6.25],
+      "faces": {
+        "north": {"texture": "#case"},
+        "south": {"texture": "#case"},
+        "east": {"texture": "#case"},
+        "west": {"texture": "#case"},
+        "up": {"texture": "#case"},
+        "down": {"texture": "#case"}
+      }
+    },
+    {
+      "name": "needle_spine",
+      "from": [7.25, 4.75, 5.25],
+      "to": [8.75, 11.5, 5.5],
+      "rotation": {"origin": [8, 8, 5.375], "axis": "z", "angle": -22.5},
+      "faces": {
+        "north": {"texture": "#needle"},
+        "south": {"texture": "#needle"},
+        "east": {"texture": "#needle"},
+        "west": {"texture": "#needle"},
+        "up": {"texture": "#needle"},
+        "down": {"texture": "#needle"}
+      }
+    },
+    {
+      "name": "needle_tip",
+      "from": [6.5, 10.75, 5],
+      "to": [9.5, 12.75, 5.5],
+      "rotation": {"origin": [8, 8, 5.375], "axis": "z", "angle": -22.5},
+      "faces": {
+        "north": {"texture": "#ember"},
+        "south": {"texture": "#needle"},
+        "east": {"texture": "#needle"},
+        "west": {"texture": "#needle"},
+        "up": {"texture": "#needle"},
+        "down": {"texture": "#needle"}
+      }
+    },
+    {
+      "name": "crown",
+      "from": [6.25, 13, 7],
+      "to": [9.75, 15, 9],
+      "faces": {
+        "north": {"texture": "#case"},
+        "south": {"texture": "#case"},
+        "east": {"texture": "#case"},
+        "west": {"texture": "#case"},
+        "up": {"texture": "#case"},
+        "down": {"texture": "#case"}
+      }
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [0, 90, 0],
+      "translation": [0, 2.5, 1],
+      "scale": [0.65, 0.65, 0.65]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [0, -90, 0],
+      "translation": [0, 2.5, 1],
+      "scale": [0.65, 0.65, 0.65]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 90, -12],
+      "translation": [1.5, 3.25, 1.5],
+      "scale": [0.8, 0.8, 0.8]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, -90, 12],
+      "translation": [1.5, 3.25, 1.5],
+      "scale": [0.8, 0.8, 0.8]
+    },
+    "gui": {
+      "rotation": [20, 225, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.9, 0.9, 0.9]
+    },
+    "ground": {
+      "translation": [0, 2, 0],
+      "scale": [0.5, 0.5, 0.5]
+    },
+    "fixed": {
+      "rotation": [0, 180, 0],
+      "scale": [0.75, 0.75, 0.75]
+    }
   }
 }
