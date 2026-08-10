@@ -1,7 +1,6 @@
 package dev.spud.shadowslave.integration;
 
 import com.mojang.serialization.Codec;
-import dev.spud.shadowslave.appraisal.PreviewAppraisalService;
 import dev.spud.shadowslave.network.payload.SoulSnapshot;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import dev.spud.shadowslave.preview.PreviewPowerData;
@@ -26,31 +25,37 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PersistedSoulStateIntegrationTest {
+    private static final ResourceLocation ASPECT_ID = id("test/generated/aspect/persisted");
+    private static final ResourceLocation FLAW_ID = id("test/generated/flaw/persisted");
+    private static final ResourceLocation NATURE_ID = id("generation/nature/ember");
+    private static final ResourceLocation ABILITY_ID = id("generation/ability/kindle");
+    private static final ResourceLocation FLAW_EFFECT_ID = id("generation/flaw_effect/cold_ash");
+
     @Test
     void persistedDreamerStateRebuildsTheSameAuthoritativeClientSnapshot() {
         SoulData soulBeforeSave = SoulTransitions.completeFirstNightmare(
                 SoulTransitions.beginFirstNightmare(SoulTransitions.infect(SoulData.uninfected())),
-                PreviewAppraisalService.ASPECT_ID,
+                ASPECT_ID,
                 SoulRank.AWAKENED,
-                PreviewAppraisalService.FLAW_ID
+                FLAW_ID
         );
         SoulIdentityData identityBeforeSave = new SoulIdentityData(
                 Optional.of(new AspectInstanceData(
-                        PreviewAppraisalService.ASPECT_ID,
-                        "Last Light",
+                        ASPECT_ID,
+                        "Persistent Ember",
                         SoulRank.AWAKENED,
-                        id("preview/nature/ember_resolve"),
+                        NATURE_ID,
                         new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
-                                PreviewAppraisalService.ABILITY_ID,
-                                "compatibility: persisted preview fixture predates ability classification"
+                                ABILITY_ID,
+                                "integration fixture for persisted generated identity"
                         ))),
-                        "preview_appraisal_design"
+                        "integration_fixture"
                 )),
                 Optional.of(new FlawInstanceData(
-                        PreviewAppraisalService.FLAW_ID,
+                        FLAW_ID,
                         "Cold Ash",
-                        PreviewAppraisalService.FLAW_EFFECT_ID,
-                        "preview_appraisal_design"
+                        FLAW_EFFECT_ID,
+                        "integration_fixture"
                 ))
         );
         PreviewPowerData powerBeforeSave = new PreviewPowerData(12345L);
@@ -68,7 +73,7 @@ class PersistedSoulStateIntegrationTest {
         assertEquals("dreamer", snapshotAfterLoad.spellState());
         assertEquals("dormant", snapshotAfterLoad.soulRank());
         assertEquals("awakened", snapshotAfterLoad.aspectRank());
-        assertEquals("Last Light", snapshotAfterLoad.displayedAspect());
+        assertEquals("Persistent Ember", snapshotAfterLoad.displayedAspect());
         assertEquals("Cold Ash", snapshotAfterLoad.displayedFlaw());
 
         SoulSnapshotPayload sentAfterLogin = new SoulSnapshotPayload(snapshotAfterLoad, false);
