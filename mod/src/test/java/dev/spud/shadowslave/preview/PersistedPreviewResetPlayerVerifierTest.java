@@ -25,14 +25,13 @@ class PersistedPreviewResetPlayerVerifierTest {
 
     @Test
     void acceptsExplicitAllDefaultResetState() throws IOException {
-        Path file = writePlayer(new CompoundTag());
-        CompoundTag attachments = readAttachments(file);
+        CompoundTag attachments = new CompoundTag();
         attachments.put("shadowslave:soul", encodeSoul(SoulData.uninfected()));
         attachments.put("shadowslave:identity", encodeIdentity(SoulIdentityData.empty()));
         attachments.put("shadowslave:imported_identity", encodeImported(ImportedIdentityData.empty()));
         attachments.put("shadowslave:preview_power", encodePower(PreviewPowerData.empty()));
-        rewritePlayer(file, attachments);
 
+        Path file = writePlayer(attachments);
         assertDoesNotThrow(() -> PersistedPreviewResetPlayerVerifier.requireReset(file));
     }
 
@@ -110,16 +109,5 @@ class PersistedPreviewResetPlayerVerifierTest {
         Path file = tempDir.resolve(UUID.randomUUID() + ".dat");
         NbtIo.writeCompressed(root, file);
         return file;
-    }
-
-    private CompoundTag readAttachments(Path file) throws IOException {
-        return NbtIo.readCompressed(file, net.minecraft.nbt.NbtAccounter.unlimitedHeap())
-                .getCompound("neoforge:attachments");
-    }
-
-    private void rewritePlayer(Path file, CompoundTag attachments) throws IOException {
-        CompoundTag root = new CompoundTag();
-        root.put("neoforge:attachments", attachments);
-        NbtIo.writeCompressed(root, file);
     }
 }
