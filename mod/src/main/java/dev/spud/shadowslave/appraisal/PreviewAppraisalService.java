@@ -111,6 +111,8 @@ public final class PreviewAppraisalService {
                 echoProfile.displayName(),
                 "first_nightmare_appraisal_design",
                 "nightmare/" + completedInstance.instanceId() + "/resolution/" + resolutionId,
+                Optional.empty(),
+                Optional.empty(),
                 Optional.empty()
         );
 
