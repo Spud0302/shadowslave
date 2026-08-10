@@ -3,6 +3,7 @@ package dev.spud.shadowslave.nightmare;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NightmareTechnicalExitCoordinatorTest {
@@ -48,10 +49,24 @@ class NightmareTechnicalExitCoordinatorTest {
 
         NightmareTechnicalExitCoordinator.commit(operations);
 
+        assertTrue(operations.intentWasVerifiedBeforeReceiptClear);
         assertTrue(operations.intentWasPresentWhenOwnershipRemoved);
         assertTrue(operations.playerWasResetWhenOwnershipRemoved);
         assertFalse(operations.receiptWasPresentWhenOwnershipRemoved);
         assertFalse(operations.durableTechnicalExitIntentPresent);
+    }
+
+    @Test
+    void failedIntentVerificationStopsBeforeReceiptPlayerOrOwnershipMutation() {
+        FakeOperations operations = new FakeOperations(null);
+        operations.failIntentVerification = true;
+
+        assertThrows(IllegalStateException.class, () -> NightmareTechnicalExitCoordinator.commit(operations));
+
+        assertTrue(operations.volatileTechnicalExitIntentPresent);
+        assertTrue(operations.volatileCompletionReceiptPresent);
+        assertFalse(operations.volatilePlayerReset);
+        assertTrue(operations.volatileActiveOwnershipPresent);
     }
 
     private static void runToCompletionAcrossCrash(FakeOperations operations) {
@@ -79,6 +94,7 @@ class NightmareTechnicalExitCoordinatorTest {
     private static final class FakeOperations implements NightmareTechnicalExitCoordinator.Operations {
         private final Checkpoint crashCheckpoint;
         private boolean crashTriggered;
+        private boolean failIntentVerification;
 
         private boolean durableTechnicalExitIntentPresent;
         private boolean durableCompletionReceiptPresent = true;
@@ -90,6 +106,8 @@ class NightmareTechnicalExitCoordinatorTest {
         private boolean volatilePlayerReset;
         private boolean volatileActiveOwnershipPresent;
 
+        private boolean intentWasVerified;
+        private boolean intentWasVerifiedBeforeReceiptClear;
         private boolean intentWasPresentWhenOwnershipRemoved;
         private boolean playerWasResetWhenOwnershipRemoved;
         private boolean receiptWasPresentWhenOwnershipRemoved;
@@ -105,6 +123,7 @@ class NightmareTechnicalExitCoordinatorTest {
             volatileCompletionReceiptPresent = durableCompletionReceiptPresent;
             volatilePlayerReset = durablePlayerReset;
             volatileActiveOwnershipPresent = durableActiveOwnershipPresent;
+            intentWasVerified = durableTechnicalExitIntentPresent;
             registryPersistCount = 0;
         }
 
@@ -114,7 +133,19 @@ class NightmareTechnicalExitCoordinatorTest {
         }
 
         @Override
+        public void verifyTechnicalExitIntentDurable() {
+            if (failIntentVerification) {
+                throw new IllegalStateException("simulated technical-exit persistence verification failure");
+            }
+            if (!durableTechnicalExitIntentPresent) {
+                throw new IllegalStateException("technical-exit intent was not durable");
+            }
+            intentWasVerified = true;
+        }
+
+        @Override
         public void clearCompletionReceipt() {
+            intentWasVerifiedBeforeReceiptClear = intentWasVerified;
             volatileCompletionReceiptPresent = false;
         }
 
