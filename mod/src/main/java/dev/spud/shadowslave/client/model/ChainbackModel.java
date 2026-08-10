@@ -11,8 +11,8 @@ public final class ChainbackModel extends GeoModel<ChainbackEntity> {
             ShadowSlaveMod.MOD_ID, "geo/chainback.geo.json");
     private static final ResourceLocation ANIMATIONS = ResourceLocation.fromNamespaceAndPath(
             ShadowSlaveMod.MOD_ID, "animations/chainback.animation.json");
-    private static final ResourceLocation PLACEHOLDER_TEXTURE = ResourceLocation.withDefaultNamespace(
-            "textures/entity/spider/spider.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
+            ShadowSlaveMod.MOD_ID, "textures/entity/chainback.png");
 
     @Override
     public ResourceLocation getModelResource(ChainbackEntity animatable) {
@@ -21,7 +21,7 @@ public final class ChainbackModel extends GeoModel<ChainbackEntity> {
 
     @Override
     public ResourceLocation getTextureResource(ChainbackEntity animatable) {
-        return PLACEHOLDER_TEXTURE;
+        return TEXTURE;
     }
 
     @Override
