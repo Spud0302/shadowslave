@@ -2,7 +2,6 @@ package dev.spud.shadowslave.nightmare;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,7 +33,7 @@ class NightmareDeathCoordinatorTest {
     }
 
     @Test
-    void initialIntentPersistenceFailureQuarantinesLiveAuthorityBeforeLaterMutation() {
+    void initialIntentPersistenceFailureRetainsAuthorityAndStopsBeforeLaterMutation() {
         IntentFailureOperations operations = new IntentFailureOperations(true, false);
 
         RuntimeException failure = assertThrows(RuntimeException.class, () -> NightmareDeathCoordinator.commit(operations));
@@ -42,13 +41,14 @@ class NightmareDeathCoordinatorTest {
         assertSame(operations.persistenceFailure, failure);
         assertTrue(operations.baselineCaptured);
         assertTrue(operations.intentRecorded);
-        assertTrue(operations.intentDiscarded);
+        assertTrue(operations.intentPresent);
+        assertFalse(operations.intentMarkedDurable);
         assertFalse(operations.verificationAttempted);
         assertFalse(operations.laterMutationReached);
     }
 
     @Test
-    void initialIntentVerificationFailureQuarantinesLiveAuthorityBeforeLaterMutation() {
+    void initialIntentVerificationFailureRetainsAuthorityAndStopsBeforeLaterMutation() {
         IntentFailureOperations operations = new IntentFailureOperations(false, true);
 
         RuntimeException failure = assertThrows(RuntimeException.class, () -> NightmareDeathCoordinator.commit(operations));
@@ -56,35 +56,34 @@ class NightmareDeathCoordinatorTest {
         assertSame(operations.verificationFailure, failure);
         assertTrue(operations.baselineCaptured);
         assertTrue(operations.intentRecorded);
+        assertTrue(operations.intentPresent);
         assertTrue(operations.verificationAttempted);
-        assertTrue(operations.intentDiscarded);
+        assertFalse(operations.intentMarkedDurable);
         assertFalse(operations.laterMutationReached);
     }
 
     @Test
-    void quarantineFailureIsSuppressedWithoutReplacingPersistenceFailure() {
-        IntentFailureOperations operations = new IntentFailureOperations(true, false);
-        operations.quarantineFailure = new IllegalStateException("quarantine failed");
+    void successfulInitialVerificationPromotesAuthorityBeforeLaterMutation() {
+        IntentFailureOperations operations = new IntentFailureOperations(false, false);
 
-        RuntimeException failure = assertThrows(RuntimeException.class, () -> NightmareDeathCoordinator.commit(operations));
+        NightmareDeathCoordinator.commit(operations);
 
-        assertSame(operations.persistenceFailure, failure);
-        assertEquals(1, failure.getSuppressed().length);
-        assertSame(operations.quarantineFailure, failure.getSuppressed()[0]);
-        assertFalse(operations.laterMutationReached);
+        assertTrue(operations.intentMarkedDurable);
+        assertTrue(operations.laterMutationReached);
     }
 
     @Test
     void alreadyDurableIntentReplaysWithoutDemandingAnotherInitialFileChange() {
         IntentFailureOperations operations = new IntentFailureOperations(false, false);
         operations.alreadyDurable = true;
+        operations.intentPresent = true;
 
         NightmareDeathCoordinator.commit(operations);
 
         assertFalse(operations.baselineCaptured);
         assertFalse(operations.intentRecorded);
         assertFalse(operations.verificationAttempted);
-        assertFalse(operations.intentDiscarded);
+        assertFalse(operations.intentMarkedDurable);
         assertTrue(operations.laterMutationReached);
     }
 
@@ -174,8 +173,7 @@ class NightmareDeathCoordinatorTest {
         }
 
         @Override
-        public void discardUnverifiedDeathIntent() {
-            volatileDeathIntentPresent = false;
+        public void markDeathIntentDurable() {
         }
 
         @Override
@@ -231,12 +229,12 @@ class NightmareDeathCoordinatorTest {
         private final boolean failVerification;
         private final RuntimeException persistenceFailure = new IllegalStateException("persist failed");
         private final RuntimeException verificationFailure = new IllegalStateException("verify failed");
-        private RuntimeException quarantineFailure;
         private boolean alreadyDurable;
         private boolean baselineCaptured;
         private boolean intentRecorded;
+        private boolean intentPresent;
         private boolean verificationAttempted;
-        private boolean intentDiscarded;
+        private boolean intentMarkedDurable;
         private boolean laterMutationReached;
 
         private IntentFailureOperations(boolean failPersistence, boolean failVerification) {
@@ -257,6 +255,7 @@ class NightmareDeathCoordinatorTest {
         @Override
         public void recordDeathIntent() {
             intentRecorded = true;
+            intentPresent = true;
         }
 
         @Override
@@ -275,11 +274,9 @@ class NightmareDeathCoordinatorTest {
         }
 
         @Override
-        public void discardUnverifiedDeathIntent() {
-            intentDiscarded = true;
-            if (quarantineFailure != null) {
-                throw quarantineFailure;
-            }
+        public void markDeathIntentDurable() {
+            intentMarkedDurable = true;
+            alreadyDurable = true;
         }
 
         @Override
@@ -305,6 +302,7 @@ class NightmareDeathCoordinatorTest {
 
         @Override
         public void clearDeathIntent() {
+            intentPresent = false;
         }
     }
 }
