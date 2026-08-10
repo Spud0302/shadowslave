@@ -52,10 +52,10 @@ class NightmareFactionInformationThreadSummaryCatalogTest {
 
     @Test
     void composePreservesOpaqueAuthorityAndExactStateAcrossSeeds() {
-        String scenario = "Scenario:First/Nightmare#A";
-        String faction = "Faction:Archive/Watch#B";
-        String thread = "Thread:ResolvedByCore/MixedCase#C";
-        String outcome = "Outcome:ResolvedByCore/MixedCase#D";
+        String scenario = "  Scenario:First/Nightmare#A  ";
+        String faction = "\tFaction:Archive/Watch#B\t";
+        String thread = " Thread:ResolvedByCore/MixedCase#C ";
+        String outcome = "  Outcome:ResolvedByCore/MixedCase#D\n";
         for (var state : NightmareFactionInformationThreadSummaryCatalog.ThreadState.values()) {
             for (long seed = 0; seed < 4096; seed++) {
                 var selected = NightmareFactionInformationThreadSummaryCatalog.compose(seed, scenario, faction, thread,
