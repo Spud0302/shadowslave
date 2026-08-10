@@ -69,6 +69,46 @@ class PersistedNightmareCompletionReceiptVerifierTest {
                 IllegalStateException.class,
                 () -> PersistedNightmareCompletionReceiptVerifier.requirePresent(file, expected)
         );
+        assertThrows(
+                IllegalStateException.class,
+                () -> PersistedNightmareCompletionReceiptVerifier.requireAbsent(file, expected)
+        );
+    }
+
+    @Test
+    void acceptsHealthyPersistedAbsenceAndUnrelatedReceipts() throws IOException {
+        NightmareCompletionReceiptData.Receipt expected = receipt(new UUID(523L, 541L), new UUID(547L, 557L));
+        NightmareCompletionReceiptData.Receipt other = receipt(new UUID(563L, 569L), new UUID(571L, 577L));
+        Path file = writeReceipts(other);
+
+        assertDoesNotThrow(() -> PersistedNightmareCompletionReceiptVerifier.requireAbsent(file, expected));
+        assertDoesNotThrow(() -> PersistedNightmareCompletionReceiptVerifier.requireAbsent(
+                tempDir.resolve("missing-receipts.dat"), expected));
+    }
+
+    @Test
+    void rejectsPersistedReceiptIdentityAfterConsumption() throws IOException {
+        NightmareCompletionReceiptData.Receipt expected = receipt(new UUID(587L, 593L), new UUID(599L, 601L));
+        Path exactFile = writeReceipts(expected);
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> PersistedNightmareCompletionReceiptVerifier.requireAbsent(exactFile, expected)
+        );
+
+        NightmareCompletionReceiptData.Receipt samePlayer = receipt(new UUID(607L, 613L), expected.instance().playerId());
+        Path samePlayerFile = writeReceipts(samePlayer);
+        assertThrows(
+                IllegalStateException.class,
+                () -> PersistedNightmareCompletionReceiptVerifier.requireAbsent(samePlayerFile, expected)
+        );
+
+        NightmareCompletionReceiptData.Receipt sameInstance = receipt(expected.instance().instanceId(), new UUID(617L, 619L));
+        Path sameInstanceFile = writeReceipts(sameInstance);
+        assertThrows(
+                IllegalStateException.class,
+                () -> PersistedNightmareCompletionReceiptVerifier.requireAbsent(sameInstanceFile, expected)
+        );
     }
 
     private Path writeReceipts(NightmareCompletionReceiptData.Receipt... receipts) throws IOException {
