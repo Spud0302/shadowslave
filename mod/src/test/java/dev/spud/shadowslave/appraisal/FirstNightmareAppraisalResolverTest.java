@@ -16,6 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FirstNightmareAppraisalResolverTest {
+    private static final ResourceLocation KINDLE = ResourceLocation.fromNamespaceAndPath(
+            "shadowslave", "generation/ability/kindle");
+    private static final ResourceLocation COLD_ASH = ResourceLocation.fromNamespaceAndPath(
+            "shadowslave", "generation/flaw/cold_ash");
+    private static final ResourceLocation COLD_ASH_EFFECT = ResourceLocation.fromNamespaceAndPath(
+            "shadowslave", "generation/flaw_effect/cold_ash");
+
     @Test
     void identicalCompletedNightmareResolvesExactlyTheSameAward() {
         NightmareInstance completed = instance(new UUID(11L, 29L), "last_signal", "last_watchkeeper");
@@ -42,9 +49,8 @@ class FirstNightmareAppraisalResolverTest {
     }
 
     @Test
-    void completedInstanceSeedsExploreExistingIdentityAndAttributeBacklog() {
+    void completedInstanceSeedsExploreExecutableAspectNamesAndExistingAttributeBacklog() {
         Set<String> aspectNames = new HashSet<>();
-        Set<ResourceLocation> flaws = new HashSet<>();
         Set<ResourceLocation> attributes = new HashSet<>();
 
         for (long seed = 1; seed <= 256; seed++) {
@@ -53,13 +59,28 @@ class FirstNightmareAppraisalResolverTest {
                     "signal_restored"
             );
             aspectNames.add(award.identity().aspect().formalName());
-            flaws.add(award.identity().flaw().primitiveId());
             attributes.add(award.attribute().id());
+            assertEquals(KINDLE, award.identity().aspect().abilityId());
+            assertEquals(COLD_ASH, award.identity().flaw().primitiveId());
+            assertEquals(COLD_ASH_EFFECT, award.identity().flaw().effectId());
         }
 
-        assertTrue(aspectNames.size() >= 6, () -> "expected generated Aspect diversity but got " + aspectNames);
-        assertTrue(flaws.size() >= 5, () -> "expected generated Flaw diversity but got " + flaws);
+        assertTrue(aspectNames.size() >= 6, () -> "expected generated Aspect naming diversity but got " + aspectNames);
         assertTrue(attributes.size() >= 6, () -> "expected Attribute diversity but got " + attributes);
+    }
+
+    @Test
+    void drownedBellAwardsAlsoRemainInsideExecutableRuntimeBoundary() {
+        for (long seed = 257; seed <= 512; seed++) {
+            var award = FirstNightmareAppraisalResolver.resolve(
+                    instance(new UUID(seed, ~seed), "drowned_bell", "cistern_keeper"),
+                    "flood_diverted"
+            );
+
+            assertEquals(KINDLE, award.identity().aspect().abilityId());
+            assertEquals(COLD_ASH, award.identity().flaw().primitiveId());
+            assertEquals(COLD_ASH_EFFECT, award.identity().flaw().effectId());
+        }
     }
 
     @Test
