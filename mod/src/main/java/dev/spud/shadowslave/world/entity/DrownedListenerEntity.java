@@ -1,5 +1,7 @@
 package dev.spud.shadowslave.world.entity;
 
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Drowned;
 import net.minecraft.world.level.Level;
@@ -15,5 +17,11 @@ import net.minecraft.world.level.Level;
 public final class DrownedListenerEntity extends Drowned {
     public DrownedListenerEntity(EntityType<? extends DrownedListenerEntity> type, Level level) {
         super(type, level);
+    }
+
+    /** Prevent inherited Drowned trident/fishing-rod/shell equipment from becoming placeholder rewards. */
+    @Override
+    protected void populateDefaultEquipmentSlots(RandomSource random, DifficultyInstance difficulty) {
+        // Intentionally empty. Reward/equipment rules remain Java-owned and UNKNOWN for this adapter.
     }
 }
