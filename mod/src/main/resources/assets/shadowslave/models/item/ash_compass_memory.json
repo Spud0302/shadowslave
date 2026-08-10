@@ -36,10 +36,62 @@
       }
     },
     {
+      "name": "bezel_top",
+      "from": [3, 12, 5],
+      "to": [13, 13, 6.25],
+      "faces": {
+        "north": {"texture": "#case"},
+        "south": {"texture": "#case"},
+        "east": {"texture": "#case"},
+        "west": {"texture": "#case"},
+        "up": {"texture": "#case"},
+        "down": {"texture": "#case"}
+      }
+    },
+    {
+      "name": "bezel_bottom",
+      "from": [3, 3, 5],
+      "to": [13, 4, 6.25],
+      "faces": {
+        "north": {"texture": "#case"},
+        "south": {"texture": "#case"},
+        "east": {"texture": "#case"},
+        "west": {"texture": "#case"},
+        "up": {"texture": "#case"},
+        "down": {"texture": "#case"}
+      }
+    },
+    {
+      "name": "bezel_left",
+      "from": [3, 4, 5],
+      "to": [4, 12, 6.25],
+      "faces": {
+        "north": {"texture": "#case"},
+        "south": {"texture": "#case"},
+        "east": {"texture": "#case"},
+        "west": {"texture": "#case"},
+        "up": {"texture": "#case"},
+        "down": {"texture": "#case"}
+      }
+    },
+    {
+      "name": "bezel_right",
+      "from": [12, 4, 5],
+      "to": [13, 12, 6.25],
+      "faces": {
+        "north": {"texture": "#case"},
+        "south": {"texture": "#case"},
+        "east": {"texture": "#case"},
+        "west": {"texture": "#case"},
+        "up": {"texture": "#case"},
+        "down": {"texture": "#case"}
+      }
+    },
+    {
       "name": "needle_spine",
-      "from": [7.25, 4.75, 5],
+      "from": [7.25, 4.75, 5.25],
       "to": [8.75, 11.5, 5.5],
-      "rotation": {"origin": [8, 8, 5.25], "axis": "z", "angle": -22.5},
+      "rotation": {"origin": [8, 8, 5.375], "axis": "z", "angle": -22.5},
       "faces": {
         "north": {"texture": "#needle"},
         "south": {"texture": "#needle"},
@@ -51,9 +103,9 @@
     },
     {
       "name": "needle_tip",
-      "from": [6.5, 10.75, 4.75],
-      "to": [9.5, 12.75, 5.75],
-      "rotation": {"origin": [8, 8, 5.25], "axis": "z", "angle": -22.5},
+      "from": [6.5, 10.75, 5],
+      "to": [9.5, 12.75, 5.5],
+      "rotation": {"origin": [8, 8, 5.375], "axis": "z", "angle": -22.5},
       "faces": {
         "north": {"texture": "#ember"},
         "south": {"texture": "#needle"},
