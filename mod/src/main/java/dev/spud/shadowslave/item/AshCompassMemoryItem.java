@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.item;
 
+import dev.spud.shadowslave.dreamrealm.DreamRealmPreviewService;
 import dev.spud.shadowslave.memory.MemoryOwnershipService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -33,15 +34,11 @@ public final class AshCompassMemoryItem extends Item {
             return InteractionResultHolder.fail(stack);
         }
 
-        BlockPos refuge = serverPlayer.getRespawnPosition();
-        if (refuge == null) {
-            serverPlayer.sendSystemMessage(Component.literal("Ash Compass: no refuge has been anchored yet.")
-                    .withStyle(ChatFormatting.GRAY));
-        } else if (!serverPlayer.getRespawnDimension().equals(level.dimension())) {
-            serverPlayer.sendSystemMessage(Component.literal("Ash Compass: the anchored refuge lies beyond this realm.")
+        if (!level.dimension().equals(DreamRealmPreviewService.DREAM_REALM_LEVEL)) {
+            serverPlayer.sendSystemMessage(Component.literal("Ash Compass: Cinder Rest lies beyond this realm.")
                     .withStyle(ChatFormatting.AQUA));
         } else {
-            String reading = reading(serverPlayer.blockPosition(), refuge);
+            String reading = reading(serverPlayer.blockPosition(), DreamRealmPreviewService.cinderRestAnchor());
             serverPlayer.sendSystemMessage(Component.literal("Ash Compass: " + reading)
                     .withStyle(ChatFormatting.AQUA));
         }
@@ -54,9 +51,9 @@ public final class AshCompassMemoryItem extends Item {
         int dz = refuge.getZ() - from.getZ();
         int distance = (int) Math.round(Math.sqrt((double) dx * dx + (double) dz * dz));
         if (distance <= 3) {
-            return "the refuge is here";
+            return "Cinder Rest is here";
         }
-        return "refuge " + direction(dx, dz) + ", about " + distance + " blocks away";
+        return "Cinder Rest " + direction(dx, dz) + ", about " + distance + " blocks away";
     }
 
     static String direction(int dx, int dz) {
