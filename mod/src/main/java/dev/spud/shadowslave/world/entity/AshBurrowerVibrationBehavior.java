@@ -1,5 +1,7 @@
 package dev.spud.shadowslave.world.entity;
 
+import java.util.UUID;
+
 /**
  * Pure execution policy for the placeholder Ash Burrower vibration sense.
  *
@@ -28,5 +30,18 @@ public final class AshBurrowerVibrationBehavior {
             return false;
         }
         return sampledDisplacementSquared >= MIN_SAMPLE_DISPLACEMENT_SQUARED;
+    }
+
+    public static boolean shouldReleaseVibrationTarget(
+            UUID vibrationTargetId,
+            UUID currentTargetId,
+            int pursuitTicks,
+            boolean targetAttackable,
+            double distanceSquared) {
+        if (pursuitTicks > 0 || vibrationTargetId == null || !vibrationTargetId.equals(currentTargetId)) {
+            return false;
+        }
+        double proximitySquared = PROXIMITY_RANGE * PROXIMITY_RANGE;
+        return !targetAttackable || distanceSquared > proximitySquared;
     }
 }
