@@ -17,7 +17,7 @@ public final class NightmareEvents {
         if (event.getLevel().isClientSide() || !(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-        if (NightmareService.resolveSignalFire(player, event.getPos())) {
+        if (NightmareService.resolveScenarioInteraction(player, event.getPos())) {
             event.setCancellationResult(InteractionResult.SUCCESS);
             event.setCanceled(true);
         }
@@ -37,9 +37,8 @@ public final class NightmareEvents {
         }
         NightmareService.activeFor(player).ifPresent(instance -> {
             if (player.serverLevel().dimension().equals(NightmareService.NIGHTMARE_LEVEL)) {
-                player.sendSystemMessage(Component.literal(
-                        "Active First Nightmare restored: The Last Signal. Reach and right-click the unlit soul campfire."
-                ).withStyle(ChatFormatting.LIGHT_PURPLE));
+                player.sendSystemMessage(Component.literal(NightmareService.resumeHint(instance))
+                        .withStyle(ChatFormatting.LIGHT_PURPLE));
             } else {
                 NightmareService.technicalRecover(player);
             }
