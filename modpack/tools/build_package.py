@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a deterministic dependency-free Nightmare Spell modpack archive."""
+"""Build a deterministic Nightmare Spell modpack archive."""
 
 from __future__ import annotations
 
@@ -59,13 +59,33 @@ def zip_info(path: str) -> zipfile.ZipInfo:
     return info
 
 
-def build_package(manifest_path: Path, core_jar: Path, output_path: Path) -> str:
+def component_target(component: dict[str, object]) -> str:
+    source = component["source"]
+    assert isinstance(source, dict)
+    file_name = str(source["file"])
+    if PurePosixPath(file_name).name != file_name or not file_name.endswith(".jar"):
+        raise PackageError(f"component {component['id']} source.file must be a JAR filename")
+    return safe_archive_path(f"mods/{file_name}", f"component {component['id']} package path")
+
+
+def build_package(
+    manifest_path: Path,
+    core_jar: Path,
+    output_path: Path,
+    component_jars: dict[str, Path] | None = None,
+) -> str:
     load_and_validate(manifest_path)
     with manifest_path.open("r", encoding="utf-8") as handle:
         manifest = json.load(handle)
 
     if not core_jar.is_file():
         raise PackageError(f"core JAR does not exist: {core_jar}")
+
+    supplied_components = component_jars or {}
+    declared_components = {component["id"]: component for component in manifest["components"]}
+    unknown_components = sorted(set(supplied_components) - set(declared_components))
+    if unknown_components:
+        raise PackageError(f"component JAR supplied for undeclared component(s): {unknown_components}")
 
     modpack_root = manifest_path.resolve().parent
     packaging = manifest["packaging"]
@@ -79,6 +99,26 @@ def build_package(manifest_path: Path, core_jar: Path, output_path: Path) -> str
         archive_path = safe_archive_path(relative_path, "packaging.include")
         entries[archive_path] = read_include(modpack_root, relative_path)
     entries[core_target] = core_jar.read_bytes()
+
+    for component_id, component in declared_components.items():
+        local_path = supplied_components.get(component_id)
+        if local_path is None:
+            if component["required"]:
+                raise PackageError(f"required component JAR was not supplied: {component_id}")
+            continue
+        if not local_path.is_file():
+            raise PackageError(f"component JAR does not exist for {component_id}: {local_path}")
+        data = local_path.read_bytes()
+        expected_digest = component["source"]["sha256"].lower()
+        actual_digest = sha256_bytes(data)
+        if actual_digest != expected_digest:
+            raise PackageError(
+                f"component SHA-256 mismatch for {component_id}: expected {expected_digest}, got {actual_digest}"
+            )
+        target = component_target(component)
+        if target in entries:
+            raise PackageError(f"component package path collides with another entry: {target}")
+        entries[target] = data
 
     if PROVENANCE_PATH in entries:
         raise PackageError(f"{PROVENANCE_PATH} is reserved for generated provenance")
@@ -119,15 +159,41 @@ def build_package(manifest_path: Path, core_jar: Path, output_path: Path) -> str
     return sha256_bytes(output_path.read_bytes())
 
 
+def parse_component_jars(values: list[str]) -> dict[str, Path]:
+    parsed: dict[str, Path] = {}
+    for value in values:
+        component_id, separator, raw_path = value.partition("=")
+        if not separator or not component_id.strip() or not raw_path.strip():
+            raise PackageError("--component-jar must use COMPONENT_ID=PATH")
+        component_id = component_id.strip()
+        if component_id in parsed:
+            raise PackageError(f"duplicate --component-jar for {component_id}")
+        parsed[component_id] = Path(raw_path)
+    return parsed
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", default="modpack/manifest.json")
     parser.add_argument("--core-jar", required=True)
+    parser.add_argument(
+        "--component-jar",
+        action="append",
+        default=[],
+        metavar="COMPONENT_ID=PATH",
+        help="Pinned runtime component JAR; repeat for multiple components",
+    )
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
 
     try:
-        digest = build_package(Path(args.manifest), Path(args.core_jar), Path(args.output))
+        component_jars = parse_component_jars(args.component_jar)
+        digest = build_package(
+            Path(args.manifest),
+            Path(args.core_jar),
+            Path(args.output),
+            component_jars,
+        )
     except (OSError, json.JSONDecodeError, PackageError, ValueError) as error:
         print(f"ERROR: {error}")
         return 1
