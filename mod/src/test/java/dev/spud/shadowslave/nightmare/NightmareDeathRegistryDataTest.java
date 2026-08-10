@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,9 +28,34 @@ class NightmareDeathRegistryDataTest {
         );
 
         assertEquals(instance, restarted.findByPlayer(instance.playerId()).orElseThrow());
+        assertTrue(restarted.isDurablyTrusted(instance));
         restarted.complete(instance);
         restarted.complete(instance);
         assertTrue(restarted.findByPlayer(instance.playerId()).isEmpty());
+    }
+
+    @Test
+    void unverifiedIntentRetriesAdvancePersistenceRevisionUntilVerified() {
+        NightmareInstance instance = instance(UUID.randomUUID());
+        NightmareDeathRegistryData data = new NightmareDeathRegistryData();
+
+        assertEquals(0L, data.save(new CompoundTag(), null).getLong("persistence_revision"));
+
+        data.begin(instance);
+        assertFalse(data.isDurablyTrusted(instance));
+        assertEquals(1L, data.save(new CompoundTag(), null).getLong("persistence_revision"));
+
+        data.begin(instance);
+        assertFalse(data.isDurablyTrusted(instance));
+        assertEquals(2L, data.save(new CompoundTag(), null).getLong("persistence_revision"),
+                "retrying ambiguous authority must force a distinguishable persistence image");
+
+        data.markDurablyTrusted(instance);
+        assertTrue(data.isDurablyTrusted(instance));
+
+        data.begin(instance);
+        assertEquals(2L, data.save(new CompoundTag(), null).getLong("persistence_revision"),
+                "trusted restart authority must not demand another initial persistence checkpoint");
     }
 
     @Test
