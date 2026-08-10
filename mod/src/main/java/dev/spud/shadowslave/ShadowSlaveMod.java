@@ -3,6 +3,8 @@ package dev.spud.shadowslave;
 import com.mojang.logging.LogUtils;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.command.ShadowSlaveCommands;
+import dev.spud.shadowslave.item.ModItems;
+import dev.spud.shadowslave.memory.MemoryCommands;
 import dev.spud.shadowslave.network.ModPayloads;
 import dev.spud.shadowslave.network.SoulPlayerEvents;
 import dev.spud.shadowslave.nightmare.NightmareEvents;
@@ -22,6 +24,7 @@ public final class ShadowSlaveMod {
 
     public ShadowSlaveMod(IEventBus modEventBus, Dist physicalSide) {
         ModAttachments.register(modEventBus);
+        ModItems.register(modEventBus);
         NightmareCreatureEntities.register(modEventBus);
 
         if (physicalSide == Dist.DEDICATED_SERVER) {
@@ -29,6 +32,7 @@ public final class ShadowSlaveMod {
         }
 
         NeoForge.EVENT_BUS.addListener(ShadowSlaveCommands::register);
+        NeoForge.EVENT_BUS.addListener(MemoryCommands::register);
         NeoForge.EVENT_BUS.addListener(SoulPlayerEvents::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(NightmareEvents::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(NightmareEvents::onRightClickBlock);
