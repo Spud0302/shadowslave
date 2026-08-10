@@ -47,6 +47,7 @@ public record EchoOwnershipData(List<EchoInstanceData> echoes) {
         ArrayList<EchoInstanceData> next = new ArrayList<>(echoes); next.add(echo); return new EchoOwnershipData(next);
     }
     public EchoOwnershipData withCommandMode(ResourceLocation echoId, EchoContentCatalog.CommandMode commandMode) { return replaceEcho(echoId, echo -> echo.withCommandMode(commandMode)); }
+    public EchoOwnershipData withGuardPoint(ResourceLocation echoId, ResourceLocation dimension, BlockPos position) { return replaceEcho(echoId, echo -> echo.withGuardPoint(dimension, position)); }
     public EchoOwnershipData withManifestation(ResourceLocation echoId, UUID entityUuid, ResourceLocation dimension, BlockPos position) { return replaceEcho(echoId, echo -> echo.withManifestation(entityUuid, dimension, position)); }
     public EchoOwnershipData withoutManifestation(ResourceLocation echoId) { return replaceEcho(echoId, EchoInstanceData::withoutManifestation); }
     private EchoOwnershipData replaceEcho(ResourceLocation echoId, java.util.function.UnaryOperator<EchoInstanceData> update) {
