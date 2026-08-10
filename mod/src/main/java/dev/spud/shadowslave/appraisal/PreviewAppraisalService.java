@@ -37,9 +37,12 @@ public final class PreviewAppraisalService {
             ServerPlayer player,
             NightmareInstance completedInstance
     ) {
-        String resolutionId = completedInstance.scenarioId().equals("last_signal")
-                ? "signal_restored"
-                : "completed";
+        Objects.requireNonNull(completedInstance, "completedInstance");
+        String resolutionId = completedInstance.terminalResolutionId().orElseGet(() ->
+                completedInstance.scenarioId().equals("last_signal")
+                        ? "signal_restored"
+                        : "completed"
+        );
         return appraise(player, completedInstance, resolutionId);
     }
 
