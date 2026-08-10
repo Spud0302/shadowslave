@@ -2,6 +2,7 @@ package dev.spud.shadowslave.echo;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.echo.content.EchoContentCatalog;
+import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -11,7 +12,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -55,7 +55,7 @@ public final class EchoManifestationService {
         }
 
         ServerLevel level = player.serverLevel();
-        Mob echo = EntityType.ARMADILLO.create(level);
+        AshBurrowerEchoEntity echo = NightmareCreatureEntities.ASH_BURROWER_ECHO.get().create(level);
         if (echo == null) return ManifestResult.SPAWN_FAILED;
         echo.moveTo(player.getX() + 1.5, player.getY(), player.getZ() + 0.5, player.getYRot(), 0.0F);
         echo.setCustomName(Component.literal(ashBurrowerProfile().displayName()));
