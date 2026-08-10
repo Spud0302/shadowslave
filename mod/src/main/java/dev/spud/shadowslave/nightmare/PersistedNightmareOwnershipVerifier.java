@@ -5,6 +5,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
+import net.minecraft.server.MinecraftServer;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,8 +14,19 @@ import java.util.Objects;
 import java.util.UUID;
 
 /** Verifies that exact active Nightmare ownership is absent from the persisted registry image. */
-final class PersistedNightmareOwnershipVerifier {
+public final class PersistedNightmareOwnershipVerifier {
     private PersistedNightmareOwnershipVerifier() {
+    }
+
+    /**
+     * Verifies successful-completion ownership teardown against this server's persisted Nightmare registry.
+     *
+     * <p>This entry point lets recovery code outside the Nightmare package reuse the same production
+     * persistence proof as normal completion without exposing registry-path internals.</p>
+     */
+    public static void requireAbsent(MinecraftServer server, UUID playerId, UUID instanceId) {
+        MinecraftServer checkedServer = Objects.requireNonNull(server, "server");
+        requireAbsent(NightmareRegistryData.persistedFile(checkedServer), playerId, instanceId);
     }
 
     static void requireAbsent(Path registryFile, UUID playerId, UUID instanceId) {
