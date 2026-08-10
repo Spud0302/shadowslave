@@ -2,6 +2,7 @@ package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
+import net.minecraft.client.renderer.entity.DrownedRenderer;
 import net.minecraft.client.renderer.entity.SpiderRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -16,7 +17,8 @@ public final class NightmareCreatureClientEvents {
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        // Placeholder visual: the Java-owned Chainback identity is not derived from this vanilla model.
+        // Placeholder visuals: Java-owned Nightmare Creature identities are not derived from vanilla models.
         event.registerEntityRenderer(NightmareCreatureEntities.CHAINBACK.get(), SpiderRenderer::new);
+        event.registerEntityRenderer(NightmareCreatureEntities.DROWNED_LISTENER.get(), DrownedRenderer::new);
     }
 }
