@@ -1,75 +1,130 @@
 package dev.spud.shadowslave.appraisal;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.appraisal.generation.AttributeContentCatalog;
+import dev.spud.shadowslave.appraisal.generation.GeneratedIdentityCandidate;
+import dev.spud.shadowslave.content.memory.MemoryContentCatalog;
+import dev.spud.shadowslave.echo.EchoInstanceData;
+import dev.spud.shadowslave.echo.EchoManifestationService;
+import dev.spud.shadowslave.echo.EchoOwnershipData;
+import dev.spud.shadowslave.echo.EchoOwnershipService;
+import dev.spud.shadowslave.echo.content.EchoContentCatalog;
+import dev.spud.shadowslave.item.AshCompassMemoryItem;
+import dev.spud.shadowslave.memory.MemoryInstanceData;
+import dev.spud.shadowslave.memory.MemoryOwnershipData;
+import dev.spud.shadowslave.memory.MemoryOwnershipService;
 import dev.spud.shadowslave.nightmare.NightmareInstance;
-import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.identity.AspectAbilityData;
 import dev.spud.shadowslave.soul.identity.AspectAbilitySetData;
 import dev.spud.shadowslave.soul.identity.AspectInstanceData;
+import dev.spud.shadowslave.soul.identity.AttributeInstanceData;
+import dev.spud.shadowslave.soul.identity.AttributeOwnershipData;
+import dev.spud.shadowslave.soul.identity.AttributeOwnershipService;
 import dev.spud.shadowslave.soul.identity.FlawInstanceData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
-/**
- * DESIGN: fixed preview appraisal for the Last Signal scenario. Canon does not
- * provide a deterministic formula; this service exists to make one coherent
- * vertical slice playable while keeping the appraisal boundary replaceable.
- */
+/** Runtime appraisal boundary for the playable First-Nightmare slice. */
 public final class PreviewAppraisalService {
-    public static final ResourceLocation ASPECT_ID = id("preview/aspect/last_light");
-    public static final ResourceLocation FLAW_ID = id("preview/flaw/cold_ash");
-    public static final ResourceLocation ABILITY_ID = id("preview/ability/kindle");
-    public static final ResourceLocation FLAW_EFFECT_ID = id("preview/flaw_effect/cold_ash");
+    private PreviewAppraisalService() {}
 
-    private PreviewAppraisalService() {
+    /**
+     * Exact state committed by the appraisal transaction. Presentation consumers
+     * may render these values after success, but must not recalculate or replace them.
+     */
+    public record CommittedAppraisal(
+            FirstNightmareAppraisalResolver.Award award,
+            MemoryInstanceData memory,
+            EchoInstanceData echo
+    ) {
+        public CommittedAppraisal {
+            award = Objects.requireNonNull(award, "award");
+            memory = Objects.requireNonNull(memory, "memory");
+            echo = Objects.requireNonNull(echo, "echo");
+        }
     }
 
-    public static void appraise(ServerPlayer player, NightmareInstance completedInstance) {
-        if (!"last_signal".equals(completedInstance.scenarioId())) {
-            throw new IllegalArgumentException("Preview appraisal does not know scenario " + completedInstance.scenarioId());
-        }
+    public static FirstNightmareAppraisalResolver.Award appraise(ServerPlayer player, NightmareInstance completedInstance) {
+        return appraiseWithRewards(player, completedInstance).award();
+    }
 
-        AspectInstanceData aspect = new AspectInstanceData(
-                ASPECT_ID,
-                "Last Light",
-                SoulRank.AWAKENED,
-                id("preview/nature/ember_resolve"),
-                new AspectAbilitySetData(List.of(AspectAbilityData.legacyUnclassified(
-                        ABILITY_ID,
-                        "compatibility: fixed preview ability predates ability classification"
-                ))),
-                "preview_appraisal_design"
-        );
-        FlawInstanceData flaw = new FlawInstanceData(
-                FLAW_ID,
-                "Cold Ash",
-                FLAW_EFFECT_ID,
-                "preview_appraisal_design"
-        );
+    public static FirstNightmareAppraisalResolver.Award appraise(
+            ServerPlayer player,
+            NightmareInstance completedInstance,
+            String resolutionId
+    ) {
+        return appraiseWithRewards(player, completedInstance, resolutionId).award();
+    }
 
-        SoulIdentityData identity = new SoulIdentityData(Optional.of(aspect), Optional.of(flaw));
-        SoulIdentityService.replace(player, identity);
+    public static CommittedAppraisal appraiseWithRewards(ServerPlayer player, NightmareInstance completedInstance) {
+        Objects.requireNonNull(completedInstance, "completedInstance");
+        String resolutionId = completedInstance.terminalResolutionId().orElseGet(() ->
+                completedInstance.scenarioId().equals("last_signal") ? "signal_restored" : "completed");
+        return appraiseWithRewards(player, completedInstance, resolutionId);
+    }
+
+    public static CommittedAppraisal appraiseWithRewards(
+            ServerPlayer player,
+            NightmareInstance completedInstance,
+            String resolutionId
+    ) {
+        Objects.requireNonNull(player, "player");
+        FirstNightmareAppraisalResolver.Award award = FirstNightmareAppraisalResolver.resolve(
+                Objects.requireNonNull(completedInstance, "completedInstance"), resolutionId);
+        GeneratedIdentityCandidate generated = award.identity();
+        GeneratedIdentityCandidate.Aspect generatedAspect = generated.aspect();
+        GeneratedIdentityCandidate.Flaw generatedFlaw = generated.flaw();
+
+        AspectInstanceData aspect = new AspectInstanceData(generatedAspect.instanceId(), generatedAspect.formalName(),
+                generatedAspect.aspectRank(), generatedAspect.natureId(), new AspectAbilitySetData(List.of(
+                AspectAbilityData.legacyUnclassified(generatedAspect.abilityId(),
+                        "generated First-Nightmare Dormant ability; classification integration pending"))), generated.provenance());
+        FlawInstanceData flaw = new FlawInstanceData(generatedFlaw.instanceId(), generatedFlaw.formalName(),
+                generatedFlaw.effectId(), generated.provenance());
+        AttributeContentCatalog.AttributeProfile profile = award.attribute();
+        AttributeInstanceData attribute = new AttributeInstanceData(profile.id(), profile.formalName(),
+                profile.origin().name().toLowerCase(Locale.ROOT), profile.visibility().name().toLowerCase(Locale.ROOT),
+                generated.provenance() + "/attribute-selection");
+
+        MemoryContentCatalog.MemoryProfile memoryProfile = MemoryContentCatalog.waveOne().memories().stream()
+                .filter(memory -> memory.id().equals(AshCompassMemoryItem.MEMORY_ID)).findFirst()
+                .orElseThrow(() -> new IllegalStateException("Ash Compass Memory profile is missing"));
+        String rewardProvenance = "nightmare/" + completedInstance.instanceId() + "/resolution/" + resolutionId;
+        MemoryInstanceData memory = new MemoryInstanceData(memoryProfile.id(), memoryProfile.formalName(),
+                "first_nightmare_appraisal_design", rewardProvenance);
+        EchoContentCatalog.EchoProfile echoProfile = EchoManifestationService.ashBurrowerProfile();
+        EchoInstanceData echo = new EchoInstanceData(EchoManifestationService.ASH_BURROWER_ID, echoProfile.displayName(),
+                "first_nightmare_appraisal_design", rewardProvenance,
+                Optional.empty(), Optional.empty(), Optional.empty());
+
+        SoulIdentityData beforeIdentity = SoulIdentityService.get(player);
+        AttributeOwnershipData beforeAttributes = AttributeOwnershipService.get(player);
+        MemoryOwnershipData beforeMemories = MemoryOwnershipService.get(player);
+        EchoOwnershipData beforeEchoes = EchoOwnershipService.get(player);
+        SoulIdentityService.replace(player, new SoulIdentityData(Optional.of(aspect), Optional.of(flaw)));
+        AttributeOwnershipService.award(player, attribute);
+        MemoryOwnershipService.award(player, memory);
+        EchoOwnershipService.award(player, echo);
         try {
-            SoulService.completeFirstNightmare(player, ASPECT_ID, SoulRank.AWAKENED, FLAW_ID);
+            SoulService.completeFirstNightmare(player, generatedAspect.instanceId(), generatedAspect.aspectRank(), generatedFlaw.instanceId());
         } catch (RuntimeException exception) {
-            SoulIdentityService.replace(player, SoulIdentityData.empty());
+            SoulIdentityService.replace(player, beforeIdentity);
+            AttributeOwnershipService.replace(player, beforeAttributes);
+            MemoryOwnershipService.replace(player, beforeMemories);
+            EchoOwnershipService.replace(player, beforeEchoes);
             throw exception;
         }
 
-        ShadowSlaveMod.LOGGER.info(
-                "Preview appraisal completed for Nightmare {} and player {}",
-                completedInstance.instanceId(),
-                player.getScoreboardName()
-        );
-    }
-
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, path);
+        ShadowSlaveMod.LOGGER.info("Generated appraisal {} committed for Nightmare {} and player {}: Aspect {}, Flaw {}, Attribute {}, Memory {}, Echo {}",
+                generated.generationFingerprint(), completedInstance.instanceId(), player.getScoreboardName(), generatedAspect.instanceId(),
+                generatedFlaw.instanceId(), profile.id(), memory.memoryId(), echo.echoId());
+        return new CommittedAppraisal(award, memory, echo);
     }
 }
