@@ -1,13 +1,16 @@
 package dev.spud.shadowslave.nightmare;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -48,6 +51,21 @@ class PersistedNightmareOwnershipVerifierTest {
     }
 
     @Test
+    void rejectsEntryThatProductionLoaderWouldRejectEvenWhenOwnershipIdsArePresent() throws IOException {
+        CompoundTag malformed = instance(UUID.randomUUID(), UUID.randomUUID());
+        malformed.remove("scenario_id");
+        ListTag instances = new ListTag();
+        instances.add(malformed);
+        Path file = writeRegistry(instances);
+
+        assertThrows(IllegalStateException.class, () -> PersistedNightmareOwnershipVerifier.requireAbsent(
+                file,
+                UUID.randomUUID(),
+                UUID.randomUUID()
+        ));
+    }
+
+    @Test
     void rejectsMalformedOrMissingRegistryAuthoritySurface() throws IOException {
         CompoundTag malformed = new CompoundTag();
         ListTag instances = new ListTag();
@@ -77,9 +95,22 @@ class PersistedNightmareOwnershipVerifierTest {
     }
 
     private static CompoundTag instance(UUID playerId, UUID instanceId) {
-        CompoundTag tag = new CompoundTag();
-        tag.putUUID("player_id", playerId);
-        tag.putUUID("instance_id", instanceId);
-        return tag;
+        return new NightmareInstance(
+                instanceId,
+                playerId,
+                0,
+                "the_last_signal",
+                "last_watchkeeper",
+                ResourceLocation.parse("minecraft:overworld"),
+                1.0,
+                64.0,
+                1.0,
+                0.0F,
+                0.0F,
+                BlockPos.ZERO,
+                new BlockPos(1, 64, 1),
+                Optional.empty(),
+                1L
+        ).save();
     }
 }
