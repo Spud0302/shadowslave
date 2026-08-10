@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.attachment;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
 import dev.spud.shadowslave.preview.PreviewPowerData;
 import dev.spud.shadowslave.soul.SoulData;
@@ -19,36 +20,29 @@ public final class ModAttachments {
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<SoulData>> SOUL =
             ATTACHMENTS.register("soul", () -> AttachmentType.builder(SoulData::uninfected)
-                    .serialize(SoulData.CODEC.codec())
-                    .copyOnDeath()
-                    .build());
+                    .serialize(SoulData.CODEC.codec()).copyOnDeath().build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<SoulIdentityData>> IDENTITY =
             ATTACHMENTS.register("identity", () -> AttachmentType.builder(SoulIdentityData::empty)
-                    .serialize(SoulIdentityData.CODEC.codec())
-                    .copyOnDeath()
-                    .build());
+                    .serialize(SoulIdentityData.CODEC.codec()).copyOnDeath().build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<AttributeOwnershipData>> ATTRIBUTES =
             ATTACHMENTS.register("attributes", () -> AttachmentType.builder(AttributeOwnershipData::empty)
-                    .serialize(AttributeOwnershipData.CODEC.codec())
-                    .copyOnDeath()
-                    .build());
+                    .serialize(AttributeOwnershipData.CODEC.codec()).copyOnDeath().build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<MemoryOwnershipData>> MEMORIES =
+            ATTACHMENTS.register("memories", () -> AttachmentType.builder(MemoryOwnershipData::empty)
+                    .serialize(MemoryOwnershipData.CODEC.codec()).copyOnDeath().build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<ImportedIdentityData>> IMPORTED_IDENTITY =
             ATTACHMENTS.register("imported_identity", () -> AttachmentType.builder(ImportedIdentityData::empty)
-                    .serialize(ImportedIdentityData.CODEC.codec())
-                    .copyOnDeath()
-                    .build());
+                    .serialize(ImportedIdentityData.CODEC.codec()).copyOnDeath().build());
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<PreviewPowerData>> PREVIEW_POWER =
             ATTACHMENTS.register("preview_power", () -> AttachmentType.builder(PreviewPowerData::empty)
-                    .serialize(PreviewPowerData.CODEC.codec())
-                    .copyOnDeath()
-                    .build());
+                    .serialize(PreviewPowerData.CODEC.codec()).copyOnDeath().build());
 
-    private ModAttachments() {
-    }
+    private ModAttachments() {}
 
     public static void register(IEventBus modEventBus) {
         ATTACHMENTS.register(modEventBus);
