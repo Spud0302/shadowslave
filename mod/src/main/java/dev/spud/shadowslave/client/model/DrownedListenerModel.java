@@ -11,8 +11,8 @@ public final class DrownedListenerModel extends GeoModel<DrownedListenerEntity> 
             ShadowSlaveMod.MOD_ID, "geo/drowned_listener.geo.json");
     private static final ResourceLocation ANIMATIONS = ResourceLocation.fromNamespaceAndPath(
             ShadowSlaveMod.MOD_ID, "animations/drowned_listener.animation.json");
-    private static final ResourceLocation PLACEHOLDER_TEXTURE = ResourceLocation.withDefaultNamespace(
-            "textures/entity/zombie/drowned.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
+            ShadowSlaveMod.MOD_ID, "textures/entity/drowned_listener.png");
 
     @Override
     public ResourceLocation getModelResource(DrownedListenerEntity animatable) {
@@ -21,7 +21,7 @@ public final class DrownedListenerModel extends GeoModel<DrownedListenerEntity> 
 
     @Override
     public ResourceLocation getTextureResource(DrownedListenerEntity animatable) {
-        return PLACEHOLDER_TEXTURE;
+        return TEXTURE;
     }
 
     @Override
