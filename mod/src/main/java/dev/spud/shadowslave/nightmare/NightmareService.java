@@ -49,14 +49,18 @@ public final class NightmareService {
             throw new IllegalStateException("The bundled Nightmare dimension is unavailable");
         }
 
+        NightmareEntryAssignment.Assignment assignment = NightmareEntryAssignment.resolveFirstNightmare(
+                player.getUUID(),
+                player.serverLevel().getGameTime()
+        );
         NightmareInstance instance = registry.create(
                 player,
-                LastSignalScenario.SCENARIO_ID,
-                LastSignalScenario.ROLE_ID
+                assignment.scenarioId(),
+                assignment.historicalRoleId()
         );
         NightmareInstance prepared = instance;
         try {
-            prepared = LastSignalScenario.prepare(nightmareLevel, player, instance);
+            prepared = prepareScenario(nightmareLevel, player, instance);
             registry.update(prepared);
             SoulService.beginFirstNightmare(player);
             player.teleportTo(
@@ -71,10 +75,17 @@ public final class NightmareService {
             player.sendSystemMessage(Component.literal("First Nightmare — The Last Signal")
                     .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD));
             player.sendSystemMessage(Component.literal(
-                    "Role: the last watchkeeper of a road already swallowed by ruin. Reach the dead signal fire and rekindle it."
-            ).withStyle(ChatFormatting.GRAY));
+                    "Historical role: " + assignment.roleMatch().role().displayName()
+            ).withStyle(ChatFormatting.AQUA));
+            player.sendSystemMessage(Component.literal(assignment.roleMatch().variant().entryHook())
+                    .withStyle(ChatFormatting.GRAY));
+            player.sendSystemMessage(Component.literal(assignment.roleMatch().variant().conflictPressure())
+                    .withStyle(ChatFormatting.GRAY));
             player.sendSystemMessage(Component.literal(
-                    "Right-click the unlit soul campfire at the far watch. Fighting the pursuer is optional; resolving the conflict is not."
+                    "Leverage: " + assignment.roleMatch().variant().leverage()
+            ).withStyle(ChatFormatting.LIGHT_PURPLE));
+            player.sendSystemMessage(Component.literal(
+                    "Reach the dead signal fire and rekindle it. Right-click the unlit soul campfire at the far watch. Fighting the pursuer is optional; resolving the conflict is not."
             ).withStyle(ChatFormatting.LIGHT_PURPLE));
             return prepared;
         } catch (RuntimeException exception) {
@@ -87,6 +98,7 @@ public final class NightmareService {
     public static boolean resolveSignalFire(ServerPlayer player, net.minecraft.core.BlockPos interactedPos) {
         NightmareInstance instance = activeFor(player).orElse(null);
         if (instance == null
+                || !instance.scenarioId().equals(LastSignalScenario.SCENARIO_ID)
                 || !player.serverLevel().dimension().equals(NIGHTMARE_LEVEL)
                 || !instance.altar().equals(interactedPos)) {
             return false;
@@ -153,6 +165,13 @@ public final class NightmareService {
 
     public static Optional<NightmareInstance> activeFor(ServerPlayer player) {
         return NightmareRegistryData.get(player.getServer()).findByPlayer(player.getUUID());
+    }
+
+    private static NightmareInstance prepareScenario(ServerLevel nightmareLevel, ServerPlayer player, NightmareInstance instance) {
+        if (instance.scenarioId().equals(LastSignalScenario.SCENARIO_ID)) {
+            return LastSignalScenario.prepare(nightmareLevel, player, instance);
+        }
+        throw new IllegalArgumentException("Scenario is authored but not physically playable yet: " + instance.scenarioId());
     }
 
     private static NightmareInstance exit(ServerPlayer player, NightmareExitReason reason) {
