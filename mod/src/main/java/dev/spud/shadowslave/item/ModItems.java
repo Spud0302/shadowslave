@@ -16,6 +16,12 @@ public final class ModItems {
             new Item.Properties().stacksTo(1)
     );
 
+    public static final DeferredItem<Item> BELLGLASS_TOKEN_MEMORY = ITEMS.registerItem(
+            "bellglass_token_memory",
+            BellglassTokenMemoryItem::new,
+            new Item.Properties().stacksTo(1)
+    );
+
     private ModItems() {
     }
 
