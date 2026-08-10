@@ -13,10 +13,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-/** Persistent Java-owned identity, provenance, command state and current manifestation for one Echo. */
+/** Persistent Java-owned identity, provenance, command/cargo state and current manifestation for one Echo. */
 public record EchoInstanceData(ResourceLocation echoId, String formalName, String acquisitionSource, String provenance,
                                EchoContentCatalog.CommandMode commandMode, Optional<ResourceLocation> commandTargetDimension,
-                               Optional<Long> commandTargetBlockPos, Optional<String> manifestationEntityUuid,
+                               Optional<Long> commandTargetBlockPos, Optional<ResourceLocation> cargoItemId,
+                               Optional<Integer> cargoCount, Optional<String> manifestationEntityUuid,
                                Optional<ResourceLocation> manifestationDimension, Optional<Long> manifestationBlockPos) {
     private static final Codec<EchoContentCatalog.CommandMode> COMMAND_MODE_CODEC = Codec.STRING.flatXmap(
             value -> {
@@ -31,27 +32,38 @@ public record EchoInstanceData(ResourceLocation echoId, String formalName, Strin
             COMMAND_MODE_CODEC.optionalFieldOf("command_mode", EchoContentCatalog.CommandMode.HOLD).forGetter(EchoInstanceData::commandMode),
             ResourceLocation.CODEC.optionalFieldOf("command_target_dimension").forGetter(EchoInstanceData::commandTargetDimension),
             Codec.LONG.optionalFieldOf("command_target_block_pos").forGetter(EchoInstanceData::commandTargetBlockPos),
+            ResourceLocation.CODEC.optionalFieldOf("cargo_item_id").forGetter(EchoInstanceData::cargoItemId),
+            Codec.INT.optionalFieldOf("cargo_count").forGetter(EchoInstanceData::cargoCount),
             Codec.STRING.optionalFieldOf("manifestation_entity_uuid").forGetter(EchoInstanceData::manifestationEntityUuid),
             ResourceLocation.CODEC.optionalFieldOf("manifestation_dimension").forGetter(EchoInstanceData::manifestationDimension),
             Codec.LONG.optionalFieldOf("manifestation_block_pos").forGetter(EchoInstanceData::manifestationBlockPos)
     ).apply(instance, EchoInstanceData::new));
     public static final MapCodec<EchoInstanceData> CODEC = RAW_CODEC.flatXmap(value -> {
-        try { return DataResult.success(new EchoInstanceData(value.echoId(), value.formalName(), value.acquisitionSource(), value.provenance(), value.commandMode(), value.commandTargetDimension(), value.commandTargetBlockPos(), value.manifestationEntityUuid(), value.manifestationDimension(), value.manifestationBlockPos())); }
+        try { return DataResult.success(new EchoInstanceData(value.echoId(), value.formalName(), value.acquisitionSource(), value.provenance(), value.commandMode(), value.commandTargetDimension(), value.commandTargetBlockPos(), value.cargoItemId(), value.cargoCount(), value.manifestationEntityUuid(), value.manifestationDimension(), value.manifestationBlockPos())); }
         catch (IllegalArgumentException | NullPointerException exception) { return DataResult.error(() -> "Invalid EchoInstanceData: " + exception.getMessage()); }
     }, DataResult::success);
+
+    public EchoInstanceData(ResourceLocation echoId, String formalName, String acquisitionSource, String provenance,
+                            EchoContentCatalog.CommandMode commandMode, Optional<ResourceLocation> commandTargetDimension,
+                            Optional<Long> commandTargetBlockPos, Optional<String> manifestationEntityUuid,
+                            Optional<ResourceLocation> manifestationDimension, Optional<Long> manifestationBlockPos) {
+        this(echoId, formalName, acquisitionSource, provenance, commandMode, commandTargetDimension, commandTargetBlockPos,
+                Optional.empty(), Optional.empty(), manifestationEntityUuid, manifestationDimension, manifestationBlockPos);
+    }
 
     public EchoInstanceData(ResourceLocation echoId, String formalName, String acquisitionSource, String provenance,
                             EchoContentCatalog.CommandMode commandMode, Optional<String> manifestationEntityUuid,
                             Optional<ResourceLocation> manifestationDimension, Optional<Long> manifestationBlockPos) {
         this(echoId, formalName, acquisitionSource, provenance, commandMode, Optional.empty(), Optional.empty(),
-                manifestationEntityUuid, manifestationDimension, manifestationBlockPos);
+                Optional.empty(), Optional.empty(), manifestationEntityUuid, manifestationDimension, manifestationBlockPos);
     }
 
     public EchoInstanceData(ResourceLocation echoId, String formalName, String acquisitionSource, String provenance,
                             Optional<String> manifestationEntityUuid, Optional<ResourceLocation> manifestationDimension,
                             Optional<Long> manifestationBlockPos) {
         this(echoId, formalName, acquisitionSource, provenance, EchoContentCatalog.CommandMode.HOLD,
-                Optional.empty(), Optional.empty(), manifestationEntityUuid, manifestationDimension, manifestationBlockPos);
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), manifestationEntityUuid,
+                manifestationDimension, manifestationBlockPos);
     }
 
     public EchoInstanceData {
@@ -65,6 +77,14 @@ public record EchoInstanceData(ResourceLocation echoId, String formalName, Strin
         if (commandTargetDimension.isPresent() != commandTargetBlockPos.isPresent()) {
             throw new IllegalArgumentException("Echo command target dimension and block position must be stored together");
         }
+        cargoItemId = Objects.requireNonNull(cargoItemId, "cargoItemId");
+        cargoCount = Objects.requireNonNull(cargoCount, "cargoCount");
+        if (cargoItemId.isPresent() != cargoCount.isPresent()) {
+            throw new IllegalArgumentException("Echo cargo item id and count must be stored together");
+        }
+        cargoCount.ifPresent(count -> {
+            if (count <= 0 || count > 99) throw new IllegalArgumentException("Echo cargo count must be between 1 and 99");
+        });
         manifestationEntityUuid = Objects.requireNonNull(manifestationEntityUuid, "manifestationEntityUuid").map(value -> UUID.fromString(requireText(value, "manifestationEntityUuid")).toString());
         manifestationDimension = Objects.requireNonNull(manifestationDimension, "manifestationDimension");
         manifestationBlockPos = Objects.requireNonNull(manifestationBlockPos, "manifestationBlockPos");
@@ -78,7 +98,7 @@ public record EchoInstanceData(ResourceLocation echoId, String formalName, Strin
         Optional<Long> nextPosition = checked == EchoContentCatalog.CommandMode.GUARD_POINT ? commandTargetBlockPos : Optional.empty();
         if (checked == commandMode && nextDimension.equals(commandTargetDimension) && nextPosition.equals(commandTargetBlockPos)) return this;
         return new EchoInstanceData(echoId, formalName, acquisitionSource, provenance, checked, nextDimension, nextPosition,
-                manifestationEntityUuid, manifestationDimension, manifestationBlockPos);
+                cargoItemId, cargoCount, manifestationEntityUuid, manifestationDimension, manifestationBlockPos);
     }
     public EchoInstanceData withGuardPoint(ResourceLocation dimension, BlockPos position) {
         ResourceLocation checkedDimension = Objects.requireNonNull(dimension, "dimension");
@@ -87,17 +107,34 @@ public record EchoInstanceData(ResourceLocation echoId, String formalName, Strin
                 && commandTargetDimension.equals(Optional.of(checkedDimension))
                 && commandTargetBlockPos.equals(Optional.of(checkedPosition))) return this;
         return new EchoInstanceData(echoId, formalName, acquisitionSource, provenance, EchoContentCatalog.CommandMode.GUARD_POINT,
-                Optional.of(checkedDimension), Optional.of(checkedPosition), manifestationEntityUuid, manifestationDimension, manifestationBlockPos);
+                Optional.of(checkedDimension), Optional.of(checkedPosition), cargoItemId, cargoCount,
+                manifestationEntityUuid, manifestationDimension, manifestationBlockPos);
+    }
+    public EchoInstanceData withCargo(ResourceLocation itemId, int count) {
+        if (cargoItemId.isPresent()) throw new IllegalStateException("Echo already carries cargo");
+        ResourceLocation checkedItemId = Objects.requireNonNull(itemId, "itemId");
+        return new EchoInstanceData(echoId, formalName, acquisitionSource, provenance, EchoContentCatalog.CommandMode.CARRY,
+                Optional.empty(), Optional.empty(), Optional.of(checkedItemId), Optional.of(count),
+                manifestationEntityUuid, manifestationDimension, manifestationBlockPos);
+    }
+    public EchoInstanceData withoutCargo() {
+        if (cargoItemId.isEmpty()) return this;
+        EchoContentCatalog.CommandMode nextMode = commandMode == EchoContentCatalog.CommandMode.CARRY
+                ? EchoContentCatalog.CommandMode.HOLD : commandMode;
+        return new EchoInstanceData(echoId, formalName, acquisitionSource, provenance, nextMode,
+                commandTargetDimension, commandTargetBlockPos, Optional.empty(), Optional.empty(),
+                manifestationEntityUuid, manifestationDimension, manifestationBlockPos);
     }
     public Optional<BlockPos> commandTargetPos() { return commandTargetBlockPos.map(BlockPos::of); }
     public EchoInstanceData withManifestation(UUID entityUuid, ResourceLocation dimension, BlockPos position) {
         return new EchoInstanceData(echoId, formalName, acquisitionSource, provenance, commandMode, commandTargetDimension,
-                commandTargetBlockPos, Optional.of(Objects.requireNonNull(entityUuid).toString()), Optional.of(Objects.requireNonNull(dimension)), Optional.of(Objects.requireNonNull(position).asLong()));
+                commandTargetBlockPos, cargoItemId, cargoCount, Optional.of(Objects.requireNonNull(entityUuid).toString()),
+                Optional.of(Objects.requireNonNull(dimension)), Optional.of(Objects.requireNonNull(position).asLong()));
     }
     public EchoInstanceData withoutManifestation() {
         if (manifestationEntityUuid.isEmpty()) return this;
         return new EchoInstanceData(echoId, formalName, acquisitionSource, provenance, commandMode, commandTargetDimension,
-                commandTargetBlockPos, Optional.empty(), Optional.empty(), Optional.empty());
+                commandTargetBlockPos, cargoItemId, cargoCount, Optional.empty(), Optional.empty(), Optional.empty());
     }
     public Optional<UUID> manifestationUuid() { return manifestationEntityUuid.map(UUID::fromString); }
     public Optional<BlockPos> manifestationPos() { return manifestationBlockPos.map(BlockPos::of); }
