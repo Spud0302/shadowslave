@@ -192,6 +192,15 @@ public final class NightmareService {
             throw new IllegalStateException("Nightmare completion consumed the wrong active instance");
         }
 
+        // The receipt is still the independent recovery authority here. Do not move on to player-side
+        // appraisal mutation until the exact successful teardown is directly observable in the registry file.
+        SavedDataPersistence.saveAndWait(server);
+        PersistedNightmareOwnershipVerifier.requireAbsent(
+                NightmareRegistryData.persistedFile(server),
+                completed.playerId(),
+                completed.instanceId()
+        );
+
         PreviewAppraisalService.CommittedAppraisal committed;
         try {
             committed = PreviewAppraisalService.commitPrepared(player, prepared);
