@@ -22,14 +22,30 @@ class NightmareDeathCoordinatorTest {
     }
 
     @Test
-    void ownershipIsNotConsumedBeforeIntentAndPlayerResetAreDurable() {
+    void ownershipIsNotConsumedBeforeIntentAndVerifiedPlayerResetAreDurable() {
         FakeOperations operations = new FakeOperations(null);
 
         NightmareDeathCoordinator.commit(operations);
 
         assertTrue(operations.intentWasPresentWhenOwnershipRemoved);
         assertTrue(operations.playerWasResetWhenOwnershipRemoved);
+        assertTrue(operations.playerPersistenceWasVerifiedWhenOwnershipRemoved);
         assertFalse(operations.receiptWasPresentWhenOwnershipRemoved);
+    }
+
+    @Test
+    void playerPersistenceVerificationFailureRetainsDeathAuthorityAndActiveOwnership() {
+        FakeOperations operations = new FakeOperations(null);
+        operations.failPlayerPersistenceVerification = true;
+
+        assertThrows(IllegalStateException.class, () -> NightmareDeathCoordinator.commit(operations));
+
+        assertTrue(operations.durableDeathIntentPresent);
+        assertFalse(operations.durableCompletionReceiptPresent);
+        assertTrue(operations.durablePlayerReset);
+        assertTrue(operations.volatileDeathIntentPresent);
+        assertTrue(operations.volatileActiveOwnershipPresent);
+        assertFalse(operations.playerPersistenceVerified);
     }
 
     @Test
@@ -113,6 +129,7 @@ class NightmareDeathCoordinatorTest {
     private static final class FakeOperations implements NightmareDeathCoordinator.Operations {
         private final Checkpoint crashCheckpoint;
         private boolean crashTriggered;
+        private boolean failPlayerPersistenceVerification;
 
         private boolean durableDeathIntentPresent;
         private boolean durableCompletionReceiptPresent = true;
@@ -126,6 +143,8 @@ class NightmareDeathCoordinatorTest {
 
         private boolean intentWasPresentWhenOwnershipRemoved;
         private boolean playerWasResetWhenOwnershipRemoved;
+        private boolean playerPersistenceVerified;
+        private boolean playerPersistenceWasVerifiedWhenOwnershipRemoved;
         private boolean receiptWasPresentWhenOwnershipRemoved;
         private int deathPersistCount;
         private int registryPersistCount;
@@ -140,6 +159,7 @@ class NightmareDeathCoordinatorTest {
             volatileCompletionReceiptPresent = durableCompletionReceiptPresent;
             volatilePlayerReset = durablePlayerReset;
             volatileActiveOwnershipPresent = durableActiveOwnershipPresent;
+            playerPersistenceVerified = false;
             deathPersistCount = 0;
             registryPersistCount = 0;
         }
@@ -211,9 +231,18 @@ class NightmareDeathCoordinatorTest {
         }
 
         @Override
+        public void verifyPlayerPersisted() {
+            if (failPlayerPersistenceVerification) {
+                throw new IllegalStateException("simulated canonical-death player persistence proof failure");
+            }
+            playerPersistenceVerified = true;
+        }
+
+        @Override
         public void teardownActiveInstance() {
             intentWasPresentWhenOwnershipRemoved = volatileDeathIntentPresent;
             playerWasResetWhenOwnershipRemoved = volatilePlayerReset;
+            playerPersistenceWasVerifiedWhenOwnershipRemoved = playerPersistenceVerified;
             receiptWasPresentWhenOwnershipRemoved = volatileCompletionReceiptPresent;
             volatileActiveOwnershipPresent = false;
         }
@@ -294,6 +323,10 @@ class NightmareDeathCoordinatorTest {
 
         @Override
         public void persistPlayer() {
+        }
+
+        @Override
+        public void verifyPlayerPersisted() {
         }
 
         @Override
