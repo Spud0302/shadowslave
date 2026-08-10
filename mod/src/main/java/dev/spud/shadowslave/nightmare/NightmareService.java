@@ -2,6 +2,7 @@ package dev.spud.shadowslave.nightmare;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.appraisal.PreviewAppraisalService;
+import dev.spud.shadowslave.nightmare.content.DrownedBellScenarioDefinition;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.SoulTransitions;
@@ -9,6 +10,7 @@ import dev.spud.shadowslave.soul.SpellState;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -22,7 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-/** One entry choke point and one teardown path for the playable First Nightmare preview. */
+/** One entry choke point and one teardown path for playable First Nightmare slices. */
 public final class NightmareService {
     public static final ResourceKey<Level> NIGHTMARE_LEVEL = ResourceKey.create(
             Registries.DIMENSION,
@@ -72,7 +74,7 @@ public final class NightmareService {
                     0.0F,
                     0.0F
             );
-            player.sendSystemMessage(Component.literal("First Nightmare — The Last Signal")
+            player.sendSystemMessage(Component.literal("First Nightmare — " + scenarioDisplayName(prepared.scenarioId()))
                     .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD));
             player.sendSystemMessage(Component.literal(
                     "Historical role: " + assignment.roleMatch().role().displayName()
@@ -84,9 +86,8 @@ public final class NightmareService {
             player.sendSystemMessage(Component.literal(
                     "Leverage: " + assignment.roleMatch().variant().leverage()
             ).withStyle(ChatFormatting.LIGHT_PURPLE));
-            player.sendSystemMessage(Component.literal(
-                    "Reach the dead signal fire and rekindle it. Right-click the unlit soul campfire at the far watch. Fighting the pursuer is optional; resolving the conflict is not."
-            ).withStyle(ChatFormatting.LIGHT_PURPLE));
+            player.sendSystemMessage(Component.literal(entryHint(prepared))
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
             return prepared;
         } catch (RuntimeException exception) {
             teardown(server, prepared);
@@ -95,7 +96,22 @@ public final class NightmareService {
         }
     }
 
-    public static boolean resolveSignalFire(ServerPlayer player, net.minecraft.core.BlockPos interactedPos) {
+    /** Routes a physical block interaction through the Java-owned scenario state. */
+    public static boolean resolveScenarioInteraction(ServerPlayer player, BlockPos interactedPos) {
+        NightmareInstance instance = activeFor(player).orElse(null);
+        if (instance == null || !player.serverLevel().dimension().equals(NIGHTMARE_LEVEL)) {
+            return false;
+        }
+        if (instance.scenarioId().equals(LastSignalScenario.SCENARIO_ID)) {
+            return resolveSignalFire(player, interactedPos);
+        }
+        if (instance.scenarioId().equals(DrownedBellScenarioDefinition.SCENARIO_ID)) {
+            return resolveDrownedBellInteraction(player, instance, interactedPos);
+        }
+        return false;
+    }
+
+    public static boolean resolveSignalFire(ServerPlayer player, BlockPos interactedPos) {
         NightmareInstance instance = activeFor(player).orElse(null);
         if (instance == null
                 || !instance.scenarioId().equals(LastSignalScenario.SCENARIO_ID)
@@ -105,7 +121,54 @@ public final class NightmareService {
         }
 
         LastSignalScenario.igniteAltar(player.serverLevel(), instance);
+        completePreview(player, instance,
+                "The signal answers. The Spell appraises the life you lived in the borrowed role.");
+        return true;
+    }
+
+    private static boolean resolveDrownedBellInteraction(
+            ServerPlayer player,
+            NightmareInstance instance,
+            BlockPos interactedPos
+    ) {
+        Optional<String> event = DrownedBellScenario.eventForInteraction(instance, interactedPos);
+        if (event.isEmpty()) {
+            return false;
+        }
+
+        DrownedBellScenario.ResolutionAdvance advance = DrownedBellScenario.applyEvent(instance, event.orElseThrow());
+        if (!advance.accepted()) {
+            player.sendSystemMessage(Component.literal("That action does not resolve the conflict from its current state.")
+                    .withStyle(ChatFormatting.YELLOW));
+            return true;
+        }
+
+        NightmareInstance updated = advance.instance();
+        DrownedBellScenario.applyAcceptedWorldCue(player.serverLevel(), updated, event.orElseThrow());
+        NightmareRegistryData.get(player.getServer()).update(updated);
+
+        if (updated.terminalResolutionId().isPresent()) {
+            DrownedBellScenarioDefinition.ResolutionContent resolution = DrownedBellScenario.resolutionContent(updated)
+                    .orElseThrow(() -> new IllegalStateException("Drowned Bell terminal state has no authored resolution content"));
+            player.sendSystemMessage(Component.literal("Terminal resolution — " + resolution.name())
+                    .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+            player.sendSystemMessage(Component.literal(resolution.description()).withStyle(ChatFormatting.GRAY));
+            completePreview(player, updated,
+                    "The reconstructed conflict has ended. The Spell appraises the life you lived in the borrowed role.");
+        } else {
+            player.sendSystemMessage(Component.literal("Conflict event accepted: " + event.orElseThrow())
+                    .withStyle(ChatFormatting.AQUA));
+            player.sendSystemMessage(Component.literal(DrownedBellScenario.interactionHint(updated))
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
+        }
+        return true;
+    }
+
+    private static void completePreview(ServerPlayer player, NightmareInstance instance, String appraisalLead) {
         NightmareInstance completed = exit(player, NightmareExitReason.SUCCESS);
+        if (!completed.instanceId().equals(instance.instanceId())) {
+            throw new IllegalStateException("Nightmare completion consumed the wrong active instance");
+        }
         try {
             PreviewAppraisalService.appraise(player, completed);
         } catch (RuntimeException exception) {
@@ -116,11 +179,10 @@ public final class NightmareService {
                     exception
             );
         }
-        player.sendSystemMessage(Component.literal("The signal answers. The Spell appraises the life you lived in the borrowed role.")
-                .withStyle(ChatFormatting.LIGHT_PURPLE));
-        player.sendSystemMessage(Component.literal("Aspect revealed: [Last Light] — Awakened Rank. Flaw revealed: [Cold Ash].")
-                .withStyle(ChatFormatting.AQUA));
-        return true;
+        player.sendSystemMessage(Component.literal(appraisalLead).withStyle(ChatFormatting.LIGHT_PURPLE));
+        player.sendSystemMessage(Component.literal(
+                "Preview compatibility appraisal: [Last Light] — Awakened Rank; Flaw [Cold Ash]. Generated appraisal identities are a separate integration slice."
+        ).withStyle(ChatFormatting.AQUA));
     }
 
     public static NightmareInstance technicalRecover(ServerPlayer player) {
@@ -143,8 +205,6 @@ public final class NightmareService {
     /**
      * Exits through the normal teleport and teardown path for a compound preview
      * reset, but deliberately omits the Carrier recovery mutations and their sync.
-     * The caller is responsible for resetting every persistent preview attachment
-     * and sending the one final authoritative snapshot.
      */
     public static NightmareInstance abortForPreviewReset(ServerPlayer player) {
         return exit(player, NightmareExitReason.ADMIN_ABORT);
@@ -167,11 +227,44 @@ public final class NightmareService {
         return NightmareRegistryData.get(player.getServer()).findByPlayer(player.getUUID());
     }
 
+    public static String resumeHint(NightmareInstance instance) {
+        if (instance.scenarioId().equals(LastSignalScenario.SCENARIO_ID)) {
+            return "Active First Nightmare restored: The Last Signal. Reach and right-click the unlit soul campfire.";
+        }
+        if (instance.scenarioId().equals(DrownedBellScenarioDefinition.SCENARIO_ID)) {
+            return "Active First Nightmare restored: The Drowned Bell. " + DrownedBellScenario.interactionHint(instance);
+        }
+        return "Active First Nightmare restored with an unknown scenario identity; use technical recovery.";
+    }
+
     private static NightmareInstance prepareScenario(ServerLevel nightmareLevel, ServerPlayer player, NightmareInstance instance) {
         if (instance.scenarioId().equals(LastSignalScenario.SCENARIO_ID)) {
             return LastSignalScenario.prepare(nightmareLevel, player, instance);
         }
+        if (instance.scenarioId().equals(DrownedBellScenarioDefinition.SCENARIO_ID)) {
+            return DrownedBellScenario.prepare(nightmareLevel, player, instance);
+        }
         throw new IllegalArgumentException("Scenario is authored but not physically playable yet: " + instance.scenarioId());
+    }
+
+    private static String scenarioDisplayName(String scenarioId) {
+        if (scenarioId.equals(LastSignalScenario.SCENARIO_ID)) {
+            return "The Last Signal";
+        }
+        if (scenarioId.equals(DrownedBellScenarioDefinition.SCENARIO_ID)) {
+            return DrownedBellScenarioDefinition.content().displayName();
+        }
+        return scenarioId;
+    }
+
+    private static String entryHint(NightmareInstance instance) {
+        if (instance.scenarioId().equals(LastSignalScenario.SCENARIO_ID)) {
+            return "Reach the dead signal fire and rekindle it. Right-click the unlit soul campfire at the far watch. Fighting the pursuer is optional; resolving the conflict is not.";
+        }
+        if (instance.scenarioId().equals(DrownedBellScenarioDefinition.SCENARIO_ID)) {
+            return DrownedBellScenario.interactionHint(instance);
+        }
+        return "This scenario has no physical runtime hint.";
     }
 
     private static NightmareInstance exit(ServerPlayer player, NightmareExitReason reason) {
@@ -210,7 +303,11 @@ public final class NightmareService {
     private static void teardown(MinecraftServer server, NightmareInstance instance) {
         ServerLevel nightmareLevel = server.getLevel(NIGHTMARE_LEVEL);
         if (nightmareLevel != null) {
-            LastSignalScenario.removeOwnedEntities(nightmareLevel, instance);
+            if (instance.scenarioId().equals(LastSignalScenario.SCENARIO_ID)) {
+                LastSignalScenario.removeOwnedEntities(nightmareLevel, instance);
+            } else if (instance.scenarioId().equals(DrownedBellScenarioDefinition.SCENARIO_ID)) {
+                DrownedBellScenario.removeOwnedEntities(nightmareLevel, instance);
+            }
         }
 
         Optional<NightmareInstance> removed = NightmareRegistryData.get(server).remove(instance);
