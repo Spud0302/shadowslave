@@ -24,8 +24,6 @@ import dev.spud.shadowslave.soul.identity.AttributeOwnershipService;
 import dev.spud.shadowslave.soul.identity.FlawInstanceData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.List;
@@ -37,14 +35,46 @@ import java.util.Optional;
 public final class PreviewAppraisalService {
     private PreviewAppraisalService() {}
 
+    /**
+     * Exact state committed by the appraisal transaction. Presentation consumers
+     * may render these values after success, but must not recalculate or replace them.
+     */
+    public record CommittedAppraisal(
+            FirstNightmareAppraisalResolver.Award award,
+            MemoryInstanceData memory,
+            EchoInstanceData echo
+    ) {
+        public CommittedAppraisal {
+            award = Objects.requireNonNull(award, "award");
+            memory = Objects.requireNonNull(memory, "memory");
+            echo = Objects.requireNonNull(echo, "echo");
+        }
+    }
+
     public static FirstNightmareAppraisalResolver.Award appraise(ServerPlayer player, NightmareInstance completedInstance) {
+        return appraiseWithRewards(player, completedInstance).award();
+    }
+
+    public static FirstNightmareAppraisalResolver.Award appraise(
+            ServerPlayer player,
+            NightmareInstance completedInstance,
+            String resolutionId
+    ) {
+        return appraiseWithRewards(player, completedInstance, resolutionId).award();
+    }
+
+    public static CommittedAppraisal appraiseWithRewards(ServerPlayer player, NightmareInstance completedInstance) {
         Objects.requireNonNull(completedInstance, "completedInstance");
         String resolutionId = completedInstance.terminalResolutionId().orElseGet(() ->
                 completedInstance.scenarioId().equals("last_signal") ? "signal_restored" : "completed");
-        return appraise(player, completedInstance, resolutionId);
+        return appraiseWithRewards(player, completedInstance, resolutionId);
     }
 
-    public static FirstNightmareAppraisalResolver.Award appraise(ServerPlayer player, NightmareInstance completedInstance, String resolutionId) {
+    public static CommittedAppraisal appraiseWithRewards(
+            ServerPlayer player,
+            NightmareInstance completedInstance,
+            String resolutionId
+    ) {
         Objects.requireNonNull(player, "player");
         FirstNightmareAppraisalResolver.Award award = FirstNightmareAppraisalResolver.resolve(
                 Objects.requireNonNull(completedInstance, "completedInstance"), resolutionId);
@@ -92,13 +122,9 @@ public final class PreviewAppraisalService {
             throw exception;
         }
 
-        player.sendSystemMessage(Component.literal("Memory acquired: [" + memory.formalName()
-                + "]. Summon it with /shadowslave_memory summon ash_compass.").withStyle(ChatFormatting.GOLD));
-        player.sendSystemMessage(Component.literal("Echo acquired: [" + echo.formalName()
-                + "]. Summon it with /shadowslave_echo summon ash_burrower.").withStyle(ChatFormatting.AQUA));
         ShadowSlaveMod.LOGGER.info("Generated appraisal {} committed for Nightmare {} and player {}: Aspect {}, Flaw {}, Attribute {}, Memory {}, Echo {}",
                 generated.generationFingerprint(), completedInstance.instanceId(), player.getScoreboardName(), generatedAspect.instanceId(),
                 generatedFlaw.instanceId(), profile.id(), memory.memoryId(), echo.echoId());
-        return award;
+        return new CommittedAppraisal(award, memory, echo);
     }
 }
