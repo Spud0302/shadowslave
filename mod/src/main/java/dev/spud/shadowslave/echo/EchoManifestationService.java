@@ -14,13 +14,16 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -33,6 +36,8 @@ public final class EchoManifestationService {
     private static final double FOLLOW_SPEED = 1.1D;
     private static final double GUARD_STOP_DISTANCE_SQUARED = 2.25D;
     private static final double GUARD_SPEED = 1.0D;
+    private static final double GUARD_THREAT_RADIUS = 8.0D;
+    private static final double GUARD_COMBAT_SPEED = 1.1D;
     private static final double CARGO_INTERACTION_DISTANCE_SQUARED = 16.0D;
 
     private EchoManifestationService() {}
@@ -155,22 +160,56 @@ public final class EchoManifestationService {
         switch (state.commandMode()) {
             case FOLLOW -> follow(player, entity, mob);
             case CARRY -> { if (state.cargoItemId().isEmpty() || state.cargoCount().isEmpty()) hold(mob); else follow(player, entity, mob); }
-            case GUARD_POINT -> {
-                if (state.commandTargetDimension().isEmpty() || state.commandTargetPos().isEmpty() || !state.commandTargetDimension().orElseThrow().equals(entity.level().dimension().location())) hold(mob);
-                else {
-                    BlockPos target = state.commandTargetPos().orElseThrow();
-                    double distance = entity.distanceToSqr(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D);
-                    if (distance <= GUARD_STOP_DISTANCE_SQUARED) hold(mob);
-                    else { mob.setNoAi(false); mob.getNavigation().moveTo(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D, GUARD_SPEED); }
-                }
-            }
+            case GUARD_POINT -> executeGuardPoint(state, entity, mob);
             case HOLD -> hold(mob);
             default -> hold(mob);
         }
     }
-    private static void follow(ServerPlayer player, Entity entity, Mob mob) { if (entity.level() != player.level() || entity.distanceToSqr(player) <= FOLLOW_STOP_DISTANCE_SQUARED) hold(mob); else { mob.setNoAi(false); mob.getNavigation().moveTo(player, FOLLOW_SPEED); } }
+
+    private static void executeGuardPoint(EchoInstanceData state, Entity entity, Mob mob) {
+        if (state.commandTargetDimension().isEmpty()
+                || state.commandTargetPos().isEmpty()
+                || !state.commandTargetDimension().orElseThrow().equals(entity.level().dimension().location())) {
+            hold(mob);
+            return;
+        }
+
+        BlockPos target = state.commandTargetPos().orElseThrow();
+        Optional<LivingEntity> threat = findGuardThreat(entity, target);
+        if (threat.isPresent()) {
+            LivingEntity selected = threat.get();
+            mob.setNoAi(false);
+            mob.setTarget(selected);
+            mob.getNavigation().moveTo(selected, GUARD_COMBAT_SPEED);
+            return;
+        }
+
+        double distance = entity.distanceToSqr(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D);
+        if (distance <= GUARD_STOP_DISTANCE_SQUARED) hold(mob);
+        else {
+            mob.setTarget(null);
+            mob.setNoAi(false);
+            mob.getNavigation().moveTo(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D, GUARD_SPEED);
+        }
+    }
+
+    private static Optional<LivingEntity> findGuardThreat(Entity manifestation, BlockPos guardPoint) {
+        if (!(manifestation.level() instanceof ServerLevel level)) return Optional.empty();
+        AABB area = new AABB(guardPoint).inflate(GUARD_THREAT_RADIUS);
+        return level.getEntitiesOfClass(LivingEntity.class, area, EchoManifestationService::isGuardThreat).stream()
+                .min(Comparator.comparingDouble(manifestation::distanceToSqr));
+    }
+
+    static boolean isGuardThreat(LivingEntity entity) {
+        if (!entity.isAlive()) return false;
+        return entity.getType() == NightmareCreatureEntities.ASH_BURROWER.get()
+                || entity.getType() == NightmareCreatureEntities.CHAINBACK.get()
+                || entity.getType() == NightmareCreatureEntities.DROWNED_LISTENER.get();
+    }
+
+    private static void follow(ServerPlayer player, Entity entity, Mob mob) { if (entity.level() != player.level() || entity.distanceToSqr(player) <= FOLLOW_STOP_DISTANCE_SQUARED) hold(mob); else { mob.setTarget(null); mob.setNoAi(false); mob.getNavigation().moveTo(player, FOLLOW_SPEED); } }
     private static boolean isNearPlayer(ServerPlayer player, Entity entity) { return entity.level() == player.level() && entity.distanceToSqr(player) <= CARGO_INTERACTION_DISTANCE_SQUARED; }
-    private static void hold(Mob mob) { mob.getNavigation().stop(); mob.setNoAi(true); }
+    private static void hold(Mob mob) { mob.getNavigation().stop(); mob.setTarget(null); mob.setNoAi(true); }
     private static Optional<Entity> findManifestation(ServerPlayer player, EchoInstanceData echo) {
         if (echo.manifestationUuid().isEmpty() || echo.manifestationDimension().isEmpty() || echo.manifestationPos().isEmpty()) return Optional.empty();
         MinecraftServer server = Objects.requireNonNull(player.getServer(), "server");
