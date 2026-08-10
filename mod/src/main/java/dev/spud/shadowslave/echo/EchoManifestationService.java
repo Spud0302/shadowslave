@@ -2,7 +2,6 @@ package dev.spud.shadowslave.echo;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.echo.content.EchoContentCatalog;
-import dev.spud.shadowslave.world.entity.AshBurrowerEchoEntity;
 import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
