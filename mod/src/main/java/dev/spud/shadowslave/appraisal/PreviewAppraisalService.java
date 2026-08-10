@@ -19,6 +19,8 @@ import dev.spud.shadowslave.soul.identity.AttributeOwnershipService;
 import dev.spud.shadowslave.soul.identity.FlawInstanceData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.List;
@@ -119,6 +121,9 @@ public final class PreviewAppraisalService {
             throw exception;
         }
 
+        player.sendSystemMessage(Component.literal(
+                "Memory acquired: [" + memory.formalName() + "]. Summon it with /shadowslave_memory summon ash_compass."
+        ).withStyle(ChatFormatting.GOLD));
         ShadowSlaveMod.LOGGER.info(
                 "Generated appraisal {} committed for Nightmare {} and player {}: Aspect {}, Flaw {}, Attribute {}, Memory {}",
                 generated.generationFingerprint(),
