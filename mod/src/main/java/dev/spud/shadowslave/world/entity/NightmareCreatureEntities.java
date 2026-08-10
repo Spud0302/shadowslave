@@ -2,7 +2,6 @@ package dev.spud.shadowslave.world.entity;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.monster.Spider;
@@ -22,7 +21,7 @@ public final class NightmareCreatureEntities {
             registryName -> EntityType.Builder.of(ChainbackEntity::new, MobCategory.MONSTER)
                     .sized(1.4F, 0.9F)
                     .clientTrackingRange(8)
-                    .build(ResourceKey.create(Registries.ENTITY_TYPE, registryName))
+                    .build(registryName.toString())
     );
 
     private NightmareCreatureEntities() {
