@@ -6,6 +6,8 @@ This slice completes physical inspection coverage for the three resource hooks a
 
 `DreamRealmRegionContentCatalog` remains the Java authority for the Ashen Expanse and its resource-hook identities. `DreamRealmVerticalSliceDefinition` remains the Java binding that decides where those hooks exist in the current preview. NeoForge only recognizes the corresponding physical cluster and presents bounded inspection text.
 
+This is the consolidated direct-to-`main` resource integration edge: it contains the original ruin-metal executor from superseded PR #204 and extends that same runtime path to the two remaining already-placed hooks rather than keeping overlapping active PRs.
+
 ## Evidence classification
 
 - **CANON:** no new Shadow Slave canon proposition is introduced by this runtime integration.
