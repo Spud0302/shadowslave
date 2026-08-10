@@ -2,6 +2,8 @@ package dev.spud.shadowslave.world.entity;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,6 +32,17 @@ class AshBurrowerVibrationBehaviorTest {
     @Test
     void movementOutsideDetectionRangeDoesNotTrigger() {
         assertFalse(AshBurrowerVibrationBehavior.detects(169.0D, 4.0D, false));
+    }
+
+    @Test
+    void vibrationCleanupReleasesOnlyItsOwnExpiredTarget() {
+        UUID vibrationTarget = UUID.randomUUID();
+        assertTrue(AshBurrowerVibrationBehavior.shouldReleaseVibrationTarget(
+                vibrationTarget, vibrationTarget, 0, true, 36.0D));
+        assertFalse(AshBurrowerVibrationBehavior.shouldReleaseVibrationTarget(
+                vibrationTarget, UUID.randomUUID(), 0, true, 36.0D));
+        assertFalse(AshBurrowerVibrationBehavior.shouldReleaseVibrationTarget(
+                vibrationTarget, vibrationTarget, 20, true, 36.0D));
     }
 
     @Test
