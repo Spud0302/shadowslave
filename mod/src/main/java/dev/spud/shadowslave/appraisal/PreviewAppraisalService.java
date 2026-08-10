@@ -36,16 +36,21 @@ public final class PreviewAppraisalService {
     private PreviewAppraisalService() {}
 
     /**
-     * Exact state committed by the appraisal transaction. Presentation consumers
-     * may render these values after success, but must not recalculate or replace them.
+     * Exact state committed by the appraisal transaction. Presentation and
+     * recovery consumers may use these values after success, but must not
+     * recalculate or replace them from the current generator/catalogues.
      */
     public record CommittedAppraisal(
             FirstNightmareAppraisalResolver.Award award,
+            SoulIdentityData identity,
+            AttributeInstanceData attribute,
             MemoryInstanceData memory,
             EchoInstanceData echo
     ) {
         public CommittedAppraisal {
             award = Objects.requireNonNull(award, "award");
+            identity = Objects.requireNonNull(identity, "identity");
+            attribute = Objects.requireNonNull(attribute, "attribute");
             memory = Objects.requireNonNull(memory, "memory");
             echo = Objects.requireNonNull(echo, "echo");
         }
@@ -88,6 +93,7 @@ public final class PreviewAppraisalService {
                         "generated First-Nightmare Dormant ability; classification integration pending"))), generated.provenance());
         FlawInstanceData flaw = new FlawInstanceData(generatedFlaw.instanceId(), generatedFlaw.formalName(),
                 generatedFlaw.effectId(), generated.provenance());
+        SoulIdentityData identity = new SoulIdentityData(Optional.of(aspect), Optional.of(flaw));
         AttributeContentCatalog.AttributeProfile profile = award.attribute();
         AttributeInstanceData attribute = new AttributeInstanceData(profile.id(), profile.formalName(),
                 profile.origin().name().toLowerCase(Locale.ROOT), profile.visibility().name().toLowerCase(Locale.ROOT),
@@ -108,7 +114,7 @@ public final class PreviewAppraisalService {
         AttributeOwnershipData beforeAttributes = AttributeOwnershipService.get(player);
         MemoryOwnershipData beforeMemories = MemoryOwnershipService.get(player);
         EchoOwnershipData beforeEchoes = EchoOwnershipService.get(player);
-        SoulIdentityService.replace(player, new SoulIdentityData(Optional.of(aspect), Optional.of(flaw)));
+        SoulIdentityService.replace(player, identity);
         AttributeOwnershipService.award(player, attribute);
         MemoryOwnershipService.award(player, memory);
         EchoOwnershipService.award(player, echo);
@@ -125,6 +131,6 @@ public final class PreviewAppraisalService {
         ShadowSlaveMod.LOGGER.info("Generated appraisal {} committed for Nightmare {} and player {}: Aspect {}, Flaw {}, Attribute {}, Memory {}, Echo {}",
                 generated.generationFingerprint(), completedInstance.instanceId(), player.getScoreboardName(), generatedAspect.instanceId(),
                 generatedFlaw.instanceId(), profile.id(), memory.memoryId(), echo.echoId());
-        return new CommittedAppraisal(award, memory, echo);
+        return new CommittedAppraisal(award, identity, attribute, memory, echo);
     }
 }
