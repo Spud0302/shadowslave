@@ -8,7 +8,9 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.storage.LevelResource;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,7 +21,7 @@ import java.util.UUID;
 
 /** Overworld-owned persistent registry for active Nightmare instances. */
 public final class NightmareRegistryData extends SavedData {
-    private static final String DATA_NAME = "shadowslave_nightmares";
+    static final String DATA_NAME = "shadowslave_nightmares";
     private static final Factory<NightmareRegistryData> FACTORY = new Factory<>(
             NightmareRegistryData::new,
             NightmareRegistryData::load,
@@ -32,6 +34,13 @@ public final class NightmareRegistryData extends SavedData {
 
     public static NightmareRegistryData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+    }
+
+    static Path persistedFile(MinecraftServer server) {
+        return Objects.requireNonNull(server, "server")
+                .getWorldPath(LevelResource.ROOT)
+                .resolve("data")
+                .resolve(DATA_NAME + ".dat");
     }
 
     public Optional<NightmareInstance> findByPlayer(UUID playerId) {
