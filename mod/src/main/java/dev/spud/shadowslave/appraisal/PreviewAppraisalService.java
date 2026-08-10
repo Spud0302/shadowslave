@@ -25,7 +25,9 @@ import dev.spud.shadowslave.soul.identity.FlawInstanceData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.LevelResource;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -177,7 +179,14 @@ public final class PreviewAppraisalService {
             throw exception;
         }
 
-        ShadowSlaveMod.LOGGER.info("Generated appraisal {} committed for player {}: Aspect {}, Flaw {}, Attribute {}, Memory {}, Echo {}",
+        GeneratedAppraisalRecoverySnapshot snapshot = GeneratedAppraisalRecoverySnapshot.fromPrepared(checked);
+        GeneratedAppraisalRecoveryService.PlayerState committedState = GeneratedAppraisalRecoveryService.currentState(player);
+        player.getServer().getPlayerList().saveAll();
+        Path playerDataFile = player.getServer().getWorldPath(LevelResource.PLAYER_DATA_DIR)
+                .resolve(player.getStringUUID() + ".dat");
+        PersistedGeneratedAppraisalPlayerVerifier.requireCommitted(playerDataFile, committedState, snapshot);
+
+        ShadowSlaveMod.LOGGER.info("Generated appraisal {} committed and persistence-verified for player {}: Aspect {}, Flaw {}, Attribute {}, Memory {}, Echo {}",
                 generated.generationFingerprint(), player.getScoreboardName(), generatedAspect.instanceId(),
                 generatedFlaw.instanceId(), checked.attribute().attributeId(), checked.memory().memoryId(), checked.echo().echoId());
         return new CommittedAppraisal(
