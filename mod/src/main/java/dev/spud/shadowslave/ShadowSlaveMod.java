@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.command.ShadowSlaveCommands;
 import dev.spud.shadowslave.echo.EchoCommands;
+import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.item.ModItems;
 import dev.spud.shadowslave.memory.MemoryCommands;
 import dev.spud.shadowslave.network.ModPayloads;
@@ -37,6 +38,7 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(NightmareEvents::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(NightmareEvents::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(PreviewPowerService::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(EchoManifestationService::onPlayerTick);
         LOGGER.info("Shadow Slave Java core is loading");
     }
 }
