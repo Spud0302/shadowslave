@@ -1,11 +1,11 @@
 package dev.spud.shadowslave.echo;
 
 import dev.spud.shadowslave.attachment.ModAttachments;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 /** Server-side access boundary for canonical Echo ownership and manifestation identity. */
@@ -31,9 +31,22 @@ public final class EchoOwnershipService {
         return after;
     }
 
-    public static EchoOwnershipData setManifestation(ServerPlayer player, ResourceLocation echoId, Optional<UUID> entityUuid) {
+    public static EchoOwnershipData setManifestation(
+            ServerPlayer player,
+            ResourceLocation echoId,
+            UUID entityUuid,
+            ResourceLocation dimension,
+            BlockPos position
+    ) {
         Objects.requireNonNull(player, "player");
-        EchoOwnershipData after = get(player).withManifestation(echoId, entityUuid);
+        EchoOwnershipData after = get(player).withManifestation(echoId, entityUuid, dimension, position);
+        player.setData(ModAttachments.ECHOES, after);
+        return after;
+    }
+
+    public static EchoOwnershipData clearManifestation(ServerPlayer player, ResourceLocation echoId) {
+        Objects.requireNonNull(player, "player");
+        EchoOwnershipData after = get(player).withoutManifestation(echoId);
         player.setData(ModAttachments.ECHOES, after);
         return after;
     }
