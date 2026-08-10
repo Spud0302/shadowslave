@@ -4,6 +4,10 @@
 **Scope:** successful First-Nightmare appraisal recovery / Issue #34  
 **Parent:** PR #201 durable generated-appraisal receipt + login replay
 
+## Parent evidence
+
+PR #201 exact head `9c209e0de5392d879c192d481641a009cb66bde1` passed Preview Gates #205 / Actions run `31402364266`. This note does not reuse that pass as evidence for the additional persisted-player verifier; the successor head requires its own complete gate.
+
 ## Problem
 
 PR #201 orders both normal successful completion and login replay as player mutation -> `PlayerList.saveAll()` -> completion-receipt deletion. That is materially safer than deleting the receipt before the player save, but successful return from the save call does not itself prove that the exact expected player attachment image is readable from `playerdata/<uuid>.dat`.
