@@ -82,7 +82,7 @@ public final class PreviewResetService {
 
         @Override
         public void clearMemories() {
-            MemoryManifestationService.dismissAshCompass(player);
+            MemoryManifestationService.clearAshCompassManifestations(player);
             MemoryOwnershipService.replace(player, MemoryOwnershipData.empty());
         }
 
