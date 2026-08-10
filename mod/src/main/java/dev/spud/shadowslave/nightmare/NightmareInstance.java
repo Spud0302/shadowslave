@@ -24,7 +24,9 @@ public record NightmareInstance(
         BlockPos origin,
         BlockPos altar,
         Optional<UUID> pursuerId,
-        long createdGameTime
+        long createdGameTime,
+        Optional<String> resolutionStateId,
+        Optional<String> terminalResolutionId
 ) {
     public NightmareInstance {
         instanceId = Objects.requireNonNull(instanceId, "instanceId");
@@ -35,23 +37,64 @@ public record NightmareInstance(
         origin = Objects.requireNonNull(origin, "origin");
         altar = Objects.requireNonNull(altar, "altar");
         pursuerId = Objects.requireNonNull(pursuerId, "pursuerId");
+        resolutionStateId = Objects.requireNonNull(resolutionStateId, "resolutionStateId")
+                .map(value -> requireText(value, "resolutionStateId"));
+        terminalResolutionId = Objects.requireNonNull(terminalResolutionId, "terminalResolutionId")
+                .map(value -> requireText(value, "terminalResolutionId"));
         if (slot < 0) {
             throw new IllegalArgumentException("slot cannot be negative");
         }
         if (createdGameTime < 0) {
             throw new IllegalArgumentException("createdGameTime cannot be negative");
         }
+        if (terminalResolutionId.isPresent() && resolutionStateId.isEmpty()) {
+            throw new IllegalArgumentException("terminal resolution requires a persisted resolution state");
+        }
+    }
+
+    /** Backwards-compatible constructor for callers that do not yet own graph state. */
+    public NightmareInstance(
+            UUID instanceId,
+            UUID playerId,
+            int slot,
+            String scenarioId,
+            String historicalRoleId,
+            ResourceLocation returnDimension,
+            double returnX,
+            double returnY,
+            double returnZ,
+            float returnYaw,
+            float returnPitch,
+            BlockPos origin,
+            BlockPos altar,
+            Optional<UUID> pursuerId,
+            long createdGameTime
+    ) {
+        this(instanceId, playerId, slot, scenarioId, historicalRoleId, returnDimension,
+                returnX, returnY, returnZ, returnYaw, returnPitch, origin, altar, pursuerId,
+                createdGameTime, Optional.empty(), Optional.empty());
     }
 
     public NightmareInstance withLayout(BlockPos newOrigin, BlockPos newAltar) {
-        return copy(newOrigin, newAltar, pursuerId);
+        return copy(newOrigin, newAltar, pursuerId, resolutionStateId, terminalResolutionId);
     }
 
     public NightmareInstance withPursuer(UUID entityId) {
-        return copy(origin, altar, Optional.of(Objects.requireNonNull(entityId, "entityId")));
+        return copy(origin, altar, Optional.of(Objects.requireNonNull(entityId, "entityId")), resolutionStateId, terminalResolutionId);
     }
 
-    private NightmareInstance copy(BlockPos newOrigin, BlockPos newAltar, Optional<UUID> newPursuerId) {
+    public NightmareInstance withResolutionState(String stateId, Optional<String> terminalId) {
+        return copy(origin, altar, pursuerId, Optional.of(requireText(stateId, "stateId")),
+                Objects.requireNonNull(terminalId, "terminalId"));
+    }
+
+    private NightmareInstance copy(
+            BlockPos newOrigin,
+            BlockPos newAltar,
+            Optional<UUID> newPursuerId,
+            Optional<String> newResolutionStateId,
+            Optional<String> newTerminalResolutionId
+    ) {
         return new NightmareInstance(
                 instanceId,
                 playerId,
@@ -67,7 +110,9 @@ public record NightmareInstance(
                 newOrigin,
                 newAltar,
                 newPursuerId,
-                createdGameTime
+                createdGameTime,
+                newResolutionStateId,
+                newTerminalResolutionId
         );
     }
 
@@ -88,6 +133,8 @@ public record NightmareInstance(
         tag.putLong("altar", altar.asLong());
         pursuerId.ifPresent(value -> tag.putUUID("pursuer_id", value));
         tag.putLong("created_game_time", createdGameTime);
+        resolutionStateId.ifPresent(value -> tag.putString("resolution_state_id", value));
+        terminalResolutionId.ifPresent(value -> tag.putString("terminal_resolution_id", value));
         return tag;
     }
 
@@ -107,7 +154,9 @@ public record NightmareInstance(
                 BlockPos.of(tag.getLong("origin")),
                 BlockPos.of(tag.getLong("altar")),
                 tag.hasUUID("pursuer_id") ? Optional.of(tag.getUUID("pursuer_id")) : Optional.empty(),
-                tag.getLong("created_game_time")
+                tag.getLong("created_game_time"),
+                tag.contains("resolution_state_id") ? Optional.of(tag.getString("resolution_state_id")) : Optional.empty(),
+                tag.contains("terminal_resolution_id") ? Optional.of(tag.getString("terminal_resolution_id")) : Optional.empty()
         );
     }
 
