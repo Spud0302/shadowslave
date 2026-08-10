@@ -1,0 +1,51 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.shadowslave.chainback",
+        "texture_width": 64,
+        "texture_height": 64,
+        "visible_bounds_width": 3.5,
+        "visible_bounds_height": 3.5,
+        "visible_bounds_offset": [0, 1.2, 0]
+      },
+      "bones": [
+        {"name":"root","pivot":[0,24,0]},
+        {"name":"body","parent":"root","pivot":[0,14,0],"rotation":[12,0,0],"cubes":[
+          {"origin":[-5,7,-3],"size":[10,13,6],"uv":[0,0],"inflate":0.15},
+          {"origin":[-6,17,-3.5],"size":[12,4,7],"uv":[0,20],"inflate":0.1}
+        ]},
+        {"name":"head","parent":"body","pivot":[0,20,-1],"rotation":[8,0,0],"cubes":[
+          {"origin":[-4,19,-5],"size":[8,7,7],"uv":[28,0],"inflate":0.1}
+        ]},
+        {"name":"jaw","parent":"head","pivot":[0,20,-5],"cubes":[
+          {"origin":[-3.5,18,-7],"size":[7,2,4],"uv":[28,14]}
+        ]},
+        {"name":"arm_left","parent":"body","pivot":[5,18,0],"rotation":[-8,0,-12],"cubes":[
+          {"origin":[5,8,-2],"size":[4,11,4],"uv":[0,37]}
+        ]},
+        {"name":"arm_right","parent":"body","pivot":[-5,18,0],"rotation":[-8,0,12],"cubes":[
+          {"origin":[-9,8,-2],"size":[4,11,4],"uv":[16,37]}
+        ]},
+        {"name":"leg_left","parent":"root","pivot":[3,9,0],"cubes":[
+          {"origin":[1,0,-2],"size":[4,10,4],"uv":[32,28]}
+        ]},
+        {"name":"leg_right","parent":"root","pivot":[-3,9,0],"cubes":[
+          {"origin":[-5,0,-2],"size":[4,10,4],"uv":[48,28]}
+        ]},
+        {"name":"chain_left","parent":"body","pivot":[6,15,2],"rotation":[0,0,-8],"cubes":[
+          {"origin":[6,10,1.5],"size":[1,8,1],"uv":[58,0]},
+          {"origin":[7,7,1.5],"size":[1,4,1],"uv":[58,10]}
+        ]},
+        {"name":"chain_right","parent":"body","pivot":[-6,15,2],"rotation":[0,0,8],"cubes":[
+          {"origin":[-7,10,1.5],"size":[1,8,1],"uv":[60,0]},
+          {"origin":[-8,7,1.5],"size":[1,4,1],"uv":[60,10]}
+        ]},
+        {"name":"back_chain","parent":"body","pivot":[0,15,3],"cubes":[
+          {"origin":[-0.5,6,3],"size":[1,10,1],"uv":[56,16]}
+        ]}
+      ]
+    }
+  ]
+}
