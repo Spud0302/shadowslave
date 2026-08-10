@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Objects;
@@ -16,14 +17,18 @@ public record EchoInstanceData(
         String formalName,
         String acquisitionSource,
         String provenance,
-        Optional<String> manifestationEntityUuid
+        Optional<String> manifestationEntityUuid,
+        Optional<ResourceLocation> manifestationDimension,
+        Optional<Long> manifestationBlockPos
 ) {
     private static final MapCodec<EchoInstanceData> RAW_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             ResourceLocation.CODEC.fieldOf("echo_id").forGetter(EchoInstanceData::echoId),
             Codec.STRING.fieldOf("formal_name").forGetter(EchoInstanceData::formalName),
             Codec.STRING.fieldOf("acquisition_source").forGetter(EchoInstanceData::acquisitionSource),
             Codec.STRING.fieldOf("provenance").forGetter(EchoInstanceData::provenance),
-            Codec.STRING.optionalFieldOf("manifestation_entity_uuid").forGetter(EchoInstanceData::manifestationEntityUuid)
+            Codec.STRING.optionalFieldOf("manifestation_entity_uuid").forGetter(EchoInstanceData::manifestationEntityUuid),
+            ResourceLocation.CODEC.optionalFieldOf("manifestation_dimension").forGetter(EchoInstanceData::manifestationDimension),
+            Codec.LONG.optionalFieldOf("manifestation_block_pos").forGetter(EchoInstanceData::manifestationBlockPos)
     ).apply(instance, EchoInstanceData::new));
 
     public static final MapCodec<EchoInstanceData> CODEC = RAW_CODEC.flatXmap(
@@ -31,7 +36,7 @@ public record EchoInstanceData(
                 try {
                     return DataResult.success(new EchoInstanceData(
                             value.echoId(), value.formalName(), value.acquisitionSource(), value.provenance(),
-                            value.manifestationEntityUuid()));
+                            value.manifestationEntityUuid(), value.manifestationDimension(), value.manifestationBlockPos()));
                 } catch (IllegalArgumentException | NullPointerException exception) {
                     return DataResult.error(() -> "Invalid EchoInstanceData: " + exception.getMessage());
                 }
@@ -46,22 +51,43 @@ public record EchoInstanceData(
         provenance = requireText(provenance, "provenance");
         manifestationEntityUuid = Objects.requireNonNull(manifestationEntityUuid, "manifestationEntityUuid")
                 .map(value -> UUID.fromString(requireText(value, "manifestationEntityUuid")).toString());
+        manifestationDimension = Objects.requireNonNull(manifestationDimension, "manifestationDimension");
+        manifestationBlockPos = Objects.requireNonNull(manifestationBlockPos, "manifestationBlockPos");
+        int populated = (manifestationEntityUuid.isPresent() ? 1 : 0)
+                + (manifestationDimension.isPresent() ? 1 : 0)
+                + (manifestationBlockPos.isPresent() ? 1 : 0);
+        if (populated != 0 && populated != 3) {
+            throw new IllegalArgumentException("Echo manifestation UUID, dimension and block position must be stored together");
+        }
     }
 
-    public EchoInstanceData withManifestation(UUID entityUuid) {
-        return new EchoInstanceData(echoId, formalName, acquisitionSource, provenance,
-                Optional.of(Objects.requireNonNull(entityUuid, "entityUuid").toString()));
+    public EchoInstanceData withManifestation(UUID entityUuid, ResourceLocation dimension, BlockPos position) {
+        return new EchoInstanceData(
+                echoId,
+                formalName,
+                acquisitionSource,
+                provenance,
+                Optional.of(Objects.requireNonNull(entityUuid, "entityUuid").toString()),
+                Optional.of(Objects.requireNonNull(dimension, "dimension")),
+                Optional.of(Objects.requireNonNull(position, "position").asLong())
+        );
     }
 
     public EchoInstanceData withoutManifestation() {
         if (manifestationEntityUuid.isEmpty()) {
             return this;
         }
-        return new EchoInstanceData(echoId, formalName, acquisitionSource, provenance, Optional.empty());
+        return new EchoInstanceData(
+                echoId, formalName, acquisitionSource, provenance,
+                Optional.empty(), Optional.empty(), Optional.empty());
     }
 
     public Optional<UUID> manifestationUuid() {
         return manifestationEntityUuid.map(UUID::fromString);
+    }
+
+    public Optional<BlockPos> manifestationPos() {
+        return manifestationBlockPos.map(BlockPos::of);
     }
 
     private static String requireText(String value, String name) {
