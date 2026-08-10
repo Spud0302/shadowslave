@@ -43,6 +43,17 @@ public final class EchoOwnershipService {
         return after;
     }
 
+    public static EchoOwnershipData setGuardPoint(ServerPlayer player, ResourceLocation echoId,
+                                                  ResourceLocation dimension, BlockPos position) {
+        Objects.requireNonNull(player, "player");
+        EchoOwnershipData before = get(player);
+        EchoOwnershipData after = before.withGuardPoint(echoId, dimension, position);
+        if (after != before) {
+            player.setData(ModAttachments.ECHOES, after);
+        }
+        return after;
+    }
+
     public static EchoOwnershipData setManifestation(ServerPlayer player, ResourceLocation echoId, UUID entityUuid,
                                                       ResourceLocation dimension, BlockPos position) {
         Objects.requireNonNull(player, "player");
