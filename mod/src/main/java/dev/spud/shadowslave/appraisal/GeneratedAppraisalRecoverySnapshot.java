@@ -17,8 +17,8 @@ import java.util.Objects;
  * Exact replay payload for one already-resolved generated First-Nightmare appraisal.
  *
  * <p>This object deliberately stores the persistent identity/reward records that
- * were actually committed. Recovery must replay these values rather than invoke
- * the current generator or current content catalogue again.</p>
+ * were resolved for the completion. Recovery must replay these values rather than
+ * invoke the current generator or current content catalogue again.</p>
  */
 public record GeneratedAppraisalRecoverySnapshot(
         String generatorVersion,
@@ -76,6 +76,22 @@ public record GeneratedAppraisalRecoverySnapshot(
         if (!identity.isRevealed()) {
             throw new IllegalArgumentException("Recovery snapshot requires a resolved Aspect and Flaw");
         }
+    }
+
+    public static GeneratedAppraisalRecoverySnapshot fromPrepared(
+            PreviewAppraisalService.PreparedAppraisal prepared
+    ) {
+        PreviewAppraisalService.PreparedAppraisal checked = Objects.requireNonNull(prepared, "prepared");
+        var generated = checked.award().identity();
+        return new GeneratedAppraisalRecoverySnapshot(
+                generated.generatorVersion(),
+                generated.seed(),
+                generated.generationFingerprint(),
+                checked.identity(),
+                checked.attribute(),
+                checked.memory(),
+                checked.echo()
+        );
     }
 
     public static GeneratedAppraisalRecoverySnapshot fromCommitted(

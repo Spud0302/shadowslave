@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.nightmare;
 
+import dev.spud.shadowslave.appraisal.GeneratedAppraisalRecoveryService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -8,7 +9,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
-/** NeoForge event bridge; all actual state changes route through NightmareService. */
+/** NeoForge event bridge; all actual state changes route through Java-owned services. */
 public final class NightmareEvents {
     private NightmareEvents() {
     }
@@ -35,6 +36,13 @@ public final class NightmareEvents {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
+
+        // A durable successful-completion receipt outranks ordinary active-instance reconciliation.
+        // Replay is exact and idempotent; contradictory player state fails closed while retaining the receipt.
+        if (GeneratedAppraisalRecoveryService.replayPending(player)) {
+            return;
+        }
+
         NightmareService.activeFor(player).ifPresent(instance -> {
             if (player.serverLevel().dimension().equals(NightmareService.NIGHTMARE_LEVEL)) {
                 player.sendSystemMessage(Component.literal(NightmareService.resumeHint(instance))

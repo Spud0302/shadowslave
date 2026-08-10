@@ -2,10 +2,12 @@ package dev.spud.shadowslave.nightmare;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.appraisal.FirstNightmareSpellPresentation;
+import dev.spud.shadowslave.appraisal.GeneratedAppraisalRecoverySnapshot;
 import dev.spud.shadowslave.appraisal.PreviewAppraisalService;
 import dev.spud.shadowslave.content.spell.SpellPresentationCatalog;
 import dev.spud.shadowslave.nightmare.content.DrownedBellScenarioDefinition;
 import dev.spud.shadowslave.nightmare.content.NightmareRoleContentCatalog;
+import dev.spud.shadowslave.persistence.SavedDataPersistence;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.SoulTransitions;
@@ -46,6 +48,9 @@ public final class NightmareService {
         }
 
         MinecraftServer server = player.getServer();
+        if (NightmareCompletionReceiptData.get(server).find(player.getUUID()).isPresent()) {
+            throw new IllegalStateException("A successful Nightmare completion is still awaiting appraisal recovery");
+        }
         NightmareRegistryData registry = NightmareRegistryData.get(server);
         if (registry.findByPlayer(player.getUUID()).isPresent()) {
             throw new IllegalStateException("You already own an active Nightmare instance");
@@ -167,22 +172,50 @@ public final class NightmareService {
     }
 
     private static void completePreview(ServerPlayer player, NightmareInstance instance) {
+        MinecraftServer server = player.getServer();
+        NightmareInstance active = activeFor(player)
+                .orElseThrow(() -> new IllegalStateException("Player does not own an active Nightmare"));
+        if (!active.equals(instance)) {
+            throw new IllegalStateException("Nightmare completion attempted from a stale instance snapshot");
+        }
+
+        PreviewAppraisalService.PreparedAppraisal prepared = PreviewAppraisalService.prepareWithRewards(active);
+        GeneratedAppraisalRecoverySnapshot snapshot = GeneratedAppraisalRecoverySnapshot.fromPrepared(prepared);
+        NightmareCompletionReceiptData receipts = NightmareCompletionReceiptData.get(server);
+        NightmareCompletionReceiptData.Receipt receipt = receipts.begin(active, snapshot);
+
+        // Recovery authority must reach the SavedData durability barrier before active ownership is consumed.
+        SavedDataPersistence.saveAndWait(server);
+
         NightmareInstance completed = exit(player, NightmareExitReason.SUCCESS);
         if (!completed.instanceId().equals(instance.instanceId())) {
             throw new IllegalStateException("Nightmare completion consumed the wrong active instance");
         }
 
+        // The receipt is still the independent recovery authority here. Do not move on to player-side
+        // appraisal mutation until the exact successful teardown is directly observable in the registry file.
+        SavedDataPersistence.saveAndWait(server);
+        PersistedNightmareOwnershipVerifier.requireAbsent(
+                NightmareRegistryData.persistedFile(server),
+                completed.playerId(),
+                completed.instanceId()
+        );
+
         PreviewAppraisalService.CommittedAppraisal committed;
         try {
-            committed = PreviewAppraisalService.appraiseWithRewards(player, completed);
+            committed = PreviewAppraisalService.commitPrepared(player, prepared);
         } catch (RuntimeException exception) {
-            SoulIdentityService.replace(player, SoulIdentityData.empty());
-            SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
             throw new IllegalStateException(
-                    "The preview appraisal failed after lifecycle teardown; Java state was recovered to Carrier",
+                    "The preview appraisal failed after teardown; exact generated recovery authority remains durable",
                     exception
             );
         }
+
+        // The generated award and Dreamer transition must reach player persistence before the
+        // independent receipt can be consumed. If saving fails, retain the receipt for login replay.
+        server.getPlayerList().saveAll();
+        receipts.clear(receipt);
+        SavedDataPersistence.saveAndWait(server);
 
         FirstNightmareSpellPresentation.ResolvedView view = FirstNightmareSpellPresentation.fromCommitted(
                 scenarioDisplayName(completed.scenarioId()),
@@ -229,6 +262,27 @@ public final class NightmareService {
      */
     public static NightmareInstance abortForPreviewReset(ServerPlayer player) {
         return exit(player, NightmareExitReason.ADMIN_ABORT);
+    }
+
+    /**
+     * Replays only the successful teardown half of a completion whose durable receipt survived a crash.
+     * The exact active instance must still match the receipt; contradictory ownership fails closed.
+     */
+    public static boolean recoverSuccessfulCompletion(ServerPlayer player, NightmareInstance expected) {
+        Objects.requireNonNull(player, "player");
+        NightmareInstance checkedExpected = Objects.requireNonNull(expected, "expected");
+        Optional<NightmareInstance> active = activeFor(player);
+        if (active.isEmpty()) {
+            return false;
+        }
+        if (!active.orElseThrow().equals(checkedExpected)) {
+            throw new IllegalStateException("Active Nightmare does not match the successful-completion receipt");
+        }
+        NightmareInstance completed = exit(player, NightmareExitReason.SUCCESS);
+        if (!completed.equals(checkedExpected)) {
+            throw new IllegalStateException("Successful-completion recovery consumed the wrong active Nightmare");
+        }
+        return true;
     }
 
     public static void canonicalDeath(ServerPlayer player) {
