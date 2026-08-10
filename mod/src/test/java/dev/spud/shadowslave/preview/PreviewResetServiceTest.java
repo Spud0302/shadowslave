@@ -1,5 +1,7 @@
 package dev.spud.shadowslave.preview;
 
+import dev.spud.shadowslave.memory.MemoryInstanceData;
+import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.migration.ImportedAspect;
 import dev.spud.shadowslave.migration.ImportedFlaw;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
@@ -31,6 +33,7 @@ class PreviewResetServiceTest {
     private static final ResourceLocation ABILITY = id("preview/ability/kindle");
     private static final ResourceLocation EFFECT = id("preview/flaw_effect/cold_ash");
     private static final ResourceLocation ATTRIBUTE = id("generation/attribute/watchers_mark");
+    private static final ResourceLocation MEMORY = id("memory/ash_compass");
 
     @Test
     void resetCompletesAllMutationsBeforeOneAuthoritativeSnapshot() {
@@ -43,6 +46,7 @@ class PreviewResetServiceTest {
                 "reset_soul",
                 "clear_soul_identity",
                 "clear_attributes",
+                "clear_memories",
                 "clear_imported_identity",
                 "clear_preview_power",
                 "sync"
@@ -51,6 +55,7 @@ class PreviewResetServiceTest {
         assertEquals(SoulData.uninfected(), operations.soul);
         assertEquals(SoulIdentityData.empty(), operations.identity);
         assertEquals(AttributeOwnershipData.empty(), operations.attributes);
+        assertEquals(MemoryOwnershipData.empty(), operations.memories);
         assertEquals(ImportedIdentityData.empty(), operations.importedIdentity);
         assertEquals(PreviewPowerData.empty(), operations.previewPower);
         assertEquals(1, operations.snapshots.size());
@@ -90,6 +95,9 @@ class PreviewResetServiceTest {
         );
         private AttributeOwnershipData attributes = new AttributeOwnershipData(List.of(
                 new AttributeInstanceData(ATTRIBUTE, "Watcher's Mark", "nightmare_role_inherited", "revealed", "test")
+        ));
+        private MemoryOwnershipData memories = new MemoryOwnershipData(List.of(
+                new MemoryInstanceData(MEMORY, "Ash Compass", "test_award", "test")
         ));
         private ImportedIdentityData importedIdentity = new ImportedIdentityData(
                 Optional.of(new ImportedAspect(
@@ -138,6 +146,12 @@ class PreviewResetServiceTest {
         public void clearAttributes() {
             calls.add("clear_attributes");
             attributes = AttributeOwnershipData.empty();
+        }
+
+        @Override
+        public void clearMemories() {
+            calls.add("clear_memories");
+            memories = MemoryOwnershipData.empty();
         }
 
         @Override
