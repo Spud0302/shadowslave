@@ -44,13 +44,13 @@ final class PersistedNightmareOwnershipVerifier {
         }
 
         for (Tag rawInstance : instances) {
-            if (!(rawInstance instanceof CompoundTag instance)) {
+            if (!(rawInstance instanceof CompoundTag instance)
+                    || !instance.hasUUID("player_id")
+                    || !instance.hasUUID("instance_id")) {
                 throw new IllegalStateException("Persisted Nightmare registry contains a malformed active-instance entry");
             }
-            boolean samePlayer = instance.hasUUID("player_id")
-                    && checkedPlayerId.equals(instance.getUUID("player_id"));
-            boolean sameInstance = instance.hasUUID("instance_id")
-                    && checkedInstanceId.equals(instance.getUUID("instance_id"));
+            boolean samePlayer = checkedPlayerId.equals(instance.getUUID("player_id"));
+            boolean sameInstance = checkedInstanceId.equals(instance.getUUID("instance_id"));
             if (samePlayer || sameInstance) {
                 throw new IllegalStateException(
                         "Persisted Nightmare registry still contains canonical-death active ownership"
