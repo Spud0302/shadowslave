@@ -80,26 +80,51 @@ public final class NightmareCompletionReceiptData extends SavedData {
         return Optional.of(existing);
     }
 
+    /**
+     * Consumes one receipt only after the persisted SavedData image proves that authority is absent.
+     * If the async save or read-back is ambiguous, restore and re-dirty the in-memory receipt so the
+     * same process cannot forget recovery authority that may still exist on disk.
+     */
+    public void clearAndVerify(Receipt expected) {
+        Receipt checked = Objects.requireNonNull(expected, "expected");
+        Optional<Receipt> removed = clear(checked);
+        if (removed.isEmpty() || server == null) {
+            return;
+        }
+
+        Path receiptFile = receiptFile(server);
+        try {
+            SavedDataPersistence.saveAndWait(server);
+            PersistedNightmareCompletionReceiptVerifier.requireAbsent(receiptFile, checked);
+        } catch (RuntimeException exception) {
+            receipts.put(checked.instance().playerId(), checked);
+            setDirty();
+            throw new IllegalStateException(
+                    "Could not prove successful Nightmare completion receipt deletion; recovery authority was restored in memory",
+                    exception
+            );
+        }
+    }
+
     boolean isCorrupt() {
         return corrupt;
     }
 
     private void persistAndVerify(Receipt expected) {
-        // Unit fixtures may construct the SavedData directly without a server. Production always
-        // obtains it through get(server), which supplies the persistence context used here.
         if (server == null) {
             setDirty();
             return;
         }
 
-        // Re-dirty even for an idempotent retry. Minecraft's async save path may clear dirty state
-        // after a failed write, so a retry must force another serialization attempt before read-back.
         setDirty();
         SavedDataPersistence.saveAndWait(server);
-        Path receiptFile = server.getWorldPath(LevelResource.ROOT)
+        PersistedNightmareCompletionReceiptVerifier.requirePresent(receiptFile(server), expected);
+    }
+
+    private static Path receiptFile(MinecraftServer server) {
+        return server.getWorldPath(LevelResource.ROOT)
                 .resolve("data")
                 .resolve(DATA_NAME + ".dat");
-        PersistedNightmareCompletionReceiptVerifier.requirePresent(receiptFile, expected);
     }
 
     private void requireHealthy() {
