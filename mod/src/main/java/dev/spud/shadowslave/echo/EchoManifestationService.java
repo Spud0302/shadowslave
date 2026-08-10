@@ -27,6 +27,8 @@ public final class EchoManifestationService {
     private static final String MANIFESTATION_TAG = "shadowslave_echo_manifestation";
     private static final double FOLLOW_STOP_DISTANCE_SQUARED = 9.0D;
     private static final double FOLLOW_SPEED = 1.1D;
+    private static final double GUARD_STOP_DISTANCE_SQUARED = 2.25D;
+    private static final double GUARD_SPEED = 1.0D;
 
     private EchoManifestationService() {}
 
@@ -90,7 +92,12 @@ public final class EchoManifestationService {
         Optional<EchoInstanceData> owned = EchoOwnershipService.get(player).find(ASH_BURROWER_ID);
         if (owned.isEmpty()) return CommandResult.NOT_OWNED;
         if (!ashBurrowerProfile().commandModes().contains(checked)) return CommandResult.UNSUPPORTED;
-        EchoOwnershipService.setCommandMode(player, ASH_BURROWER_ID, checked);
+        if (checked == EchoContentCatalog.CommandMode.GUARD_POINT) {
+            EchoOwnershipService.setGuardPoint(player, ASH_BURROWER_ID,
+                    player.serverLevel().dimension().location(), player.blockPosition());
+        } else {
+            EchoOwnershipService.setCommandMode(player, ASH_BURROWER_ID, checked);
+        }
         EchoInstanceData updated = EchoOwnershipService.get(player).find(ASH_BURROWER_ID).orElseThrow();
         findManifestation(player, updated).ifPresent(entity -> executeCommand(player, updated, entity));
         return CommandResult.COMMAND_SET;
@@ -123,25 +130,37 @@ public final class EchoManifestationService {
         switch (state.commandMode()) {
             case FOLLOW -> {
                 if (entity.level() != player.level()) {
-                    mob.getNavigation().stop();
-                    mob.setNoAi(true);
+                    hold(mob);
                 } else if (entity.distanceToSqr(player) <= FOLLOW_STOP_DISTANCE_SQUARED) {
-                    mob.getNavigation().stop();
-                    mob.setNoAi(true);
+                    hold(mob);
                 } else {
                     mob.setNoAi(false);
                     mob.getNavigation().moveTo(player, FOLLOW_SPEED);
                 }
             }
-            case HOLD -> {
-                mob.getNavigation().stop();
-                mob.setNoAi(true);
+            case GUARD_POINT -> {
+                if (state.commandTargetDimension().isEmpty() || state.commandTargetPos().isEmpty()
+                        || !state.commandTargetDimension().orElseThrow().equals(entity.level().dimension().location())) {
+                    hold(mob);
+                } else {
+                    BlockPos target = state.commandTargetPos().orElseThrow();
+                    double distance = entity.distanceToSqr(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D);
+                    if (distance <= GUARD_STOP_DISTANCE_SQUARED) {
+                        hold(mob);
+                    } else {
+                        mob.setNoAi(false);
+                        mob.getNavigation().moveTo(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D, GUARD_SPEED);
+                    }
+                }
             }
-            default -> {
-                mob.getNavigation().stop();
-                mob.setNoAi(true);
-            }
+            case HOLD -> hold(mob);
+            default -> hold(mob);
         }
+    }
+
+    private static void hold(Mob mob) {
+        mob.getNavigation().stop();
+        mob.setNoAi(true);
     }
 
     private static Optional<Entity> findManifestation(ServerPlayer player, EchoInstanceData echo) {
