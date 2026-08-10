@@ -31,3 +31,7 @@ No novel text is copied into runtime content.
 The physical item scans only while an owned Ash Compass is actively used. The warning accepts only the three currently registered hostile project creature executor classes, then validates those identities against the integration binding. Generic `Monster`, vanilla Zombie/Drowned/Spider/Silverfish, players, villagers, arbitrary modded mobs, and `ash_burrower_echo` are excluded.
 
 The current twelve-block range is intentionally one bounded DESIGN constant rather than a claim about essence perception. Later Java-owned creature or faction semantics can replace or extend the threat binding without migrating Memory ownership.
+
+## Integration status
+
+As of current `main@812644e6c141cdcbbbfc1b02dfe1008179eb83cf`, PR #221 is retargeted directly to `main` and is the single review edge for both the #220 Cinder Rest authority correction and this `warm_needle` executor. GitHub ancestry proves this branch contains #220 head `b2a1b89e77bb39beca3a23662eb5e9eff581207c` by 5 commits ahead / 0 behind. Main has since absorbed #206 and #218, so fresh direct-to-main hosted validation is required before #220 can be marked superseded.
