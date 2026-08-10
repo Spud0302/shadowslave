@@ -1,7 +1,9 @@
 package dev.spud.shadowslave.nightmare;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.appraisal.FirstNightmareAppraisalResolver;
 import dev.spud.shadowslave.appraisal.PreviewAppraisalService;
+import dev.spud.shadowslave.appraisal.generation.AttributeContentCatalog;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.SoulTransitions;
@@ -94,8 +96,9 @@ public final class NightmareService {
 
         LastSignalScenario.igniteAltar(player.serverLevel(), instance);
         NightmareInstance completed = exit(player, NightmareExitReason.SUCCESS);
+        FirstNightmareAppraisalResolver.Award award;
         try {
-            PreviewAppraisalService.appraise(player, completed);
+            award = PreviewAppraisalService.appraise(player, completed, "signal_restored");
         } catch (RuntimeException exception) {
             SoulIdentityService.replace(player, SoulIdentityData.empty());
             SoulService.replace(player, SoulTransitions.infect(SoulData.uninfected()));
@@ -106,8 +109,18 @@ public final class NightmareService {
         }
         player.sendSystemMessage(Component.literal("The signal answers. The Spell appraises the life you lived in the borrowed role.")
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
-        player.sendSystemMessage(Component.literal("Aspect revealed: [Last Light] — Awakened Rank. Flaw revealed: [Cold Ash].")
-                .withStyle(ChatFormatting.AQUA));
+        player.sendSystemMessage(Component.literal(
+                "Aspect revealed: [" + award.identity().aspect().formalName() + "] — "
+                        + award.identity().aspect().aspectRank().serializedName() + " Rank. Flaw revealed: ["
+                        + award.identity().flaw().formalName() + "]."
+        ).withStyle(ChatFormatting.AQUA));
+        if (award.attribute().visibility() == AttributeContentCatalog.Visibility.REVEALED) {
+            player.sendSystemMessage(Component.literal("Attribute revealed: [" + award.attribute().formalName() + "].")
+                    .withStyle(ChatFormatting.GREEN));
+        } else {
+            player.sendSystemMessage(Component.literal("An Attribute was established, but its identity remains obscured.")
+                    .withStyle(ChatFormatting.DARK_GRAY));
+        }
         return true;
     }
 
