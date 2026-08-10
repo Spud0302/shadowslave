@@ -50,7 +50,15 @@ class NightmareRoleContentCatalogTest {
                 NightmareRoleContentCatalog.SocialPosition.INITIATE,
                 NightmareRoleContentCatalog.SocialPosition.AUXILIARY
         ), positions);
-        assertTrue(conditions.containsAll(Set.of(NightmareRoleContentCatalog.Condition.values())));
+        assertEquals(Set.of(
+                NightmareRoleContentCatalog.Condition.EXHAUSTED,
+                NightmareRoleContentCatalog.Condition.WOUNDED,
+                NightmareRoleContentCatalog.Condition.HUNGRY,
+                NightmareRoleContentCatalog.Condition.RESTRAINED,
+                NightmareRoleContentCatalog.Condition.ISOLATED,
+                NightmareRoleContentCatalog.Condition.DISTRUSTED,
+                NightmareRoleContentCatalog.Condition.UNDER_OBSERVATION
+        ), conditions);
         assertTrue(relationships.containsAll(Set.of(NightmareRoleContentCatalog.Relationship.values())));
         assertTrue(knowledge.containsAll(Set.of(NightmareRoleContentCatalog.Knowledge.values())));
         assertTrue(pressures.containsAll(Set.of(NightmareRoleContentCatalog.AlignmentPressure.values())));
