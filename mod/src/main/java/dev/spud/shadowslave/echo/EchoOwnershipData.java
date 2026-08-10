@@ -3,6 +3,7 @@ package dev.spud.shadowslave.echo;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.spud.shadowslave.echo.content.EchoContentCatalog;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 
@@ -72,20 +73,24 @@ public record EchoOwnershipData(List<EchoInstanceData> echoes) {
         return new EchoOwnershipData(next);
     }
 
+    public EchoOwnershipData withCommandMode(ResourceLocation echoId, EchoContentCatalog.CommandMode commandMode) {
+        return replaceEcho(echoId, echo -> echo.withCommandMode(commandMode));
+    }
+
     public EchoOwnershipData withManifestation(
             ResourceLocation echoId,
             UUID entityUuid,
             ResourceLocation dimension,
             BlockPos position
     ) {
-        return replaceManifestation(echoId, echo -> echo.withManifestation(entityUuid, dimension, position));
+        return replaceEcho(echoId, echo -> echo.withManifestation(entityUuid, dimension, position));
     }
 
     public EchoOwnershipData withoutManifestation(ResourceLocation echoId) {
-        return replaceManifestation(echoId, EchoInstanceData::withoutManifestation);
+        return replaceEcho(echoId, EchoInstanceData::withoutManifestation);
     }
 
-    private EchoOwnershipData replaceManifestation(
+    private EchoOwnershipData replaceEcho(
             ResourceLocation echoId,
             java.util.function.UnaryOperator<EchoInstanceData> update
     ) {
@@ -93,10 +98,13 @@ public record EchoOwnershipData(List<EchoInstanceData> echoes) {
         Objects.requireNonNull(update, "update");
         ArrayList<EchoInstanceData> next = new ArrayList<>(echoes.size());
         boolean found = false;
+        boolean changed = false;
         for (EchoInstanceData echo : echoes) {
             if (echo.echoId().equals(echoId)) {
                 found = true;
-                next.add(update.apply(echo));
+                EchoInstanceData updated = Objects.requireNonNull(update.apply(echo), "updated echo");
+                next.add(updated);
+                changed |= updated != echo;
             } else {
                 next.add(echo);
             }
@@ -104,6 +112,6 @@ public record EchoOwnershipData(List<EchoInstanceData> echoes) {
         if (!found) {
             throw new IllegalArgumentException("Cannot update unowned Echo: " + echoId);
         }
-        return new EchoOwnershipData(next);
+        return changed ? new EchoOwnershipData(next) : this;
     }
 }
