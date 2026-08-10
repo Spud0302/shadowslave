@@ -1,13 +1,16 @@
 package dev.spud.shadowslave.nightmare;
 
 import dev.spud.shadowslave.appraisal.GeneratedAppraisalRecoverySnapshot;
+import dev.spud.shadowslave.persistence.SavedDataPersistence;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.storage.LevelResource;
 
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -25,9 +28,13 @@ public final class NightmareCompletionReceiptData extends SavedData {
 
     private final Map<UUID, Receipt> receipts = new LinkedHashMap<>();
     private boolean corrupt;
+    private transient MinecraftServer server;
 
     public static NightmareCompletionReceiptData get(MinecraftServer server) {
-        return Objects.requireNonNull(server, "server").overworld().getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        MinecraftServer checkedServer = Objects.requireNonNull(server, "server");
+        NightmareCompletionReceiptData data = checkedServer.overworld().getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        data.server = checkedServer;
+        return data;
     }
 
     public Optional<Receipt> find(UUID playerId) {
@@ -45,6 +52,7 @@ public final class NightmareCompletionReceiptData extends SavedData {
             if (!existing.equals(created)) {
                 throw new IllegalStateException("Player already has a different successful Nightmare completion receipt");
             }
+            persistAndVerify(existing);
             return existing;
         }
         boolean duplicateInstance = receipts.values().stream()
@@ -53,7 +61,7 @@ public final class NightmareCompletionReceiptData extends SavedData {
             throw new IllegalStateException("Nightmare instance already belongs to another completion receipt");
         }
         receipts.put(checkedInstance.playerId(), created);
-        setDirty();
+        persistAndVerify(created);
         return created;
     }
 
@@ -74,6 +82,24 @@ public final class NightmareCompletionReceiptData extends SavedData {
 
     boolean isCorrupt() {
         return corrupt;
+    }
+
+    private void persistAndVerify(Receipt expected) {
+        // Unit fixtures may construct the SavedData directly without a server. Production always
+        // obtains it through get(server), which supplies the persistence context used here.
+        if (server == null) {
+            setDirty();
+            return;
+        }
+
+        // Re-dirty even for an idempotent retry. Minecraft's async save path may clear dirty state
+        // after a failed write, so a retry must force another serialization attempt before read-back.
+        setDirty();
+        SavedDataPersistence.saveAndWait(server);
+        Path receiptFile = server.getWorldPath(LevelResource.ROOT)
+                .resolve("data")
+                .resolve(DATA_NAME + ".dat");
+        PersistedNightmareCompletionReceiptVerifier.requirePresent(receiptFile, expected);
     }
 
     private void requireHealthy() {
