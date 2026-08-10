@@ -22,7 +22,6 @@ import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +38,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * active-ownership images plus a compressed player attachment image, then discards the originating JVM. A fresh
  * JVM reconstructs those files, uses the production receipt codec and recovery planner to converge the player
  * award, and writes the post-replay disk images. A second fresh JVM proves the exact award is committed while
- * active ownership and completion authority are both absent.</p>
+ * active ownership and completion authority are both absent. A separate immutable receipt oracle is test-only
+ * expectation data; it is never used as runtime recovery authority and remains available after the live receipt
+ * surface is deliberately consumed.</p>
  */
 class GeneratedAppraisalCompletionDiskImageRestartTest {
     private static final String ATTACHMENTS = "neoforge:attachments";
@@ -52,67 +53,82 @@ class GeneratedAppraisalCompletionDiskImageRestartTest {
         );
         NightmareCompletionReceiptData.Receipt receipt = new NightmareCompletionReceiptData.Receipt(instance, snapshot);
 
+        Path oracleFile = tempDir.resolve("expected-completion-receipt.nbt");
         Path receiptFile = tempDir.resolve("shadowslave_nightmare_completion_receipts.dat");
         Path registryFile = tempDir.resolve("shadowslave_nightmares.dat");
         Path playerFile = tempDir.resolve(instance.playerId() + ".dat");
+        writeReceiptOracle(oracleFile, receipt);
         writeReceipts(receiptFile, List.of(receipt));
         writeRegistry(registryFile, List.of(instance));
         writePlayer(playerFile, emptyAspirant());
 
-        runFreshJvm("recover", receiptFile, registryFile, playerFile);
-        runFreshJvm("verify", receiptFile, registryFile, playerFile);
+        runFreshJvm("recover", oracleFile, receiptFile, registryFile, playerFile);
+        runFreshJvm("verify", oracleFile, receiptFile, registryFile, playerFile);
     }
 
     /** Entry point used by the parent JUnit process to force real JVM/static-state boundaries. */
     public static void main(String[] args) throws Exception {
-        if (args.length != 4) {
-            throw new IllegalArgumentException("Expected <recover|verify> <receipt-file> <registry-file> <player-file>");
+        if (args.length != 5) {
+            throw new IllegalArgumentException(
+                    "Expected <recover|verify> <oracle-file> <receipt-file> <registry-file> <player-file>");
         }
         String mode = args[0];
-        Path receiptFile = Path.of(args[1]);
-        Path registryFile = Path.of(args[2]);
-        Path playerFile = Path.of(args[3]);
+        Path oracleFile = Path.of(args[1]);
+        Path receiptFile = Path.of(args[2]);
+        Path registryFile = Path.of(args[3]);
+        Path playerFile = Path.of(args[4]);
+        NightmareCompletionReceiptData.Receipt expectedReceipt = readReceiptOracle(oracleFile);
 
-        NightmareCompletionReceiptData.Receipt receipt = readOnlyReceipt(receiptFile);
         switch (mode) {
-            case "recover" -> recover(receipt, receiptFile, registryFile, playerFile);
-            case "verify" -> verify(receipt, receiptFile, registryFile, playerFile);
+            case "recover" -> recover(expectedReceipt, receiptFile, registryFile, playerFile);
+            case "verify" -> verify(expectedReceipt, receiptFile, registryFile, playerFile);
             default -> throw new IllegalArgumentException("Unknown disk-image restart mode: " + mode);
         }
     }
 
     private static void recover(
-            NightmareCompletionReceiptData.Receipt receipt,
+            NightmareCompletionReceiptData.Receipt expectedReceipt,
             Path receiptFile,
             Path registryFile,
             Path playerFile
     ) throws Exception {
-        PersistedNightmareCompletionReceiptVerifier.requirePresent(receiptFile, receipt);
+        PersistedNightmareCompletionReceiptVerifier.requirePresent(receiptFile, expectedReceipt);
+        NightmareCompletionReceiptData.Receipt liveReceipt = readOnlyReceipt(receiptFile);
+        assertEquals(expectedReceipt, liveReceipt);
+
         NightmareInstance active = readOnlyActiveInstance(registryFile);
         Optional<NightmareInstance> teardown = GeneratedAppraisalRecoveryService.activeInstanceForReplay(
-                Optional.of(active), receipt);
-        assertEquals(receipt.instance(), teardown.orElseThrow());
+                Optional.of(active), liveReceipt);
+        assertEquals(liveReceipt.instance(), teardown.orElseThrow());
 
         GeneratedAppraisalRecoveryService.PlayerState current = readPlayer(playerFile);
         GeneratedAppraisalRecoveryService.RecoveryPlan plan = GeneratedAppraisalRecoveryService.plan(
-                current, receipt.appraisal());
+                current, liveReceipt.appraisal());
         writePlayer(playerFile, plan.target());
         writeRegistry(registryFile, List.of());
         writeReceipts(receiptFile, List.of());
     }
 
     private static void verify(
-            NightmareCompletionReceiptData.Receipt receipt,
+            NightmareCompletionReceiptData.Receipt expectedReceipt,
             Path receiptFile,
             Path registryFile,
             Path playerFile
     ) {
         GeneratedAppraisalRecoveryService.PlayerState expected = GeneratedAppraisalRecoveryService.plan(
-                emptyAspirant(), receipt.appraisal()).target();
-        PersistedGeneratedAppraisalPlayerVerifier.requireCommitted(playerFile, expected, receipt.appraisal());
+                emptyAspirant(), expectedReceipt.appraisal()).target();
+        PersistedGeneratedAppraisalPlayerVerifier.requireCommitted(
+                playerFile, expected, expectedReceipt.appraisal());
         PersistedNightmareOwnershipVerifier.requireAbsent(
-                registryFile, receipt.instance().playerId(), receipt.instance().instanceId());
-        PersistedNightmareCompletionReceiptVerifier.requireAbsent(receiptFile, receipt);
+                registryFile,
+                expectedReceipt.instance().playerId(),
+                expectedReceipt.instance().instanceId());
+        PersistedNightmareCompletionReceiptVerifier.requireAbsent(receiptFile, expectedReceipt);
+    }
+
+    private static NightmareCompletionReceiptData.Receipt readReceiptOracle(Path file) throws Exception {
+        return NightmareCompletionReceiptData.Receipt.load(
+                NbtIo.readCompressed(file, NbtAccounter.unlimitedHeap()));
     }
 
     private static NightmareCompletionReceiptData.Receipt readOnlyReceipt(Path file) throws Exception {
@@ -189,6 +205,10 @@ class GeneratedAppraisalCompletionDiskImageRestartTest {
         NbtIo.writeCompressed(root, file);
     }
 
+    private static void writeReceiptOracle(Path file, NightmareCompletionReceiptData.Receipt receipt) throws Exception {
+        NbtIo.writeCompressed(receipt.save(), file);
+    }
+
     private static <T> Tag encode(Codec<T> codec, T value) {
         return codec.encodeStart(NbtOps.INSTANCE, value).getOrThrow();
     }
@@ -225,12 +245,24 @@ class GeneratedAppraisalCompletionDiskImageRestartTest {
         );
     }
 
-    private static void runFreshJvm(String mode, Path receiptFile, Path registryFile, Path playerFile) throws Exception {
+    private static void runFreshJvm(
+            String mode,
+            Path oracleFile,
+            Path receiptFile,
+            Path registryFile,
+            Path playerFile
+    ) throws Exception {
         Path java = Path.of(System.getProperty("java.home"), "bin", isWindows() ? "java.exe" : "java");
         Process process = new ProcessBuilder(
-                java.toString(), "-cp", System.getProperty("java.class.path"),
+                java.toString(),
+                "-cp",
+                System.getProperty("java.class.path"),
                 GeneratedAppraisalCompletionDiskImageRestartTest.class.getName(),
-                mode, receiptFile.toString(), registryFile.toString(), playerFile.toString()
+                mode,
+                oracleFile.toString(),
+                receiptFile.toString(),
+                registryFile.toString(),
+                playerFile.toString()
         ).redirectErrorStream(true).start();
         assertTrue(process.waitFor(30, TimeUnit.SECONDS), "Fresh disk-image recovery JVM did not terminate");
         String output = new String(process.getInputStream().readAllBytes());
