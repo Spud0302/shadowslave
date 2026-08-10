@@ -21,7 +21,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.LevelResource;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
@@ -86,8 +88,16 @@ public final class GeneratedAppraisalRecoveryService {
 
         apply(checkedPlayer, plan.target());
 
-        // Persist the converged player attachments before consuming the independent recovery authority.
+        // Persist and then semantically re-read the exact converged attachments before consuming
+        // the independent completion receipt. A silent/stale player write must leave recovery authority intact.
         server.getPlayerList().saveAll();
+        Path playerDataFile = server.getWorldPath(LevelResource.PLAYER_DATA_DIR)
+                .resolve(checkedPlayer.getStringUUID() + ".dat");
+        PersistedGeneratedAppraisalPlayerVerifier.requireCommitted(
+                playerDataFile,
+                plan.target(),
+                receipt.appraisal()
+        );
         receipts.clear(receipt);
         SavedDataPersistence.saveAndWait(server);
 
@@ -196,13 +206,14 @@ public final class GeneratedAppraisalRecoveryService {
         return new MemoryOwnershipData(next);
     }
 
-    private static PlayerState currentState(ServerPlayer player) {
+    public static PlayerState currentState(ServerPlayer player) {
+        ServerPlayer checkedPlayer = Objects.requireNonNull(player, "player");
         return new PlayerState(
-                SoulService.get(player),
-                SoulIdentityService.get(player),
-                AttributeOwnershipService.get(player),
-                MemoryOwnershipService.get(player),
-                EchoOwnershipService.get(player)
+                SoulService.get(checkedPlayer),
+                SoulIdentityService.get(checkedPlayer),
+                AttributeOwnershipService.get(checkedPlayer),
+                MemoryOwnershipService.get(checkedPlayer),
+                EchoOwnershipService.get(checkedPlayer)
         );
     }
 
