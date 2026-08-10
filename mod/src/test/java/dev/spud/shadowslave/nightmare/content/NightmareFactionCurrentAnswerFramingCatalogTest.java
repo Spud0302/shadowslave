@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -42,6 +40,14 @@ class NightmareFactionCurrentAnswerFramingCatalogTest {
                 assertFalse(playerCopy.contains(backend), primitive.id() + " leaked backend term " + backend);
             }
         }
+    }
+
+    @Test
+    void authoredCollectionsAreImmutable() {
+        var primitive = NightmareFactionCurrentAnswerFramingCatalog.waveOne().getFirst();
+        assertThrows(UnsupportedOperationException.class, () -> primitive.affinityTags().add("mutated"));
+        assertThrows(UnsupportedOperationException.class, () -> primitive.playerResponses().add("mutated"));
+        assertThrows(UnsupportedOperationException.class, () -> primitive.presentationCues().add("mutated"));
     }
 
     @Test
