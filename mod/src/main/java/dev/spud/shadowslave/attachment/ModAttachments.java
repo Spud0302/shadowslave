@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.attachment;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
 import dev.spud.shadowslave.preview.PreviewPowerData;
 import dev.spud.shadowslave.soul.SoulData;
@@ -32,6 +33,12 @@ public final class ModAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<AttributeOwnershipData>> ATTRIBUTES =
             ATTACHMENTS.register("attributes", () -> AttachmentType.builder(AttributeOwnershipData::empty)
                     .serialize(AttributeOwnershipData.CODEC.codec())
+                    .copyOnDeath()
+                    .build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<MemoryOwnershipData>> MEMORIES =
+            ATTACHMENTS.register("memories", () -> AttachmentType.builder(MemoryOwnershipData::empty)
+                    .serialize(MemoryOwnershipData.CODEC.codec())
                     .copyOnDeath()
                     .build());
 
