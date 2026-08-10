@@ -27,7 +27,7 @@ The parent compares the child's complete loaded snapshot against the independent
 
 ## Review corrections
 
-Fresh review after the first direct-to-main green run found two gaps.
+Fresh review after the first direct-to-main green run found three gaps across two review passes.
 
 ### Complete award comparison
 
@@ -39,15 +39,23 @@ Review also identified a P1 in the inherited normal completion path. `exit(...SU
 
 The corrected path keeps the exact completion receipt present, performs the successful exit/teardown, calls the SavedData durability barrier, then directly reloads `shadowslave_nightmares.dat` through `PersistedNightmareOwnershipVerifier`. The verifier requires a structurally healthy `data.instances` list, production-decodes every surviving instance, and rejects either the completed player identity or completed instance identity. Appraisal mutation and eventual receipt consumption occur only after that proof succeeds.
 
-This uses the same persistence invariant already developed on the canonical-death correctness lineage, but the implementation is carried into the current generated-appraisal integration edge instead of depending on divergent old ancestry.
+### Login-replay teardown durability
+
+A later review found the same authority-handoff defect still existed in the login replay branch. When a durable completion receipt and its exact active Nightmare both survived restart, `GeneratedAppraisalRecoveryService.replayPending(...)` used the normal successful teardown, called the SavedData save barrier, then proceeded to player appraisal convergence and receipt consumption without directly proving the active ownership removal was readable from disk. A failed/stale registry write could therefore leave a persisted Dreamer with stale active Nightmare ownership after the receipt was consumed; the next restart could route that legitimate Dreamer into ordinary technical recovery.
+
+The replay path now reuses the same `PersistedNightmareOwnershipVerifier` after the registry save barrier and before any player appraisal mutation or receipt deletion. To avoid exposing `NightmareRegistryData` path internals across packages, the verifier now offers a server-scoped public entry point that resolves the existing persisted registry path internally and delegates to the already-tested path-based production decoder. If the read-back fails, the durable completion receipt is still present and player appraisal state has not been mutated by this replay attempt.
+
+`PersistedNightmareOwnershipVerifierTest` retains the existing healthy-absence, stale-player, stale-instance, malformed-production-load and missing-file coverage and now also pins the public static server-scoped verification boundary used by appraisal recovery.
+
+These corrections use the same persistence invariant already developed on the canonical-death correctness lineage, but the implementation is carried into the current generated-appraisal integration edge instead of depending on divergent old ancestry.
 
 ## Evidence classification
 
 - **CANON:** unchanged. No Nightmare, appraisal, Aspect, Flaw, Attribute, Memory, Echo, reward, progression, death, or failure rule changes.
 - **INFERRED:** an already-resolved appraisal should remain the same exact result through technical restart instead of being regenerated against later generator/catalogue state.
-- **DESIGN:** a fresh JVM/process boundary is stronger recovery evidence than same-process object reconstruction; the completion receipt remains Java recovery authority; receipt authority must remain available until persisted active-ownership teardown is directly observable.
+- **DESIGN:** a fresh JVM/process boundary is stronger recovery evidence than same-process object reconstruction; the completion receipt remains Java recovery authority; receipt authority must remain available until persisted active-ownership teardown is directly observable on both normal completion and login replay.
 - **UNKNOWN:** a real NeoForge server process killed while world/player SavedData are being replaced, filesystem/fsync guarantees below a readable file image, post-verification corruption, and exact live timing at every adjacent durable boundary.
-- **COMPATIBILITY:** no save schema or lore-facing gameplay semantic changes. The new registry-path helper and verifier expose/check existing persistence only.
+- **COMPATIBILITY:** no save schema or lore-facing gameplay semantic changes. The server-scoped verifier entry point exposes no new persisted representation and delegates to the existing production-decoding check.
 
 `docs/LORE-SOURCE-POLICY.md`, `docs/JAVA-LORE-ALIGNMENT.md`, and `docs/NIGHTMARE-SEED-ROADMAP.md` were re-read. This is technical crash/restart recovery, not a new in-world Spell mechanic, so no new primary-novel proposition is introduced.
 
@@ -55,7 +63,7 @@ This uses the same persistence invariant already developed on the canonical-deat
 
 This is not yet a physical NeoForge server kill/restart test. It proves that recovery does not accidentally depend on originating-process receipt objects, generator results, or static state, and that the compressed durable receipt can cross a real JVM boundary.
 
-The new normal-completion checkpoint proves only that the expected active ownership is absent from a readable persisted registry image while the completion receipt remains available. It does not establish storage-device fsync semantics or protect against later corruption.
+The normal-completion and login-replay checkpoints prove only that the expected active ownership is absent from a readable persisted registry image while the completion receipt remains available. They do not establish storage-device fsync semantics or protect against later corruption.
 
 Return-position persistence, actual player-file reload, live server restart timing, and receipt deletion under a killed/restarted dedicated server remain the next stronger Issue #34 evidence layer.
 
