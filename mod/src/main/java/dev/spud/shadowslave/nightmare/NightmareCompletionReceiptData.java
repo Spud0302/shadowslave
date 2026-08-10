@@ -16,7 +16,7 @@ import java.util.UUID;
 
 /** Durable authority for a resolved Nightmare whose exact generated appraisal still needs to converge. */
 public final class NightmareCompletionReceiptData extends SavedData {
-    private static final String DATA_NAME = "shadowslave_nightmare_completion_receipts";
+    static final String DATA_NAME = "shadowslave_nightmare_completion_receipts";
     private static final Factory<NightmareCompletionReceiptData> FACTORY = new Factory<>(
             NightmareCompletionReceiptData::new,
             NightmareCompletionReceiptData::load,
@@ -24,16 +24,19 @@ public final class NightmareCompletionReceiptData extends SavedData {
     );
 
     private final Map<UUID, Receipt> receipts = new LinkedHashMap<>();
+    private boolean corrupt;
 
     public static NightmareCompletionReceiptData get(MinecraftServer server) {
         return Objects.requireNonNull(server, "server").overworld().getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
     }
 
     public Optional<Receipt> find(UUID playerId) {
+        requireHealthy();
         return Optional.ofNullable(receipts.get(Objects.requireNonNull(playerId, "playerId")));
     }
 
     public Receipt begin(NightmareInstance instance, GeneratedAppraisalRecoverySnapshot appraisal) {
+        requireHealthy();
         NightmareInstance checkedInstance = Objects.requireNonNull(instance, "instance");
         GeneratedAppraisalRecoverySnapshot checkedAppraisal = Objects.requireNonNull(appraisal, "appraisal");
         Receipt created = new Receipt(checkedInstance, checkedAppraisal);
@@ -55,6 +58,7 @@ public final class NightmareCompletionReceiptData extends SavedData {
     }
 
     public Optional<Receipt> clear(Receipt expected) {
+        requireHealthy();
         Receipt checked = Objects.requireNonNull(expected, "expected");
         Receipt existing = receipts.get(checked.instance().playerId());
         if (existing == null) {
@@ -68,8 +72,21 @@ public final class NightmareCompletionReceiptData extends SavedData {
         return Optional.of(existing);
     }
 
+    boolean isCorrupt() {
+        return corrupt;
+    }
+
+    private void requireHealthy() {
+        if (corrupt) {
+            throw new IllegalStateException(
+                    "Successful Nightmare completion receipt storage is corrupt; recovery and new entry are blocked"
+            );
+        }
+    }
+
     @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+        requireHealthy();
         ListTag entries = new ListTag();
         for (Receipt receipt : receipts.values()) {
             entries.add(receipt.save());
@@ -80,14 +97,29 @@ public final class NightmareCompletionReceiptData extends SavedData {
 
     static NightmareCompletionReceiptData load(CompoundTag tag, HolderLookup.Provider registries) {
         NightmareCompletionReceiptData data = new NightmareCompletionReceiptData();
-        ListTag entries = tag.getList("receipts", Tag.TAG_COMPOUND);
-        for (int index = 0; index < entries.size(); index++) {
-            data.restore(Receipt.load(entries.getCompound(index)));
+        Tag rawEntries = tag.get("receipts");
+        if (!(rawEntries instanceof ListTag entries)) {
+            data.corrupt = true;
+            return data;
+        }
+        for (Tag rawEntry : entries) {
+            if (!(rawEntry instanceof CompoundTag receiptTag)) {
+                data.corrupt = true;
+                return data;
+            }
+            try {
+                data.restore(Receipt.load(receiptTag));
+            } catch (RuntimeException exception) {
+                data.receipts.clear();
+                data.corrupt = true;
+                return data;
+            }
         }
         return data;
     }
 
     void restore(Receipt receipt) {
+        requireHealthy();
         Receipt checked = Objects.requireNonNull(receipt, "receipt");
         if (receipts.putIfAbsent(checked.instance().playerId(), checked) != null) {
             throw new IllegalStateException("Player has duplicate successful Nightmare completion receipts");
