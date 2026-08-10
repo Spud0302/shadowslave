@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Server-side access boundary for canonical Echo ownership, command state and manifestation identity. */
+/** Server-side access boundary for canonical Echo ownership, command/cargo state and manifestation identity. */
 public final class EchoOwnershipService {
     private EchoOwnershipService() {
     }
@@ -26,9 +26,7 @@ public final class EchoOwnershipService {
         Objects.requireNonNull(player, "player");
         EchoOwnershipData before = get(player);
         EchoOwnershipData after = before.award(echo);
-        if (after != before) {
-            player.setData(ModAttachments.ECHOES, after);
-        }
+        if (after != before) player.setData(ModAttachments.ECHOES, after);
         return after;
     }
 
@@ -37,9 +35,7 @@ public final class EchoOwnershipService {
         Objects.requireNonNull(player, "player");
         EchoOwnershipData before = get(player);
         EchoOwnershipData after = before.withCommandMode(echoId, commandMode);
-        if (after != before) {
-            player.setData(ModAttachments.ECHOES, after);
-        }
+        if (after != before) player.setData(ModAttachments.ECHOES, after);
         return after;
     }
 
@@ -48,9 +44,23 @@ public final class EchoOwnershipService {
         Objects.requireNonNull(player, "player");
         EchoOwnershipData before = get(player);
         EchoOwnershipData after = before.withGuardPoint(echoId, dimension, position);
-        if (after != before) {
-            player.setData(ModAttachments.ECHOES, after);
-        }
+        if (after != before) player.setData(ModAttachments.ECHOES, after);
+        return after;
+    }
+
+    public static EchoOwnershipData setCargo(ServerPlayer player, ResourceLocation echoId, ResourceLocation itemId, int count) {
+        Objects.requireNonNull(player, "player");
+        EchoOwnershipData before = get(player);
+        EchoOwnershipData after = before.withCargo(echoId, itemId, count);
+        if (after != before) player.setData(ModAttachments.ECHOES, after);
+        return after;
+    }
+
+    public static EchoOwnershipData clearCargo(ServerPlayer player, ResourceLocation echoId) {
+        Objects.requireNonNull(player, "player");
+        EchoOwnershipData before = get(player);
+        EchoOwnershipData after = before.withoutCargo(echoId);
+        if (after != before) player.setData(ModAttachments.ECHOES, after);
         return after;
     }
 
@@ -59,9 +69,7 @@ public final class EchoOwnershipService {
         Objects.requireNonNull(player, "player");
         EchoOwnershipData before = get(player);
         EchoOwnershipData after = before.withManifestation(echoId, entityUuid, dimension, position);
-        if (after != before) {
-            player.setData(ModAttachments.ECHOES, after);
-        }
+        if (after != before) player.setData(ModAttachments.ECHOES, after);
         return after;
     }
 
@@ -69,9 +77,7 @@ public final class EchoOwnershipService {
         Objects.requireNonNull(player, "player");
         EchoOwnershipData before = get(player);
         EchoOwnershipData after = before.withoutManifestation(echoId);
-        if (after != before) {
-            player.setData(ModAttachments.ECHOES, after);
-        }
+        if (after != before) player.setData(ModAttachments.ECHOES, after);
         return after;
     }
 
