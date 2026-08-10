@@ -1,81 +1,61 @@
 # Shadow Slave — current issues and limitations
 
 **Canonical project status:** `PROJECT-STATUS.md`  
-**Current main:** `e9f676a9b2ef58cf1e0cc18d45d1420b9e62c2f4`  
-**Primary correctness candidate:** PR #119 / head `93da9d43df160995097a5108f0e73ef6a5762046`
+**Current main:** `96a3422c2469a832f9a977a4521cc3f3b62edc5b`  
+**Current correctness edge:** PR #178 / head `a802a68cd1f0c007cef586c38a92683de87a63dc`
 
-This file tracks current blockers and evidence gaps. Historical preview findings remain preserved under `docs/history/`, review notes, Git history and GitHub issues.
+This file tracks current blockers/evidence gaps. Historical preview findings remain in review notes, Git history, GitHub issues and `docs/history/`.
 
-## Issue #34 — successful Nightmare completion restart recovery
+## Issue #34 — persistence/restart recovery
 
-This is the highest-priority Java persistence blocker.
+Issue #34 remains the primary correctness tracker. The active lineage now includes replayable successful completion and explicit persistence verification at demonstrated first/final recovery-authority boundaries for canonical death, technical/admin exit and preview reset.
 
-The active stacked candidate through PR #119 now contains:
-
-- a durable successful-completion receipt and ordered phases;
-- fail-closed registry reconstruction/invariants;
-- idempotent split-save appraisal reconciliation;
-- joined SavedData durability checkpoints;
-- a successful-return observation guard;
-- server-backed completion operations;
-- live terminal-success and login-recovery routing;
-- deterministic process halts at six post-durability boundaries;
-- evidence freshness and recovery-status checks;
-- same-source/same-world provenance authentication;
-- structured same-player recovery evidence across reconnect plus second relog;
-- hosted self-tests for both completion evidence verifiers.
-
-Exact PR #119 head `93da9d43df160995097a5108f0e73ef6a5762046` passed Preview Gates run #89 / ID `31280686707`.
+Corrected PR #178 head `a802a68cd1f0c007cef586c38a92683de87a63dc` passed **Preview Gates #164 / run `31368518381`**. Its only inline review finding is resolved; the final verifier now requires every surviving persisted Nightmare instance to pass the same production `NightmareInstance.load(...)` reconstruction that restart uses before the canonical-death marker may be consumed.
 
 ### Still unproven
 
-No real same-world process-kill/restart row has yet been accepted as Issue #34 evidence. Hosted compile/tests and ordinary physical client/server boot are not substitutes.
+- real process-kill/restart convergence at the newly guarded persistence boundaries;
+- physical fsync/power-loss guarantees below readable persisted file images;
+- post-verification storage corruption/failure behavior;
+- complete real-player recovery matrix evidence where Issue #34 still requires it.
 
-The first required physical row is `after_terminal_registry_save`. It must prove exactly-once appraisal/teardown and converged player state after restart and second relog, using the retained provenance/authentication outputs on the #119 lineage.
+Do not add persistence barriers mechanically. A new checkpoint needs a demonstrated failure model in which losing the **last meaningful replay authority** can leave an unrecoverable persisted split.
 
-The current GitHub-only automation environment cannot perform the required interactive player actions. Do not infer success and do not add more speculative recovery state. Resume implementation when a physical row exposes a defect, owner/local execution supplies new evidence, or a new dependency/runtime behavior provides a credible approach.
+## BLOCKED — prepared Nightmare world/chunk durability (#158)
 
-## Issue #20 — frozen datapack global-selector ceiling
+The prepared-world/chunk durability audit is blocked. `SavedDataPersistence.saveAndWait(...)` does not itself prove Nightmare-dimension chunk/entity durability, while forcing a naive full save can create the opposite stale-preparation problem if rollback later occurs only in memory.
 
-The supported frozen-datapack contract remains one active First Nightmare at a time, protected by the persistent global trial lock.
+Resume only with at least one new condition: process-free reconstruction of the split/convergence target; live same-world process-kill evidence; stronger primary Minecraft/NeoForge save-path evidence; owner choice of rebuild-vs-durable-cleanup policy; dependency/code change; or another credible transaction design. Do not retry automatically without new evidence.
 
-The deeper command-era architecture still uses global `@e[tag=ss_creature]` selectors inside the single Nightmare dimension. `testserver/defect_issue20_stray_creature.mjs` deliberately demonstrates that an unrelated entity carrying the prototype tag can influence the global objective. True per-player entity ownership belongs to Java and is not claimed for the frozen datapack.
+## Hosted frozen-datapack stall
 
-A transient dimension-transition timeout occurred in PR #117 Preview Gates run #88. The Java job passed, and descendant PR #119 run #89 passed the complete workflow. Treat the earlier timeout as transient unless it recurs with fresh evidence; do not repeatedly rerun or redesign the harness based on that single failure.
+The Nightmare-dimension generation/observation stall has repeated in hosted runs while Java jobs remained healthy. Do not blind-rerun indefinitely or increase watchdog/observation budgets again without fresh server-lag/protocol evidence. This is separate from #170's already-addressed Mineflayer transport watchdog mismatch.
+
+## Active gameplay/content ownership
+
+PRs #179, #181 and #182 currently own runtime historical-role assignment, the playable Drowned Bell integration, and physical Nightmare Creature execution. Correctness/documentation work must not duplicate those slices.
 
 ## Current open evidence gaps
 
-1. Issue #34's six real same-world process-kill/restart rows.
-2. Complete interactive Java playthrough of the current merged/main plus selected correctness candidate.
-3. Real Java logout/login persistence at Carrier, active Nightmare and completed Dreamer stages outside the synthetic recovery tests.
+1. Real process-kill/restart evidence for Issue #34 where still required.
+2. Complete interactive Java playthrough against a selected integrated correctness/gameplay candidate.
+3. Real relog persistence across Carrier, active Nightmare and completed Dreamer stages beyond synthetic reconstruction tests.
 4. Two-player simultaneous Java Nightmare-instance verification.
-5. Backed-up real frozen-datapack world migration plus idempotent second invocation.
-6. Player-facing signal-fire completion/return-position verification.
-7. Ordinary Nightmare death cleanup and wording verification.
-8. Review/merge of the large stacked correctness lineage in dependency order.
+5. Backed-up real frozen-datapack migration plus idempotent second invocation.
+6. Player-facing completion/return-position verification.
+7. Ordinary Nightmare death cleanup/wording and mature corpse/Gate behavior where canon evidence is still incomplete.
+8. Dependency-order review/merge of the stacked correctness lineage.
 
-Use `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md` and the Issue #34 research notes/runner documentation for exact procedures.
+## Lore/evidence rules
 
-## Known Java/content limitations
+Follow `docs/LORE-SOURCE-POLICY.md`, `docs/JAVA-LORE-ALIGNMENT.md` and the relevant roadmap/research note before lore-sensitive changes.
 
-- natural infection/exhaustion is not yet the ordinary playable entry path;
-- The Last Signal remains a development-facing authored scenario and its fixed preview appraisal is **DESIGN**;
-- later merged content foundations are not equivalent to fully integrated runtime systems;
-- procedural/content catalogues do not imply canonical generation formulas;
-- Memories, Echoes, Dream Realm regions, creatures and additional scenarios remain bounded Java-owned content foundations until runtime ownership/execution is explicitly integrated;
-- later Seeds, mature shared-resolution multiplayer, natural awakening progression, full modpack adapters and a public Java release remain future scope.
+- **CANON:** direct novel constraints only.
+- **INFERRED:** reasoned synthesis, never promoted to canon for convenience.
+- **DESIGN:** Minecraft/recovery implementation choices.
+- **UNKNOWN:** unresolved mechanics/evidence gaps.
+- **COMPATIBILITY:** technical recovery remains distinct from ordinary in-world Spell behavior; older saves remain supported unless an explicit migration says otherwise.
 
-## Lore risks
+## Reporting/retry rule
 
-- Follow `docs/LORE-SOURCE-POLICY.md` for every lore-sensitive change.
-- Keep **CANON**, **INFERRED**, **DESIGN**, **UNKNOWN**, and compatibility consequences explicit.
-- Do not generalize The Last Signal's campfire into a universal Nightmare completion rule.
-- Do not turn project catalogues, weights, matchers or recovery algorithms into claimed Spell formulas.
-- Technical crash/admin recovery is implementation **DESIGN**, not ordinary in-world Spell mercy.
-- Later Seed behavior requires renewed primary-novel verification under `docs/NIGHTMARE-SEED-ROADMAP.md`.
-
-## Reporting
-
-Record defects with exact branch/commit, reproduction steps, expected versus observed behavior, logs or screenshots, and whether the issue is correctness, persistence, presentation, balance, lore wording or missing scope.
-
-When repeated work on one blocker makes no progress twice, record both attempts and the exact condition needed to resume, mark/comment the item blocked, and move to the next unblocked slice instead of looping on the same evidence gap.
+Record defects/blockers with exact branch/commit, reproduction steps, expected vs observed behavior and logs/evidence. After two consecutive no-progress attempts on one blocker, record both attempts and the exact condition needed to resume, mark/comment it blocked, and move to the next unblocked slice.
