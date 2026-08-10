@@ -1,14 +1,16 @@
 # Nightmare Spell modpack prototype
 
-This directory is the deterministic packaging boundary for Path A: a curated NeoForge modpack that reuses mature mods for generic content while the custom Shadow Slave Java core owns identity, progression and Nightmare lifecycle.
+This directory is the deterministic packaging boundary for Path A: a curated NeoForge modpack that reuses mature infrastructure while the custom Shadow Slave Java core owns identity, progression and Nightmare lifecycle.
 
 ## Current status
 
-A validated dependency-free manifest and deterministic ZIP exporter now exist. The manifest pins Minecraft `1.21.1`, NeoForge `21.1.244` and Java `21`, references the locally built Shadow Slave core, and defines the metadata every future external component must provide.
+The manifest pins Minecraft `1.21.1`, NeoForge `21.1.244`, Java `21`, the locally built Shadow Slave core, and the first required presentation dependency: GeckoLib `4.9.2` for custom model/animation execution.
 
-The exporter packages the exact supplied core JAR under a fixed path, adds the declared shell files, records per-entry SHA-256 and size provenance, sorts every archive entry and fixes ZIP timestamps and file modes. Identical inputs therefore produce byte-identical archives.
+GeckoLib is explicitly non-authoritative. It does not own Soul state, Nightmare Creature identity, progression, rewards, persistence, or Nightmare lifecycle. The manifest records its exact Maven artifact, MIT license, SHA-256 and removal behavior.
 
-This is not yet a playable public modpack. No external dependency, downloaded JAR, launcher export or compatibility adapter is included.
+The exporter packages the exact supplied core JAR plus every required runtime component, records per-entry SHA-256 and size provenance, sorts every archive entry and fixes ZIP timestamps and file modes. Identical inputs therefore produce byte-identical archives.
+
+This is still a development package, not a public release or launcher-format modpack.
 
 Validate with:
 
@@ -17,24 +19,35 @@ python3 modpack/tools/validate_manifest.py
 python3 -m unittest discover -s modpack/tests -v
 ```
 
-Build the current dependency-free archive after compiling the Java core:
+Build the current archive after compiling the Java core and fetching the exact pinned GeckoLib component:
 
 ```bash
 ./mod/gradlew -p mod build
+
+mkdir -p build/components
+curl --fail --location --silent --show-error \
+  'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/software/bernie/geckolib/geckolib-neoforge-1.21.1/4.9.2/geckolib-neoforge-1.21.1-4.9.2.jar' \
+  --output build/components/geckolib-neoforge-1.21.1-4.9.2.jar
+printf '%s  %s\n' \
+  '5e548466af9ab6aca7a91a7c7d4dc0dc8bc385e22958aed5da0e7bebd0fa3fba' \
+  'build/components/geckolib-neoforge-1.21.1-4.9.2.jar' | sha256sum --check --strict
+
 python3 modpack/tools/build_package.py \
   --core-jar mod/build/libs/shadowslave-0.1.0-preview.2.jar \
+  --component-jar geckolib-4=build/components/geckolib-neoforge-1.21.1-4.9.2.jar \
   --output build/nightmare-spell-modpack-dev.zip
 ```
 
-Use the exact produced JAR path rather than relying on the manifest glob when more than one development artifact is present.
+Use the exact produced core JAR path rather than relying on the manifest glob when more than one development artifact is present. Required component JARs are never downloaded implicitly by the package builder; callers must supply the exact hash-checked artifact declared by the manifest.
 
 ## Deterministic archive contract
 
-The package contains:
+The package currently contains:
 
 ```text
 README.md
 manifest.json
+mods/geckolib-neoforge-1.21.1-4.9.2.jar
 mods/shadowslave-core.jar
 provenance.json
 ```
@@ -48,13 +61,13 @@ The archive writer uses:
 - fixed regular-file permissions;
 - deterministic JSON formatting;
 - atomic replacement of the requested output;
-- fail-closed rejection of missing core JARs, unsafe paths and generated-path collisions.
+- fail-closed rejection of missing core/component JARs, hash mismatches, unsafe/noncanonical paths and generated-path collisions.
 
-The ZIP is a reviewable repository package, not yet a Modrinth `.mrpack`. Platform-specific export should be added only after the dependency model and redistribution rules are established.
+The ZIP is a reviewable repository package, not yet a Modrinth `.mrpack`. Platform-specific export should be added only after redistribution and launcher rules are established.
 
 ## Manifest contract
 
-The shared Java core is the sole canonical state owner. Every future external component must declare:
+The shared Java core is the sole canonical state owner. Every external component must declare:
 
 - stable component and mod IDs;
 - exact version and side;
@@ -71,13 +84,13 @@ The validator rejects duplicate IDs, missing provenance, malformed hashes, unsaf
 
 The prototype answers:
 
-- how quickly existing mods can produce convincing Shadow Slave gameplay;
+- how quickly mature infrastructure can improve convincing Shadow Slave gameplay;
 - which generic systems are good enough to reuse;
 - where integrations break immersion or correctness;
-- how much custom Java is still required;
+- how much custom Java and custom art are still required;
 - whether a hybrid should become the long-term product.
 
-This is not permission to replace the Shadow Slave architecture with disconnected quest scripts.
+This is not permission to replace the Shadow Slave architecture with disconnected quest scripts or dependency-owned progression.
 
 ## First release target — `modpack-v0.1.0`
 
@@ -90,7 +103,7 @@ nightmare-spell-modpack-v0.1.0.mrpack
 nightmare-spell-server-v0.1.0.zip
 ```
 
-A platform manifest is preferred over committing or redistributing dependency JARs.
+A platform manifest is preferred over committing dependency JARs to source control.
 
 ## Dependency review checklist
 
@@ -125,7 +138,7 @@ migration and history
 Soul networking/UI contract
 ```
 
-Compatibility packages may translate internal ability, equipment or objective references into dependency-specific mechanics. The save must retain the Shadow Slave identity, not only an opaque external ID. If a provider is absent, canonical identity must still load and report that execution is unavailable.
+Compatibility packages may translate internal ability, equipment, creature or objective references into dependency-specific execution. The save must retain the Shadow Slave identity, not only an opaque external ID. If a provider is absent, canonical identity must still load and report that execution/presentation is unavailable.
 
 ## Architecture and lore boundary
 
@@ -135,8 +148,8 @@ External mods may provide presentation, generic execution, infrastructure or con
 
 ## Deliberate limits
 
-- no external mods are selected;
-- no dependency download occurs;
+- GeckoLib is the only required external runtime component currently selected;
+- dependency downloads are explicit and hash-checked rather than performed by the package builder;
 - no `.mrpack` is generated;
 - no public release is claimed;
 - the core JAR is supplied from a local Gradle build rather than copied into source control;
