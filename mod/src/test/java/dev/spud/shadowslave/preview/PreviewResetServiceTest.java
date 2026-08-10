@@ -10,6 +10,8 @@ import dev.spud.shadowslave.soul.SoulTransitions;
 import dev.spud.shadowslave.soul.identity.AspectAbilityData;
 import dev.spud.shadowslave.soul.identity.AspectAbilitySetData;
 import dev.spud.shadowslave.soul.identity.AspectInstanceData;
+import dev.spud.shadowslave.soul.identity.AttributeInstanceData;
+import dev.spud.shadowslave.soul.identity.AttributeOwnershipData;
 import dev.spud.shadowslave.soul.identity.FlawInstanceData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import net.minecraft.resources.ResourceLocation;
@@ -28,6 +30,7 @@ class PreviewResetServiceTest {
     private static final ResourceLocation NATURE = id("preview/nature/ember_resolve");
     private static final ResourceLocation ABILITY = id("preview/ability/kindle");
     private static final ResourceLocation EFFECT = id("preview/flaw_effect/cold_ash");
+    private static final ResourceLocation ATTRIBUTE = id("generation/attribute/watchers_mark");
 
     @Test
     void resetCompletesAllMutationsBeforeOneAuthoritativeSnapshot() {
@@ -39,6 +42,7 @@ class PreviewResetServiceTest {
                 "abort_nightmare",
                 "reset_soul",
                 "clear_soul_identity",
+                "clear_attributes",
                 "clear_imported_identity",
                 "clear_preview_power",
                 "sync"
@@ -46,6 +50,7 @@ class PreviewResetServiceTest {
         assertFalse(operations.nightmareActive);
         assertEquals(SoulData.uninfected(), operations.soul);
         assertEquals(SoulIdentityData.empty(), operations.identity);
+        assertEquals(AttributeOwnershipData.empty(), operations.attributes);
         assertEquals(ImportedIdentityData.empty(), operations.importedIdentity);
         assertEquals(PreviewPowerData.empty(), operations.previewPower);
         assertEquals(1, operations.snapshots.size());
@@ -83,6 +88,9 @@ class PreviewResetServiceTest {
                 )),
                 Optional.of(new FlawInstanceData(FLAW, "Cold Ash", EFFECT, "preview"))
         );
+        private AttributeOwnershipData attributes = new AttributeOwnershipData(List.of(
+                new AttributeInstanceData(ATTRIBUTE, "Watcher's Mark", "nightmare_role_inherited", "revealed", "test")
+        ));
         private ImportedIdentityData importedIdentity = new ImportedIdentityData(
                 Optional.of(new ImportedAspect(
                         ASPECT,
@@ -124,6 +132,12 @@ class PreviewResetServiceTest {
         public void clearSoulIdentity() {
             calls.add("clear_soul_identity");
             identity = SoulIdentityData.empty();
+        }
+
+        @Override
+        public void clearAttributes() {
+            calls.add("clear_attributes");
+            attributes = AttributeOwnershipData.empty();
         }
 
         @Override
