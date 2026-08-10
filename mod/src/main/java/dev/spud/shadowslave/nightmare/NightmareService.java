@@ -547,6 +547,22 @@ public final class NightmareService {
         @Override
         public void recordTechnicalExitIntent() {
             registry.beginTechnicalExit(instance, reason);
+            // A same-process retry after an ambiguous lower-level write must attempt
+            // serialization again even when the matching marker already exists in memory.
+            registry.setDirty();
+        }
+
+        @Override
+        public void verifyTechnicalExitIntentDurable() {
+            Path nightmareRegistryFile = server.getWorldPath(LevelResource.ROOT)
+                    .resolve("data")
+                    .resolve("shadowslave_nightmares.dat");
+            PersistedTechnicalExitIntentVerifier.requirePresent(
+                    nightmareRegistryFile,
+                    player.getUUID(),
+                    instance.instanceId(),
+                    reason
+            );
         }
 
         @Override
