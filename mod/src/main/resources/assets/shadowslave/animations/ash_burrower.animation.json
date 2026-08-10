@@ -1,7 +1,7 @@
 {
   "format_version": "1.8.0",
   "animations": {
-    "animation.shadowslave.ash_burrower.misc.idle": {
+    "misc.idle": {
       "loop": true,
       "animation_length": 2.0,
       "bones": {
@@ -35,7 +35,7 @@
         }
       }
     },
-    "animation.shadowslave.ash_burrower.move.walk": {
+    "move.walk": {
       "loop": true,
       "animation_length": 0.6,
       "bones": {
@@ -92,7 +92,7 @@
         }
       }
     },
-    "animation.shadowslave.ash_burrower.attack.strike": {
+    "attack.strike": {
       "loop": false,
       "animation_length": 0.45,
       "bones": {
