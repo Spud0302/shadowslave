@@ -36,16 +36,12 @@ public final class MemoryManifestationService {
         if (!MemoryOwnershipService.owns(player, AshCompassMemoryItem.MEMORY_ID)) {
             return ManifestResult.NOT_OWNED;
         }
-        Inventory inventory = player.getInventory();
-        boolean removed = false;
-        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-            ItemStack stack = inventory.getItem(slot);
-            if (stack.is(ModItems.ASH_COMPASS_MEMORY.get())) {
-                inventory.setItem(slot, ItemStack.EMPTY);
-                removed = true;
-            }
-        }
-        return removed ? ManifestResult.DISMISSED : ManifestResult.NOT_SUMMONED;
+        return removeAshCompass(player.getInventory()) ? ManifestResult.DISMISSED : ManifestResult.NOT_SUMMONED;
+    }
+
+    /** Development-reset cleanup; inventory never supplies authority, so this is intentionally ownership-agnostic. */
+    public static void clearAshCompassManifestations(ServerPlayer player) {
+        removeAshCompass(Objects.requireNonNull(player, "player").getInventory());
     }
 
     static boolean hasAshCompass(Inventory inventory) {
@@ -55,6 +51,18 @@ public final class MemoryManifestationService {
             }
         }
         return false;
+    }
+
+    private static boolean removeAshCompass(Inventory inventory) {
+        boolean removed = false;
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            ItemStack stack = inventory.getItem(slot);
+            if (stack.is(ModItems.ASH_COMPASS_MEMORY.get())) {
+                inventory.setItem(slot, ItemStack.EMPTY);
+                removed = true;
+            }
+        }
+        return removed;
     }
 
     public enum ManifestResult {
