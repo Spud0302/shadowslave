@@ -13,17 +13,9 @@ public final class NightmareDeathCoordinator {
         if (!checked.deathIntentAlreadyDurable()) {
             checked.captureDeathIntentBaseline();
             checked.recordDeathIntent();
-            try {
-                checked.persistDeathIntent();
-                checked.verifyDeathIntentPersisted();
-            } catch (RuntimeException persistenceFailure) {
-                try {
-                    checked.discardUnverifiedDeathIntent();
-                } catch (RuntimeException quarantineFailure) {
-                    persistenceFailure.addSuppressed(quarantineFailure);
-                }
-                throw persistenceFailure;
-            }
+            checked.persistDeathIntent();
+            checked.verifyDeathIntentPersisted();
+            checked.markDeathIntentDurable();
         }
 
         checked.clearCompletionReceipt();
@@ -50,7 +42,7 @@ public final class NightmareDeathCoordinator {
 
         void verifyDeathIntentPersisted();
 
-        void discardUnverifiedDeathIntent();
+        void markDeathIntentDurable();
 
         void clearCompletionReceipt();
 
