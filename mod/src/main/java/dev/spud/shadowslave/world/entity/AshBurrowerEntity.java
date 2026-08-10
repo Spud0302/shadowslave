@@ -26,6 +26,7 @@ public final class AshBurrowerEntity extends Silverfish {
 
     private final Map<UUID, Vec3> sampledPlayerPositions = new HashMap<>();
     private int vibrationPursuitTicks;
+    private UUID vibrationTargetId;
 
     public AshBurrowerEntity(EntityType<? extends Silverfish> type, Level level) {
         super(type, level);
@@ -58,7 +59,10 @@ public final class AshBurrowerEntity extends Silverfish {
             refreshVibrationTarget();
         }
 
-        if (this.vibrationPursuitTicks > 0 && this.getTarget() instanceof Player target && isAttackablePlayer(target)) {
+        if (this.vibrationPursuitTicks > 0
+                && this.getTarget() instanceof Player target
+                && target.getUUID().equals(this.vibrationTargetId)
+                && isAttackablePlayer(target)) {
             this.vibrationPursuitTicks--;
             this.getNavigation().moveTo(target, AshBurrowerVibrationBehavior.PURSUIT_SPEED);
         }
@@ -97,18 +101,22 @@ public final class AshBurrowerEntity extends Silverfish {
 
         if (detected != null) {
             this.setTarget(detected);
+            this.vibrationTargetId = detected.getUUID();
             this.vibrationPursuitTicks = AshBurrowerVibrationBehavior.PURSUIT_TICKS;
             this.getNavigation().moveTo(detected, AshBurrowerVibrationBehavior.PURSUIT_SPEED);
             return;
         }
 
-        if (this.vibrationPursuitTicks <= 0 && this.getTarget() instanceof Player player) {
-            double proximitySquared = AshBurrowerVibrationBehavior.PROXIMITY_RANGE
-                    * AshBurrowerVibrationBehavior.PROXIMITY_RANGE;
-            if (!isAttackablePlayer(player) || this.distanceToSqr(player) > proximitySquared) {
-                this.setTarget(null);
-                this.getNavigation().stop();
-            }
+        if (this.getTarget() instanceof Player player
+                && AshBurrowerVibrationBehavior.shouldReleaseVibrationTarget(
+                        this.vibrationTargetId,
+                        player.getUUID(),
+                        this.vibrationPursuitTicks,
+                        isAttackablePlayer(player),
+                        this.distanceToSqr(player))) {
+            this.setTarget(null);
+            this.vibrationTargetId = null;
+            this.getNavigation().stop();
         }
     }
 
