@@ -4,6 +4,7 @@ import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
 import dev.spud.shadowslave.preview.PreviewPowerData;
 import dev.spud.shadowslave.soul.SoulData;
+import dev.spud.shadowslave.soul.identity.AttributeOwnershipData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
@@ -25,6 +26,12 @@ public final class ModAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<SoulIdentityData>> IDENTITY =
             ATTACHMENTS.register("identity", () -> AttachmentType.builder(SoulIdentityData::empty)
                     .serialize(SoulIdentityData.CODEC.codec())
+                    .copyOnDeath()
+                    .build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<AttributeOwnershipData>> ATTRIBUTES =
+            ATTACHMENTS.register("attributes", () -> AttachmentType.builder(AttributeOwnershipData::empty)
+                    .serialize(AttributeOwnershipData.CODEC.codec())
                     .copyOnDeath()
                     .build());
 
