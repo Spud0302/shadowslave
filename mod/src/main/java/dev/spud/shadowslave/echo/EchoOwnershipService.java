@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.echo;
 
 import dev.spud.shadowslave.attachment.ModAttachments;
+import dev.spud.shadowslave.echo.content.EchoContentCatalog;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -8,7 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Server-side access boundary for canonical Echo ownership and manifestation identity. */
+/** Server-side access boundary for canonical Echo ownership, command state and manifestation identity. */
 public final class EchoOwnershipService {
     private EchoOwnershipService() {
     }
@@ -31,6 +32,20 @@ public final class EchoOwnershipService {
         return after;
     }
 
+    public static EchoOwnershipData setCommandMode(
+            ServerPlayer player,
+            ResourceLocation echoId,
+            EchoContentCatalog.CommandMode commandMode
+    ) {
+        Objects.requireNonNull(player, "player");
+        EchoOwnershipData before = get(player);
+        EchoOwnershipData after = before.withCommandMode(echoId, commandMode);
+        if (after != before) {
+            player.setData(ModAttachments.ECHOES, after);
+        }
+        return after;
+    }
+
     public static EchoOwnershipData setManifestation(
             ServerPlayer player,
             ResourceLocation echoId,
@@ -39,15 +54,21 @@ public final class EchoOwnershipService {
             BlockPos position
     ) {
         Objects.requireNonNull(player, "player");
-        EchoOwnershipData after = get(player).withManifestation(echoId, entityUuid, dimension, position);
-        player.setData(ModAttachments.ECHOES, after);
+        EchoOwnershipData before = get(player);
+        EchoOwnershipData after = before.withManifestation(echoId, entityUuid, dimension, position);
+        if (after != before) {
+            player.setData(ModAttachments.ECHOES, after);
+        }
         return after;
     }
 
     public static EchoOwnershipData clearManifestation(ServerPlayer player, ResourceLocation echoId) {
         Objects.requireNonNull(player, "player");
-        EchoOwnershipData after = get(player).withoutManifestation(echoId);
-        player.setData(ModAttachments.ECHOES, after);
+        EchoOwnershipData before = get(player);
+        EchoOwnershipData after = before.withoutManifestation(echoId);
+        if (after != before) {
+            player.setData(ModAttachments.ECHOES, after);
+        }
         return after;
     }
 
