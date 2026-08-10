@@ -108,6 +108,18 @@ class DeterministicPackageTest(unittest.TestCase):
             with self.assertRaisesRegex(PackageError, "component SHA-256 mismatch"):
                 build_package(manifest, core, root / "pack.zip", {COMPONENT_ID: component})
 
+    def test_component_filename_with_backslash_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest_path, component = fixture_manifest(root)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["components"][0]["source"]["file"] = "bad\\name.jar"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            core = root / "core.jar"
+            core.write_bytes(b"core")
+            with self.assertRaisesRegex(PackageError, "source.file must be a JAR filename"):
+                build_package(manifest_path, core, root / "pack.zip", {COMPONENT_ID: component})
+
     def test_missing_core_jar_is_rejected_without_partial_output(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
