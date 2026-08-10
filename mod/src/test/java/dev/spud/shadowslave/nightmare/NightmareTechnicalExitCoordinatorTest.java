@@ -69,6 +69,20 @@ class NightmareTechnicalExitCoordinatorTest {
         assertTrue(operations.volatileActiveOwnershipPresent);
     }
 
+    @Test
+    void failedPlayerPersistenceProofRetainsTechnicalIntentAndActiveOwnership() {
+        FakeOperations operations = new FakeOperations(null);
+        operations.failPlayerPersistence = true;
+
+        assertThrows(IllegalStateException.class, () -> NightmareTechnicalExitCoordinator.commit(operations));
+
+        assertTrue(operations.durableTechnicalExitIntentPresent);
+        assertFalse(operations.durableCompletionReceiptPresent);
+        assertFalse(operations.durablePlayerReset);
+        assertTrue(operations.volatileTechnicalExitIntentPresent);
+        assertTrue(operations.volatileActiveOwnershipPresent);
+    }
+
     private static void runToCompletionAcrossCrash(FakeOperations operations) {
         boolean crashed;
         do {
@@ -95,6 +109,7 @@ class NightmareTechnicalExitCoordinatorTest {
         private final Checkpoint crashCheckpoint;
         private boolean crashTriggered;
         private boolean failIntentVerification;
+        private boolean failPlayerPersistence;
 
         private boolean durableTechnicalExitIntentPresent;
         private boolean durableCompletionReceiptPresent = true;
@@ -176,6 +191,9 @@ class NightmareTechnicalExitCoordinatorTest {
 
         @Override
         public void persistPlayer() {
+            if (failPlayerPersistence) {
+                throw new IllegalStateException("simulated player persistence proof failure");
+            }
             durablePlayerReset = volatilePlayerReset;
             if (!crashTriggered && crashCheckpoint == Checkpoint.AFTER_PLAYER_SAVE) {
                 crashTriggered = true;
