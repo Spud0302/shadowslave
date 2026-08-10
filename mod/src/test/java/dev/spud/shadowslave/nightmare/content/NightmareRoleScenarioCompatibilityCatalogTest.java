@@ -93,7 +93,7 @@ class NightmareRoleScenarioCompatibilityCatalogTest {
             }
         }
         assertTrue(waterCompatibleWithEvidence > waterCompatibleNeutral,
-                () -> waterCompatibleWithEvidence + " should exceed " + waterCompatibleNeutral);
+                waterCompatibleWithEvidence + " should exceed " + waterCompatibleNeutral);
     }
 
     @Test
