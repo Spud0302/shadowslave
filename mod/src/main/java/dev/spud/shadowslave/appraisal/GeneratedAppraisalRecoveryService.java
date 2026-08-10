@@ -11,22 +11,26 @@ import dev.spud.shadowslave.nightmare.NightmareService;
 import dev.spud.shadowslave.persistence.SavedDataPersistence;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
-import dev.spud.shadowslave.soul.SpellState;
 import dev.spud.shadowslave.soul.identity.AttributeInstanceData;
 import dev.spud.shadowslave.soul.identity.AttributeOwnershipData;
 import dev.spud.shadowslave.soul.identity.AttributeOwnershipService;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Idempotently converges player-owned appraisal state from one durable generated-appraisal receipt.
@@ -77,16 +81,17 @@ public final class GeneratedAppraisalRecoveryService {
 
         RecoveryPlan plan = plan(currentState(checkedPlayer), receipt.appraisal());
 
-        // A crash can leave the durable receipt with either exact active Nightmare ownership or with
-        // ownership already absent while the player's last persisted location is still inside the
-        // Nightmare. Contradictory ownership fails closed. Otherwise always replay the stored successful
-        // return destination from the receipt; absence of active ownership is not proof that teleport
-        // persistence completed. Keep the receipt independent throughout the player/registry writes.
         Optional<NightmareInstance> active = activeInstanceForReplay(NightmareService.activeFor(checkedPlayer), receipt);
         boolean ownershipRemoved = NightmareService.recoverSuccessfulCompletion(checkedPlayer, receipt.instance());
         if (ownershipRemoved != active.isPresent()) {
             throw new IllegalStateException("Successful-completion replay changed unexpected Nightmare ownership");
         }
+        if (!ownershipRemoved) {
+            replayStoredReturn(checkedPlayer, receipt.instance());
+        }
+
+        // The receipt remains independent authority while both possible return/teardown outcomes are
+        // checkpointed. Absence of active ownership is not proof that a prior return teleport persisted.
         server.getPlayerList().saveAll();
         if (ownershipRemoved) {
             SavedDataPersistence.saveAndWait(server);
@@ -94,8 +99,6 @@ public final class GeneratedAppraisalRecoveryService {
 
         apply(checkedPlayer, plan.target());
 
-        // Persist and then semantically re-read the exact converged attachments before consuming
-        // the independent completion receipt. A silent/stale player write must leave recovery authority intact.
         server.getPlayerList().saveAll();
         Path playerDataFile = server.getWorldPath(LevelResource.PLAYER_DATA_DIR)
                 .resolve(checkedPlayer.getStringUUID() + ".dat");
@@ -128,6 +131,24 @@ public final class GeneratedAppraisalRecoveryService {
             throw new IllegalStateException("Active Nightmare ownership contradicts the completion receipt");
         }
         return Optional.of(instance);
+    }
+
+    private static void replayStoredReturn(ServerPlayer player, NightmareInstance instance) {
+        MinecraftServer server = player.getServer();
+        ResourceKey<Level> returnKey = ResourceKey.create(Registries.DIMENSION, instance.returnDimension());
+        ServerLevel returnLevel = server.getLevel(returnKey);
+        if (returnLevel == null) {
+            throw new IllegalStateException("Original return dimension is unavailable during completion recovery");
+        }
+        player.teleportTo(
+                returnLevel,
+                instance.returnX(),
+                instance.returnY(),
+                instance.returnZ(),
+                Set.of(),
+                instance.returnYaw(),
+                instance.returnPitch()
+        );
     }
 
     public static RecoveryPlan plan(PlayerState current, GeneratedAppraisalRecoverySnapshot snapshot) {
