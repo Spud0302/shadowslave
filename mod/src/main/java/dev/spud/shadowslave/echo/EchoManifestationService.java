@@ -3,6 +3,7 @@ package dev.spud.shadowslave.echo;
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.echo.content.EchoContentCatalog;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -10,9 +11,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
@@ -29,11 +34,13 @@ public final class EchoManifestationService {
     private static final double FOLLOW_SPEED = 1.1D;
     private static final double GUARD_STOP_DISTANCE_SQUARED = 2.25D;
     private static final double GUARD_SPEED = 1.0D;
+    private static final double CARGO_INTERACTION_DISTANCE_SQUARED = 16.0D;
 
     private EchoManifestationService() {}
 
     public enum ManifestResult { SUMMONED, ALREADY_SUMMONED, DISMISSED, NOT_SUMMONED, NOT_OWNED, SPAWN_FAILED }
     public enum CommandResult { COMMAND_SET, NOT_OWNED, UNSUPPORTED }
+    public enum CargoResult { LOADED, UNLOADED, NOT_OWNED, NOT_SUMMONED, TOO_FAR, EMPTY_HAND, ALREADY_CARRYING, NO_CARGO, UNSUPPORTED_ITEM, SPAWN_FAILED }
 
     public static EchoContentCatalog.EchoProfile ashBurrowerProfile() {
         return EchoContentCatalog.waveOne().stream()
@@ -103,6 +110,48 @@ public final class EchoManifestationService {
         return CommandResult.COMMAND_SET;
     }
 
+    public static CargoResult loadAshBurrower(ServerPlayer player) {
+        Objects.requireNonNull(player, "player");
+        Optional<EchoInstanceData> owned = EchoOwnershipService.get(player).find(ASH_BURROWER_ID);
+        if (owned.isEmpty()) return CargoResult.NOT_OWNED;
+        EchoInstanceData state = owned.get();
+        if (state.cargoItemId().isPresent()) return CargoResult.ALREADY_CARRYING;
+        Optional<Entity> manifestation = findManifestation(player, state);
+        if (manifestation.isEmpty()) return CargoResult.NOT_SUMMONED;
+        if (!isNearPlayer(player, manifestation.get())) return CargoResult.TOO_FAR;
+        ItemStack held = player.getMainHandItem();
+        if (held.isEmpty()) return CargoResult.EMPTY_HAND;
+        if (!held.getComponentsPatch().isEmpty()) return CargoResult.UNSUPPORTED_ITEM;
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(held.getItem());
+        int count = held.getCount();
+        EchoOwnershipService.setCargo(player, ASH_BURROWER_ID, itemId, count);
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        EchoInstanceData updated = EchoOwnershipService.get(player).find(ASH_BURROWER_ID).orElseThrow();
+        executeCommand(player, updated, manifestation.get());
+        return CargoResult.LOADED;
+    }
+
+    public static CargoResult unloadAshBurrower(ServerPlayer player) {
+        Objects.requireNonNull(player, "player");
+        Optional<EchoInstanceData> owned = EchoOwnershipService.get(player).find(ASH_BURROWER_ID);
+        if (owned.isEmpty()) return CargoResult.NOT_OWNED;
+        EchoInstanceData state = owned.get();
+        if (state.cargoItemId().isEmpty() || state.cargoCount().isEmpty()) return CargoResult.NO_CARGO;
+        Optional<Entity> manifestation = findManifestation(player, state);
+        if (manifestation.isEmpty()) return CargoResult.NOT_SUMMONED;
+        Entity echo = manifestation.get();
+        if (!isNearPlayer(player, echo)) return CargoResult.TOO_FAR;
+        Optional<Item> item = BuiltInRegistries.ITEM.getOptional(state.cargoItemId().orElseThrow());
+        if (item.isEmpty()) return CargoResult.UNSUPPORTED_ITEM;
+        ItemStack stack = new ItemStack(item.get(), state.cargoCount().orElseThrow());
+        ItemEntity dropped = new ItemEntity(echo.level(), echo.getX(), echo.getY() + 0.5D, echo.getZ(), stack);
+        if (!echo.level().addFreshEntity(dropped)) return CargoResult.SPAWN_FAILED;
+        EchoOwnershipService.clearCargo(player, ASH_BURROWER_ID);
+        EchoInstanceData updated = EchoOwnershipService.get(player).find(ASH_BURROWER_ID).orElseThrow();
+        executeCommand(player, updated, echo);
+        return CargoResult.UNLOADED;
+    }
+
     public static void clearOwnedManifestations(ServerPlayer player) {
         for (EchoInstanceData echo : EchoOwnershipService.get(Objects.requireNonNull(player, "player")).echoes()) {
             findManifestation(player, echo).ifPresent(Entity::discard);
@@ -128,15 +177,10 @@ public final class EchoManifestationService {
     private static void executeCommand(ServerPlayer player, EchoInstanceData state, Entity entity) {
         if (!(entity instanceof Mob mob)) return;
         switch (state.commandMode()) {
-            case FOLLOW -> {
-                if (entity.level() != player.level()) {
-                    hold(mob);
-                } else if (entity.distanceToSqr(player) <= FOLLOW_STOP_DISTANCE_SQUARED) {
-                    hold(mob);
-                } else {
-                    mob.setNoAi(false);
-                    mob.getNavigation().moveTo(player, FOLLOW_SPEED);
-                }
+            case FOLLOW -> follow(player, entity, mob);
+            case CARRY -> {
+                if (state.cargoItemId().isEmpty() || state.cargoCount().isEmpty()) hold(mob);
+                else follow(player, entity, mob);
             }
             case GUARD_POINT -> {
                 if (state.commandTargetDimension().isEmpty() || state.commandTargetPos().isEmpty()
@@ -145,9 +189,8 @@ public final class EchoManifestationService {
                 } else {
                     BlockPos target = state.commandTargetPos().orElseThrow();
                     double distance = entity.distanceToSqr(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D);
-                    if (distance <= GUARD_STOP_DISTANCE_SQUARED) {
-                        hold(mob);
-                    } else {
+                    if (distance <= GUARD_STOP_DISTANCE_SQUARED) hold(mob);
+                    else {
                         mob.setNoAi(false);
                         mob.getNavigation().moveTo(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D, GUARD_SPEED);
                     }
@@ -158,15 +201,26 @@ public final class EchoManifestationService {
         }
     }
 
+    private static void follow(ServerPlayer player, Entity entity, Mob mob) {
+        if (entity.level() != player.level()) hold(mob);
+        else if (entity.distanceToSqr(player) <= FOLLOW_STOP_DISTANCE_SQUARED) hold(mob);
+        else {
+            mob.setNoAi(false);
+            mob.getNavigation().moveTo(player, FOLLOW_SPEED);
+        }
+    }
+
+    private static boolean isNearPlayer(ServerPlayer player, Entity entity) {
+        return entity.level() == player.level() && entity.distanceToSqr(player) <= CARGO_INTERACTION_DISTANCE_SQUARED;
+    }
+
     private static void hold(Mob mob) {
         mob.getNavigation().stop();
         mob.setNoAi(true);
     }
 
     private static Optional<Entity> findManifestation(ServerPlayer player, EchoInstanceData echo) {
-        if (echo.manifestationUuid().isEmpty() || echo.manifestationDimension().isEmpty() || echo.manifestationPos().isEmpty()) {
-            return Optional.empty();
-        }
+        if (echo.manifestationUuid().isEmpty() || echo.manifestationDimension().isEmpty() || echo.manifestationPos().isEmpty()) return Optional.empty();
         MinecraftServer server = Objects.requireNonNull(player.getServer(), "server");
         ResourceKey<Level> levelKey = ResourceKey.create(Registries.DIMENSION, echo.manifestationDimension().get());
         ServerLevel level = server.getLevel(levelKey);
