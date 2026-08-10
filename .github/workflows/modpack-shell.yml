@@ -40,11 +40,21 @@ jobs:
       - name: Run manifest and packaging tests
         run: python3 -m unittest discover -s modpack/tests -v
 
+      - name: Fetch pinned GeckoLib runtime component
+        run: |
+          curl --fail --location --silent --show-error \
+            'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/software/bernie/geckolib/geckolib-neoforge-1.21.1/4.9.2/geckolib-neoforge-1.21.1-4.9.2.jar' \
+            --output "$RUNNER_TEMP/geckolib-neoforge-1.21.1-4.9.2.jar"
+          printf '%s  %s\n' \
+            '5e548466af9ab6aca7a91a7c7d4dc0dc8bc385e22958aed5da0e7bebd0fa3fba' \
+            "$RUNNER_TEMP/geckolib-neoforge-1.21.1-4.9.2.jar" | sha256sum --check --strict
+
       - name: Build and verify deterministic fixture package
         run: |
           printf 'ci-core-fixture' > "$RUNNER_TEMP/shadowslave-core.jar"
           python3 modpack/tools/build_package.py \
             --core-jar "$RUNNER_TEMP/shadowslave-core.jar" \
+            --component-jar "geckolib-4=$RUNNER_TEMP/geckolib-neoforge-1.21.1-4.9.2.jar" \
             --output "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
           python3 modpack/tools/verify_package.py \
             "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
