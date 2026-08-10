@@ -4,6 +4,7 @@ import dev.spud.shadowslave.appraisal.GeneratedAppraisalRecoverySnapshot;
 import dev.spud.shadowslave.appraisal.PreviewAppraisalService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
 
@@ -67,6 +68,20 @@ class NightmareCompletionReceiptDataTest {
         malformed.put("instance", instance(new UUID(149L, 151L), new UUID(157L, 163L)).save());
 
         assertThrows(IllegalStateException.class, () -> NightmareCompletionReceiptData.Receipt.load(malformed));
+    }
+
+    @Test
+    void malformedStoredReceiptMarksWholeRegistryCorruptAndBlocksAccess() {
+        CompoundTag root = new CompoundTag();
+        ListTag receipts = new ListTag();
+        receipts.add(new CompoundTag());
+        root.put("receipts", receipts);
+
+        NightmareCompletionReceiptData loaded = NightmareCompletionReceiptData.load(root, null);
+
+        assertTrue(loaded.isCorrupt());
+        assertThrows(IllegalStateException.class, () -> loaded.find(new UUID(167L, 173L)));
+        assertThrows(IllegalStateException.class, () -> loaded.save(new CompoundTag(), null));
     }
 
     private static NightmareInstance instance(UUID instanceId, UUID playerId) {
