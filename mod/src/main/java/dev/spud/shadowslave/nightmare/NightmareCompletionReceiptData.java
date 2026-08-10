@@ -188,14 +188,16 @@ public final class NightmareCompletionReceiptData extends SavedData {
             appraisal = Objects.requireNonNull(appraisal, "appraisal");
         }
 
-        CompoundTag save() {
+        /** Serializes the complete durable recovery authority represented by this receipt. */
+        public CompoundTag save() {
             CompoundTag tag = new CompoundTag();
             tag.put("instance", instance.save());
             tag.put("appraisal", appraisal.save());
             return tag;
         }
 
-        static Receipt load(CompoundTag tag) {
+        /** Reconstructs a complete durable recovery receipt through the production persistence codecs. */
+        public static Receipt load(CompoundTag tag) {
             if (!tag.contains("instance", Tag.TAG_COMPOUND) || !tag.contains("appraisal")) {
                 throw new IllegalStateException("Successful Nightmare completion receipt is incomplete");
             }
