@@ -3,6 +3,7 @@ package dev.spud.shadowslave.memory;
 import dev.spud.shadowslave.item.AshCompassMemoryItem;
 import dev.spud.shadowslave.item.BellglassTokenMemoryItem;
 import dev.spud.shadowslave.item.BorrowedDawnMemoryItem;
+import dev.spud.shadowslave.item.MirewalkerBootsMemoryItem;
 import dev.spud.shadowslave.item.ModItems;
 import dev.spud.shadowslave.item.RedThreadBraceletMemoryItem;
 import dev.spud.shadowslave.item.VeilStitchCaseMemoryItem;
@@ -27,18 +28,22 @@ public final class MemoryManifestationService {
     public static ManifestResult dismissBorrowedDawn(ServerPlayer player) { return dismiss(player, BorrowedDawnMemoryItem.MEMORY_ID, ModItems.BORROWED_DAWN_MEMORY.get()); }
     public static ManifestResult summonVeilStitchCase(ServerPlayer player) { return summon(player, VeilStitchCaseMemoryItem.MEMORY_ID, ModItems.VEIL_STITCH_CASE_MEMORY.get()); }
     public static ManifestResult dismissVeilStitchCase(ServerPlayer player) { return dismiss(player, VeilStitchCaseMemoryItem.MEMORY_ID, ModItems.VEIL_STITCH_CASE_MEMORY.get()); }
+    public static ManifestResult summonMirewalkerBoots(ServerPlayer player) { return summon(player, MirewalkerBootsMemoryItem.MEMORY_ID, ModItems.MIREWALKER_BOOTS_MEMORY.get()); }
+    public static ManifestResult dismissMirewalkerBoots(ServerPlayer player) { return dismiss(player, MirewalkerBootsMemoryItem.MEMORY_ID, ModItems.MIREWALKER_BOOTS_MEMORY.get()); }
 
     public static void clearAshCompassManifestations(ServerPlayer player) { removeManifestations(Objects.requireNonNull(player, "player").getInventory(), ModItems.ASH_COMPASS_MEMORY.get()); }
     public static void clearBellglassTokenManifestations(ServerPlayer player) { removeManifestations(Objects.requireNonNull(player, "player").getInventory(), ModItems.BELLGLASS_TOKEN_MEMORY.get()); }
     public static void clearRedThreadBraceletManifestations(ServerPlayer player) { removeManifestations(Objects.requireNonNull(player, "player").getInventory(), ModItems.RED_THREAD_BRACELET_MEMORY.get()); }
     public static void clearBorrowedDawnManifestations(ServerPlayer player) { removeManifestations(Objects.requireNonNull(player, "player").getInventory(), ModItems.BORROWED_DAWN_MEMORY.get()); }
     public static void clearVeilStitchCaseManifestations(ServerPlayer player) { removeManifestations(Objects.requireNonNull(player, "player").getInventory(), ModItems.VEIL_STITCH_CASE_MEMORY.get()); }
+    public static void clearMirewalkerBootsManifestations(ServerPlayer player) { removeManifestations(Objects.requireNonNull(player, "player").getInventory(), ModItems.MIREWALKER_BOOTS_MEMORY.get()); }
 
     static boolean hasAshCompass(Inventory inventory) { return hasManifestation(inventory, ModItems.ASH_COMPASS_MEMORY.get()); }
     static boolean hasBellglassToken(Inventory inventory) { return hasManifestation(inventory, ModItems.BELLGLASS_TOKEN_MEMORY.get()); }
     static boolean hasRedThreadBracelet(Inventory inventory) { return hasManifestation(inventory, ModItems.RED_THREAD_BRACELET_MEMORY.get()); }
     static boolean hasBorrowedDawn(Inventory inventory) { return hasManifestation(inventory, ModItems.BORROWED_DAWN_MEMORY.get()); }
     static boolean hasVeilStitchCase(Inventory inventory) { return hasManifestation(inventory, ModItems.VEIL_STITCH_CASE_MEMORY.get()); }
+    static boolean hasMirewalkerBoots(Inventory inventory) { return hasManifestation(inventory, ModItems.MIREWALKER_BOOTS_MEMORY.get()); }
 
     private static ManifestResult summon(ServerPlayer player, net.minecraft.resources.ResourceLocation memoryId, Item item) {
         Objects.requireNonNull(player, "player");
