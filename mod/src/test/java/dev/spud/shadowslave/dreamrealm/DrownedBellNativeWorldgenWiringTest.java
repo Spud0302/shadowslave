@@ -27,8 +27,9 @@ class DrownedBellNativeWorldgenWiringTest {
         assertTrue(registry.contains("Registries.FEATURE"));
         assertTrue(registry.contains("drowned_bell_later_anchor_feature"));
         assertTrue(feature.contains("StormLanternCoastNativePlacementPlan.drownedBellLater"));
-        assertTrue(feature.contains("nativeSite.ownsChunk"));
-        assertTrue(feature.contains("nativeSite.anchorPiece()"));
+        assertTrue(feature.contains("nativeSite.nativePieceForChunk"));
+        assertTrue(feature.contains("NATIVE_SEA_GATE_ID"));
+        assertTrue(feature.contains("buildBrokenSeaGate"));
         assertFalse(feature.contains("NightmareDivergenceAppraisal"));
         assertFalse(feature.contains("MemoryOwnership"));
         assertFalse(feature.contains("SoulData"));
