@@ -49,7 +49,7 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
-    void prototypeTelemetryCountsPlayerDamageDuringExistingOpeningWithoutChangingDamage() throws Exception {
+    void prototypeTelemetryCountsPostDamageDuringExistingOpeningWithoutChangingDamage() throws Exception {
         CombatPrototypeCommands.PrototypeTelemetry telemetry = CombatPrototypeCommands.PrototypeTelemetry.empty()
                 .recordHit(3.0F, false)
                 .recordHit(5.5F, true);
@@ -61,10 +61,11 @@ final class CombatPrototypeCommandsTest {
 
         String commandSource = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
-        assertTrue(commandSource.contains("public static void onLivingDamage(LivingDamageEvent event)"));
+        assertTrue(commandSource.contains("public static void onLivingDamage(LivingDamageEvent.Post event)"));
         assertTrue(commandSource.contains("event.getSource().getEntity() instanceof ServerPlayer"));
-        assertTrue(commandSource.contains("event.getAmount(), chainback.isInDisplacementRecovery()"));
-        assertFalse(commandSource.contains("event.setAmount"));
+        assertTrue(commandSource.contains("event.getHealthDamage(), chainback.isInDisplacementRecovery()"));
+        assertFalse(commandSource.contains("LivingDamageEvent.Pre"));
+        assertFalse(commandSource.contains("event.setNewDamage"));
         assertFalse(commandSource.contains("event.setCanceled"));
     }
 }
