@@ -2,7 +2,10 @@ package dev.spud.shadowslave.world.entity;
 
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Drowned;
@@ -22,9 +25,11 @@ import java.util.UUID;
  * Physical execution adapter for the Java-owned {@code drowned_listener} creature profile.
  *
  * <p>The stable content profile remains authoritative for creature identity. This entity still
- * reuses vanilla Drowned water/ground locomotion, navigation and melee as a visible placeholder
- * execution layer, but player acquisition is narrowed to the authored VIBRATION identity and
- * {@code dry_ground} counterplay. Exact ranges, sampling and recovery timing remain DESIGN.</p>
+ * reuses vanilla Drowned water/ground locomotion and navigation as a visible placeholder execution
+ * layer, but player acquisition is narrowed to the authored VIBRATION identity and
+ * {@code dry_ground} counterplay. Inherited instant melee resolution is replaced by one bounded
+ * committed strike with a readable wind-up and an earned recovery window. Exact ranges, sampling,
+ * strike timing and recovery remain DESIGN.</p>
  */
 public final class DrownedListenerEntity extends Drowned {
     private static final int VIBRATION_SAMPLE_INTERVAL_TICKS = 4;
@@ -32,6 +37,9 @@ public final class DrownedListenerEntity extends Drowned {
     private final Map<UUID, Vec3> sampledPlayerPositions = new HashMap<>();
     private int vibrationPursuitTicks;
     private int listeningRecoveryTicks;
+    private int strikeWindupTicks;
+    private int strikeRecoveryTicks;
+    private LivingEntity committedStrikeTarget;
     private UUID vibrationTargetId;
 
     public DrownedListenerEntity(EntityType<? extends DrownedListenerEntity> type, Level level) {
@@ -44,6 +52,7 @@ public final class DrownedListenerEntity extends Drowned {
         // Generic nearest-player targeting would bypass the authored VIBRATION identity and make
         // crouching / dry-ground counterplay meaningless. Retaliation remains intact.
         this.targetSelector.removeAllGoals(goal -> goal instanceof NearestAttackableTargetGoal<?>);
+        this.goalSelector.addGoal(0, new CommittedStrikeGoal());
         this.goalSelector.addGoal(0, new ListeningRecoveryGoal());
     }
 
@@ -53,10 +62,51 @@ public final class DrownedListenerEntity extends Drowned {
         // Intentionally empty. Reward/equipment rules remain Java-owned and UNKNOWN for this adapter.
     }
 
+    /**
+     * Converts inherited vanilla melee execution into a request to begin a readable committed
+     * strike. The actual damage attempt is resolved later from {@link #tick()} after the wind-up.
+     */
+    @Override
+    public boolean doHurtTarget(Entity target) {
+        if (this.level().isClientSide
+                || this.strikeWindupTicks > 0
+                || this.strikeRecoveryTicks > 0
+                || this.listeningRecoveryTicks > 0
+                || !(target instanceof LivingEntity livingTarget)
+                || !livingTarget.isAlive()) {
+            return false;
+        }
+
+        this.committedStrikeTarget = livingTarget;
+        this.strikeWindupTicks = DrownedListenerStrikeBehavior.WINDUP_TICKS;
+        this.getNavigation().stop();
+        this.swing(InteractionHand.MAIN_HAND);
+        return false;
+    }
+
     @Override
     public void tick() {
         super.tick();
         if (this.level().isClientSide) {
+            return;
+        }
+
+        if (this.strikeWindupTicks > 0) {
+            this.strikeWindupTicks--;
+            this.getNavigation().stop();
+            LivingEntity target = this.committedStrikeTarget;
+            if (target != null && target.isAlive()) {
+                this.getLookControl().setLookAt(target, 30.0F, 30.0F);
+            }
+            if (this.strikeWindupTicks == 0) {
+                resolveCommittedStrike();
+            }
+            return;
+        }
+
+        if (this.strikeRecoveryTicks > 0) {
+            this.strikeRecoveryTicks--;
+            this.getNavigation().stop();
             return;
         }
 
@@ -76,6 +126,20 @@ public final class DrownedListenerEntity extends Drowned {
             this.vibrationPursuitTicks--;
             this.getNavigation().moveTo(target, DrownedListenerVibrationBehavior.PURSUIT_SPEED);
         }
+    }
+
+    private void resolveCommittedStrike() {
+        LivingEntity target = this.committedStrikeTarget;
+        boolean eligible = target != null
+                && target.isAlive()
+                && DrownedListenerStrikeBehavior.canConnect(
+                        this.distanceToSqr(target),
+                        Math.abs(target.getY() - this.getY()),
+                        this.hasLineOfSight(target));
+        boolean connected = eligible && super.doHurtTarget(target);
+        this.committedStrikeTarget = null;
+        this.strikeRecoveryTicks = DrownedListenerStrikeBehavior.recoveryTicks(connected);
+        this.getNavigation().stop();
     }
 
     private void refreshVibrationTarget() {
@@ -140,6 +204,41 @@ public final class DrownedListenerEntity extends Drowned {
 
     private boolean isAttackablePlayer(Player player) {
         return player.isAlive() && !player.isSpectator() && !player.isCreative();
+    }
+
+    private boolean isInCommittedStrikeState() {
+        return this.strikeWindupTicks > 0 || this.strikeRecoveryTicks > 0;
+    }
+
+    /** Reserves movement/look controls while the committed strike winds up or recovers. */
+    private final class CommittedStrikeGoal extends Goal {
+        private CommittedStrikeGoal() {
+            setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.JUMP));
+        }
+
+        @Override
+        public boolean canUse() {
+            return DrownedListenerEntity.this.isInCommittedStrikeState();
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return DrownedListenerEntity.this.isInCommittedStrikeState();
+        }
+
+        @Override
+        public void start() {
+            DrownedListenerEntity.this.getNavigation().stop();
+        }
+
+        @Override
+        public void tick() {
+            DrownedListenerEntity.this.getNavigation().stop();
+            LivingEntity target = DrownedListenerEntity.this.committedStrikeTarget;
+            if (DrownedListenerEntity.this.strikeWindupTicks > 0 && target != null && target.isAlive()) {
+                DrownedListenerEntity.this.getLookControl().setLookAt(target, 30.0F, 30.0F);
+            }
+        }
     }
 
     /**
