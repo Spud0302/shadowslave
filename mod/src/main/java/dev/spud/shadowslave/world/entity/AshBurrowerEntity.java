@@ -1,5 +1,9 @@
 package dev.spud.shadowslave.world.entity;
 
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
@@ -14,7 +18,6 @@ import net.tslat.smartbrainlib.api.core.BrainActivityGroup;
 import net.tslat.smartbrainlib.api.core.SmartBrainProvider;
 import net.tslat.smartbrainlib.api.core.behaviour.FirstApplicableBehaviour;
 import net.tslat.smartbrainlib.api.core.behaviour.OneRandomBehaviour;
-import net.tslat.smartbrainlib.api.core.behaviour.custom.attack.AnimatableMeleeAttack;
 import net.tslat.smartbrainlib.api.core.behaviour.custom.look.LookAtTarget;
 import net.tslat.smartbrainlib.api.core.behaviour.custom.misc.Idle;
 import net.tslat.smartbrainlib.api.core.behaviour.custom.move.MoveToWalkTarget;
@@ -43,7 +46,7 @@ import java.util.UUID;
 /**
  * Minecraft executor for the Java-owned Ash Burrower Nightmare Creature.
  *
- * <p>SmartBrainLib owns replaceable sensing/activity/path/combat scheduling and GeckoLib owns
+ * <p>SmartBrainLib owns replaceable sensing/activity/path scheduling and GeckoLib owns
  * replaceable visual animation execution. Creature identity, authored VIBRATION/AMBUSH rules,
  * progression and rewards remain Java-owned outside both libraries.</p>
  */
@@ -54,6 +57,10 @@ public final class AshBurrowerEntity extends Silverfish implements GeoEntity, Sm
     private final Map<UUID, Vec3> sampledPlayerPositions = new HashMap<>();
     private int vibrationPursuitUntilTick;
     private UUID vibrationTargetId;
+    private int ambushWindupTicks;
+    private int ambushRecoveryTicks;
+    private int ambushCooldownTicks;
+    private UUID ambushTargetId;
 
     public AshBurrowerEntity(EntityType<? extends Silverfish> type, Level level) {
         super(type, level);
@@ -111,13 +118,13 @@ public final class AshBurrowerEntity extends Silverfish implements GeoEntity, Sm
                 new SetWalkTargetToAttackTarget<AshBurrowerEntity>()
                         .speedMod((owner, target) -> owner.isVibrationTarget(target)
                                 ? (float)AshBurrowerVibrationBehavior.PURSUIT_SPEED
-                                : 1.0F),
-                new AnimatableMeleeAttack<AshBurrowerEntity>(0));
+                                : 1.0F));
     }
 
     @Override
     protected void customServerAiStep() {
         tickBrain(this);
+        tickAmbushCombat();
     }
 
     @Override
@@ -132,6 +139,86 @@ public final class AshBurrowerEntity extends Silverfish implements GeoEntity, Sm
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.geoCache;
+    }
+
+    private void tickAmbushCombat() {
+        if (this.ambushCooldownTicks > 0) {
+            this.ambushCooldownTicks--;
+        }
+
+        if (this.ambushRecoveryTicks > 0) {
+            this.ambushRecoveryTicks--;
+            stopCommittedMovement();
+            return;
+        }
+
+        if (this.ambushWindupTicks > 0) {
+            stopCommittedMovement();
+            if (AshBurrowerAmbushBehavior.shouldTelegraph(this.ambushWindupTicks)) {
+                emitAmbushTelegraph();
+            }
+            this.ambushWindupTicks--;
+            if (this.ambushWindupTicks == 0) {
+                resolveAmbush();
+            }
+            return;
+        }
+
+        if (this.ambushCooldownTicks > 0) {
+            return;
+        }
+
+        LivingEntity target = BrainUtils.getTargetOfEntity(this);
+        if (target == null || !target.isAlive()) {
+            return;
+        }
+        double verticalDelta = Math.abs(target.getY() - this.getY());
+        if (!AshBurrowerAmbushBehavior.canStart(this.distanceToSqr(target), verticalDelta, this.hasLineOfSight(target))) {
+            return;
+        }
+
+        this.ambushTargetId = target.getUUID();
+        this.ambushWindupTicks = AshBurrowerAmbushBehavior.WINDUP_TICKS;
+        stopCommittedMovement();
+        emitAmbushTelegraph();
+    }
+
+    private void resolveAmbush() {
+        LivingEntity target = BrainUtils.getTargetOfEntity(this);
+        boolean connected = target != null
+                && this.ambushTargetId != null
+                && this.ambushTargetId.equals(target.getUUID())
+                && target.isAlive()
+                && AshBurrowerAmbushBehavior.canConnect(
+                        this.distanceToSqr(target),
+                        Math.abs(target.getY() - this.getY()),
+                        this.hasLineOfSight(target));
+
+        if (connected && this.level() instanceof ServerLevel serverLevel) {
+            this.swing(InteractionHand.MAIN_HAND);
+            this.doHurtTarget(serverLevel, target);
+            serverLevel.sendParticles(ParticleTypes.ASH, target.getX(), target.getY() + 0.35D, target.getZ(),
+                    8, 0.25D, 0.2D, 0.25D, 0.02D);
+        }
+
+        this.ambushRecoveryTicks = AshBurrowerAmbushBehavior.recoveryTicks(connected);
+        this.ambushCooldownTicks = AshBurrowerAmbushBehavior.COOLDOWN_TICKS;
+        this.ambushTargetId = null;
+        stopCommittedMovement();
+    }
+
+    private void emitAmbushTelegraph() {
+        this.playSound(SoundEvents.GRAVEL_HIT, 0.65F, 0.65F + this.getRandom().nextFloat() * 0.15F);
+        if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.ASH, this.getX(), this.getY() + 0.08D, this.getZ(),
+                    6, 0.35D, 0.04D, 0.35D, 0.015D);
+        }
+    }
+
+    private void stopCommittedMovement() {
+        this.getNavigation().stop();
+        BrainUtils.clearMemory(this, MemoryModuleType.WALK_TARGET);
+        this.setDeltaMovement(this.getDeltaMovement().multiply(0.35D, 1.0D, 0.35D));
     }
 
     /**
