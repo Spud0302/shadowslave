@@ -22,6 +22,12 @@ public final class ModItems {
             new Item.Properties().stacksTo(1)
     );
 
+    public static final DeferredItem<Item> RED_THREAD_BRACELET_MEMORY = ITEMS.registerItem(
+            "red_thread_bracelet_memory",
+            RedThreadBraceletMemoryItem::new,
+            new Item.Properties().stacksTo(1)
+    );
+
     private ModItems() {
     }
 
