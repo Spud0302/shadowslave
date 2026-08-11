@@ -52,11 +52,8 @@ jobs:
           curl --fail --location --silent --show-error \
             'https://dl.cloudsmith.io/public/tslat/sbl/maven/net/tslat/smartbrainlib/SmartBrainLib-neoforge-1.21.1/1.16.11/SmartBrainLib-neoforge-1.21.1-1.16.11.jar' \
             --output "$RUNNER_TEMP/SmartBrainLib-neoforge-1.21.1-1.16.11.jar"
-          # Keep the observed digest visible in the first admission run; the manifest remains fail-closed
-          # until this is replaced by the exact upstream artifact digest.
-          sha256sum "$RUNNER_TEMP/SmartBrainLib-neoforge-1.21.1-1.16.11.jar"
           printf '%s  %s\n' \
-            '0000000000000000000000000000000000000000000000000000000000000000' \
+            '68036561cc5511766d54cc0deabc3fc3a5e68f9e3db2478f2574ec82b494374b' \
             "$RUNNER_TEMP/SmartBrainLib-neoforge-1.21.1-1.16.11.jar" | sha256sum --check --strict
 
       - name: Build and verify deterministic fixture package
