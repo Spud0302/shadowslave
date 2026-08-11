@@ -67,7 +67,9 @@ Run:
 /shadowslave_combat chainback_slice
 ```
 
-The command equips one ordinary iron sword and spawns one tagged existing Chainback six blocks in front of the player. The tag exists only so the development diagnostic can identify the intended test target.
+The command first asks NeoForge's mod list whether the `bettercombat` mod is actually loaded. If it is absent, setup refuses to spawn/equip the slice. This prevents a vanilla-only iron-sword swing from being mistaken for evidence in favor of the dependency. The check uses only NeoForge loader metadata; it does not import or call Better Combat's Java API.
+
+When Better Combat is loaded, the command equips one ordinary iron sword and spawns one tagged existing Chainback six blocks in front of the player. The tag exists only so the development diagnostic can identify the intended test target.
 
 Run this immediately before and after the intended punish:
 
@@ -87,7 +89,7 @@ Earlier spike heads attempted to count post-damage events directly. That observe
 
 A useful successful run is:
 
-1. spawn the slice;
+1. spawn the slice and confirm setup reports that Better Combat is loaded;
 2. read the chain warning;
 3. break range or line of sight so the displacement misses;
 4. run `status` and confirm the existing recovery is `OPEN`, recording health;
@@ -159,11 +161,12 @@ Admission requires physical evidence on this exact spike that:
 
 1. NeoForge client boots with the pinned Better Combat/playerAnimator/Cloth Config set;
 2. dedicated server boots with the same required set;
-3. ordinary iron-sword attacks execute through Better Combat;
-4. PR #256 Chainback telegraph/pull/miss-recovery behavior still works;
-5. the two systems do not visibly double-fire melee damage or erase Chainback's earned recovery window;
-6. removal of the dependency leaves Java-owned Shadow Slave state loadable;
-7. the player-side result feels closer to `observe -> respond -> opening -> commit -> recover` than vanilla hit trading.
+3. `/shadowslave_combat chainback_slice` positively confirms Better Combat is loaded before producing the fixture;
+4. ordinary iron-sword attacks execute through Better Combat;
+5. PR #256 Chainback telegraph/pull/miss-recovery behavior still works;
+6. the two systems do not visibly double-fire melee damage or erase Chainback's earned recovery window;
+7. removal of the dependency leaves Java-owned Shadow Slave state loadable;
+8. the player-side result feels closer to `observe -> respond -> opening -> commit -> recover` than vanilla hit trading.
 
 If these fail because Better Combat must own semantics that Shadow Slave cannot surrender, reject it and test the smallest native/PAL alternative instead.
 
