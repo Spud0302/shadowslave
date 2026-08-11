@@ -40,10 +40,11 @@ public final class CombatPrototypeCommands {
     }
 
     /**
-     * Passive development telemetry only. It observes final server-side damage after normal combat
-     * resolution and never changes the amount, cancels the event, or becomes canonical combat state.
+     * Passive development telemetry only. LivingDamageEvent.Post observes immutable final damage
+     * after health has been modified; it never changes the amount, cancels the event, or becomes
+     * canonical combat state.
      */
-    public static void onLivingDamage(LivingDamageEvent event) {
+    public static void onLivingDamage(LivingDamageEvent.Post event) {
         if (!(event.getEntity() instanceof ChainbackEntity chainback)
                 || !chainback.getTags().contains(PROTOTYPE_CHAINBACK_TAG)
                 || !(event.getSource().getEntity() instanceof ServerPlayer)) {
@@ -53,7 +54,7 @@ public final class CombatPrototypeCommands {
         PROTOTYPE_TELEMETRY.compute(
                 chainback.getUUID(),
                 (ignored, previous) -> (previous == null ? PrototypeTelemetry.empty() : previous)
-                        .recordHit(event.getAmount(), chainback.isInDisplacementRecovery()));
+                        .recordHit(event.getHealthDamage(), chainback.isInDisplacementRecovery()));
     }
 
     private static int setupChainbackSlice(ServerPlayer player) {
