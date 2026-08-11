@@ -29,6 +29,17 @@ repositories {
             includeGroup('net.tslat.smartbrainlib')
         }
     }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'ModrinthCombatSpike'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter {
+            includeGroup('maven.modrinth')
+        }
+    }
 }
 
 neoForge {
@@ -94,6 +105,13 @@ neoForge {
 dependencies {
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
     implementation "net.tslat.smartbrainlib:SmartBrainLib-neoforge-${minecraft_version}:${smartbrainlib_version}"
+
+    // Development-only combat spike. Better Combat owns mundane player attack input/timing,
+    // swing hitboxes and player attack animation for this branch. Shadow Slave does not import
+    // Better Combat Java APIs or make it canonical state authority.
+    runtimeOnly "maven.modrinth:5sy6g3kz:${bettercombat_version_id}"
+    runtimeOnly "maven.modrinth:gedNE4y2:${playeranimator_version_id}"
+    runtimeOnly "maven.modrinth:9s6osm5g:${clothconfig_version_id}"
 
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
