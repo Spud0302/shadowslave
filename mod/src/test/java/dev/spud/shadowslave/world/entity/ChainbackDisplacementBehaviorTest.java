@@ -19,6 +19,18 @@ class ChainbackDisplacementBehaviorTest {
     }
 
     @Test
+    void telegraphPulsesAtBoundedReadableCadence() {
+        assertTrue(ChainbackDisplacementBehavior.shouldTelegraphPulse(12));
+        assertTrue(ChainbackDisplacementBehavior.shouldTelegraphPulse(9));
+        assertTrue(ChainbackDisplacementBehavior.shouldTelegraphPulse(6));
+        assertTrue(ChainbackDisplacementBehavior.shouldTelegraphPulse(3));
+        assertFalse(ChainbackDisplacementBehavior.shouldTelegraphPulse(11));
+        assertFalse(ChainbackDisplacementBehavior.shouldTelegraphPulse(1));
+        assertFalse(ChainbackDisplacementBehavior.shouldTelegraphPulse(0));
+        assertFalse(ChainbackDisplacementBehavior.shouldTelegraphPulse(-3));
+    }
+
+    @Test
     void pullVectorPointsTowardChainbackWithFixedBoundedMagnitude() {
         ChainbackDisplacementBehavior.PullVector pull = ChainbackDisplacementBehavior.pullToward(3.0D, 4.0D);
 
@@ -41,6 +53,8 @@ class ChainbackDisplacementBehaviorTest {
         assertEquals(4.0D, ChainbackDisplacementBehavior.MAX_HORIZONTAL_RANGE);
         assertEquals(1.5D, ChainbackDisplacementBehavior.MAX_VERTICAL_DELTA);
         assertEquals(50, ChainbackDisplacementBehavior.COOLDOWN_TICKS);
+        assertEquals(12, ChainbackDisplacementBehavior.TELEGRAPH_TICKS);
+        assertEquals(3, ChainbackDisplacementBehavior.TELEGRAPH_PULSE_INTERVAL);
         assertEquals(0.55D, ChainbackDisplacementBehavior.HORIZONTAL_PULL);
         assertEquals(0.10D, ChainbackDisplacementBehavior.LIFT);
     }
