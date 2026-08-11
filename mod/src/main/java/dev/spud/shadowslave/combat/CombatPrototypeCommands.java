@@ -14,9 +14,13 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
+import java.util.Comparator;
+
 /** Development-only command surface for physically judging the bounded combat prototype. */
 public final class CombatPrototypeCommands {
+    static final String PROTOTYPE_CHAINBACK_TAG = "shadowslave_combat_prototype";
     private static final double CHAINBACK_SPAWN_DISTANCE = 6.0D;
+    private static final double STATUS_RADIUS = 64.0D;
 
     private CombatPrototypeCommands() {
     }
@@ -25,7 +29,9 @@ public final class CombatPrototypeCommands {
         event.getDispatcher().register(Commands.literal("shadowslave_combat")
                 .requires(source -> source.hasPermission(2))
                 .then(Commands.literal("chainback_slice")
-                        .executes(context -> setupChainbackSlice(context.getSource().getPlayerOrException()))));
+                        .executes(context -> setupChainbackSlice(context.getSource().getPlayerOrException())))
+                .then(Commands.literal("status")
+                        .executes(context -> reportPrototypeStatus(context.getSource().getPlayerOrException()))));
     }
 
     private static int setupChainbackSlice(ServerPlayer player) {
@@ -48,6 +54,7 @@ public final class CombatPrototypeCommands {
         Vec3 spawn = player.position().add(horizontal.scale(CHAINBACK_SPAWN_DISTANCE));
         chainback.moveTo(spawn.x, player.getY(), spawn.z, player.getYRot() + 180.0F, 0.0F);
         chainback.setPersistenceRequired();
+        chainback.addTag(PROTOTYPE_CHAINBACK_TAG);
         chainback.setTarget(player);
         level.addFreshEntity(chainback);
 
@@ -56,8 +63,40 @@ public final class CombatPrototypeCommands {
                 "Combat prototype ready: read Chainback's warning, break range/line of sight, then punish its recovery with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
+                "Use /shadowslave_combat status before/after a punish to read the tagged Chainback's health and opening state."
+        ).withStyle(ChatFormatting.YELLOW));
+        player.sendSystemMessage(Component.literal(
                 "Development fixture only: Better Combat owns the ordinary sword swing; Shadow Slave still owns Chainback's special-action state."
         ).withStyle(ChatFormatting.GRAY));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int reportPrototypeStatus(ServerPlayer player) {
+        ChainbackEntity chainback = player.serverLevel()
+                .getEntitiesOfClass(
+                        ChainbackEntity.class,
+                        player.getBoundingBox().inflate(STATUS_RADIUS),
+                        entity -> entity.getTags().contains(PROTOTYPE_CHAINBACK_TAG))
+                .stream()
+                .min(Comparator.comparingDouble(player::distanceToSqr))
+                .orElse(null);
+
+        if (chainback == null) {
+            player.sendSystemMessage(Component.literal(
+                    "Combat prototype status: no tagged Chainback found within 64 blocks. Run /shadowslave_combat chainback_slice first."
+            ).withStyle(ChatFormatting.RED));
+            return 0;
+        }
+
+        boolean opening = chainback.isInDisplacementRecovery();
+        int openingTicks = chainback.displacementRecoveryTicks();
+        player.sendSystemMessage(Component.literal(String.format(
+                "Combat prototype status: Chainback health %.1f/%.1f | opening %s | recovery %d ticks",
+                chainback.getHealth(),
+                chainback.getMaxHealth(),
+                opening ? "OPEN" : "closed",
+                openingTicks
+        )).withStyle(opening ? ChatFormatting.GREEN : ChatFormatting.GRAY));
         return Command.SINGLE_SUCCESS;
     }
 }
