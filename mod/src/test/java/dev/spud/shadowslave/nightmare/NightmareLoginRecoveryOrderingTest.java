@@ -18,14 +18,17 @@ final class NightmareLoginRecoveryOrderingTest {
 
         String replayGuard = "if (GeneratedAppraisalRecoveryService.replayPending(player)) {";
         int replayIndex = loginHandler.indexOf(replayGuard);
-        int returnIndex = loginHandler.indexOf("return;", replayIndex);
-        int activeIndex = loginHandler.indexOf("NightmareService.activeFor(player).ifPresent", replayIndex);
-
         assertTrue(replayIndex >= 0, "login must consult durable successful-completion recovery first");
-        assertTrue(returnIndex > replayIndex && returnIndex < activeIndex,
-                "handled completion replay must return before ordinary active-Nightmare reconciliation");
-        assertTrue(activeIndex > replayIndex,
-                "ordinary active-instance reconciliation must remain after completion-receipt replay");
+
+        int replayOpeningBrace = loginHandler.indexOf('{', replayIndex);
+        int replayClosingBrace = matchingClosingBrace(loginHandler, replayOpeningBrace);
+        String replayBody = loginHandler.substring(replayOpeningBrace + 1, replayClosingBrace);
+        int activeIndex = loginHandler.indexOf("NightmareService.activeFor(player).ifPresent");
+
+        assertTrue(replayBody.matches("\\s*return;\\s*"),
+                "handled completion replay guard must return immediately without conditional fallthrough");
+        assertTrue(activeIndex > replayClosingBrace,
+                "ordinary active-instance reconciliation must remain after the completed replay guard");
     }
 
     private static String methodBody(String source, String signature) {
@@ -34,6 +37,13 @@ final class NightmareLoginRecoveryOrderingTest {
 
         int openingBrace = source.indexOf('{', signatureIndex + signature.length());
         assertTrue(openingBrace >= 0, "login handler must have a method body");
+        int closingBrace = matchingClosingBrace(source, openingBrace);
+        return source.substring(openingBrace + 1, closingBrace);
+    }
+
+    private static int matchingClosingBrace(String source, int openingBrace) {
+        assertTrue(openingBrace >= 0 && source.charAt(openingBrace) == '{',
+                "balanced block search must begin on an opening brace");
 
         int depth = 0;
         for (int index = openingBrace; index < source.length(); index++) {
@@ -43,11 +53,11 @@ final class NightmareLoginRecoveryOrderingTest {
             } else if (current == '}') {
                 depth--;
                 if (depth == 0) {
-                    return source.substring(openingBrace + 1, index);
+                    return index;
                 }
             }
         }
 
-        throw new AssertionError("login handler body must have balanced braces");
+        throw new AssertionError("source block must have balanced braces");
     }
 }
