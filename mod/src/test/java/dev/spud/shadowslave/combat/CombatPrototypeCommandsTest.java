@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -29,9 +28,11 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
-    void prototypeStatusReportsExistingRecoveryAsOpeningWithoutOwningCombatState() throws Exception {
+    void prototypeStatusReportsExistingRecoveryAndHealthWithoutOwningDamageState() throws Exception {
         String commandSource = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
+        String modSource = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/ShadowSlaveMod.java"));
         String chainbackSource = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/world/entity/ChainbackEntity.java"));
 
@@ -39,34 +40,17 @@ final class CombatPrototypeCommandsTest {
         assertTrue(commandSource.contains("chainback.isInDisplacementRecovery()"));
         assertTrue(commandSource.contains("chainback.displacementRecoveryTicks()"));
         assertTrue(commandSource.contains("chainback.getHealth()"));
-        assertTrue(commandSource.contains("opening hits %d"));
+        assertTrue(commandSource.contains("immediately before and after a punish"));
+
+        assertFalse(commandSource.contains("LivingDamageEvent"));
+        assertFalse(commandSource.contains("onLivingDamage"));
+        assertFalse(commandSource.contains("PrototypeTelemetry"));
+        assertFalse(modSource.contains("CombatPrototypeCommands::onLivingDamage"));
 
         assertTrue(chainbackSource.contains("public boolean isInDisplacementRecovery()"));
         assertTrue(chainbackSource.contains("public int displacementRecoveryTicks()"));
         assertTrue(chainbackSource.contains("return this.displacementRecoveryTicks;"));
         assertFalse(chainbackSource.contains("stability"));
         assertFalse(chainbackSource.contains("bettercombat"));
-    }
-
-    @Test
-    void prototypeTelemetryCountsPostDamageDuringExistingOpeningWithoutChangingDamage() throws Exception {
-        CombatPrototypeCommands.PrototypeTelemetry telemetry = CombatPrototypeCommands.PrototypeTelemetry.empty()
-                .recordHit(3.0F, false)
-                .recordHit(5.5F, true);
-
-        assertEquals(2, telemetry.playerHits());
-        assertEquals(1, telemetry.openingHits());
-        assertEquals(5.5F, telemetry.lastDamage());
-        assertTrue(telemetry.lastHitDuringOpening());
-
-        String commandSource = Files.readString(Path.of(
-                "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
-        assertTrue(commandSource.contains("public static void onLivingDamage(LivingDamageEvent.Post event)"));
-        assertTrue(commandSource.contains("event.getSource().getEntity() instanceof ServerPlayer"));
-        assertTrue(commandSource.contains("event.getNewDamage(), chainback.isInDisplacementRecovery()"));
-        assertFalse(commandSource.contains("getHealthDamage()"));
-        assertFalse(commandSource.contains("LivingDamageEvent.Pre"));
-        assertFalse(commandSource.contains("event.setNewDamage"));
-        assertFalse(commandSource.contains("event.setCanceled"));
     }
 }
