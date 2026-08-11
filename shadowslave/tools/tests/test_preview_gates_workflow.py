@@ -16,6 +16,18 @@ class PreviewGatesWorkflowContractTest(unittest.TestCase):
                 f"Preview Gates must run for pull_request event {event}",
             )
 
+    def test_expensive_jobs_skip_draft_pull_requests(self):
+        repository_root = Path(__file__).resolve().parents[3]
+        workflow = repository_root / ".github" / "workflows" / "java-core.yml"
+        text = workflow.read_text(encoding="utf-8")
+        draft_guard = "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false"
+
+        self.assertEqual(
+            2,
+            text.count(draft_guard),
+            "Both Java and datapack jobs must skip draft pull requests",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
