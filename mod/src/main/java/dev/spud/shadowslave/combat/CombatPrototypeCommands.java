@@ -13,19 +13,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 /** Development-only command surface for physically judging the bounded combat prototype. */
 public final class CombatPrototypeCommands {
     static final String PROTOTYPE_CHAINBACK_TAG = "shadowslave_combat_prototype";
     private static final double CHAINBACK_SPAWN_DISTANCE = 6.0D;
     private static final double STATUS_RADIUS = 64.0D;
-    private static final Map<UUID, PrototypeTelemetry> PROTOTYPE_TELEMETRY = new HashMap<>();
 
     private CombatPrototypeCommands() {
     }
@@ -37,24 +32,6 @@ public final class CombatPrototypeCommands {
                         .executes(context -> setupChainbackSlice(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("status")
                         .executes(context -> reportPrototypeStatus(context.getSource().getPlayerOrException()))));
-    }
-
-    /**
-     * Passive development telemetry only. LivingDamageEvent.Post observes immutable final damage
-     * after health has been modified; it never changes the amount, cancels the event, or becomes
-     * canonical combat state. NeoForge 21.1.x names the final health-loss accessor getNewDamage().
-     */
-    public static void onLivingDamage(LivingDamageEvent.Post event) {
-        if (!(event.getEntity() instanceof ChainbackEntity chainback)
-                || !chainback.getTags().contains(PROTOTYPE_CHAINBACK_TAG)
-                || !(event.getSource().getEntity() instanceof ServerPlayer)) {
-            return;
-        }
-
-        PROTOTYPE_TELEMETRY.compute(
-                chainback.getUUID(),
-                (ignored, previous) -> (previous == null ? PrototypeTelemetry.empty() : previous)
-                        .recordHit(event.getNewDamage(), chainback.isInDisplacementRecovery()));
     }
 
     private static int setupChainbackSlice(ServerPlayer player) {
@@ -80,14 +57,13 @@ public final class CombatPrototypeCommands {
         chainback.addTag(PROTOTYPE_CHAINBACK_TAG);
         chainback.setTarget(player);
         level.addFreshEntity(chainback);
-        PROTOTYPE_TELEMETRY.put(chainback.getUUID(), PrototypeTelemetry.empty());
 
         player.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         player.sendSystemMessage(Component.literal(
                 "Combat prototype ready: read Chainback's warning, break range/line of sight, then punish its recovery with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
-                "Use /shadowslave_combat status after a punish: opening hits counts server damage that landed while Chainback was in recovery."
+                "Use /shadowslave_combat status immediately before and after a punish to compare server health and the creature-owned recovery opening."
         ).withStyle(ChatFormatting.YELLOW));
         player.sendSystemMessage(Component.literal(
                 "Development fixture only: Better Combat owns the ordinary sword swing; Shadow Slave still owns Chainback's special-action state."
@@ -114,34 +90,13 @@ public final class CombatPrototypeCommands {
 
         boolean opening = chainback.isInDisplacementRecovery();
         int openingTicks = chainback.displacementRecoveryTicks();
-        PrototypeTelemetry telemetry = PROTOTYPE_TELEMETRY.getOrDefault(chainback.getUUID(), PrototypeTelemetry.empty());
-        String lastHit = telemetry.playerHits() == 0
-                ? "none"
-                : String.format("%.1f (%s)", telemetry.lastDamage(), telemetry.lastHitDuringOpening() ? "during opening" : "outside opening");
         player.sendSystemMessage(Component.literal(String.format(
-                "Combat prototype status: Chainback health %.1f/%.1f | opening %s | recovery %d ticks | player hits %d | opening hits %d | last %s",
+                "Combat prototype status: Chainback health %.1f/%.1f | opening %s | recovery %d ticks",
                 chainback.getHealth(),
                 chainback.getMaxHealth(),
                 opening ? "OPEN" : "closed",
-                openingTicks,
-                telemetry.playerHits(),
-                telemetry.openingHits(),
-                lastHit
+                openingTicks
         )).withStyle(opening ? ChatFormatting.GREEN : ChatFormatting.GRAY));
         return Command.SINGLE_SUCCESS;
-    }
-
-    record PrototypeTelemetry(int playerHits, int openingHits, float lastDamage, boolean lastHitDuringOpening) {
-        static PrototypeTelemetry empty() {
-            return new PrototypeTelemetry(0, 0, 0.0F, false);
-        }
-
-        PrototypeTelemetry recordHit(float damage, boolean duringOpening) {
-            return new PrototypeTelemetry(
-                    playerHits + 1,
-                    openingHits + (duringOpening ? 1 : 0),
-                    damage,
-                    duringOpening);
-        }
     }
 }
