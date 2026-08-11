@@ -26,9 +26,7 @@ public final class EchoOwnershipService {
         Objects.requireNonNull(player, "player");
         EchoOwnershipData before = get(player);
         EchoOwnershipData after = before.award(echo);
-        if (after != before) {
-            player.setData(ModAttachments.ECHOES, after);
-        }
+        if (after != before) player.setData(ModAttachments.ECHOES, after);
         return after;
     }
 
@@ -37,9 +35,16 @@ public final class EchoOwnershipService {
         Objects.requireNonNull(player, "player");
         EchoOwnershipData before = get(player);
         EchoOwnershipData after = before.withCommandMode(echoId, commandMode);
-        if (after != before) {
-            player.setData(ModAttachments.ECHOES, after);
-        }
+        if (after != before) player.setData(ModAttachments.ECHOES, after);
+        return after;
+    }
+
+    public static EchoOwnershipData setGuardPoint(ServerPlayer player, ResourceLocation echoId,
+                                                   ResourceLocation dimension, BlockPos position) {
+        Objects.requireNonNull(player, "player");
+        EchoOwnershipData before = get(player);
+        EchoOwnershipData after = before.withGuardPoint(echoId, dimension, position);
+        if (after != before) player.setData(ModAttachments.ECHOES, after);
         return after;
     }
 
@@ -48,9 +53,7 @@ public final class EchoOwnershipService {
         Objects.requireNonNull(player, "player");
         EchoOwnershipData before = get(player);
         EchoOwnershipData after = before.withManifestation(echoId, entityUuid, dimension, position);
-        if (after != before) {
-            player.setData(ModAttachments.ECHOES, after);
-        }
+        if (after != before) player.setData(ModAttachments.ECHOES, after);
         return after;
     }
 
@@ -58,9 +61,7 @@ public final class EchoOwnershipService {
         Objects.requireNonNull(player, "player");
         EchoOwnershipData before = get(player);
         EchoOwnershipData after = before.withoutManifestation(echoId);
-        if (after != before) {
-            player.setData(ModAttachments.ECHOES, after);
-        }
+        if (after != before) player.setData(ModAttachments.ECHOES, after);
         return after;
     }
 
