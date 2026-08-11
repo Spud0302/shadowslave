@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   pull_request:
     types:
+      - opened
+      - synchronize
       - ready_for_review
       - reopened
     paths:
@@ -25,12 +27,16 @@ permissions:
 
 jobs:
   java:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Validate Preview gates trigger contract
+        run: python3 -m unittest discover -s shadowslave/tools/tests -p 'test_preview_gates_workflow.py'
 
       - name: Set up Java 21
         uses: actions/setup-java@v4
@@ -133,6 +139,7 @@ jobs:
           if-no-files-found: error
 
   datapack:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
