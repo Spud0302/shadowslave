@@ -12,6 +12,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.util.Comparator;
@@ -19,6 +20,7 @@ import java.util.Comparator;
 /** Development-only command surface for physically judging the bounded combat prototype. */
 public final class CombatPrototypeCommands {
     static final String PROTOTYPE_CHAINBACK_TAG = "shadowslave_combat_prototype";
+    private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
     private static final double CHAINBACK_SPAWN_DISTANCE = 6.0D;
     private static final double STATUS_RADIUS = 64.0D;
 
@@ -37,6 +39,13 @@ public final class CombatPrototypeCommands {
     }
 
     private static int setupChainbackSlice(ServerPlayer player) {
+        if (!ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)) {
+            player.sendSystemMessage(Component.literal(
+                    "Combat prototype setup refused: Better Combat is not loaded, so an ordinary sword swing would not prove the dependency spike."
+            ).withStyle(ChatFormatting.RED));
+            return 0;
+        }
+
         ServerLevel level = player.serverLevel();
         int removed = removeTaggedPrototypeChainbacks(player);
 
@@ -64,7 +73,7 @@ public final class CombatPrototypeCommands {
 
         player.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         player.sendSystemMessage(Component.literal(
-                "Combat prototype ready: read Chainback's warning, break range/line of sight, then punish its recovery with the iron sword."
+                "Combat prototype ready: Better Combat is loaded. Read Chainback's warning, break range/line of sight, then punish its recovery with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
                 "Use /shadowslave_combat status immediately before and after a punish to compare server health and the creature-owned recovery opening."
