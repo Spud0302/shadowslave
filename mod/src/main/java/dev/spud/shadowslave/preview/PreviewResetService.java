@@ -8,6 +8,7 @@ import dev.spud.shadowslave.memory.BellglassHeldNoteService;
 import dev.spud.shadowslave.memory.MemoryManifestationService;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.memory.MemoryOwnershipService;
+import dev.spud.shadowslave.memory.RedThreadCompanionService;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
 import dev.spud.shadowslave.migration.ImportedIdentityService;
 import dev.spud.shadowslave.network.SoulSyncService;
@@ -61,7 +62,9 @@ public final class PreviewResetService {
         @Override public void clearMemories() {
             MemoryManifestationService.clearAshCompassManifestations(player);
             MemoryManifestationService.clearBellglassTokenManifestations(player);
+            MemoryManifestationService.clearRedThreadBraceletManifestations(player);
             BellglassHeldNoteService.clear(player);
+            RedThreadCompanionService.clear(player);
             MemoryOwnershipService.replace(player, MemoryOwnershipData.empty());
         }
         @Override public void clearEchoes() {
