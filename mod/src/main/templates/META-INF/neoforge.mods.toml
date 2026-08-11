@@ -34,3 +34,10 @@ type="required"
 versionRange="[${geckolib_version}]"
 ordering="NONE"
 side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="smartbrainlib"
+type="required"
+versionRange="[${smartbrainlib_version}]"
+ordering="NONE"
+side="BOTH"
