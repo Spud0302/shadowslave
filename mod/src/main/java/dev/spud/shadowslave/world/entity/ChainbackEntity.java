@@ -110,8 +110,17 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
         }
     }
 
-    boolean isInDisplacementRecovery() {
+    /**
+     * Exposes the existing creature-specific recovery as a read-only combat-opening signal.
+     * This is execution state only; it does not create a generic stability or progression system.
+     */
+    public boolean isInDisplacementRecovery() {
         return this.displacementRecoveryTicks > 0;
+    }
+
+    /** Read-only remaining opening duration for development/runtime presentation and diagnostics. */
+    public int displacementRecoveryTicks() {
+        return this.displacementRecoveryTicks;
     }
 
     private void emitDisplacementTelegraph(LivingEntity target) {
