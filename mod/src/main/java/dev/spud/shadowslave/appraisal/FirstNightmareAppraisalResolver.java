@@ -17,18 +17,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Resolves the already-authored procedural identity content from one completed
- * First Nightmare. The weighting and seed mixing are Minecraft DESIGN, not a
- * claim about the Nightmare Spell's canonical appraisal algorithm.
- *
- * <p>The live preview deliberately narrows the broad definition catalogue to
- * primitives that have real runtime executors. Definition-only abilities and
- * Flaws remain available to future content work but cannot currently replace a
- * player's working post-Nightmare mechanics.</p>
- */
+/** Resolves generated First-Nightmare identity plus separate appraisal-quality evidence. */
 public final class FirstNightmareAppraisalResolver {
     private static final long ATTRIBUTE_SEED_SALT = 0x6A09E667F3BCC909L;
     private static final ResourceLocation EXECUTABLE_ABILITY_ID = id("generation/ability/kindle");
@@ -40,12 +32,14 @@ public final class FirstNightmareAppraisalResolver {
     public record Award(
             GeneratedIdentityCandidate identity,
             AttributeContentCatalog.AttributeProfile attribute,
-            GenerationEvidence evidence
+            GenerationEvidence evidence,
+            Optional<NightmareDivergenceAppraisal.Result> divergence
     ) {
         public Award {
             identity = Objects.requireNonNull(identity, "identity");
             attribute = Objects.requireNonNull(attribute, "attribute");
             evidence = Objects.requireNonNull(evidence, "evidence");
+            divergence = Objects.requireNonNull(divergence, "divergence");
         }
     }
 
@@ -64,7 +58,18 @@ public final class FirstNightmareAppraisalResolver {
                 .generate(seed, evidence, SoulRank.AWAKENED);
         AttributeContentCatalog.AttributeProfile attribute = AttributeContentCatalog.waveOne()
                 .select(seed ^ ATTRIBUTE_SEED_SALT, weights);
-        return new Award(identity, attribute, evidence);
+        Optional<NightmareDivergenceAppraisal.Result> divergence = divergence(
+                completedInstance.scenarioId(), checkedResolution);
+        return new Award(identity, attribute, evidence, divergence);
+    }
+
+    static Optional<NightmareDivergenceAppraisal.Result> divergence(String scenarioId, String resolutionId) {
+        String scenario = requireText(scenarioId, "scenarioId").toLowerCase(Locale.ROOT);
+        String resolution = requireText(resolutionId, "resolutionId").toLowerCase(Locale.ROOT);
+        if (scenario.equals(DrownedBellScenarioDefinition.SCENARIO_ID)) {
+            return Optional.of(DrownedBellFateOutcome.appraise(resolution));
+        }
+        return Optional.empty();
     }
 
     static Map<String, Integer> evidenceWeights(String scenarioId, String historicalRoleId, String resolutionId) {
