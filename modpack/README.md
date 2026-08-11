@@ -4,9 +4,12 @@ This directory is the deterministic packaging boundary for Path A: a curated Neo
 
 ## Current status
 
-The manifest pins Minecraft `1.21.1`, NeoForge `21.1.244`, Java `21`, the locally built Shadow Slave core, and the first required presentation dependency: GeckoLib `4.9.2` for custom model/animation execution.
+The manifest pins Minecraft `1.21.1`, NeoForge `21.1.244`, Java `21`, the locally built Shadow Slave core, and two required non-authoritative runtime providers:
 
-GeckoLib is explicitly non-authoritative. It does not own Soul state, Nightmare Creature identity, progression, rewards, persistence, or Nightmare lifecycle. The manifest records its exact Maven artifact, MIT license, SHA-256 and removal behavior.
+- GeckoLib `4.9.2` for custom model/animation presentation;
+- SmartBrainLib `1.16.11` for bounded creature AI execution.
+
+Neither provider owns Soul state, Nightmare Creature identity, progression, rewards, persistence, Memory/Echo ownership, Rank/Class, or Nightmare lifecycle. The manifest records each exact artifact, licence, SHA-256 and removal behavior.
 
 The exporter packages the exact supplied core JAR plus every required runtime component, records per-entry SHA-256 and size provenance, sorts every archive entry and fixes ZIP timestamps and file modes. Identical inputs therefore produce byte-identical archives.
 
@@ -19,7 +22,7 @@ python3 modpack/tools/validate_manifest.py
 python3 -m unittest discover -s modpack/tests -v
 ```
 
-Build the current archive after compiling the Java core and fetching the exact pinned GeckoLib component:
+Build the current archive after compiling the Java core and fetching the exact pinned runtime components:
 
 ```bash
 ./mod/gradlew -p mod build
@@ -32,13 +35,21 @@ printf '%s  %s\n' \
   '5e548466af9ab6aca7a91a7c7d4dc0dc8bc385e22958aed5da0e7bebd0fa3fba' \
   'build/components/geckolib-neoforge-1.21.1-4.9.2.jar' | sha256sum --check --strict
 
+curl --fail --location --silent --show-error \
+  'https://dl.cloudsmith.io/public/tslat/sbl/maven/net/tslat/smartbrainlib/SmartBrainLib-neoforge-1.21.1/1.16.11/SmartBrainLib-neoforge-1.21.1-1.16.11.jar' \
+  --output build/components/SmartBrainLib-neoforge-1.21.1-1.16.11.jar
+printf '%s  %s\n' \
+  '68036561cc5511766d54cc0deabc3fc3a5e68f9e3db2478f2574ec82b494374b' \
+  'build/components/SmartBrainLib-neoforge-1.21.1-1.16.11.jar' | sha256sum --check --strict
+
 python3 modpack/tools/build_package.py \
   --core-jar mod/build/libs/shadowslave-0.1.0-preview.2.jar \
   --component-jar geckolib-4=build/components/geckolib-neoforge-1.21.1-4.9.2.jar \
+  --component-jar smartbrainlib-1=build/components/SmartBrainLib-neoforge-1.21.1-1.16.11.jar \
   --output build/nightmare-spell-modpack-dev.zip
 ```
 
-Use the exact produced core JAR path rather than relying on the manifest glob when more than one development artifact is present. Required component JARs are never downloaded implicitly by the package builder; callers must supply the exact hash-checked artifact declared by the manifest.
+Use the exact produced core JAR path rather than relying on the manifest glob when more than one development artifact is present. Required component JARs are never downloaded implicitly by the package builder; callers must supply the exact hash-checked artifacts declared by the manifest.
 
 ## Deterministic archive contract
 
@@ -47,6 +58,7 @@ The package currently contains:
 ```text
 README.md
 manifest.json
+mods/SmartBrainLib-neoforge-1.21.1-1.16.11.jar
 mods/geckolib-neoforge-1.21.1-4.9.2.jar
 mods/shadowslave-core.jar
 provenance.json
@@ -133,6 +145,7 @@ SoulData
 AspectInstance
 FlawInstance
 NightmareInstance
+Nightmare Creature / Memory / Echo identity
 progression and appraisal
 migration and history
 Soul networking/UI contract
@@ -144,11 +157,12 @@ Compatibility packages may translate internal ability, equipment, creature or ob
 
 This package exporter is Minecraft **DESIGN** and repository build infrastructure. It introduces no Shadow Slave lore mechanic.
 
-External mods may provide presentation, generic execution, infrastructure or content, but their removal must not make canonical state undecodable or reroll generated identities.
+External mods may provide presentation, generic execution, infrastructure or content, but their removal must not make canonical state undecodable or reroll generated identities. SmartBrainLib may schedule sensing, activities, path targets and melee for admitted executors, but the project still decides what those senses/behaviours mean and whether they are legal.
 
 ## Deliberate limits
 
-- GeckoLib is the only required external runtime component currently selected;
+- GeckoLib and SmartBrainLib are the only required external runtime components currently selected;
+- SmartBrainLib is admitted first for the hostile Ash Burrower; other creatures are not migrated mechanically and must independently justify the abstraction;
 - dependency downloads are explicit and hash-checked rather than performed by the package builder;
 - no `.mrpack` is generated;
 - no public release is claimed;

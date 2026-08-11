@@ -22,6 +22,13 @@ repositories {
             includeGroup('software.bernie.geckolib')
         }
     }
+    maven {
+        name = 'SmartBrainLib'
+        url = 'https://dl.cloudsmith.io/public/tslat/sbl/maven/'
+        content {
+            includeGroup('net.tslat.smartbrainlib')
+        }
+    }
 }
 
 neoForge {
@@ -86,6 +93,7 @@ neoForge {
 
 dependencies {
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    implementation "net.tslat.smartbrainlib:SmartBrainLib-neoforge-${minecraft_version}:${smartbrainlib_version}"
 
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -103,6 +111,7 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             neo_version            : neo_version,
             loader_version_range   : loader_version_range,
             geckolib_version       : geckolib_version,
+            smartbrainlib_version  : smartbrainlib_version,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,
