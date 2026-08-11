@@ -15,7 +15,7 @@
 # The smoke runs never terminate on their own — they boot and keep running — so each is launched in
 # its own process group and killed once its markers appear.
 #
-# Usage: mod/verify-smoke.sh [server|client]      (no argument runs both)
+# Usage: mod/verify-smoke.sh [server|server-restart|client]      (no argument runs server + client)
 
 set -uo pipefail
 
@@ -39,7 +39,7 @@ stop_smoke() {
   kill -KILL -- "-$group" 2>/dev/null
 
   local stragglers
-  stragglers=$(pgrep -f "moddev/(server|client)SmokeRun.*Args\.txt" 2>/dev/null || true)
+  stragglers=$(pgrep -f "moddev/(server|client)SmokeRun.*Args\\.txt" 2>/dev/null || true)
   if [[ -n "$stragglers" ]]; then
     echo "note: sweeping leaked smoke JVM(s): $(tr '\n' ' ' <<<"$stragglers")"
     xargs -r kill -TERM <<<"$stragglers"; sleep 2
@@ -91,17 +91,43 @@ run_smoke() {
   return 1
 }
 
-verify_server() {
+prepare_server_smoke() {
+  local reset_world="$1"
   mkdir -p mod/run-server-smoke
-  # Start from a fresh world, the way a CI runner does. A world left behind by a killed run keeps its
-  # session.lock and the next boot dies with "already locked". Scratch only: mod/.gitignore covers
-  # run-*/ and nothing under it is tracked.
-  rm -rf mod/run-server-smoke/world
+  if [[ "$reset_world" == "true" ]]; then
+    rm -rf mod/run-server-smoke/world
+  fi
   printf 'eula=true\n' >mod/run-server-smoke/eula.txt
-  printf 'online-mode=false\nserver-port=%s\n' "$SMOKE_PORT" >mod/run-server-smoke/server.properties
-  run_smoke "dedicated server" runServerSmoke "" /tmp/shadowslave-server-smoke.log \
+  printf 'online-mode=false\nserver-port=%s\nlevel-name=world\n' "$SMOKE_PORT" >mod/run-server-smoke/server.properties
+}
+
+verify_server_once() {
+  local label="$1" log="$2"
+  run_smoke "$label" runServerSmoke "" "$log" \
     'Shadow Slave Java core is loading' \
     'For help, type "help"'
+}
+
+verify_server() {
+  prepare_server_smoke true
+  verify_server_once "dedicated server" /tmp/shadowslave-server-smoke.log
+}
+
+verify_server_restart() {
+  prepare_server_smoke true
+  verify_server_once "dedicated server first boot" /tmp/shadowslave-server-smoke-first.log || return 1
+
+  local level_file="mod/run-server-smoke/world/level.dat"
+  if [[ ! -s "$level_file" ]]; then
+    echo "FAIL: first dedicated-server boot did not leave a non-empty world/level.dat for restart." >&2
+    return 1
+  fi
+
+  # Deliberately preserve the first boot's world. This second JVM must reacquire the same world's
+  # session lock and reach ready state. It is a real same-disk-image process restart substrate, not a
+  # codec reconstruction. It does not by itself claim player login or completion-replay coverage.
+  prepare_server_smoke false
+  verify_server_once "dedicated server same-world restart" /tmp/shadowslave-server-smoke-restart.log
 }
 
 verify_client() {
@@ -118,9 +144,10 @@ verify_client() {
 status=0
 case "${1:-both}" in
   server) verify_server || status=1 ;;
+  server-restart) verify_server_restart || status=1 ;;
   client) verify_client || status=1 ;;
   both) verify_server || status=1; verify_client || status=1 ;;
-  *) echo "usage: $0 [server|client]" >&2; exit 2 ;;
+  *) echo "usage: $0 [server|server-restart|client]" >&2; exit 2 ;;
 esac
 
 ((status)) && echo "SMOKE GATE FAILED" >&2 || echo "SMOKE GATE PASSED"
