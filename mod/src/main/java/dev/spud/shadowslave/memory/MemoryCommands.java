@@ -16,19 +16,15 @@ public final class MemoryCommands {
     public static void register(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal("shadowslave_memory")
                 .then(Commands.literal("summon")
-                        .then(Commands.literal("ash_compass")
-                                .executes(context -> summon(context.getSource().getPlayerOrException(), "Ash Compass", MemoryManifestationService::summonAshCompass)))
-                        .then(Commands.literal("bellglass_token")
-                                .executes(context -> summon(context.getSource().getPlayerOrException(), "Bellglass Token", MemoryManifestationService::summonBellglassToken)))
-                        .then(Commands.literal("red_thread_bracelet")
-                                .executes(context -> summon(context.getSource().getPlayerOrException(), "Red Thread Bracelet", MemoryManifestationService::summonRedThreadBracelet))))
+                        .then(Commands.literal("ash_compass").executes(context -> summon(context.getSource().getPlayerOrException(), "Ash Compass", MemoryManifestationService::summonAshCompass)))
+                        .then(Commands.literal("bellglass_token").executes(context -> summon(context.getSource().getPlayerOrException(), "Bellglass Token", MemoryManifestationService::summonBellglassToken)))
+                        .then(Commands.literal("red_thread_bracelet").executes(context -> summon(context.getSource().getPlayerOrException(), "Red Thread Bracelet", MemoryManifestationService::summonRedThreadBracelet)))
+                        .then(Commands.literal("borrowed_dawn").executes(context -> summon(context.getSource().getPlayerOrException(), "Borrowed Dawn", MemoryManifestationService::summonBorrowedDawn))))
                 .then(Commands.literal("dismiss")
-                        .then(Commands.literal("ash_compass")
-                                .executes(context -> dismiss(context.getSource().getPlayerOrException(), "Ash Compass", MemoryManifestationService::dismissAshCompass)))
-                        .then(Commands.literal("bellglass_token")
-                                .executes(context -> dismiss(context.getSource().getPlayerOrException(), "Bellglass Token", MemoryManifestationService::dismissBellglassToken)))
-                        .then(Commands.literal("red_thread_bracelet")
-                                .executes(context -> dismiss(context.getSource().getPlayerOrException(), "Red Thread Bracelet", MemoryManifestationService::dismissRedThreadBracelet)))));
+                        .then(Commands.literal("ash_compass").executes(context -> dismiss(context.getSource().getPlayerOrException(), "Ash Compass", MemoryManifestationService::dismissAshCompass)))
+                        .then(Commands.literal("bellglass_token").executes(context -> dismiss(context.getSource().getPlayerOrException(), "Bellglass Token", MemoryManifestationService::dismissBellglassToken)))
+                        .then(Commands.literal("red_thread_bracelet").executes(context -> dismiss(context.getSource().getPlayerOrException(), "Red Thread Bracelet", MemoryManifestationService::dismissRedThreadBracelet)))
+                        .then(Commands.literal("borrowed_dawn").executes(context -> dismiss(context.getSource().getPlayerOrException(), "Borrowed Dawn", MemoryManifestationService::dismissBorrowedDawn)))));
     }
 
     private static int summon(ServerPlayer player, String name, Function<ServerPlayer, MemoryManifestationService.ManifestResult> operation) {
