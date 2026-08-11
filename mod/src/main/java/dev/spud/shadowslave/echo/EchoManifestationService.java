@@ -12,10 +12,13 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -27,6 +30,10 @@ public final class EchoManifestationService {
     private static final String MANIFESTATION_TAG = "shadowslave_echo_manifestation";
     private static final double FOLLOW_STOP_DISTANCE_SQUARED = 9.0D;
     private static final double FOLLOW_SPEED = 1.1D;
+    private static final double GUARD_STOP_DISTANCE_SQUARED = 2.25D;
+    private static final double GUARD_SPEED = 1.0D;
+    private static final double GUARD_THREAT_RADIUS = 8.0D;
+    private static final double GUARD_COMBAT_SPEED = 1.1D;
 
     private EchoManifestationService() {}
 
@@ -90,7 +97,12 @@ public final class EchoManifestationService {
         Optional<EchoInstanceData> owned = EchoOwnershipService.get(player).find(ASH_BURROWER_ID);
         if (owned.isEmpty()) return CommandResult.NOT_OWNED;
         if (!ashBurrowerProfile().commandModes().contains(checked)) return CommandResult.UNSUPPORTED;
-        EchoOwnershipService.setCommandMode(player, ASH_BURROWER_ID, checked);
+        if (checked == EchoContentCatalog.CommandMode.GUARD_POINT) {
+            EchoOwnershipService.setGuardPoint(player, ASH_BURROWER_ID,
+                    player.serverLevel().dimension().location(), player.blockPosition());
+        } else {
+            EchoOwnershipService.setCommandMode(player, ASH_BURROWER_ID, checked);
+        }
         EchoInstanceData updated = EchoOwnershipService.get(player).find(ASH_BURROWER_ID).orElseThrow();
         findManifestation(player, updated).ifPresent(entity -> executeCommand(player, updated, entity));
         return CommandResult.COMMAND_SET;
@@ -121,27 +133,69 @@ public final class EchoManifestationService {
     private static void executeCommand(ServerPlayer player, EchoInstanceData state, Entity entity) {
         if (!(entity instanceof Mob mob)) return;
         switch (state.commandMode()) {
-            case FOLLOW -> {
-                if (entity.level() != player.level()) {
-                    mob.getNavigation().stop();
-                    mob.setNoAi(true);
-                } else if (entity.distanceToSqr(player) <= FOLLOW_STOP_DISTANCE_SQUARED) {
-                    mob.getNavigation().stop();
-                    mob.setNoAi(true);
-                } else {
-                    mob.setNoAi(false);
-                    mob.getNavigation().moveTo(player, FOLLOW_SPEED);
-                }
-            }
-            case HOLD -> {
-                mob.getNavigation().stop();
-                mob.setNoAi(true);
-            }
-            default -> {
-                mob.getNavigation().stop();
-                mob.setNoAi(true);
-            }
+            case FOLLOW -> follow(player, entity, mob);
+            case GUARD_POINT -> executeGuardPoint(state, entity, mob);
+            case HOLD -> hold(mob);
+            default -> hold(mob);
         }
+    }
+
+    private static void executeGuardPoint(EchoInstanceData state, Entity entity, Mob mob) {
+        if (state.commandTargetDimension().isEmpty()
+                || state.commandTargetPos().isEmpty()
+                || !state.commandTargetDimension().orElseThrow().equals(entity.level().dimension().location())) {
+            hold(mob);
+            return;
+        }
+
+        BlockPos target = state.commandTargetPos().orElseThrow();
+        Optional<LivingEntity> threat = findGuardThreat(entity, target);
+        if (threat.isPresent()) {
+            LivingEntity selected = threat.get();
+            mob.setNoAi(false);
+            mob.setTarget(selected);
+            mob.getNavigation().moveTo(selected, GUARD_COMBAT_SPEED);
+            return;
+        }
+
+        double distance = entity.distanceToSqr(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D);
+        if (distance <= GUARD_STOP_DISTANCE_SQUARED) {
+            hold(mob);
+        } else {
+            mob.setTarget(null);
+            mob.setNoAi(false);
+            mob.getNavigation().moveTo(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D, GUARD_SPEED);
+        }
+    }
+
+    private static Optional<LivingEntity> findGuardThreat(Entity manifestation, BlockPos guardPoint) {
+        if (!(manifestation.level() instanceof ServerLevel level)) return Optional.empty();
+        AABB area = new AABB(guardPoint).inflate(GUARD_THREAT_RADIUS);
+        return level.getEntitiesOfClass(LivingEntity.class, area, EchoManifestationService::isGuardThreat).stream()
+                .min(Comparator.comparingDouble(manifestation::distanceToSqr));
+    }
+
+    static boolean isGuardThreat(LivingEntity entity) {
+        if (!entity.isAlive()) return false;
+        return entity.getType() == NightmareCreatureEntities.ASH_BURROWER.get()
+                || entity.getType() == NightmareCreatureEntities.CHAINBACK.get()
+                || entity.getType() == NightmareCreatureEntities.DROWNED_LISTENER.get();
+    }
+
+    private static void follow(ServerPlayer player, Entity entity, Mob mob) {
+        if (entity.level() != player.level() || entity.distanceToSqr(player) <= FOLLOW_STOP_DISTANCE_SQUARED) {
+            hold(mob);
+        } else {
+            mob.setTarget(null);
+            mob.setNoAi(false);
+            mob.getNavigation().moveTo(player, FOLLOW_SPEED);
+        }
+    }
+
+    private static void hold(Mob mob) {
+        mob.getNavigation().stop();
+        mob.setTarget(null);
+        mob.setNoAi(true);
     }
 
     private static Optional<Entity> findManifestation(ServerPlayer player, EchoInstanceData echo) {
