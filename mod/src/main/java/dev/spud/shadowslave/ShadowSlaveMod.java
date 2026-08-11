@@ -2,6 +2,7 @@ package dev.spud.shadowslave;
 
 import com.mojang.logging.LogUtils;
 import dev.spud.shadowslave.attachment.ModAttachments;
+import dev.spud.shadowslave.combat.CombatPrototypeCommands;
 import dev.spud.shadowslave.command.ShadowSlaveCommands;
 import dev.spud.shadowslave.dreamrealm.DreamRealmCommands;
 import dev.spud.shadowslave.dreamrealm.DreamRealmResourceInteractionRuntime;
@@ -37,6 +38,7 @@ public final class ShadowSlaveMod {
         }
 
         NeoForge.EVENT_BUS.addListener(ShadowSlaveCommands::register);
+        NeoForge.EVENT_BUS.addListener(CombatPrototypeCommands::register);
         NeoForge.EVENT_BUS.addListener(MemoryCommands::register);
         NeoForge.EVENT_BUS.addListener(EchoCommands::register);
         NeoForge.EVENT_BUS.addListener(DreamRealmCommands::register);
