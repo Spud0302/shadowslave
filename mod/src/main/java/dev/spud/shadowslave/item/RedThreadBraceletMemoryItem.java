@@ -16,7 +16,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-import java.util.Locale;
 import java.util.UUID;
 
 /** Physical execution adapter for Red Thread Bracelet's authored tethered_pulse enchantment. */
@@ -73,7 +72,7 @@ public final class RedThreadBraceletMemoryItem extends Item {
         if (companion == null) {
             serverPlayer.sendSystemMessage(Component.literal("Red Thread Bracelet: the thread has no answer.")
                     .withStyle(ChatFormatting.GRAY));
-        } else if (companion.level().dimension() != serverPlayer.level().dimension()) {
+        } else if (!companion.level().dimension().equals(serverPlayer.level().dimension())) {
             serverPlayer.sendSystemMessage(Component.literal("Red Thread Bracelet: the marked companion lies beyond this realm.")
                     .withStyle(ChatFormatting.DARK_RED));
         } else {
@@ -112,6 +111,6 @@ public final class RedThreadBraceletMemoryItem extends Item {
 
         String northSouth = dz > 0.0D ? "south" : "north";
         String eastWest = dx > 0.0D ? "east" : "west";
-        return (northSouth + "-" + eastWest).toLowerCase(Locale.ROOT);
+        return northSouth + "-" + eastWest;
     }
 }
