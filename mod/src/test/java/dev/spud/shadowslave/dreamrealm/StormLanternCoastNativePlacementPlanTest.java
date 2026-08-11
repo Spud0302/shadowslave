@@ -54,6 +54,36 @@ class StormLanternCoastNativePlacementPlanTest {
     }
 
     @Test
+    void seaGateIsASecondNativeHistoricalPieceInItsOwnProjectedChunk() {
+        for (long seed = 0; seed < 256; seed++) {
+            var plan = StormLanternCoastNativePlacementPlan.drownedBellLater(seed);
+            var belfry = plan.anchorPiece();
+            var seaGate = plan.piece(StormLanternCoastNativePlacementPlan.NATIVE_SEA_GATE_ID);
+
+            assertTrue(seaGate.historicalAnchor());
+            assertEquals(38, plan.globalX(seaGate) - plan.globalX(belfry));
+            assertEquals(35, plan.globalZ(seaGate) - plan.globalZ(belfry));
+            assertNotEquals(plan.chunkX(belfry) + ":" + plan.chunkZ(belfry),
+                    plan.chunkX(seaGate) + ":" + plan.chunkZ(seaGate));
+            assertEquals(14, Math.floorMod(plan.globalX(seaGate), 16));
+            assertEquals(11, Math.floorMod(plan.globalZ(seaGate), 16));
+            assertEquals(seaGate, plan.nativePieceForChunk(plan.chunkX(seaGate), plan.chunkZ(seaGate)).orElseThrow());
+            assertEquals(belfry, plan.nativePieceForChunk(plan.chunkX(belfry), plan.chunkZ(belfry)).orElseThrow());
+        }
+    }
+
+    @Test
+    void onlyExplicitlyMigratedHistoricalPiecesOwnNativeChunks() {
+        long seed = 91L;
+        var plan = StormLanternCoastNativePlacementPlan.drownedBellLater(seed);
+        var quarry = plan.piece("collapsed_quarry_cut");
+        var terraces = plan.piece("drowned_harbour_terraces");
+
+        assertTrue(plan.nativePieceForChunk(plan.chunkX(quarry), plan.chunkZ(quarry)).isEmpty());
+        assertTrue(plan.nativePieceForChunk(plan.chunkX(terraces), plan.chunkZ(terraces)).isEmpty());
+    }
+
+    @Test
     void worldSeedVariesNativeAnchorAcrossTheReservedMacroArea() {
         Set<String> chunks = new HashSet<>();
         for (long seed = 0; seed < 512; seed++) {
