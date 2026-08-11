@@ -42,6 +42,22 @@ class PreviewGatesWorkflowContractTest(unittest.TestCase):
         self.assertIn('mod/run-server-smoke/world/level.dat', smoke_text)
         self.assertIn('dedicated server same-world restart', smoke_text)
 
+    def test_java_gate_runs_neoforge_gametest_server_without_forced_exit(self):
+        repository_root = Path(__file__).resolve().parents[3]
+        workflow = repository_root / ".github" / "workflows" / "java-core.yml"
+        build = repository_root / "mod" / "build.gradle"
+        workflow_text = workflow.read_text(encoding="utf-8")
+        build_text = build.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "./mod/gradlew -p mod runGameTestServer --no-daemon --stacktrace",
+            workflow_text,
+            "Preview Gates must execute the configured NeoForge GameTest server",
+        )
+        game_test_block = build_text.split("        gameTestServer {\n", 1)[1].split("        }\n", 1)[0]
+        self.assertIn("type = 'gameTestServer'", game_test_block)
+        self.assertIn("setForceExit false", game_test_block)
+
 
 if __name__ == "__main__":
     unittest.main()
