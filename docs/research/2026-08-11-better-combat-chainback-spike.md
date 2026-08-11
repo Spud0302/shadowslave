@@ -71,19 +71,17 @@ The command first asks NeoForge's mod list whether the `bettercombat` mod is act
 
 When Better Combat is loaded, the command equips one ordinary iron sword and spawns one tagged existing Chainback six blocks in front of the player. The tag exists only so the development diagnostic can identify the intended test target.
 
-Run this immediately before and after the intended punish:
+Run this while the intended punish window is open:
 
 ```text
 /shadowslave_combat status
 ```
 
-The status line reports only server-owned facts already available without a damage observer:
+The first `status` call made while Chainback's existing displacement recovery is `OPEN` arms a transient in-memory baseline for that exact tagged Chainback and reports its authoritative health. A later `status` call reports the health delta from that baseline. The baseline is keyed to the player + Chainback UUID, is cleared by `chainback_slice` and `reset`, and is never written to `SavedData`, entity NBT, player persistence, or a damage-event mirror.
 
-- current Chainback health;
-- whether the existing displacement recovery is currently `OPEN`;
-- remaining recovery ticks.
+This keeps the proof path deliberately below combat authority: the command only samples health that the server already owns. It does not listen to or modify damage, does not know how Better Combat selected the target, and cannot change hit timing, consequences, recovery, Rank, Memories, Aspects, Soul state, or progression.
 
-Earlier spike heads attempted to count post-damage events directly. That observer seam failed twice against NeoForge 1.21.1 API differences (`LivingDamageEvent.Post` accessor churn), so the spike deliberately stopped retrying it. The prototype now uses the smaller and more robust proof path: compare authoritative Chainback health immediately before and after the Better Combat swing while observing the existing recovery state. No event listener, combat-state mirror, or persistent telemetry is introduced.
+Earlier spike heads attempted to count post-damage events directly. That observer seam failed twice against NeoForge 1.21.1 API differences (`LivingDamageEvent.Post` accessor churn), so the spike deliberately stopped retrying it. The transient OPEN-baseline path is the smaller credible alternative: no event listener, no persistent telemetry, and no second damage source of truth.
 
 ### Minimum physical verdict
 
@@ -92,11 +90,13 @@ A useful successful run is:
 1. spawn the slice and confirm setup reports that Better Combat is loaded;
 2. read the chain warning;
 3. break range or line of sight so the displacement misses;
-4. run `status` and confirm the existing recovery is `OPEN`, recording health;
+4. run `status` while recovery is `OPEN`; confirm the probe reports `ARMED` and note the opening ticks;
 5. punish once with Better Combat's ordinary iron-sword swing;
-6. run `status` again and confirm health decreased exactly once while the creature-owned recovery/resumption behavior remains intact;
+6. run `status` again and require a positive health delta from the same OPEN baseline;
 7. repeat once outside the opening to compare the rhythm rather than inventing a separate stability system;
 8. confirm Chainback resumes its existing pursuit/special-action loop after recovery.
+
+A successful dependency verdict still requires physical observation that one intended swing corresponds to one ordinary attack outcome. The health delta probe deliberately does not claim to identify internal Better Combat hit-count semantics; visible double-hit behavior, duplicate health drops, or hidden vanilla bypass still reject the spike.
 
 If one intended Better Combat swing visibly double-hits, bypasses the expected opening rhythm, or requires Shadow Slave to take ownership of Better Combat's player timing/range/animation state, treat that as evidence against adoption rather than adapting canonical Shadow Slave state around the dependency.
 
@@ -136,6 +136,8 @@ Shadow Slave remains authority for:
 - Nightmare/appraisal/rewards;
 - persistence;
 - any future stability/injury/essence consequence state.
+
+The transient fixture health baseline is diagnostic process memory only. It owns no canonical or combat state and is safe to lose on restart.
 
 ## Explicitly deferred
 
