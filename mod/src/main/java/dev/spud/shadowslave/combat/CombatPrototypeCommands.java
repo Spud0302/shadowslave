@@ -16,6 +16,9 @@ import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.util.Comparator;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Development-only command surface for physically judging the bounded combat prototype. */
 public final class CombatPrototypeCommands {
@@ -23,6 +26,7 @@ public final class CombatPrototypeCommands {
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
     private static final double CHAINBACK_SPAWN_DISTANCE = 6.0D;
     private static final double STATUS_RADIUS = 64.0D;
+    private static final Map<UUID, HealthProbeBaseline> HEALTH_PROBES = new ConcurrentHashMap<>();
 
     private CombatPrototypeCommands() {
     }
@@ -48,6 +52,7 @@ public final class CombatPrototypeCommands {
 
         ServerLevel level = player.serverLevel();
         int removed = removeTaggedPrototypeChainbacks(player);
+        HEALTH_PROBES.remove(player.getUUID());
 
         Vec3 look = player.getLookAngle();
         Vec3 horizontal = new Vec3(look.x, 0.0D, look.z);
@@ -76,7 +81,7 @@ public final class CombatPrototypeCommands {
                 "Combat prototype ready: Better Combat is loaded. Read Chainback's warning, break range/line of sight, then punish its recovery with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
-                "Use /shadowslave_combat status immediately before and after a punish to compare server health and the creature-owned recovery opening."
+                "Use /shadowslave_combat status while the opening is OPEN to arm a transient health baseline, then run status again after one punish to read the health delta."
         ).withStyle(ChatFormatting.YELLOW));
         if (removed > 0) {
             player.sendSystemMessage(Component.literal(
@@ -101,20 +106,37 @@ public final class CombatPrototypeCommands {
 
         boolean opening = chainback.isInDisplacementRecovery();
         int openingTicks = chainback.displacementRecoveryTicks();
+        HealthProbeBaseline baseline = HEALTH_PROBES.get(player.getUUID());
+        String probeStatus;
+
+        if (baseline == null || !baseline.chainbackId().equals(chainback.getUUID())) {
+            if (opening) {
+                HEALTH_PROBES.put(player.getUUID(), new HealthProbeBaseline(chainback.getUUID(), chainback.getHealth()));
+                probeStatus = String.format(" | probe ARMED at %.1f health", chainback.getHealth());
+            } else {
+                probeStatus = " | probe unarmed; wait for OPEN";
+            }
+        } else {
+            float healthDelta = baseline.health() - chainback.getHealth();
+            probeStatus = String.format(" | health delta %.1f since OPEN baseline", healthDelta);
+        }
+
         player.sendSystemMessage(Component.literal(String.format(
-                "Combat prototype status: Chainback health %.1f/%.1f | opening %s | recovery %d ticks",
+                "Combat prototype status: Chainback health %.1f/%.1f | opening %s | recovery %d ticks%s",
                 chainback.getHealth(),
                 chainback.getMaxHealth(),
                 opening ? "OPEN" : "closed",
-                openingTicks
+                openingTicks,
+                probeStatus
         )).withStyle(opening ? ChatFormatting.GREEN : ChatFormatting.GRAY));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int resetPrototype(ServerPlayer player) {
         int removed = removeTaggedPrototypeChainbacks(player);
+        HEALTH_PROBES.remove(player.getUUID());
         player.sendSystemMessage(Component.literal(
-                "Combat prototype reset: removed " + removed + " tagged Chainback(s)."
+                "Combat prototype reset: removed " + removed + " tagged Chainback(s) and cleared the transient health probe."
         ).withStyle(ChatFormatting.GRAY));
         return Command.SINGLE_SUCCESS;
     }
@@ -137,5 +159,8 @@ public final class CombatPrototypeCommands {
                 entity -> entity.getTags().contains(PROTOTYPE_CHAINBACK_TAG));
         tagged.forEach(ChainbackEntity::discard);
         return tagged.size();
+    }
+
+    private record HealthProbeBaseline(UUID chainbackId, float health) {
     }
 }
