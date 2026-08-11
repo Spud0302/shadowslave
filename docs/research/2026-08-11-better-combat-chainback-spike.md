@@ -59,6 +59,48 @@ PAL has a current NeoForge 1.21.1 release (`1.1.5+1.21.1-NeoForge`) and is MIT l
 
 Reconsider PAL only if Better Combat is rejected or if a later non-Better-Combat player animation need is demonstrated.
 
+## Playable development fixture
+
+Run:
+
+```text
+/shadowslave_combat chainback_slice
+```
+
+The command equips one ordinary iron sword and spawns one tagged existing Chainback six blocks in front of the player. The tag exists only so the development diagnostic can identify the intended test target.
+
+After evading or attacking, run:
+
+```text
+/shadowslave_combat status
+```
+
+The status line reports:
+
+- current Chainback health;
+- whether the existing displacement recovery is currently `OPEN`;
+- remaining recovery ticks;
+- total final server-side player damage events observed on the tagged Chainback;
+- how many of those damage events landed while Chainback was already in its existing recovery opening;
+- the final amount and opening/outside-opening classification of the latest player hit.
+
+The damage observer uses NeoForge's final living-damage event only as passive telemetry. It does not change/cancel damage and stores no persistent/canonical state. This makes the physical Better Combat verdict falsifiable without inventing a Shadow Slave player attack timer or generic stability system.
+
+### Minimum physical verdict
+
+A useful successful run is:
+
+1. spawn the slice;
+2. read the chain warning;
+3. break range or line of sight so the displacement misses;
+4. verify `status` exposes the recovery opening;
+5. punish with Better Combat's ordinary iron-sword swing;
+6. verify `opening hits` increments exactly once for the intended connected swing and Chainback health decreases accordingly;
+7. repeat outside the opening and verify it counts as a player hit but not an opening hit;
+8. confirm Chainback resumes its existing pursuit/special-action loop after recovery.
+
+If one intended Better Combat swing produces duplicate final damage events, bypasses the expected opening rhythm, or requires Shadow Slave to take ownership of Better Combat's player timing/range/animation state, treat that as evidence against adoption rather than adapting canonical Shadow Slave state around the dependency.
+
 ## What becomes playable if physical gates pass
 
 No new weapon item is introduced. Better Combat ships dedicated vanilla sword weapon-attribute resources, including `minecraft:iron_sword`. The spike therefore uses an ordinary iron sword as the one reference player moveset rather than adding another Shadow Slave catalogue item.
