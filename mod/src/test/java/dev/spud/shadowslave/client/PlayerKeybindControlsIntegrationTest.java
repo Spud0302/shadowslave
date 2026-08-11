@@ -13,6 +13,8 @@ class PlayerKeybindControlsIntegrationTest {
             "src/main/java/dev/spud/shadowslave/client/ClientKeyMappings.java");
     private static final Path CLIENT_EVENTS = Path.of(
             "src/main/java/dev/spud/shadowslave/client/ClientGameEvents.java");
+    private static final Path CLIENT_PAYLOADS = Path.of(
+            "src/main/java/dev/spud/shadowslave/client/ClientModPayloads.java");
     private static final Path PAYLOADS = Path.of(
             "src/main/java/dev/spud/shadowslave/network/ModPayloads.java");
     private static final Path SERVER_HANDLER = Path.of(
@@ -47,15 +49,27 @@ class PlayerKeybindControlsIntegrationTest {
     }
 
     @Test
-    void dedicatedServerRegistersAndAuthoritativelyExecutesEveryIntent() throws IOException {
-        String payloads = Files.readString(PAYLOADS);
+    void bothPhysicalSidesRegisterEveryServerboundIntent() throws IOException {
+        String dedicatedRegistration = Files.readString(PAYLOADS);
+        String clientRegistration = Files.readString(CLIENT_PAYLOADS);
+
+        assertTrue(dedicatedRegistration.contains("NETWORK_VERSION = \"3\""));
+        for (String handler : new String[] {
+                "ServerPayloadHandler::handleOpenSoulScreen",
+                "ServerPayloadHandler::handleActivateKindle",
+                "ServerPayloadHandler::handleToggleAshCompass",
+                "ServerPayloadHandler::handleToggleAshBurrowerEcho",
+                "ServerPayloadHandler::handleToggleAshBurrowerEchoMode"
+        }) {
+            assertTrue(dedicatedRegistration.contains(handler));
+            assertTrue(clientRegistration.contains(handler));
+        }
+    }
+
+    @Test
+    void serverAuthoritativelyExecutesEveryIntent() throws IOException {
         String handler = Files.readString(SERVER_HANDLER);
 
-        assertTrue(payloads.contains("NETWORK_VERSION = \"3\""));
-        assertTrue(payloads.contains("ServerPayloadHandler::handleActivateKindle"));
-        assertTrue(payloads.contains("ServerPayloadHandler::handleToggleAshCompass"));
-        assertTrue(payloads.contains("ServerPayloadHandler::handleToggleAshBurrowerEcho"));
-        assertTrue(payloads.contains("ServerPayloadHandler::handleToggleAshBurrowerEchoMode"));
         assertTrue(handler.contains("PreviewPowerService.activateKindle(player)"));
         assertTrue(handler.contains("MemoryManifestationService.summonAshCompass(player)"));
         assertTrue(handler.contains("MemoryManifestationService.dismissAshCompass(player)"));
