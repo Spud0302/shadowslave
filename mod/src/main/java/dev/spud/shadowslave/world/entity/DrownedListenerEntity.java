@@ -129,6 +129,9 @@ public final class DrownedListenerEntity extends Drowned {
             this.setTarget(null);
             this.vibrationTargetId = null;
             this.getNavigation().stop();
+            // Do not let motion from before the earned recovery window count as fresh vibration
+            // after the pause. The first post-recovery sample becomes a new baseline.
+            this.sampledPlayerPositions.clear();
             this.listeningRecoveryTicks = DrownedListenerVibrationBehavior.recoveryTicksAfterReleasedVibrationTarget();
         }
     }
