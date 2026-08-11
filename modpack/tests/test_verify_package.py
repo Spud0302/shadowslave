@@ -7,14 +7,12 @@ import unittest
 from pathlib import Path
 import zipfile
 
-from modpack.tools.build_package import FIXED_ZIP_TIME, FILE_MODE, build_package, zip_info
+from modpack.tools.build_package import FIXED_ZIP_TIME, build_package, zip_info
 from modpack.tools.verify_package import VerificationError, verify_package
 
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "modpack" / "manifest.json"
-COMPONENT_ID = "geckolib-4"
-COMPONENT_BYTES = b"verified-geckolib-fixture"
 
 
 class PackageVerificationTest(unittest.TestCase):
@@ -23,16 +21,21 @@ class PackageVerificationTest(unittest.TestCase):
         modpack.mkdir()
         (modpack / "README.md").write_text("fixture", encoding="utf-8")
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        manifest["components"][0]["source"]["sha256"] = hashlib.sha256(COMPONENT_BYTES).hexdigest()
+        components: dict[str, Path] = {}
+        for component in manifest["components"]:
+            data = f"verified-{component['id']}-fixture".encode()
+            component["source"]["sha256"] = hashlib.sha256(data).hexdigest()
+            local = root / component["source"]["file"]
+            local.write_bytes(data)
+            components[component["id"]] = local
+
         manifest_path = modpack / "manifest.json"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
-        component = root / manifest["components"][0]["source"]["file"]
-        component.write_bytes(COMPONENT_BYTES)
         core = root / "core.jar"
         core.write_bytes(b"verified-core-fixture")
         archive = root / "pack.zip"
-        build_package(manifest_path, core, archive, {COMPONENT_ID: component})
+        build_package(manifest_path, core, archive, components)
         return archive
 
     def rewrite(self, source: Path, destination: Path, transform) -> None:
