@@ -54,22 +54,26 @@ class StormLanternCoastDiscoveryPlanTest {
     }
 
     private static StormLanternCoastEncounterPlan.Plan encounters() {
-        return new StormLanternCoastEncounterPlan.Plan(42L, List.of(
-                new StormLanternCoastEncounterPlan.Encounter(
-                        "drowned_listener", "drowned_harbour_terraces",
-                        StormLanternCoastEncounterPlan.Pressure.FLOOD_EDGE,
-                        StormLanternCoastEncounterPlan.EcologyContext.FLOOD_MARGIN,
-                        12, 3, 18),
-                new StormLanternCoastEncounterPlan.Encounter(
-                        "chainback", "storm_belfry",
-                        StormLanternCoastEncounterPlan.Pressure.RUIN_GUARD,
-                        StormLanternCoastEncounterPlan.EcologyContext.HISTORIC_RUIN,
-                        -14, 7, 2),
-                new StormLanternCoastEncounterPlan.Encounter(
-                        "drowned_listener", "coast_watch_0",
-                        StormLanternCoastEncounterPlan.Pressure.EXPOSED_ROUTE,
-                        StormLanternCoastEncounterPlan.EcologyContext.HIGH_EXPOSURE,
-                        9, 6, -8)
-        ));
+        return new StormLanternCoastEncounterPlan.Plan(
+                42L,
+                StormLanternCoastEncounterPlan.EncounterContext.developmentFixture(),
+                List.of(
+                        new StormLanternCoastEncounterPlan.Encounter(
+                                "drowned_listener", "drowned_harbour_terraces",
+                                StormLanternCoastEncounterPlan.Pressure.FLOOD_EDGE,
+                                StormLanternCoastEncounterPlan.EcologyContext.FLOOD_MARGIN,
+                                12, 3, 18),
+                        new StormLanternCoastEncounterPlan.Encounter(
+                                "chainback", "storm_belfry",
+                                StormLanternCoastEncounterPlan.Pressure.RUIN_GUARD,
+                                StormLanternCoastEncounterPlan.EcologyContext.HISTORIC_RUIN,
+                                -14, 7, 2),
+                        new StormLanternCoastEncounterPlan.Encounter(
+                                "drowned_listener", "coast_watch_0",
+                                StormLanternCoastEncounterPlan.Pressure.EXPOSED_ROUTE,
+                                StormLanternCoastEncounterPlan.EcologyContext.HIGH_EXPOSURE,
+                                9, 6, -8)
+                )
+        );
     }
 }
