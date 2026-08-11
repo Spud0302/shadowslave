@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.dreamrealm;
 
 import dev.spud.shadowslave.dreamrealm.content.DreamRealmRegionContentCatalog;
+import dev.spud.shadowslave.nightmare.content.NightmareCreatureContentCatalog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,43 @@ public final class StormLanternCoastEncounterPlan {
         SHELTER_MARGIN
     }
 
+    /**
+     * Coarse execution band derived from Java-owned Soul Rank. The exact encounter
+     * tuning attached to these bands is project DESIGN, not a canonical Rank formula.
+     */
+    public enum ProgressionBand {
+        UNRANKED,
+        DORMANT,
+        AWAKENED_OR_HIGHER
+    }
+
+    /** Coarse safe-settlement distance used by the encounter budget. */
+    public enum SettlementDistanceBand {
+        NEAR,
+        FRONTIER,
+        REMOTE
+    }
+
+    public record EncounterContext(ProgressionBand progressionBand, int nearestSettlementBlocks) {
+        public EncounterContext {
+            progressionBand = Objects.requireNonNull(progressionBand, "progressionBand");
+            if (nearestSettlementBlocks < 0) {
+                throw new IllegalArgumentException("nearestSettlementBlocks cannot be negative");
+            }
+        }
+
+        public SettlementDistanceBand settlementDistanceBand() {
+            if (nearestSettlementBlocks <= 96) return SettlementDistanceBand.NEAR;
+            if (nearestSettlementBlocks <= 192) return SettlementDistanceBand.FRONTIER;
+            return SettlementDistanceBand.REMOTE;
+        }
+
+        /** Compatibility default matching the current Cinder Rest -> Storm Lantern fixture spacing. */
+        public static EncounterContext developmentFixture() {
+            return new EncounterContext(ProgressionBand.DORMANT, 224);
+        }
+    }
+
     public record Encounter(
             String creatureId,
             String anchorId,
@@ -57,8 +95,9 @@ public final class StormLanternCoastEncounterPlan {
         }
     }
 
-    public record Plan(long encounterSeed, List<Encounter> encounters) {
+    public record Plan(long encounterSeed, EncounterContext context, List<Encounter> encounters) {
         public Plan {
+            context = Objects.requireNonNull(context, "context");
             encounters = List.copyOf(Objects.requireNonNull(encounters, "encounters"));
             if (encounters.size() < 2 || encounters.size() > 4) {
                 throw new IllegalArgumentException("Storm Lantern encounter budget must contain 2-4 encounters");
@@ -81,8 +120,17 @@ public final class StormLanternCoastEncounterPlan {
         }
     }
 
+    /**
+     * Compatibility overload for pure callers that predate explicit ecology inputs.
+     * Physical runtime should pass the current Java-owned player/world context.
+     */
     public static Plan forSite(StormLanternCoastSitePlan.Plan sitePlan) {
+        return forSite(sitePlan, EncounterContext.developmentFixture());
+    }
+
+    public static Plan forSite(StormLanternCoastSitePlan.Plan sitePlan, EncounterContext context) {
         Objects.requireNonNull(sitePlan, "sitePlan");
+        EncounterContext checkedContext = Objects.requireNonNull(context, "context");
         DreamRealmRegionContentCatalog.RegionProfile region = sitePlan.region();
         if (!StormLanternCoastSitePlan.REGION_ID.equals(region.id())) {
             throw new IllegalArgumentException("wrong region");
@@ -108,8 +156,9 @@ public final class StormLanternCoastEncounterPlan {
                 terraces.z() + jitter(random, 4)
         ));
 
-        // Quarry/belfry pressure varies by seed so the same region identity does not
-        // collapse into one guaranteed encounter coordinate.
+        // The historic ruin remains a deliberately dangerous landmark even when its
+        // Chainback is above the current player's band. Rank disparity is therefore a
+        // readable exploration problem, while optional pressure is band-limited below.
         StormLanternCoastSitePlan.Piece ruin = random.nextBoolean()
                 ? piece(sitePlan, "collapsed_quarry_cut")
                 : piece(sitePlan, "storm_belfry");
@@ -123,11 +172,10 @@ public final class StormLanternCoastEncounterPlan {
                 ruin.z() + jitter(random, 6)
         ));
 
-        // Optional pressure now responds to why a location matters, rather than only
-        // choosing another arbitrary route coordinate. High cliff routes and valuable
-        // wreckage are attractive danger locations; the collapsed shelter is weighted
-        // lower and pressure is kept outside its immediate interior so shelter retains
-        // practical value. Selection is without replacement and deterministic.
+        // Optional pressure responds to why a location matters and now also to how far
+        // the site lies from the nearest physical safe settlement plus the player's
+        // coarse progression band. This is bounded DESIGN ecology, not a spawn-table or
+        // canonical Rank formula. Selection remains without replacement and deterministic.
         ArrayList<OptionalPressure> optional = new ArrayList<>(List.of(
                 candidate(sitePlan, "coast_watch_0", EcologyContext.HIGH_EXPOSURE, 4, 7, 1),
                 candidate(sitePlan, "coast_watch_1", EcologyContext.HIGH_EXPOSURE, 4, 7, 1),
@@ -135,10 +183,12 @@ public final class StormLanternCoastEncounterPlan {
                 candidate(sitePlan, "storm_shelter", EcologyContext.SHELTER_MARGIN, 1, 3, 1)
         ));
 
-        int extra = random.nextInt(3); // 0-2, preserving a total budget of 2-4.
+        int optionalCapacity = optionalCapacity(checkedContext);
+        int extra = optionalCapacity == 0 ? 0 : random.nextInt(optionalCapacity + 1);
+        List<String> optionalCreatures = optionalCreatureIds(checkedContext.progressionBand());
         for (int i = 0; i < extra; i++) {
             OptionalPressure selected = takeWeighted(random, optional);
-            String creature = random.nextBoolean() ? "chainback" : "drowned_listener";
+            String creature = optionalCreatures.get(random.nextInt(optionalCreatures.size()));
             int x;
             int z;
             if (selected.ecologyContext() == EcologyContext.SHELTER_MARGIN) {
@@ -160,7 +210,47 @@ public final class StormLanternCoastEncounterPlan {
             ));
         }
 
-        return new Plan(encounterSeed, encounters);
+        return new Plan(encounterSeed, checkedContext, encounters);
+    }
+
+    static int optionalCapacity(EncounterContext context) {
+        int progressionCapacity = switch (context.progressionBand()) {
+            case UNRANKED -> 0;
+            case DORMANT -> 1;
+            case AWAKENED_OR_HIGHER -> 2;
+        };
+        int settlementModifier = switch (context.settlementDistanceBand()) {
+            case NEAR -> -1;
+            case FRONTIER -> 0;
+            case REMOTE -> 1;
+        };
+        return Math.max(0, Math.min(2, progressionCapacity + settlementModifier));
+    }
+
+    private static List<String> optionalCreatureIds(ProgressionBand progressionBand) {
+        List<String> candidates = EXECUTABLE_AFFINITIES.stream()
+                .filter(id -> optionalRankAllowed(creatureProfile(id).rank(), progressionBand))
+                .sorted()
+                .toList();
+        if (candidates.isEmpty()) {
+            throw new IllegalStateException("No executable Storm Lantern creature fits progression band " + progressionBand);
+        }
+        return candidates;
+    }
+
+    private static boolean optionalRankAllowed(NightmareCreatureContentCatalog.Rank rank, ProgressionBand progressionBand) {
+        return switch (progressionBand) {
+            case UNRANKED, DORMANT -> rank == NightmareCreatureContentCatalog.Rank.DORMANT;
+            case AWAKENED_OR_HIGHER -> rank == NightmareCreatureContentCatalog.Rank.DORMANT
+                    || rank == NightmareCreatureContentCatalog.Rank.AWAKENED;
+        };
+    }
+
+    private static NightmareCreatureContentCatalog.CreatureProfile creatureProfile(String creatureId) {
+        return NightmareCreatureContentCatalog.waveOne().stream()
+                .filter(profile -> profile.id().equals(creatureId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Missing Java creature profile " + creatureId));
     }
 
     private static OptionalPressure candidate(StormLanternCoastSitePlan.Plan plan, String anchorId,
