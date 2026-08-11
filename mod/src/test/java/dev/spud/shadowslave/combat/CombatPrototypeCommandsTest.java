@@ -53,4 +53,15 @@ final class CombatPrototypeCommandsTest {
         assertFalse(chainbackSource.contains("stability"));
         assertFalse(chainbackSource.contains("bettercombat"));
     }
+
+    @Test
+    void repeatedPhysicalRunsCannotAccumulateTaggedPrototypeTargets() throws Exception {
+        String source = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
+
+        assertTrue(source.contains("int removed = removeTaggedPrototypeChainbacks(player)"));
+        assertTrue(source.contains("Commands.literal(\"reset\")"));
+        assertTrue(source.contains("tagged.forEach(ChainbackEntity::discard)"));
+        assertTrue(source.contains("exactly one test target"));
+    }
 }
