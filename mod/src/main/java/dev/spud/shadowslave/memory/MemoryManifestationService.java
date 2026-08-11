@@ -2,8 +2,10 @@ package dev.spud.shadowslave.memory;
 
 import dev.spud.shadowslave.item.AshCompassMemoryItem;
 import dev.spud.shadowslave.item.ModItems;
+import dev.spud.shadowslave.item.StonewakeShieldMemoryItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Objects;
@@ -13,36 +15,64 @@ public final class MemoryManifestationService {
     private MemoryManifestationService() {}
 
     public static ManifestResult summonAshCompass(ServerPlayer player) {
+        return summon(player, AshCompassMemoryItem.MEMORY_ID, ModItems.ASH_COMPASS_MEMORY.get());
+    }
+
+    public static ManifestResult dismissAshCompass(ServerPlayer player) {
+        return dismiss(player, AshCompassMemoryItem.MEMORY_ID, ModItems.ASH_COMPASS_MEMORY.get());
+    }
+
+    public static ManifestResult summonStonewakeShield(ServerPlayer player) {
+        return summon(player, StonewakeShieldMemoryItem.MEMORY_ID, ModItems.STONEWAKE_SHIELD_MEMORY.get());
+    }
+
+    public static ManifestResult dismissStonewakeShield(ServerPlayer player) {
+        return dismiss(player, StonewakeShieldMemoryItem.MEMORY_ID, ModItems.STONEWAKE_SHIELD_MEMORY.get());
+    }
+
+    public static void clearAshCompassManifestations(ServerPlayer player) {
+        removeManifestations(Objects.requireNonNull(player, "player").getInventory(), ModItems.ASH_COMPASS_MEMORY.get());
+    }
+
+    public static void clearStonewakeShieldManifestations(ServerPlayer player) {
+        removeManifestations(Objects.requireNonNull(player, "player").getInventory(), ModItems.STONEWAKE_SHIELD_MEMORY.get());
+    }
+
+    static boolean hasAshCompass(Inventory inventory) {
+        return hasManifestation(inventory, ModItems.ASH_COMPASS_MEMORY.get());
+    }
+
+    static boolean hasStonewakeShield(Inventory inventory) {
+        return hasManifestation(inventory, ModItems.STONEWAKE_SHIELD_MEMORY.get());
+    }
+
+    private static ManifestResult summon(ServerPlayer player, net.minecraft.resources.ResourceLocation memoryId, Item item) {
         Objects.requireNonNull(player, "player");
-        if (!MemoryOwnershipService.owns(player, AshCompassMemoryItem.MEMORY_ID)) return ManifestResult.NOT_OWNED;
-        if (hasAshCompass(player.getInventory())) return ManifestResult.ALREADY_SUMMONED;
-        ItemStack stack = new ItemStack(ModItems.ASH_COMPASS_MEMORY.get());
+        if (!MemoryOwnershipService.owns(player, memoryId)) return ManifestResult.NOT_OWNED;
+        if (hasManifestation(player.getInventory(), item)) return ManifestResult.ALREADY_SUMMONED;
+        ItemStack stack = new ItemStack(item);
         if (!player.addItem(stack)) return ManifestResult.INVENTORY_FULL;
         return ManifestResult.SUMMONED;
     }
 
-    public static ManifestResult dismissAshCompass(ServerPlayer player) {
+    private static ManifestResult dismiss(ServerPlayer player, net.minecraft.resources.ResourceLocation memoryId, Item item) {
         Objects.requireNonNull(player, "player");
-        if (!MemoryOwnershipService.owns(player, AshCompassMemoryItem.MEMORY_ID)) return ManifestResult.NOT_OWNED;
-        return removeAshCompass(player.getInventory()) ? ManifestResult.DISMISSED : ManifestResult.NOT_SUMMONED;
+        if (!MemoryOwnershipService.owns(player, memoryId)) return ManifestResult.NOT_OWNED;
+        return removeManifestations(player.getInventory(), item) ? ManifestResult.DISMISSED : ManifestResult.NOT_SUMMONED;
     }
 
-    public static void clearAshCompassManifestations(ServerPlayer player) {
-        removeAshCompass(Objects.requireNonNull(player, "player").getInventory());
-    }
-
-    static boolean hasAshCompass(Inventory inventory) {
+    private static boolean hasManifestation(Inventory inventory, Item item) {
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
-            if (inventory.getItem(slot).is(ModItems.ASH_COMPASS_MEMORY.get())) return true;
+            if (inventory.getItem(slot).is(item)) return true;
         }
         return false;
     }
 
-    private static boolean removeAshCompass(Inventory inventory) {
+    private static boolean removeManifestations(Inventory inventory, Item item) {
         boolean removed = false;
         for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
             ItemStack stack = inventory.getItem(slot);
-            if (stack.is(ModItems.ASH_COMPASS_MEMORY.get())) {
+            if (stack.is(item)) {
                 inventory.setItem(slot, ItemStack.EMPTY);
                 removed = true;
             }
