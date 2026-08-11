@@ -1,0 +1,45 @@
+{
+  "ambientocclusion": true,
+  "textures": {
+    "metal": "minecraft:block/raw_iron_block",
+    "particle": "minecraft:block/raw_iron_block"
+  },
+  "elements": [
+    {
+      "from": [1, 0, 2],
+      "to": [15, 5, 14],
+      "faces": {
+        "down": { "texture": "#metal" },
+        "up": { "texture": "#metal" },
+        "north": { "texture": "#metal" },
+        "south": { "texture": "#metal" },
+        "west": { "texture": "#metal" },
+        "east": { "texture": "#metal" }
+      }
+    },
+    {
+      "from": [3, 5, 4],
+      "to": [13, 10, 12],
+      "faces": {
+        "down": { "texture": "#metal" },
+        "up": { "texture": "#metal" },
+        "north": { "texture": "#metal" },
+        "south": { "texture": "#metal" },
+        "west": { "texture": "#metal" },
+        "east": { "texture": "#metal" }
+      }
+    },
+    {
+      "from": [5, 10, 5],
+      "to": [11, 15, 11],
+      "faces": {
+        "down": { "texture": "#metal" },
+        "up": { "texture": "#metal" },
+        "north": { "texture": "#metal" },
+        "south": { "texture": "#metal" },
+        "west": { "texture": "#metal" },
+        "east": { "texture": "#metal" }
+      }
+    }
+  ]
+}
