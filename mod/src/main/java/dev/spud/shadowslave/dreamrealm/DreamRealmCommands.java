@@ -41,9 +41,8 @@ public final class DreamRealmCommands {
             StormLanternCoastPreviewService.enter(player);
             var level = player.serverLevel();
             var sitePlan = StormLanternCoastSitePlan.drownedBellLater(level.getSeed());
-            var encounterPlan = StormLanternCoastEncounterService.populate(level, sitePlan);
-            player.sendSystemMessage(Component.literal("The coast is not empty: " + encounterPlan.encounters().size()
-                            + " region-affine encounter pressures were seeded around the ruins.")
+            StormLanternCoastEncounterService.populate(level, sitePlan);
+            player.sendSystemMessage(Component.literal("The coast is not empty. Disturbed ground, damaged stone and abandoned chainwork may warn of nearby pressure if you notice them.")
                     .withStyle(ChatFormatting.DARK_RED));
             return Command.SINGLE_SUCCESS;
         } catch (RuntimeException exception) {
