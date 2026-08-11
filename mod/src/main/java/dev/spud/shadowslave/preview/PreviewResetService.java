@@ -67,6 +67,7 @@ public final class PreviewResetService {
             MemoryManifestationService.clearBorrowedDawnManifestations(player);
             MemoryManifestationService.clearVeilStitchCaseManifestations(player);
             MemoryManifestationService.clearMirewalkerBootsManifestations(player);
+            MemoryManifestationService.clearStonewakeShieldManifestations(player);
             BellglassHeldNoteService.clear(player);
             RedThreadCompanionService.clear(player);
             BorrowedDawnChargeService.clear(player);
