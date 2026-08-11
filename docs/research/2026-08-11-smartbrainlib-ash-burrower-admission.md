@@ -30,7 +30,7 @@ The upstream `Tslat/SmartBrainLib` `1.21` branch declares:
 
 The published NeoForge artifact is `net.tslat.smartbrainlib:SmartBrainLib-neoforge-1.21.1:1.16.11`, file `SmartBrainLib-neoforge-1.21.1-1.16.11.jar`. CurseForge file `7055149` also identifies that exact file as a NeoForge Minecraft 1.21.1 release.
 
-The repository itself remains pinned to NeoForge `21.1.244`, which satisfies the upstream `21.1.x` floor. Exact runtime compatibility is still proven by this repository's physical client/server gates rather than inferred from version ranges alone.
+The repository itself is pinned to NeoForge `21.1.244`, which satisfies the upstream `21.1.x` floor. Exact runtime compatibility is proven by this repository's physical client/server gates rather than inferred from version ranges alone.
 
 ## Authority boundary
 
@@ -62,9 +62,9 @@ The project retains:
 
 Only `FloatGoal` remains as a small vanilla water-safety goal; the old melee/stroll/retaliation goals and direct `tick()` navigation loop are removed.
 
-## Packaging admission
+## Packaging admission evidence
 
-SmartBrainLib is a required runtime component only if this integration remains after review. It must be present in:
+SmartBrainLib is a required runtime component only with this integration and is present in:
 
 1. Gradle dependency resolution;
 2. generated NeoForge mod dependency metadata;
@@ -72,8 +72,14 @@ SmartBrainLib is a required runtime component only if this integration remains a
 4. hash-verified packaging CI;
 5. physical client and dedicated-server gates.
 
-The first admission run deliberately prints the downloaded upstream artifact SHA-256 and then fails against a temporary zero digest. The next commit must replace that sentinel with the exact observed digest before this PR can be called package-green. This avoids inventing or trusting an unverified digest.
+The first admission run intentionally downloaded the exact upstream NeoForge artifact, printed its digest, and failed against a temporary zero sentinel. It measured:
+
+`68036561cc5511766d54cc0deabc3fc3a5e68f9e3db2478f2574ec82b494374b`
+
+That exact SHA-256 is now pinned in both `modpack/manifest.json` and the Modpack shell workflow. Corrected Modpack shell run `31461720694` / run #23 passed with both GeckoLib and SmartBrainLib hash-verified and the deterministic multi-component archive validated.
+
+The initial SmartBrainLib code head also passed Preview Gates run `31461543919` / run #250: compile/all unit tests/package, physical NeoForge client boot, same-world dedicated-server restart, development JAR upload, frozen-datapack validation and deployed vanilla harnesses. A fresh corrected-head Preview Gates run remains the final merge evidence after documentation/hash corrections.
 
 ## Removal path
 
-If the spike proves materially more complex, unstable, or less maintainable than the native implementation, remove the SmartBrainLib dependency and port the bounded executor back to project/vanilla scheduling. No save migration should be required because the library owns no canonical persisted state.
+If the integration proves materially more complex, unstable, or less maintainable than the native implementation, remove the SmartBrainLib dependency and port the bounded executor back to project/vanilla scheduling. No save migration should be required because the library owns no canonical persisted state.
