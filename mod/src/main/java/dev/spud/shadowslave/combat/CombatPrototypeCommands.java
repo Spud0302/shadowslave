@@ -31,11 +31,15 @@ public final class CombatPrototypeCommands {
                 .then(Commands.literal("chainback_slice")
                         .executes(context -> setupChainbackSlice(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("status")
-                        .executes(context -> reportPrototypeStatus(context.getSource().getPlayerOrException()))));
+                        .executes(context -> reportPrototypeStatus(context.getSource().getPlayerOrException())))
+                .then(Commands.literal("reset")
+                        .executes(context -> resetPrototype(context.getSource().getPlayerOrException()))));
     }
 
     private static int setupChainbackSlice(ServerPlayer player) {
         ServerLevel level = player.serverLevel();
+        int removed = removeTaggedPrototypeChainbacks(player);
+
         Vec3 look = player.getLookAngle();
         Vec3 horizontal = new Vec3(look.x, 0.0D, look.z);
         if (horizontal.lengthSqr() < 1.0E-6D) {
@@ -65,6 +69,11 @@ public final class CombatPrototypeCommands {
         player.sendSystemMessage(Component.literal(
                 "Use /shadowslave_combat status immediately before and after a punish to compare server health and the creature-owned recovery opening."
         ).withStyle(ChatFormatting.YELLOW));
+        if (removed > 0) {
+            player.sendSystemMessage(Component.literal(
+                    "Removed " + removed + " previous tagged prototype Chainback(s) so this run has exactly one test target."
+            ).withStyle(ChatFormatting.GRAY));
+        }
         player.sendSystemMessage(Component.literal(
                 "Development fixture only: Better Combat owns the ordinary sword swing; Shadow Slave still owns Chainback's special-action state."
         ).withStyle(ChatFormatting.GRAY));
@@ -72,14 +81,7 @@ public final class CombatPrototypeCommands {
     }
 
     private static int reportPrototypeStatus(ServerPlayer player) {
-        ChainbackEntity chainback = player.serverLevel()
-                .getEntitiesOfClass(
-                        ChainbackEntity.class,
-                        player.getBoundingBox().inflate(STATUS_RADIUS),
-                        entity -> entity.getTags().contains(PROTOTYPE_CHAINBACK_TAG))
-                .stream()
-                .min(Comparator.comparingDouble(player::distanceToSqr))
-                .orElse(null);
+        ChainbackEntity chainback = findNearestTaggedPrototypeChainback(player);
 
         if (chainback == null) {
             player.sendSystemMessage(Component.literal(
@@ -98,5 +100,33 @@ public final class CombatPrototypeCommands {
                 openingTicks
         )).withStyle(opening ? ChatFormatting.GREEN : ChatFormatting.GRAY));
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int resetPrototype(ServerPlayer player) {
+        int removed = removeTaggedPrototypeChainbacks(player);
+        player.sendSystemMessage(Component.literal(
+                "Combat prototype reset: removed " + removed + " tagged Chainback(s)."
+        ).withStyle(ChatFormatting.GRAY));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static ChainbackEntity findNearestTaggedPrototypeChainback(ServerPlayer player) {
+        return player.serverLevel()
+                .getEntitiesOfClass(
+                        ChainbackEntity.class,
+                        player.getBoundingBox().inflate(STATUS_RADIUS),
+                        entity -> entity.getTags().contains(PROTOTYPE_CHAINBACK_TAG))
+                .stream()
+                .min(Comparator.comparingDouble(player::distanceToSqr))
+                .orElse(null);
+    }
+
+    private static int removeTaggedPrototypeChainbacks(ServerPlayer player) {
+        var tagged = player.serverLevel().getEntitiesOfClass(
+                ChainbackEntity.class,
+                player.getBoundingBox().inflate(STATUS_RADIUS),
+                entity -> entity.getTags().contains(PROTOTYPE_CHAINBACK_TAG));
+        tagged.forEach(ChainbackEntity::discard);
+        return tagged.size();
     }
 }
