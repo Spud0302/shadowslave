@@ -2,6 +2,7 @@ package dev.spud.shadowslave.dreamrealm;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.dreamrealm.DreamRealmVerticalSliceDefinition.Placement;
+import dev.spud.shadowslave.world.block.ModBlocks;
 import dev.spud.shadowslave.world.entity.AshBurrowerEntity;
 import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
 import net.minecraft.ChatFormatting;
@@ -158,7 +159,7 @@ public final class DreamRealmPreviewService {
     private static void buildResourceHook(ServerLevel level, Placement placement) {
         BlockState state = switch (placement.hookId()) {
             case "bone_char" -> Blocks.BONE_BLOCK.defaultBlockState();
-            case "ruin_metal" -> Blocks.RAW_IRON_BLOCK.defaultBlockState();
+            case "ruin_metal" -> ModBlocks.RUIN_METAL.get().defaultBlockState();
             case "dry_fungus" -> Blocks.BROWN_MUSHROOM_BLOCK.defaultBlockState();
             default -> throw new IllegalStateException("Unmapped Ashen Expanse resource hook " + placement.hookId());
         };
