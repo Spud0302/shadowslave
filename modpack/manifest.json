@@ -35,6 +35,23 @@
       },
       "license": "MIT",
       "removal_behavior": "This build cannot render its GeckoLib-backed presentation without GeckoLib; canonical Soul, progression, Nightmare, creature, reward and ownership state remain entirely in shadowslave-core."
+    },
+    {
+      "id": "smartbrainlib-1",
+      "mod_id": "smartbrainlib",
+      "version": "1.16.11",
+      "role": "execution_provider",
+      "side": "both",
+      "required": true,
+      "owns_canonical_state": false,
+      "source": {
+        "type": "direct",
+        "project": "net.tslat.smartbrainlib:SmartBrainLib-neoforge-1.21.1",
+        "file": "SmartBrainLib-neoforge-1.21.1-1.16.11.jar",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "license": "MPL-2.0",
+      "removal_behavior": "This build cannot execute SmartBrainLib-backed creature brains without SmartBrainLib; Java-owned Nightmare Creature identity, sensing rules, progression, rewards, ownership and persistence remain loadable project state and do not migrate into the library."
     }
   ],
   "packaging": {
