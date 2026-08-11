@@ -3,6 +3,7 @@ package dev.spud.shadowslave;
 import com.mojang.logging.LogUtils;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.command.ShadowSlaveCommands;
+import dev.spud.shadowslave.dreamrealm.CinderRestLanternRingRuntime;
 import dev.spud.shadowslave.dreamrealm.DreamRealmCommands;
 import dev.spud.shadowslave.dreamrealm.DreamRealmResourceInteractionRuntime;
 import dev.spud.shadowslave.dreamrealm.DreamRealmStoryNpcRuntime;
@@ -45,6 +46,7 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(NightmareEvents::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(NightmareEvents::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(NightmareEvents::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(CinderRestLanternRingRuntime::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(DreamRealmResourceInteractionRuntime::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(DreamRealmStoryNpcRuntime::onEntityInteract);
         NeoForge.EVENT_BUS.addListener(DrownedBellListenerEntityAdapter::onEntityJoinLevel);
