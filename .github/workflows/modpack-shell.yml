@@ -40,7 +40,7 @@ jobs:
       - name: Run manifest and packaging tests
         run: python3 -m unittest discover -s modpack/tests -v
 
-      - name: Fetch pinned GeckoLib runtime component
+      - name: Fetch pinned runtime components
         run: |
           curl --fail --location --silent --show-error \
             'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/software/bernie/geckolib/geckolib-neoforge-1.21.1/4.9.2/geckolib-neoforge-1.21.1-4.9.2.jar' \
@@ -49,12 +49,23 @@ jobs:
             '5e548466af9ab6aca7a91a7c7d4dc0dc8bc385e22958aed5da0e7bebd0fa3fba' \
             "$RUNNER_TEMP/geckolib-neoforge-1.21.1-4.9.2.jar" | sha256sum --check --strict
 
+          curl --fail --location --silent --show-error \
+            'https://dl.cloudsmith.io/public/tslat/sbl/maven/net/tslat/smartbrainlib/SmartBrainLib-neoforge-1.21.1/1.16.11/SmartBrainLib-neoforge-1.21.1-1.16.11.jar' \
+            --output "$RUNNER_TEMP/SmartBrainLib-neoforge-1.21.1-1.16.11.jar"
+          # Keep the observed digest visible in the first admission run; the manifest remains fail-closed
+          # until this is replaced by the exact upstream artifact digest.
+          sha256sum "$RUNNER_TEMP/SmartBrainLib-neoforge-1.21.1-1.16.11.jar"
+          printf '%s  %s\n' \
+            '0000000000000000000000000000000000000000000000000000000000000000' \
+            "$RUNNER_TEMP/SmartBrainLib-neoforge-1.21.1-1.16.11.jar" | sha256sum --check --strict
+
       - name: Build and verify deterministic fixture package
         run: |
           printf 'ci-core-fixture' > "$RUNNER_TEMP/shadowslave-core.jar"
           python3 modpack/tools/build_package.py \
             --core-jar "$RUNNER_TEMP/shadowslave-core.jar" \
             --component-jar "geckolib-4=$RUNNER_TEMP/geckolib-neoforge-1.21.1-4.9.2.jar" \
+            --component-jar "smartbrainlib-1=$RUNNER_TEMP/SmartBrainLib-neoforge-1.21.1-1.16.11.jar" \
             --output "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
           python3 modpack/tools/verify_package.py \
             "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
