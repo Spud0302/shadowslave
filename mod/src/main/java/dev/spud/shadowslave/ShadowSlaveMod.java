@@ -39,7 +39,6 @@ public final class ShadowSlaveMod {
 
         NeoForge.EVENT_BUS.addListener(ShadowSlaveCommands::register);
         NeoForge.EVENT_BUS.addListener(CombatPrototypeCommands::register);
-        NeoForge.EVENT_BUS.addListener(CombatPrototypeCommands::onLivingDamage);
         NeoForge.EVENT_BUS.addListener(MemoryCommands::register);
         NeoForge.EVENT_BUS.addListener(EchoCommands::register);
         NeoForge.EVENT_BUS.addListener(DreamRealmCommands::register);
