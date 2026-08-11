@@ -4,6 +4,7 @@ import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.echo.EchoOwnershipData;
 import dev.spud.shadowslave.echo.EchoOwnershipService;
+import dev.spud.shadowslave.memory.BlackwaterHookAnchorService;
 import dev.spud.shadowslave.memory.MemoryManifestationService;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.memory.MemoryOwnershipService;
@@ -59,6 +60,8 @@ public final class PreviewResetService {
         @Override public void clearAttributes() { AttributeOwnershipService.replace(player, AttributeOwnershipData.empty()); }
         @Override public void clearMemories() {
             MemoryManifestationService.clearAshCompassManifestations(player);
+            MemoryManifestationService.clearBlackwaterHookManifestations(player);
+            BlackwaterHookAnchorService.clear(player);
             MemoryOwnershipService.replace(player, MemoryOwnershipData.empty());
         }
         @Override public void clearEchoes() {
