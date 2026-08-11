@@ -3,6 +3,7 @@ package dev.spud.shadowslave.attachment;
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.echo.EchoOwnershipData;
 import dev.spud.shadowslave.memory.BellglassHeldNoteData;
+import dev.spud.shadowslave.memory.BorrowedDawnChargeData;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.memory.RedThreadCompanionData;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
@@ -27,6 +28,7 @@ public final class ModAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<MemoryOwnershipData>> MEMORIES = ATTACHMENTS.register("memories", () -> AttachmentType.builder(MemoryOwnershipData::empty).serialize(MemoryOwnershipData.CODEC.codec()).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<BellglassHeldNoteData>> BELLGLASS_HELD_NOTE = ATTACHMENTS.register("bellglass_held_note", () -> AttachmentType.builder(BellglassHeldNoteData::empty).serialize(BellglassHeldNoteData.CODEC.codec()).build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<RedThreadCompanionData>> RED_THREAD_COMPANION = ATTACHMENTS.register("red_thread_companion", () -> AttachmentType.builder(RedThreadCompanionData::empty).serialize(RedThreadCompanionData.CODEC.codec()).build());
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<BorrowedDawnChargeData>> BORROWED_DAWN_CHARGE = ATTACHMENTS.register("borrowed_dawn_charge", () -> AttachmentType.builder(BorrowedDawnChargeData::empty).serialize(BorrowedDawnChargeData.CODEC).build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<EchoOwnershipData>> ECHOES = ATTACHMENTS.register("echoes", () -> AttachmentType.builder(EchoOwnershipData::empty).serialize(EchoOwnershipData.CODEC.codec()).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<ImportedIdentityData>> IMPORTED_IDENTITY = ATTACHMENTS.register("imported_identity", () -> AttachmentType.builder(ImportedIdentityData::empty).serialize(ImportedIdentityData.CODEC.codec()).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<PreviewPowerData>> PREVIEW_POWER = ATTACHMENTS.register("preview_power", () -> AttachmentType.builder(PreviewPowerData::empty).serialize(PreviewPowerData.CODEC.codec()).copyOnDeath().build());
