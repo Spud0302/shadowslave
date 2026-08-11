@@ -63,7 +63,8 @@ final class CombatPrototypeCommandsTest {
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
         assertTrue(commandSource.contains("public static void onLivingDamage(LivingDamageEvent.Post event)"));
         assertTrue(commandSource.contains("event.getSource().getEntity() instanceof ServerPlayer"));
-        assertTrue(commandSource.contains("event.getHealthDamage(), chainback.isInDisplacementRecovery()"));
+        assertTrue(commandSource.contains("event.getNewDamage(), chainback.isInDisplacementRecovery()"));
+        assertFalse(commandSource.contains("getHealthDamage()"));
         assertFalse(commandSource.contains("LivingDamageEvent.Pre"));
         assertFalse(commandSource.contains("event.setNewDamage"));
         assertFalse(commandSource.contains("event.setCanceled"));
