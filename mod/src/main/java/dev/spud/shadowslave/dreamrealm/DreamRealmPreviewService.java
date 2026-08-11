@@ -82,6 +82,7 @@ public final class DreamRealmPreviewService {
         clearVolume(level);
         buildAshField(level);
         buildShelter(level);
+        buildCinderRestLanternRing(level);
         for (Placement placement : slice.landmarks()) buildLandmark(level, placement);
         for (Placement placement : slice.resources()) buildResourceHook(level, placement);
     }
@@ -107,6 +108,13 @@ public final class DreamRealmPreviewService {
         }
         for (int x = -4; x <= 4; x++) set(level, x, 4, -3, Blocks.STONE_BRICKS.defaultBlockState());
         set(level, 0, 3, -2, Blocks.SOUL_LANTERN.defaultBlockState());
+    }
+
+    private static void buildCinderRestLanternRing(ServerLevel level) {
+        for (var lamp : CinderRestLanternRingBinding.cinderRest().lamps()) {
+            set(level, lamp.x(), lamp.y() - 1, lamp.z(), Blocks.POLISHED_BLACKSTONE_BRICK_WALL.defaultBlockState());
+            set(level, lamp.x(), lamp.y(), lamp.z(), Blocks.SOUL_LANTERN.defaultBlockState());
+        }
     }
 
     private static void buildLandmark(ServerLevel level, Placement placement) {
