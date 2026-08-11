@@ -92,44 +92,11 @@ jobs:
           echo 'Physical client did not complete resource initialization within 180 seconds.' >&2
           exit 1
 
-      - name: Boot dedicated NeoForge server
+      - name: Restart dedicated NeoForge server on same world
         shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p mod/run-server-smoke
-          printf 'eula=true\n' > mod/run-server-smoke/eula.txt
-          printf 'online-mode=false\n' > mod/run-server-smoke/server.properties
-
-          log="$RUNNER_TEMP/shadowslave-server.log"
-          setsid ./mod/gradlew -p mod runServerSmoke --no-daemon >"$log" 2>&1 &
-          server_group=$!
-
-          cleanup() {
-            kill -TERM -- "-$server_group" >/dev/null 2>&1 || true
-            sleep 2
-            kill -KILL -- "-$server_group" >/dev/null 2>&1 || true
-          }
-          trap cleanup EXIT
-
-          for _ in $(seq 1 180); do
-            if grep -Eq 'Done \([0-9.]+s\)! For help, type "help"' "$log"; then
-              grep -F 'Shadow Slave Java core is loading' "$log"
-              echo 'Dedicated server reached ready state with Shadow Slave loaded.'
-              exit 0
-            fi
-
-            if ! kill -0 "$server_group" >/dev/null 2>&1; then
-              cat "$log"
-              echo 'Dedicated server exited before reaching ready state.' >&2
-              exit 1
-            fi
-
-            sleep 1
-          done
-
-          cat "$log"
-          echo 'Dedicated server did not reach ready state within 180 seconds.' >&2
-          exit 1
+        env:
+          TIMEOUT_SECONDS: '180'
+        run: ./mod/verify-smoke.sh server-restart
 
       - name: Upload development JAR
         uses: actions/upload-artifact@v4
