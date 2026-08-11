@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -39,6 +40,11 @@ class GeneratedAppraisalContradictoryDiskCutRestartTest {
     void contradictoryPersistedOwnershipFailsClosedAcrossFreshJvm(@TempDir Path tempDir) throws Exception {
         NightmareInstance completed = instance(new UUID(701L, 709L), new UUID(719L, 727L), 2);
         NightmareInstance contradictoryActive = instance(completed.playerId(), new UUID(733L, 739L), 3);
+        assertEquals(completed.playerId(), contradictoryActive.playerId(),
+                "Fixture must model a different active Nightmare for the same player");
+        assertNotEquals(completed.instanceId(), contradictoryActive.instanceId(),
+                "Fixture must keep the contradictory active Nightmare instance distinct from the receipt");
+
         GeneratedAppraisalRecoverySnapshot snapshot = GeneratedAppraisalRecoverySnapshot.fromPrepared(
                 PreviewAppraisalService.prepareWithRewards(
                         completed,
@@ -151,8 +157,8 @@ class GeneratedAppraisalContradictoryDiskCutRestartTest {
 
     private static NightmareInstance instance(UUID playerId, UUID instanceId, int slot) {
         return new NightmareInstance(
-                playerId,
                 instanceId,
+                playerId,
                 slot,
                 "drowned_bell",
                 "cistern_keeper",
