@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class BellglassTokenRuntimeBindingTest {
     @Test
-    void consumesExistingBellglassAndClearWarningDefinitions() {
+    void consumesExistingBellglassDefinitionsWithoutInventingEnchantments() {
         MemoryContentCatalog.MemoryProfile bellglass = MemoryContentCatalog.waveOne().memories().stream()
                 .filter(memory -> memory.id().equals(BellglassTokenMemoryItem.MEMORY_ID))
                 .findFirst()
@@ -19,10 +19,12 @@ class BellglassTokenRuntimeBindingTest {
         assertEquals("Bellglass Token", bellglass.formalName());
         assertTrue(bellglass.enchantments().stream().anyMatch(enchantment ->
                 enchantment.id().toString().equals("shadowslave:memory_enchantment/clear_warning")));
+        assertTrue(bellglass.enchantments().stream().anyMatch(enchantment ->
+                enchantment.id().toString().equals("shadowslave:memory_enchantment/held_note")));
     }
 
     @Test
-    void executorIsBoundedToExistingPhysicalNightmareCreaturesAndHiddenMovement() throws Exception {
+    void warningExecutorIsBoundedToExistingPhysicalNightmareCreaturesAndHiddenMovement() throws Exception {
         String source = Files.readString(Path.of("src/main/java/dev/spud/shadowslave/item/BellglassTokenMemoryItem.java"));
 
         assertTrue(source.contains("AshBurrowerEntity"));
@@ -35,7 +37,29 @@ class BellglassTokenRuntimeBindingTest {
     }
 
     @Test
+    void heldNoteExecutorUsesNoteBlockStateAndJavaOwnedPayload() throws Exception {
+        String source = Files.readString(Path.of("src/main/java/dev/spud/shadowslave/item/BellglassTokenMemoryItem.java"));
+
+        assertTrue(source.contains("Blocks.NOTE_BLOCK"));
+        assertTrue(source.contains("NoteBlock.INSTRUMENT"));
+        assertTrue(source.contains("NoteBlock.NOTE"));
+        assertTrue(source.contains("BellglassHeldNoteService.capture"));
+        assertTrue(source.contains("BellglassHeldNoteService.get"));
+        assertTrue(source.contains("BellglassHeldNoteService.clear"));
+        assertFalse(source.contains("PlayLevelSoundEvent"));
+    }
+
+    @Test
     void warningRangeRemainsExplicitlyBounded() {
         assertEquals(10.0D, BellglassTokenMemoryItem.WARNING_RANGE);
+    }
+
+    @Test
+    void vanillaNotePitchMappingIsBoundedAndCentered() {
+        assertEquals(1.0F, BellglassTokenMemoryItem.notePitch(12), 0.0001F);
+        assertEquals(0.5F, BellglassTokenMemoryItem.notePitch(0), 0.0001F);
+        assertEquals(2.0F, BellglassTokenMemoryItem.notePitch(24), 0.0001F);
+        assertThrows(IllegalArgumentException.class, () -> BellglassTokenMemoryItem.notePitch(-1));
+        assertThrows(IllegalArgumentException.class, () -> BellglassTokenMemoryItem.notePitch(25));
     }
 }
