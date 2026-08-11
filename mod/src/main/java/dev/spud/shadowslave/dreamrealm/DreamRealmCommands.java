@@ -18,6 +18,8 @@ public final class DreamRealmCommands {
                         .executes(context -> enter(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("enter_storm_lantern")
                         .executes(context -> enterStormLantern(context.getSource().getPlayerOrException())))
+                .then(Commands.literal("enter_drowned_bell_history")
+                        .executes(context -> enterDrownedBellHistory(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("exit")
                         .executes(context -> exit(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("status")
@@ -44,6 +46,16 @@ public final class DreamRealmCommands {
         }
     }
 
+    private static int enterDrownedBellHistory(ServerPlayer player) {
+        try {
+            DrownedBellHistoricalPreviewService.enter(player);
+            return Command.SINGLE_SUCCESS;
+        } catch (RuntimeException exception) {
+            player.sendSystemMessage(Component.literal(exception.getMessage()).withStyle(ChatFormatting.RED));
+            return 0;
+        }
+    }
+
     private static int exit(ServerPlayer player) {
         if (!DreamRealmPreviewService.isInside(player)) {
             player.sendSystemMessage(Component.literal("You are not inside the Dream Realm development slice.")
@@ -62,7 +74,7 @@ public final class DreamRealmCommands {
                 .withStyle(ChatFormatting.GRAY));
         player.sendSystemMessage(Component.literal("Resource hooks: " + String.join(", ", slice.region().resourceHooks()))
                 .withStyle(ChatFormatting.GRAY));
-        player.sendSystemMessage(Component.literal("Era-linked exploration slice: Storm Lantern Coast / Drowned Bell ruins")
+        player.sendSystemMessage(Component.literal("Era-linked pair: historical Drowned Bell <-> later Storm Lantern Coast ruins")
                 .withStyle(ChatFormatting.DARK_AQUA));
         player.sendSystemMessage(Component.literal("Physical executor: "
                         + (DreamRealmPreviewService.isInside(player) ? "inside Dream Realm" : "outside Dream Realm"))
