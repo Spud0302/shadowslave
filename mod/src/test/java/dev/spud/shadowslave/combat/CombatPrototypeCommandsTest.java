@@ -28,6 +28,20 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
+    void prototypeFixtureRefusesToProduceVanillaOnlyDependencyEvidence() throws Exception {
+        String source = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
+
+        assertTrue(source.contains("BETTER_COMBAT_MOD_ID = \"bettercombat\""));
+        assertTrue(source.contains("ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)"));
+        assertTrue(source.contains("Combat prototype setup refused: Better Combat is not loaded"));
+        assertTrue(source.contains("Combat prototype ready: Better Combat is loaded."));
+
+        assertFalse(source.contains("bettercombat.api"));
+        assertFalse(source.contains("net.bettercombat"));
+    }
+
+    @Test
     void prototypeStatusReportsExistingRecoveryAndHealthWithoutOwningDamageState() throws Exception {
         String commandSource = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
