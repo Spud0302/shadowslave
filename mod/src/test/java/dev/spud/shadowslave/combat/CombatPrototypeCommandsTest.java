@@ -54,7 +54,8 @@ final class CombatPrototypeCommandsTest {
         assertTrue(commandSource.contains("chainback.isInDisplacementRecovery()"));
         assertTrue(commandSource.contains("chainback.displacementRecoveryTicks()"));
         assertTrue(commandSource.contains("chainback.getHealth()"));
-        assertTrue(commandSource.contains("immediately before and after a punish"));
+        assertTrue(commandSource.contains("probe ARMED"));
+        assertTrue(commandSource.contains("health delta %.1f since OPEN baseline"));
 
         assertFalse(commandSource.contains("LivingDamageEvent"));
         assertFalse(commandSource.contains("onLivingDamage"));
@@ -66,6 +67,25 @@ final class CombatPrototypeCommandsTest {
         assertTrue(chainbackSource.contains("return this.displacementRecoveryTicks;"));
         assertFalse(chainbackSource.contains("stability"));
         assertFalse(chainbackSource.contains("bettercombat"));
+    }
+
+    @Test
+    void openingHealthProbeIsTransientAndBoundToTheTaggedTarget() throws Exception {
+        String source = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
+
+        assertTrue(source.contains("Map<UUID, HealthProbeBaseline> HEALTH_PROBES"));
+        assertTrue(source.contains("new ConcurrentHashMap<>()"));
+        assertTrue(source.contains("if (opening)"));
+        assertTrue(source.contains("new HealthProbeBaseline(chainback.getUUID(), chainback.getHealth())"));
+        assertTrue(source.contains("baseline.chainbackId().equals(chainback.getUUID())"));
+        assertTrue(source.contains("baseline.health() - chainback.getHealth()"));
+        assertTrue(source.contains("HEALTH_PROBES.remove(player.getUUID())"));
+
+        assertFalse(source.contains("SavedData"));
+        assertFalse(source.contains("CompoundTag"));
+        assertFalse(source.contains("setPersistentData"));
+        assertFalse(source.contains("LivingDamageEvent"));
     }
 
     @Test
