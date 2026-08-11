@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 
 /** Physical executor for the deterministic Storm Lantern Coast encounter budget. */
@@ -22,6 +23,10 @@ public final class StormLanternCoastEncounterService {
     public static StormLanternCoastEncounterPlan.Plan populate(ServerLevel level, StormLanternCoastSitePlan.Plan sitePlan) {
         clearExisting(level);
         StormLanternCoastEncounterPlan.Plan encounterPlan = StormLanternCoastEncounterPlan.forSite(sitePlan);
+        StormLanternCoastDiscoveryPlan.Plan discoveryPlan = StormLanternCoastDiscoveryPlan.fromEncounters(encounterPlan);
+        for (StormLanternCoastDiscoveryPlan.Clue clue : discoveryPlan.clues()) {
+            presentClue(level, clue);
+        }
         for (StormLanternCoastEncounterPlan.Encounter encounter : encounterPlan.encounters()) {
             spawn(level, encounter);
         }
@@ -32,6 +37,27 @@ public final class StormLanternCoastEncounterService {
         for (Entity entity : level.getEntities((Entity) null, SITE_BOUNDS,
                 candidate -> candidate.getTags().contains(ENCOUNTER_TAG))) {
             entity.discard();
+        }
+    }
+
+    private static void presentClue(ServerLevel level, StormLanternCoastDiscoveryPlan.Clue clue) {
+        BlockPos pos = ORIGIN.offset(clue.x(), clue.y(), clue.z());
+        switch (clue.kind()) {
+            case DISTURBED_FLOOD_EDGE -> {
+                level.setBlock(pos, Blocks.MUD.defaultBlockState(), 3);
+                level.setBlock(pos.east(), Blocks.MUD.defaultBlockState(), 3);
+                level.setBlock(pos.above(), Blocks.DEAD_BUSH.defaultBlockState(), 3);
+            }
+            case CHAIN_SCAR -> {
+                level.setBlock(pos, Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState(), 3);
+                level.setBlock(pos.above(), Blocks.CHAIN.defaultBlockState(), 3);
+                level.setBlock(pos.east(), Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState(), 3);
+            }
+            case EXPOSED_ROUTE_DAMAGE -> {
+                level.setBlock(pos, Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState(), 3);
+                level.setBlock(pos.east(), Blocks.GRAVEL.defaultBlockState(), 3);
+                level.setBlock(pos.west(), Blocks.GRAVEL.defaultBlockState(), 3);
+            }
         }
     }
 
