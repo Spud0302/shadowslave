@@ -46,6 +46,12 @@ public final class DrownedListenerVibrationBehavior {
                 && sampledDisplacementSquared >= MIN_SAMPLE_DISPLACEMENT_SQUARED;
     }
 
+    /** Vibration sensing must not peel an unrelated retaliation/explicit target. */
+    public static boolean canClaimVibrationTarget(UUID vibrationTargetId, UUID currentTargetId) {
+        return currentTargetId == null
+                || (vibrationTargetId != null && vibrationTargetId.equals(currentTargetId));
+    }
+
     public static boolean shouldReleaseVibrationTarget(
             UUID vibrationTargetId,
             UUID currentTargetId,
@@ -58,10 +64,18 @@ public final class DrownedListenerVibrationBehavior {
         if (pursuitTicks < 0) {
             throw new IllegalArgumentException("pursuitTicks cannot be negative");
         }
-        if (pursuitTicks > 0 || vibrationTargetId == null || !vibrationTargetId.equals(currentTargetId)) {
+        if (vibrationTargetId == null || !vibrationTargetId.equals(currentTargetId)) {
             return false;
         }
-        return !targetAttackable || distanceSquared > PROXIMITY_RANGE * PROXIMITY_RANGE;
+        // Invalid vibration-owned targets must release immediately. Otherwise an invalid target can
+        // freeze the countdown forever because the entity only decrements while the target is valid.
+        if (!targetAttackable) {
+            return true;
+        }
+        if (pursuitTicks > 0) {
+            return false;
+        }
+        return distanceSquared > PROXIMITY_RANGE * PROXIMITY_RANGE;
     }
 
     /**
