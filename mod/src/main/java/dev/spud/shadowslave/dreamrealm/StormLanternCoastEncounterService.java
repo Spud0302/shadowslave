@@ -14,6 +14,11 @@ import net.minecraft.world.phys.AABB;
 /** Physical executor for the deterministic Storm Lantern Coast encounter budget. */
 public final class StormLanternCoastEncounterService {
     private static final BlockPos ORIGIN = new BlockPos(224, 148, 0);
+    /**
+     * Current fixed Ashen Expanse/Cinder Rest regression-fixture origin. This is only
+     * a migration input until native generated settlement positions exist.
+     */
+    private static final BlockPos CINDER_REST_DEVELOPMENT_ORIGIN = new BlockPos(0, 160, 0);
     private static final String ENCOUNTER_TAG = "shadowslave_storm_lantern_encounter";
     private static final AABB SITE_BOUNDS = new AABB(
             ORIGIN.getX() - 48, ORIGIN.getY() - 8, ORIGIN.getZ() - 48,
@@ -53,9 +58,8 @@ public final class StormLanternCoastEncounterService {
      * Cinder Rest. Native generated settlements should replace this input without changing the planner.
      */
     static int nearestPhysicalSettlementBlocks() {
-        BlockPos settlement = DreamRealmPreviewService.developmentSettlementOrigin();
-        int dx = ORIGIN.getX() - settlement.getX();
-        int dz = ORIGIN.getZ() - settlement.getZ();
+        int dx = ORIGIN.getX() - CINDER_REST_DEVELOPMENT_ORIGIN.getX();
+        int dz = ORIGIN.getZ() - CINDER_REST_DEVELOPMENT_ORIGIN.getZ();
         return (int) Math.round(Math.hypot(dx, dz));
     }
 
