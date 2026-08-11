@@ -1,6 +1,8 @@
 package dev.spud.shadowslave.memory;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import java.util.Objects;
@@ -8,8 +10,19 @@ import java.util.Optional;
 
 /** Java-owned persistent terrain anchor for the authored Blackwater Hook undertow line. */
 public record BlackwaterHookAnchorData(Optional<Anchor> anchor) {
-    public static final Codec<BlackwaterHookAnchorData> CODEC = Anchor.CODEC.optionalFieldOf("anchor")
+    private static final MapCodec<BlackwaterHookAnchorData> RAW_CODEC = Anchor.CODEC.optionalFieldOf("anchor")
             .xmap(BlackwaterHookAnchorData::new, BlackwaterHookAnchorData::anchor);
+
+    public static final MapCodec<BlackwaterHookAnchorData> CODEC = RAW_CODEC.flatXmap(
+            value -> {
+                try {
+                    return DataResult.success(new BlackwaterHookAnchorData(value.anchor()));
+                } catch (IllegalArgumentException | NullPointerException exception) {
+                    return DataResult.error(() -> "Invalid BlackwaterHookAnchorData: " + exception.getMessage());
+                }
+            },
+            DataResult::success
+    );
 
     public BlackwaterHookAnchorData {
         anchor = Objects.requireNonNull(anchor, "anchor");
