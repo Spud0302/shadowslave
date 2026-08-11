@@ -32,7 +32,7 @@ class AshBurrowerGuardAlphaIntegrationTest {
         assertTrue(echo.contains("DefaultAnimations.ATTACK_STRIKE"));
         assertTrue(registrations.contains("Attributes.ATTACK_DAMAGE, 3.0D"));
         assertTrue(hostile.contains("SmartBrainOwner"));
-        assertTrue(hostile.contains("getBrainProvider"));
+        assertTrue(hostile.contains("brainProvider()"));
         assertFalse(echo.contains("SmartBrainOwner"));
     }
 }
