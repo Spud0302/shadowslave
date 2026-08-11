@@ -28,6 +28,20 @@ class PreviewGatesWorkflowContractTest(unittest.TestCase):
             "Both Java and datapack jobs must skip draft pull requests",
         )
 
+    def test_java_gate_restarts_the_same_dedicated_server_world(self):
+        repository_root = Path(__file__).resolve().parents[3]
+        workflow = repository_root / ".github" / "workflows" / "java-core.yml"
+        smoke = repository_root / "mod" / "verify-smoke.sh"
+        workflow_text = workflow.read_text(encoding="utf-8")
+        smoke_text = smoke.read_text(encoding="utf-8")
+
+        self.assertIn("./mod/verify-smoke.sh server-restart", workflow_text)
+        self.assertIn("verify_server_restart()", smoke_text)
+        self.assertIn('prepare_server_smoke true', smoke_text)
+        self.assertIn('prepare_server_smoke false', smoke_text)
+        self.assertIn('mod/run-server-smoke/world/level.dat', smoke_text)
+        self.assertIn('dedicated server same-world restart', smoke_text)
+
 
 if __name__ == "__main__":
     unittest.main()
