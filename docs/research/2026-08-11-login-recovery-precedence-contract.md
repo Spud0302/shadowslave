@@ -14,16 +14,28 @@ A smaller unblocked correctness edge remains in production today: `NightmareEven
 `NightmareLoginRecoveryOrderingTest` pins the existing production routing contract by requiring:
 
 1. `GeneratedAppraisalRecoveryService.replayPending(player)` is consulted in the login handler;
-2. a handled replay returns immediately;
-3. `NightmareService.activeFor(player)` reconciliation occurs only after that guard.
+2. the replay guard itself contains an unconditional immediate `return;`;
+3. `NightmareService.activeFor(player)` reconciliation occurs only after that guard closes.
 
 This is intentionally a narrow source-contract regression test. It does not claim to simulate a live login, and it does not replace the blocked dedicated-server player reconnect harness.
 
-## Review correction carried forward
+## Review corrections
 
 The initial #240 version searched the entire `NightmareEvents.java` source file. Review correctly found that matching replay/return text elsewhere could let the test remain green even if `onPlayerLoggedIn(...)` itself regressed.
 
-This current-main port carries the correction: the test extracts only the balanced-brace body of `onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent)` before locating the replay guard, early return, and ordinary active-instance reconciliation. The evidence therefore matches the advertised login-handler invariant while remaining a deliberately lightweight source-contract test.
+The first current-main port corrected that by extracting only the balanced-brace body of `onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent)`. A second review on #246 found a remaining P2: searching for the first `return;` anywhere after the replay condition still did not prove that the return belonged to the replay guard. A future unrelated early return before `activeFor(...)` could have allowed the source-contract test to pass while a handled completion replay fell through.
+
+The corrected #246 test now extracts the replay guard's own balanced-brace body, requires that body to be exactly an unconditional `return;` modulo whitespace, and requires ordinary active-instance reconciliation to occur only after the guard's closing brace. This remains deliberately lightweight source evidence, but it now matches the advertised precedence invariant rather than a nearby textual coincidence.
+
+## Validation evidence
+
+PR #246 head `086b318b913db154641573464103b3c4fcc69617` ran Preview Gates #263 / Actions run `31464102017` before the second review correction:
+
+- **Java job: PASS** — trigger-contract validation, JDK 21/wrapper setup, compile/all unit tests/package, physical NeoForge client boot, the two-JVM same-world dedicated-server restart smoke, and development JAR upload all passed.
+- **Frozen datapack build/validation: PASS.**
+- **Deployed datapack harness: NOT REACHED.** The vanilla server did not reach ready state inside the 180-second startup budget; the log was still unpacking libraries and ended at `Preparing level "world"`. No lifecycle/Mineflayer assertion ran.
+
+That startup timeout is not evidence of a Java recovery regression and is not being blindly rerun. The code correction above creates a new exact-head synchronization event, which is the next legitimate validation attempt. If the same vanilla-ready timeout repeats without new diagnostics, record it as a repeated infrastructure blocker and stop automatic retries until the runner/server startup path changes or new evidence appears.
 
 ## Evidence classification
 
