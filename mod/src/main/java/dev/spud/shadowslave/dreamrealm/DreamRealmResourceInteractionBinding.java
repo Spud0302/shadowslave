@@ -15,7 +15,7 @@ public final class DreamRealmResourceInteractionBinding {
     public record Interaction(
             String regionId,
             String resourceId,
-            String placeholderBlockId,
+            String physicalBlockId,
             int x,
             int y,
             int z,
@@ -27,23 +27,23 @@ public final class DreamRealmResourceInteractionBinding {
         return List.of(
                 bind(
                         "bone_char",
-                        "bone_block",
+                        "minecraft:bone_block",
                         "Bone char — pale, fire-marked remains break through the ash here. This preview records the find without deciding whether it is useful material.",
                         "Inspection reveals only the authored resource hook; no item, food, Soul Shard, progression, ownership, or canonical material use is granted."),
                 bind(
                         "ruin_metal",
-                        "raw_iron_block",
+                        "shadowslave:ruin_metal",
                         "Ruin metal — old worked metal survives beneath the ash. It may be worth salvaging, but this preview does not invent a material yield.",
                         "Inspection reveals only the authored SALVAGE opportunity; no item, currency, Soul Shard, progression, ownership, or canonical resource value is granted."),
                 bind(
                         "dry_fungus",
-                        "brown_mushroom_block",
+                        "minecraft:brown_mushroom_block",
                         "Dry fungus — brittle growth clings to a patch sheltered from the worst ash. Its presence is observable; edibility and other uses remain unknown.",
                         "Inspection reveals only the authored resource hook; no food, healing, item, progression, ownership, or canonical biological property is granted.")
         );
     }
 
-    private static Interaction bind(String resourceId, String placeholderBlockId, String inspection, String boundary) {
+    private static Interaction bind(String resourceId, String physicalBlockId, String inspection, String boundary) {
         var slice = DreamRealmVerticalSliceDefinition.ashenExpanse();
         Placement placement = slice.resources().stream()
                 .filter(candidate -> candidate.hookId().equals(resourceId))
@@ -57,7 +57,7 @@ public final class DreamRealmResourceInteractionBinding {
         return new Interaction(
                 slice.region().id(),
                 resourceId,
-                placeholderBlockId,
+                physicalBlockId,
                 placement.x(), placement.y(), placement.z(),
                 inspection,
                 boundary
