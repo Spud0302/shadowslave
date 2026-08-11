@@ -16,6 +16,12 @@ public final class ModItems {
             new Item.Properties().stacksTo(1)
     );
 
+    public static final DeferredItem<Item> BLACKWATER_HOOK_MEMORY = ITEMS.registerItem(
+            "blackwater_hook_memory",
+            BlackwaterHookMemoryItem::new,
+            new Item.Properties().stacksTo(1)
+    );
+
     private ModItems() {
     }
 
