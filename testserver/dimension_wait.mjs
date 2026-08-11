@@ -1,3 +1,5 @@
+import './harness_transport.mjs'
+
 const defaultSleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 /**
