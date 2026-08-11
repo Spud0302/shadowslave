@@ -3,6 +3,7 @@ package dev.spud.shadowslave.memory;
 import dev.spud.shadowslave.item.AshCompassMemoryItem;
 import dev.spud.shadowslave.item.BellglassTokenMemoryItem;
 import dev.spud.shadowslave.item.ModItems;
+import dev.spud.shadowslave.item.RedThreadBraceletMemoryItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
@@ -30,6 +31,14 @@ public final class MemoryManifestationService {
         return dismiss(player, BellglassTokenMemoryItem.MEMORY_ID, ModItems.BELLGLASS_TOKEN_MEMORY.get());
     }
 
+    public static ManifestResult summonRedThreadBracelet(ServerPlayer player) {
+        return summon(player, RedThreadBraceletMemoryItem.MEMORY_ID, ModItems.RED_THREAD_BRACELET_MEMORY.get());
+    }
+
+    public static ManifestResult dismissRedThreadBracelet(ServerPlayer player) {
+        return dismiss(player, RedThreadBraceletMemoryItem.MEMORY_ID, ModItems.RED_THREAD_BRACELET_MEMORY.get());
+    }
+
     public static void clearAshCompassManifestations(ServerPlayer player) {
         removeManifestations(Objects.requireNonNull(player, "player").getInventory(), ModItems.ASH_COMPASS_MEMORY.get());
     }
@@ -38,12 +47,20 @@ public final class MemoryManifestationService {
         removeManifestations(Objects.requireNonNull(player, "player").getInventory(), ModItems.BELLGLASS_TOKEN_MEMORY.get());
     }
 
+    public static void clearRedThreadBraceletManifestations(ServerPlayer player) {
+        removeManifestations(Objects.requireNonNull(player, "player").getInventory(), ModItems.RED_THREAD_BRACELET_MEMORY.get());
+    }
+
     static boolean hasAshCompass(Inventory inventory) {
         return hasManifestation(inventory, ModItems.ASH_COMPASS_MEMORY.get());
     }
 
     static boolean hasBellglassToken(Inventory inventory) {
         return hasManifestation(inventory, ModItems.BELLGLASS_TOKEN_MEMORY.get());
+    }
+
+    static boolean hasRedThreadBracelet(Inventory inventory) {
+        return hasManifestation(inventory, ModItems.RED_THREAD_BRACELET_MEMORY.get());
     }
 
     private static ManifestResult summon(ServerPlayer player, net.minecraft.resources.ResourceLocation memoryId, Item item) {
