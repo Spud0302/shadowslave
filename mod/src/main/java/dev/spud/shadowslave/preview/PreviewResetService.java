@@ -5,6 +5,7 @@ import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.echo.EchoOwnershipData;
 import dev.spud.shadowslave.echo.EchoOwnershipService;
 import dev.spud.shadowslave.memory.BellglassHeldNoteService;
+import dev.spud.shadowslave.memory.BorrowedDawnChargeService;
 import dev.spud.shadowslave.memory.MemoryManifestationService;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.memory.MemoryOwnershipService;
@@ -63,8 +64,10 @@ public final class PreviewResetService {
             MemoryManifestationService.clearAshCompassManifestations(player);
             MemoryManifestationService.clearBellglassTokenManifestations(player);
             MemoryManifestationService.clearRedThreadBraceletManifestations(player);
+            MemoryManifestationService.clearBorrowedDawnManifestations(player);
             BellglassHeldNoteService.clear(player);
             RedThreadCompanionService.clear(player);
+            BorrowedDawnChargeService.clear(player);
             MemoryOwnershipService.replace(player, MemoryOwnershipData.empty());
         }
         @Override public void clearEchoes() {
