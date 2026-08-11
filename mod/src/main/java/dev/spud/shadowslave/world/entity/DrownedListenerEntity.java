@@ -111,7 +111,9 @@ public final class DrownedListenerEntity extends Drowned {
 
         this.sampledPlayerPositions.keySet().retainAll(nearbyIds);
 
-        if (detected != null) {
+        UUID currentTargetId = this.getTarget() == null ? null : this.getTarget().getUUID();
+        if (detected != null
+                && DrownedListenerVibrationBehavior.canClaimVibrationTarget(this.vibrationTargetId, currentTargetId)) {
             this.setTarget(detected);
             this.vibrationTargetId = detected.getUUID();
             this.vibrationPursuitTicks = DrownedListenerVibrationBehavior.PURSUIT_TICKS;
