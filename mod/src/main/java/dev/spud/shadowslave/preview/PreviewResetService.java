@@ -59,6 +59,7 @@ public final class PreviewResetService {
         @Override public void clearAttributes() { AttributeOwnershipService.replace(player, AttributeOwnershipData.empty()); }
         @Override public void clearMemories() {
             MemoryManifestationService.clearAshCompassManifestations(player);
+            MemoryManifestationService.clearStonewakeShieldManifestations(player);
             MemoryOwnershipService.replace(player, MemoryOwnershipData.empty());
         }
         @Override public void clearEchoes() {
