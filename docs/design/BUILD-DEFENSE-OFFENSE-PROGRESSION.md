@@ -127,6 +127,45 @@ Weapon specialization
 
 A supernatural progression fork could be even more absolute if lore/design supports it: an Aspect evolution that becomes exceptional at body hardening may permanently forgo a hypothetical phase-oriented development path. This should be authored per Aspect rather than imposed as one universal tree.
 
+### Aspect-driven topology changes
+
+An Aspect should be allowed to change **which branches are compatible at all**, not merely add bonuses inside an otherwise fixed universal tree.
+
+This means an Aspect may create an exception to an ordinary training conflict. Two specializations that are normally mutually exclusive could become simultaneously attainable because the Aspect makes the combination physically or supernaturally coherent. The cost of that exceptional combination does **not** need to be a mirror-image penalty inside the same branch. Instead, the Aspect's nature may cap, suppress, or completely close a different family elsewhere in the character's build graph.
+
+Conceptual example:
+
+```text
+Ordinary character
+    Rooted Guard <-> Evasive Flow
+    choose one peak specialization
+
+Aspect-shaped character
+    Aspect affinity bridges Rooted Guard + Evasive Flow
+        -> both peak defensive styles can coexist
+
+    but Aspect incompatibility closes another domain
+        -> for example, no deep phase-defense branch
+        -> or no peak ranged/channeling branch
+        -> or no advanced soul-ward specialization
+```
+
+The specific locked domain must make sense for that Aspect's identity. It should not be assigned merely to satisfy a gamey "one buff requires one nerf" equation.
+
+An Aspect can therefore expose three kinds of build-graph effects:
+
+- **affinity** — lowers requirements, improves synergy, or allows normally conflicting branches to coexist;
+- **incompatibility** — caps or locks techniques/capabilities that contradict the Aspect's nature;
+- **transformation** — replaces a normal branch with an Aspect-specific version instead of simply buffing or blocking it.
+
+This creates characters whose build possibilities are structurally different before individual specialization choices are even made.
+
+### Aspect effects should not erase player choice
+
+An Aspect changing the graph should create new choices, not predetermine the entire build. If an Aspect allows two normally exclusive defensive branches, the player may still need to invest training, mastery, physical development, or resources to obtain both. The Aspect grants **compatibility**, not automatic mastery.
+
+Likewise, a blocked supernatural path should not imply that all practical answers to that threat disappear. Memories, allies, terrain, generic technique, preparation, and alternate tactics can still compensate for a permanent specialization gap.
+
 ### Lockouts should create identity, not traps
 
 A commitment should usually lock **peak specialization**, not make ordinary gameplay impossible. A rooted defender can still move. An evasive fighter can still wear armour. A physical specialist can still defend against soul threats through Memories, allies, scouting or avoidance even if they cannot personally master every soul-defense branch.
@@ -178,4 +217,7 @@ This keeps exploration, build planning and combat tightly connected.
 7. Some specialization paths may be mutually exclusive or contain commitment points that lock competing peak options.
 8. Lockouts should define identity without removing baseline survivability or all alternate counters.
 9. Respec/retraining rules should depend on the progression source rather than one universal reset button.
-10. Implementation is not started or authorized by this note.
+10. Aspects may reshape the capability graph itself: opening normally exclusive combinations, closing different domains, or replacing mundane branches with Aspect-specific variants.
+11. Aspect affinity grants compatibility, not automatic mastery; investment and player choice should still matter.
+12. Aspect incompatibilities should follow the Aspect's nature rather than a universal one-bonus/one-penalty balancing rule.
+13. Implementation is not started or authorized by this note.
