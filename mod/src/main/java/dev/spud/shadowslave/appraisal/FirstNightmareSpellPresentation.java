@@ -9,10 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * Runtime integration from already-committed appraisal/reward state into the
- * existing Spell presentation catalogue. This class owns no progression state.
- */
+/** Runtime presentation of already-resolved First-Nightmare appraisal state. */
 public final class FirstNightmareSpellPresentation {
     private FirstNightmareSpellPresentation() {}
 
@@ -20,6 +17,7 @@ public final class FirstNightmareSpellPresentation {
             String scenarioName,
             String historicalRoleName,
             String terminalResolutionName,
+            Optional<String> divergenceSummary,
             String aspectName,
             String flawName,
             Optional<String> revealedAttributeName,
@@ -30,6 +28,8 @@ public final class FirstNightmareSpellPresentation {
             scenarioName = requireText(scenarioName, "scenarioName");
             historicalRoleName = requireText(historicalRoleName, "historicalRoleName");
             terminalResolutionName = requireText(terminalResolutionName, "terminalResolutionName");
+            divergenceSummary = Objects.requireNonNull(divergenceSummary, "divergenceSummary")
+                    .map(summary -> requireText(summary, "divergenceSummary"));
             aspectName = requireText(aspectName, "aspectName");
             flawName = requireText(flawName, "flawName");
             revealedAttributeName = Objects.requireNonNull(revealedAttributeName, "revealedAttributeName")
@@ -50,10 +50,16 @@ public final class FirstNightmareSpellPresentation {
         Optional<String> attributeName = award.attribute().visibility() == AttributeContentCatalog.Visibility.REVEALED
                 ? Optional.of(award.attribute().formalName())
                 : Optional.empty();
+        Optional<String> divergenceSummary = award.divergence().map(result ->
+                "Deviation from the original course: " + result.score() + "/" + result.maximumScore()
+                        + " weighted fate; changed " + result.changedAxes().size()
+                        + " of " + (result.changedAxes().size() + result.unchangedAxes().size() + result.unknownAxes().size())
+                        + " tracked outcomes.");
         return new ResolvedView(
                 scenarioName,
                 historicalRoleName,
                 terminalResolutionName,
+                divergenceSummary,
                 award.identity().aspect().formalName(),
                 award.identity().flaw().formalName(),
                 attributeName,
@@ -62,16 +68,16 @@ public final class FirstNightmareSpellPresentation {
         );
     }
 
-    /**
-     * The ordering is presentation DESIGN only. All names and resolution facts
-     * are supplied from already-resolved Java-owned state.
-     */
+    /** Ordering is presentation DESIGN; all facts come from resolved Java-owned state. */
     public static List<SpellPresentationCatalog.PresentationLine> render(ResolvedView view) {
         Objects.requireNonNull(view, "view");
         SpellPresentationCatalog catalog = SpellPresentationCatalog.waveOne();
+        ArrayList<String> appraisalEvidence = new ArrayList<>();
+        appraisalEvidence.add("Terminal resolution: " + view.terminalResolutionName() + ".");
+        view.divergenceSummary().ifPresent(appraisalEvidence::add);
         ArrayList<SpellPresentationCatalog.PresentationLine> lines = new ArrayList<>(catalog.appraisal(
                 "You endured " + view.scenarioName() + " in the historical role of " + view.historicalRoleName() + ".",
-                List.of("Terminal resolution: " + view.terminalResolutionName() + "."),
+                List.copyOf(appraisalEvidence),
                 "Nightmare conquered"
         ));
         lines.add(catalog.line(SpellPresentationCatalog.EventKind.ASPECT_REVEALED, Map.of("name", view.aspectName())));
