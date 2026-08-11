@@ -1,5 +1,8 @@
 package dev.spud.shadowslave.world.entity;
 
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Spider;
@@ -20,6 +23,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public final class ChainbackEntity extends Spider implements GeoEntity {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private int displacementCooldown;
+    private int displacementTelegraphTicks;
 
     public ChainbackEntity(EntityType<? extends ChainbackEntity> type, Level level) {
         super(type, level);
@@ -37,6 +41,7 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
 
         LivingEntity target = this.getTarget();
         if (target == null || !target.isAlive() || !this.getSensing().hasLineOfSight(target)) {
+            this.displacementTelegraphTicks = 0;
             return;
         }
 
@@ -48,6 +53,22 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
                 horizontalDistanceSquared,
                 verticalDelta,
                 this.displacementCooldown)) {
+            this.displacementTelegraphTicks = 0;
+            return;
+        }
+
+        if (this.displacementTelegraphTicks <= 0) {
+            this.displacementTelegraphTicks = ChainbackDisplacementBehavior.TELEGRAPH_TICKS;
+            this.playSound(SoundEvents.CHAIN_PLACE, 0.8F, 0.7F);
+            this.emitDisplacementTelegraph(target);
+            return;
+        }
+
+        if (ChainbackDisplacementBehavior.shouldTelegraphPulse(this.displacementTelegraphTicks)) {
+            this.emitDisplacementTelegraph(target);
+        }
+        this.displacementTelegraphTicks--;
+        if (this.displacementTelegraphTicks > 0) {
             return;
         }
 
@@ -57,6 +78,21 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
         }
         target.push(pull.x(), pull.y(), pull.z());
         this.displacementCooldown = ChainbackDisplacementBehavior.COOLDOWN_TICKS;
+    }
+
+    private void emitDisplacementTelegraph(LivingEntity target) {
+        if (!(this.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        double targetHeight = target.getY() + target.getBbHeight() * 0.55D;
+        double sourceHeight = this.getY() + this.getBbHeight() * 0.55D;
+        for (int step = 1; step <= 4; step++) {
+            double progress = step / 5.0D;
+            double x = target.getX() + (this.getX() - target.getX()) * progress;
+            double y = targetHeight + (sourceHeight - targetHeight) * progress;
+            double z = target.getZ() + (this.getZ() - target.getZ()) * progress;
+            serverLevel.sendParticles(ParticleTypes.CRIT, x, y, z, 1, 0.03D, 0.03D, 0.03D, 0.0D);
+        }
     }
 
     @Override
