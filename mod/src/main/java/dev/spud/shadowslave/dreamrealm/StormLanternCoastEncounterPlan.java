@@ -25,10 +25,23 @@ public final class StormLanternCoastEncounterPlan {
         EXPOSED_ROUTE
     }
 
+    /**
+     * World-context reason an encounter was budgeted. This is deterministic placement
+     * metadata, not creature identity, progression state, or a persistent ecology simulation.
+     */
+    public enum EcologyContext {
+        FLOOD_MARGIN,
+        HISTORIC_RUIN,
+        HIGH_EXPOSURE,
+        RESOURCE_EDGE,
+        SHELTER_MARGIN
+    }
+
     public record Encounter(
             String creatureId,
             String anchorId,
             Pressure pressure,
+            EcologyContext ecologyContext,
             int x,
             int y,
             int z
@@ -37,6 +50,7 @@ public final class StormLanternCoastEncounterPlan {
             creatureId = requireText(creatureId, "creatureId");
             anchorId = requireText(anchorId, "anchorId");
             pressure = Objects.requireNonNull(pressure, "pressure");
+            ecologyContext = Objects.requireNonNull(ecologyContext, "ecologyContext");
             if (!EXECUTABLE_AFFINITIES.contains(creatureId)) {
                 throw new IllegalArgumentException("encounter creature is not physically executable: " + creatureId);
             }
@@ -49,6 +63,21 @@ public final class StormLanternCoastEncounterPlan {
             if (encounters.size() < 2 || encounters.size() > 4) {
                 throw new IllegalArgumentException("Storm Lantern encounter budget must contain 2-4 encounters");
             }
+        }
+    }
+
+    private record OptionalPressure(
+            StormLanternCoastSitePlan.Piece piece,
+            EcologyContext ecologyContext,
+            int weight,
+            int jitterRadius,
+            int yOffset
+    ) {
+        private OptionalPressure {
+            Objects.requireNonNull(piece, "piece");
+            Objects.requireNonNull(ecologyContext, "ecologyContext");
+            if (weight <= 0) throw new IllegalArgumentException("weight must be positive");
+            if (jitterRadius < 0) throw new IllegalArgumentException("jitterRadius cannot be negative");
         }
     }
 
@@ -73,13 +102,14 @@ public final class StormLanternCoastEncounterPlan {
                 "drowned_listener",
                 terraces.anchorId(),
                 Pressure.FLOOD_EDGE,
+                EcologyContext.FLOOD_MARGIN,
                 terraces.x() + jitter(random, 4),
                 terraces.y() + 3,
                 terraces.z() + jitter(random, 4)
         ));
 
         // Quarry/belfry pressure varies by seed so the same region identity does not
-        // collapse into one guaranteed encounter composition or one fixed coordinate.
+        // collapse into one guaranteed encounter coordinate.
         StormLanternCoastSitePlan.Piece ruin = random.nextBoolean()
                 ? piece(sitePlan, "collapsed_quarry_cut")
                 : piece(sitePlan, "storm_belfry");
@@ -87,29 +117,69 @@ public final class StormLanternCoastEncounterPlan {
                 "chainback",
                 ruin.anchorId(),
                 Pressure.RUIN_GUARD,
+                EcologyContext.HISTORIC_RUIN,
                 ruin.x() + jitter(random, 6),
                 ruin.y() + 2,
                 ruin.z() + jitter(random, 6)
         ));
 
-        // Exposure budget: some seeds add one or two roaming pressure points around
-        // the high route / cliff lanterns. These use only region-authorized executable
-        // creatures and remain reproducible from the site seed.
-        int extra = random.nextInt(3); // 0-2, producing a total budget of 2-4.
+        // Optional pressure now responds to why a location matters, rather than only
+        // choosing another arbitrary route coordinate. High cliff routes and valuable
+        // wreckage are attractive danger locations; the collapsed shelter is weighted
+        // lower and pressure is kept outside its immediate interior so shelter retains
+        // practical value. Selection is without replacement and deterministic.
+        ArrayList<OptionalPressure> optional = new ArrayList<>(List.of(
+                candidate(sitePlan, "coast_watch_0", EcologyContext.HIGH_EXPOSURE, 4, 7, 1),
+                candidate(sitePlan, "coast_watch_1", EcologyContext.HIGH_EXPOSURE, 4, 7, 1),
+                candidate(sitePlan, "salvage_ledge", EcologyContext.RESOURCE_EDGE, 5, 5, 1),
+                candidate(sitePlan, "storm_shelter", EcologyContext.SHELTER_MARGIN, 1, 3, 1)
+        ));
+
+        int extra = random.nextInt(3); // 0-2, preserving a total budget of 2-4.
         for (int i = 0; i < extra; i++) {
-            StormLanternCoastSitePlan.Piece watch = piece(sitePlan, "coast_watch_" + i);
+            OptionalPressure selected = takeWeighted(random, optional);
             String creature = random.nextBoolean() ? "chainback" : "drowned_listener";
+            int x;
+            int z;
+            if (selected.ecologyContext() == EcologyContext.SHELTER_MARGIN) {
+                // Keep danger on an approach margin, not directly inside the shelter.
+                x = selected.piece().x() + (random.nextBoolean() ? 8 : -8);
+                z = selected.piece().z() + jitter(random, selected.jitterRadius());
+            } else {
+                x = selected.piece().x() + jitter(random, selected.jitterRadius());
+                z = selected.piece().z() + jitter(random, selected.jitterRadius());
+            }
             encounters.add(new Encounter(
                     creature,
-                    watch.anchorId(),
+                    selected.piece().anchorId(),
                     Pressure.EXPOSED_ROUTE,
-                    watch.x() + jitter(random, 7),
-                    watch.y() + 1,
-                    watch.z() + jitter(random, 7)
+                    selected.ecologyContext(),
+                    x,
+                    selected.piece().y() + selected.yOffset(),
+                    z
             ));
         }
 
         return new Plan(encounterSeed, encounters);
+    }
+
+    private static OptionalPressure candidate(StormLanternCoastSitePlan.Plan plan, String anchorId,
+                                              EcologyContext context, int weight, int jitterRadius, int yOffset) {
+        return new OptionalPressure(piece(plan, anchorId), context, weight, jitterRadius, yOffset);
+    }
+
+    private static OptionalPressure takeWeighted(SplittableRandom random, ArrayList<OptionalPressure> candidates) {
+        int totalWeight = candidates.stream().mapToInt(OptionalPressure::weight).sum();
+        int roll = random.nextInt(totalWeight);
+        for (int i = 0; i < candidates.size(); i++) {
+            OptionalPressure candidate = candidates.get(i);
+            if (roll < candidate.weight()) {
+                candidates.remove(i);
+                return candidate;
+            }
+            roll -= candidate.weight();
+        }
+        throw new IllegalStateException("weighted Storm Lantern pressure selection exhausted unexpectedly");
     }
 
     private static StormLanternCoastSitePlan.Piece piece(StormLanternCoastSitePlan.Plan plan, String anchorId) {
