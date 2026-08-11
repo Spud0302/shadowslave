@@ -46,6 +46,12 @@ A second brand-new child process then proves the final persisted split is self-c
 
 This adds a real process/static-state boundary on both sides of the modeled replay and makes the three persisted surfaces, rather than parent-JVM objects, the state being transformed and verified.
 
+## CI unblock evidence
+
+PR #231 (`fix(ci): validate reviewable PR heads automatically`) was merged on 2026-08-11 after exact head `97eb65032e0767e9d490c3b91b83be65d352ddd0` passed Preview Gates runs #236 and #237. It adds the missing `opened` and `synchronize` pull-request events while retaining draft guards. That is the credible new evidence required to resume exact-head validation here: this documentation commit intentionally creates a real `synchronize` event on #223 so the corrected disk-image head is evaluated under the repaired workflow contract instead of repeating the previous zero-run condition.
+
+The earlier zero-workflow condition is therefore no longer treated as an active blocker. A green claim still requires the newly registered exact-head workflow to complete successfully; any unrelated recurring hosted Mineflayer lag remains subject to the existing stop-retrying rule.
+
 ## Evidence classification
 
 - **CANON:** unchanged. No Nightmare, appraisal, Aspect, Flaw, Attribute, Memory, Echo, progression, reward, death, or failure rule changes.
