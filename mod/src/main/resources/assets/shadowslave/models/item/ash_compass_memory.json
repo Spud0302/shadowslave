@@ -3,10 +3,10 @@
   "ambientocclusion": false,
   "gui_light": "front",
   "textures": {
-    "case": "minecraft:block/polished_blackstone",
-    "needle": "minecraft:block/oxidized_copper",
-    "ember": "minecraft:block/magma",
-    "particle": "minecraft:block/polished_blackstone"
+    "case": "shadowslave:item/ash_compass_case",
+    "needle": "shadowslave:item/ash_compass_needle",
+    "ember": "shadowslave:item/ash_compass_ember",
+    "particle": "shadowslave:item/ash_compass_case"
   },
   "elements": [
     {
