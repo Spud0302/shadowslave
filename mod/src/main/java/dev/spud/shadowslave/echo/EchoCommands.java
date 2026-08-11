@@ -21,7 +21,9 @@ public final class EchoCommands {
                 .then(Commands.literal("follow").then(Commands.literal("ash_burrower")
                         .executes(context -> commandAshBurrower(context.getSource().getPlayerOrException(), EchoContentCatalog.CommandMode.FOLLOW))))
                 .then(Commands.literal("hold").then(Commands.literal("ash_burrower")
-                        .executes(context -> commandAshBurrower(context.getSource().getPlayerOrException(), EchoContentCatalog.CommandMode.HOLD)))));
+                        .executes(context -> commandAshBurrower(context.getSource().getPlayerOrException(), EchoContentCatalog.CommandMode.HOLD))))
+                .then(Commands.literal("guard").then(Commands.literal("ash_burrower")
+                        .executes(context -> commandAshBurrower(context.getSource().getPlayerOrException(), EchoContentCatalog.CommandMode.GUARD_POINT)))));
     }
 
     private static int summonAshBurrower(ServerPlayer player) {
@@ -50,10 +52,19 @@ public final class EchoCommands {
     private static int commandAshBurrower(ServerPlayer player, EchoContentCatalog.CommandMode commandMode) {
         EchoManifestationService.CommandResult result = EchoManifestationService.commandAshBurrower(player, commandMode);
         switch (result) {
-            case COMMAND_SET -> player.sendSystemMessage(Component.literal("[Ash Burrower] — " + (commandMode == EchoContentCatalog.CommandMode.FOLLOW ? "Follow." : "Hold here.")).withStyle(ChatFormatting.AQUA));
+            case COMMAND_SET -> player.sendSystemMessage(Component.literal("[Ash Burrower] — " + commandText(commandMode)).withStyle(ChatFormatting.AQUA));
             case NOT_OWNED -> player.sendSystemMessage(Component.literal("Your soul does not contain [Ash Burrower].").withStyle(ChatFormatting.RED));
             case UNSUPPORTED -> player.sendSystemMessage(Component.literal("[Ash Burrower] cannot execute that command yet.").withStyle(ChatFormatting.RED));
         }
         return result == EchoManifestationService.CommandResult.COMMAND_SET ? Command.SINGLE_SUCCESS : 0;
+    }
+
+    private static String commandText(EchoContentCatalog.CommandMode commandMode) {
+        return switch (commandMode) {
+            case FOLLOW -> "Follow.";
+            case HOLD -> "Hold here.";
+            case GUARD_POINT -> "Guard this point.";
+            default -> throw new IllegalArgumentException("No player-facing command text for " + commandMode);
+        };
     }
 }
