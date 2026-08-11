@@ -89,7 +89,7 @@ class StormLanternCoastEncounterPlanTest {
             for (var encounter : plan.encounters()) {
                 if (encounter.pressure() == StormLanternCoastEncounterPlan.Pressure.EXPOSED_ROUTE) {
                     assertTrue(optionalAnchors.add(encounter.anchorId()),
-                            () -> "duplicate optional ecology anchor in seed " + seed + ": " + encounter.anchorId());
+                            "duplicate optional ecology anchor in seed " + seed + ": " + encounter.anchorId());
                 }
             }
         }
