@@ -75,6 +75,7 @@ public final class StormLanternCoastEncounterService {
         mob.moveTo(pos.getX() + 0.5, pos.getY() + 0.1, pos.getZ() + 0.5, 0.0F, 0.0F);
         mob.addTag(ENCOUNTER_TAG);
         mob.addTag("shadowslave_encounter_" + encounter.pressure().name().toLowerCase(java.util.Locale.ROOT));
+        mob.addTag("shadowslave_ecology_" + encounter.ecologyContext().name().toLowerCase(java.util.Locale.ROOT));
         mob.setPersistenceRequired();
         level.addFreshEntity(mob);
     }
