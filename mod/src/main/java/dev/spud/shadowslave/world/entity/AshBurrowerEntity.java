@@ -64,16 +64,11 @@ public final class AshBurrowerEntity extends Silverfish implements GeoEntity, Sm
 
     public AshBurrowerEntity(EntityType<? extends Silverfish> type, Level level) {
         super(type, level);
-        // Empty loot is not enough: vanilla Silverfish still award XP independently of loot tables.
-        // This bounded encounter must not create any gameplay reward authority.
         this.xpReward = 0;
     }
 
     @Override
     protected void registerGoals() {
-        // Do not call Silverfish.registerGoals(): merge-with-stone/wake-friends can mutate the world
-        // and replace this executor. SmartBrainLib owns ordinary movement/combat scheduling now;
-        // the one retained vanilla goal is the generic water-safety FloatGoal.
         this.goalSelector.addGoal(0, new FloatGoal(this));
     }
 
@@ -95,17 +90,13 @@ public final class AshBurrowerEntity extends Silverfish implements GeoEntity, Sm
 
     @Override
     public BrainActivityGroup<? extends AshBurrowerEntity> getCoreTasks() {
-        return BrainActivityGroup.coreTasks(
-                new LookAtTarget<>(),
-                new MoveToWalkTarget<>());
+        return BrainActivityGroup.coreTasks(new LookAtTarget<>(), new MoveToWalkTarget<>());
     }
 
     @Override
     public BrainActivityGroup<? extends AshBurrowerEntity> getIdleTasks() {
         return BrainActivityGroup.idleTasks(
-                new FirstApplicableBehaviour<AshBurrowerEntity>(
-                        new SetRetaliateTarget<>(),
-                        new SetRandomLookTarget<>()),
+                new FirstApplicableBehaviour<AshBurrowerEntity>(new SetRetaliateTarget<>(), new SetRandomLookTarget<>()),
                 new OneRandomBehaviour<>(
                         new SetRandomWalkTarget<AshBurrowerEntity>().speedModifier(0.7F),
                         new Idle<AshBurrowerEntity>().runFor(entity -> entity.getRandom().nextInt(30, 60))));
@@ -129,8 +120,6 @@ public final class AshBurrowerEntity extends Silverfish implements GeoEntity, Sm
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        // These controllers only present already-existing movement/swing state.
-        // They never feed back into creature identity, AI authority, combat resolution or progression.
         controllers.add(
                 DefaultAnimations.genericWalkIdleController(this),
                 DefaultAnimations.genericAttackAnimation(this, DefaultAnimations.ATTACK_STRIKE));
@@ -196,7 +185,7 @@ public final class AshBurrowerEntity extends Silverfish implements GeoEntity, Sm
 
         if (connected && this.level() instanceof ServerLevel serverLevel) {
             this.swing(InteractionHand.MAIN_HAND);
-            this.doHurtTarget(serverLevel, target);
+            this.doHurtTarget(target);
             serverLevel.sendParticles(ParticleTypes.ASH, target.getX(), target.getY() + 0.35D, target.getZ(),
                     8, 0.25D, 0.2D, 0.25D, 0.02D);
         }
@@ -221,11 +210,6 @@ public final class AshBurrowerEntity extends Silverfish implements GeoEntity, Sm
         this.setDeltaMovement(this.getDeltaMovement().multiply(0.35D, 1.0D, 0.35D));
     }
 
-    /**
-     * Convert SmartBrainLib's generic nearby-player memory into the project-authored VIBRATION
-     * acquisition rule. SmartBrainLib decides when to scan and later executes the selected target;
-     * this method remains the Java-owned policy boundary deciding whether a player was detected.
-     */
     private static void refreshVibrationTarget(AshBurrowerEntity entity) {
         List<Player> nearbyPlayers = BrainUtils.getMemory(entity, MemoryModuleType.NEAREST_PLAYERS);
         if (nearbyPlayers == null) {
