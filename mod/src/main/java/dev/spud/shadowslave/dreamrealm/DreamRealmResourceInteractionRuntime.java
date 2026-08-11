@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.dreamrealm;
 
+import dev.spud.shadowslave.world.block.ModBlocks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -28,7 +29,7 @@ public final class DreamRealmResourceInteractionRuntime {
                 .findFirst()
                 .orElse(null);
         if (interaction == null) return;
-        if (!event.getLevel().getBlockState(event.getPos()).is(expectedPlaceholder(interaction.placeholderBlockId()))) return;
+        if (!event.getLevel().getBlockState(event.getPos()).is(expectedPhysicalBlock(interaction.physicalBlockId()))) return;
 
         // Consume the same bounded interaction on both logical sides so vanilla does not
         // fall through to off-hand/item use. Presentation remains server-only.
@@ -42,12 +43,12 @@ public final class DreamRealmResourceInteractionRuntime {
         player.sendSystemMessage(Component.literal(interaction.boundary()).withStyle(ChatFormatting.DARK_GRAY));
     }
 
-    private static Block expectedPlaceholder(String placeholderBlockId) {
-        return switch (placeholderBlockId) {
-            case "bone_block" -> Blocks.BONE_BLOCK;
-            case "raw_iron_block" -> Blocks.RAW_IRON_BLOCK;
-            case "brown_mushroom_block" -> Blocks.BROWN_MUSHROOM_BLOCK;
-            default -> throw new IllegalStateException("Unmapped Dream Realm resource placeholder " + placeholderBlockId);
+    private static Block expectedPhysicalBlock(String physicalBlockId) {
+        return switch (physicalBlockId) {
+            case "minecraft:bone_block" -> Blocks.BONE_BLOCK;
+            case "shadowslave:ruin_metal" -> ModBlocks.RUIN_METAL.get();
+            case "minecraft:brown_mushroom_block" -> Blocks.BROWN_MUSHROOM_BLOCK;
+            default -> throw new IllegalStateException("Unmapped Dream Realm resource presentation block " + physicalBlockId);
         };
     }
 }
