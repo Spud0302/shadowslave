@@ -19,6 +19,12 @@ A smaller unblocked correctness edge remains in production today: `NightmareEven
 
 This is intentionally a narrow source-contract regression test. It does not claim to simulate a live login, and it does not replace the blocked dedicated-server player reconnect harness.
 
+## Review correction
+
+Fresh review found that the first version searched the entire `NightmareEvents.java` source file. That could remain green if another method or helper happened to contain the same replay guard and `return` while `onPlayerLoggedIn(...)` itself regressed.
+
+The corrected test now extracts only the balanced-brace body of `onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent)` before locating the replay guard, early return, and ordinary active-instance reconciliation. This keeps the test deliberately source-contract based while making its evidence match the advertised login-handler invariant.
+
 ## Evidence classification
 
 - **CANON:** unchanged. No Nightmare, appraisal, Aspect, Flaw, Attribute, Memory, Echo, progression, death, or failure mechanic changes.
