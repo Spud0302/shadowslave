@@ -69,22 +69,19 @@ Run:
 
 The command equips one ordinary iron sword and spawns one tagged existing Chainback six blocks in front of the player. The tag exists only so the development diagnostic can identify the intended test target.
 
-After evading or attacking, run:
+Run this immediately before and after the intended punish:
 
 ```text
 /shadowslave_combat status
 ```
 
-The status line reports:
+The status line reports only server-owned facts already available without a damage observer:
 
 - current Chainback health;
 - whether the existing displacement recovery is currently `OPEN`;
-- remaining recovery ticks;
-- total final server-side player damage events observed on the tagged Chainback;
-- how many of those damage events landed while Chainback was already in its existing recovery opening;
-- the final amount and opening/outside-opening classification of the latest player hit.
+- remaining recovery ticks.
 
-The damage observer uses NeoForge's final living-damage event only as passive telemetry. It does not change/cancel damage and stores no persistent/canonical state. This makes the physical Better Combat verdict falsifiable without inventing a Shadow Slave player attack timer or generic stability system.
+Earlier spike heads attempted to count post-damage events directly. That observer seam failed twice against NeoForge 1.21.1 API differences (`LivingDamageEvent.Post` accessor churn), so the spike deliberately stopped retrying it. The prototype now uses the smaller and more robust proof path: compare authoritative Chainback health immediately before and after the Better Combat swing while observing the existing recovery state. No event listener, combat-state mirror, or persistent telemetry is introduced.
 
 ### Minimum physical verdict
 
@@ -93,13 +90,13 @@ A useful successful run is:
 1. spawn the slice;
 2. read the chain warning;
 3. break range or line of sight so the displacement misses;
-4. verify `status` exposes the recovery opening;
-5. punish with Better Combat's ordinary iron-sword swing;
-6. verify `opening hits` increments exactly once for the intended connected swing and Chainback health decreases accordingly;
-7. repeat outside the opening and verify it counts as a player hit but not an opening hit;
+4. run `status` and confirm the existing recovery is `OPEN`, recording health;
+5. punish once with Better Combat's ordinary iron-sword swing;
+6. run `status` again and confirm health decreased exactly once while the creature-owned recovery/resumption behavior remains intact;
+7. repeat once outside the opening to compare the rhythm rather than inventing a separate stability system;
 8. confirm Chainback resumes its existing pursuit/special-action loop after recovery.
 
-If one intended Better Combat swing produces duplicate final damage events, bypasses the expected opening rhythm, or requires Shadow Slave to take ownership of Better Combat's player timing/range/animation state, treat that as evidence against adoption rather than adapting canonical Shadow Slave state around the dependency.
+If one intended Better Combat swing visibly double-hits, bypasses the expected opening rhythm, or requires Shadow Slave to take ownership of Better Combat's player timing/range/animation state, treat that as evidence against adoption rather than adapting canonical Shadow Slave state around the dependency.
 
 ## What becomes playable if physical gates pass
 
@@ -164,7 +161,7 @@ Admission requires physical evidence on this exact spike that:
 2. dedicated server boots with the same required set;
 3. ordinary iron-sword attacks execute through Better Combat;
 4. PR #256 Chainback telegraph/pull/miss-recovery behavior still works;
-5. the two systems do not double-fire melee damage or erase Chainback's earned recovery window;
+5. the two systems do not visibly double-fire melee damage or erase Chainback's earned recovery window;
 6. removal of the dependency leaves Java-owned Shadow Slave state loadable;
 7. the player-side result feels closer to `observe -> respond -> opening -> commit -> recover` than vanilla hit trading.
 
