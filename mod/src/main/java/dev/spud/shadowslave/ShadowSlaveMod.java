@@ -15,6 +15,7 @@ import dev.spud.shadowslave.network.ModPayloads;
 import dev.spud.shadowslave.network.SoulPlayerEvents;
 import dev.spud.shadowslave.nightmare.NightmareEvents;
 import dev.spud.shadowslave.preview.PreviewPowerService;
+import dev.spud.shadowslave.world.block.ModBlocks;
 import dev.spud.shadowslave.world.entity.DrownedBellListenerEntityAdapter;
 import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
 import net.neoforged.api.distmarker.Dist;
@@ -30,6 +31,7 @@ public final class ShadowSlaveMod {
 
     public ShadowSlaveMod(IEventBus modEventBus, Dist physicalSide) {
         ModAttachments.register(modEventBus);
+        ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         NightmareCreatureEntities.register(modEventBus);
 
