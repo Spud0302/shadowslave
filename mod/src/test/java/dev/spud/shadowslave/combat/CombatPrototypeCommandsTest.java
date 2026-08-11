@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,12 +39,32 @@ final class CombatPrototypeCommandsTest {
         assertTrue(commandSource.contains("chainback.isInDisplacementRecovery()"));
         assertTrue(commandSource.contains("chainback.displacementRecoveryTicks()"));
         assertTrue(commandSource.contains("chainback.getHealth()"));
-        assertTrue(commandSource.contains("opening %s"));
+        assertTrue(commandSource.contains("opening hits %d"));
 
         assertTrue(chainbackSource.contains("public boolean isInDisplacementRecovery()"));
         assertTrue(chainbackSource.contains("public int displacementRecoveryTicks()"));
         assertTrue(chainbackSource.contains("return this.displacementRecoveryTicks;"));
         assertFalse(chainbackSource.contains("stability"));
         assertFalse(chainbackSource.contains("bettercombat"));
+    }
+
+    @Test
+    void prototypeTelemetryCountsPlayerDamageDuringExistingOpeningWithoutChangingDamage() throws Exception {
+        CombatPrototypeCommands.PrototypeTelemetry telemetry = CombatPrototypeCommands.PrototypeTelemetry.empty()
+                .recordHit(3.0F, false)
+                .recordHit(5.5F, true);
+
+        assertEquals(2, telemetry.playerHits());
+        assertEquals(1, telemetry.openingHits());
+        assertEquals(5.5F, telemetry.lastDamage());
+        assertTrue(telemetry.lastHitDuringOpening());
+
+        String commandSource = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
+        assertTrue(commandSource.contains("public static void onLivingDamage(LivingDamageEvent event)"));
+        assertTrue(commandSource.contains("event.getSource().getEntity() instanceof ServerPlayer"));
+        assertTrue(commandSource.contains("event.getAmount(), chainback.isInDisplacementRecovery()"));
+        assertFalse(commandSource.contains("event.setAmount"));
+        assertFalse(commandSource.contains("event.setCanceled"));
     }
 }
