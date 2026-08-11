@@ -23,9 +23,17 @@ The workflow now subscribes to the normal reviewable-PR lifecycle events:
 - `ready_for_review`;
 - `reopened`.
 
+Both expensive jobs also require a non-draft pull request. This preserves the intended draft-review boundary: opening or updating a draft may register a skipped workflow event, but Java/datapack execution waits until `ready_for_review`; once reviewable, every later `synchronize` event validates the corrected head.
+
 Existing path filters remain unchanged, so documentation-only changes still do not start the expensive Java/datapack gates unless another watched path changes.
 
-A focused standard-library Python regression test reads `.github/workflows/java-core.yml` and requires all four events. The Java CI job runs that contract test immediately after checkout so later edits cannot silently remove initial-head or corrected-head coverage.
+A focused standard-library Python regression test reads `.github/workflows/java-core.yml`, requires all four events, and requires the non-draft guard on both Java and datapack jobs. The Java CI job runs that contract test immediately after checkout so later edits cannot silently remove initial-head, corrected-head, or draft-cost coverage.
+
+## Validation-path correction found during this slice
+
+The first draft implementation added `opened` without a draft job guard. Opening PR #231 as a draft and then marking it ready registered two workflow runs for the same head, showing that `opened` alone would spend the full gate on drafts and then spend it again at `ready_for_review`.
+
+The corrected exact head therefore keeps the `opened` event for PRs created already review-ready but skips both expensive jobs while `github.event.pull_request.draft == true`. This is a concrete observed correction, not a speculative optimization.
 
 ## Why this precedes another persistence slice
 
@@ -37,7 +45,7 @@ Fixing the trigger contract is therefore a correctness-enabling CI slice, not ne
 
 - **CANON:** not applicable; no Shadow Slave mechanic changes.
 - **INFERRED:** none.
-- **DESIGN:** every reviewable initial PR head and every later corrected PR head touching gated paths should receive Preview Gates automatically.
+- **DESIGN:** every reviewable initial PR head and every later corrected PR head touching gated paths should receive Preview Gates automatically, while drafts should not spend the expensive Java/datapack jobs.
 - **UNKNOWN:** GitHub-hosted runner availability and unrelated transient Minecraft/Mineflayer stalls remain external execution risks.
 - **COMPATIBILITY:** runtime Java, datapack behavior, persistence schemas, lore semantics, catalogue state and gameplay are unchanged. Existing `workflow_dispatch`, `main` push triggers, path filters, jobs and gate assertions are preserved.
 
