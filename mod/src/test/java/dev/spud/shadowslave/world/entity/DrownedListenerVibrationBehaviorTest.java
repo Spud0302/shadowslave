@@ -38,7 +38,18 @@ class DrownedListenerVibrationBehaviorTest {
     }
 
     @Test
-    void cleanupReleasesOnlyExpiredVibrationOwnedTarget() {
+    void vibrationCannotStealAnUnrelatedRetaliationTarget() {
+        UUID vibrationTarget = UUID.randomUUID();
+        UUID retaliationTarget = UUID.randomUUID();
+
+        assertTrue(DrownedListenerVibrationBehavior.canClaimVibrationTarget(null, null));
+        assertTrue(DrownedListenerVibrationBehavior.canClaimVibrationTarget(vibrationTarget, vibrationTarget));
+        assertFalse(DrownedListenerVibrationBehavior.canClaimVibrationTarget(null, retaliationTarget));
+        assertFalse(DrownedListenerVibrationBehavior.canClaimVibrationTarget(vibrationTarget, retaliationTarget));
+    }
+
+    @Test
+    void cleanupReleasesOnlyVibrationOwnedTargetsAndInvalidTargetsReleaseImmediately() {
         UUID vibrationTarget = UUID.randomUUID();
         assertTrue(DrownedListenerVibrationBehavior.shouldReleaseVibrationTarget(
                 vibrationTarget, vibrationTarget, 0, true, 25.0D));
@@ -46,6 +57,8 @@ class DrownedListenerVibrationBehaviorTest {
                 vibrationTarget, UUID.randomUUID(), 0, true, 25.0D));
         assertFalse(DrownedListenerVibrationBehavior.shouldReleaseVibrationTarget(
                 vibrationTarget, vibrationTarget, 20, true, 25.0D));
+        assertTrue(DrownedListenerVibrationBehavior.shouldReleaseVibrationTarget(
+                vibrationTarget, vibrationTarget, 20, false, 1.0D));
     }
 
     @Test
