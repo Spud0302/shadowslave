@@ -12,11 +12,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FirstNightmareSpellPresentationTest {
     @Test
-    void rendersResolvedRuntimeStateInLifecycleOrder() {
+    void rendersResolvedRuntimeStateAndDivergenceInLifecycleOrder() {
         FirstNightmareSpellPresentation.ResolvedView view = new FirstNightmareSpellPresentation.ResolvedView(
                 "The Drowned Bell",
                 "Ferry Deckhand",
                 "The Flood Diverted",
+                Optional.of("Deviation from the original course: 7/15 weighted fate; changed 2 of 5 tracked outcomes."),
                 "Ember-Wake",
                 "Brittle Promise",
                 Optional.of("Tide Listener"),
@@ -31,6 +32,7 @@ class FirstNightmareSpellPresentationTest {
                 SpellPresentationCatalog.EventKind.APPRAISAL_BEGIN,
                 SpellPresentationCatalog.EventKind.APPRAISAL_SUMMARY,
                 SpellPresentationCatalog.EventKind.APPRAISAL_DEED,
+                SpellPresentationCatalog.EventKind.APPRAISAL_DEED,
                 SpellPresentationCatalog.EventKind.APPRAISAL_VERDICT,
                 SpellPresentationCatalog.EventKind.ASPECT_REVEALED,
                 SpellPresentationCatalog.EventKind.FLAW_REVEALED,
@@ -44,6 +46,7 @@ class FirstNightmareSpellPresentationTest {
         assertTrue(rendered.contains("The Drowned Bell"));
         assertTrue(rendered.contains("Ferry Deckhand"));
         assertTrue(rendered.contains("The Flood Diverted"));
+        assertTrue(rendered.contains("7/15"));
         assertTrue(rendered.contains("Ember-Wake"));
         assertTrue(rendered.contains("Brittle Promise"));
         assertTrue(rendered.contains("Tide Listener"));
@@ -54,11 +57,12 @@ class FirstNightmareSpellPresentationTest {
     }
 
     @Test
-    void obscuredAttributeIsNotFalselyRevealed() {
+    void scenariosWithoutHistoricalBaselineDoNotInventDivergence() {
         FirstNightmareSpellPresentation.ResolvedView view = new FirstNightmareSpellPresentation.ResolvedView(
                 "The Last Signal",
                 "Watch Apprentice",
                 "Signal Restored",
+                Optional.empty(),
                 "Ember-Wake",
                 "Brittle Promise",
                 Optional.empty(),
@@ -75,7 +79,7 @@ class FirstNightmareSpellPresentationTest {
     void surfacesRemainCatalogueOwned() {
         List<SpellPresentationCatalog.PresentationLine> lines = FirstNightmareSpellPresentation.render(
                 new FirstNightmareSpellPresentation.ResolvedView(
-                        "The Last Signal", "Watch Apprentice", "Signal Restored",
+                        "The Last Signal", "Watch Apprentice", "Signal Restored", Optional.empty(),
                         "Ember-Wake", "Brittle Promise", Optional.of("Watcher's Mark"),
                         "Ash Compass", "Ash Burrower"
                 )
