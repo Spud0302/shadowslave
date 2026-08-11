@@ -11,6 +11,7 @@ import { execFileSync } from 'node:child_process'
 import { copyFileSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import './harness_transport.mjs'
 import mineflayer from 'mineflayer'
 
 // Absolute paths throughout: build_release.py lives in shadowslave/tools/ but writes to the repo
