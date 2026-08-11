@@ -54,13 +54,18 @@ public final class StormLanternCoastDiscoveryPlan {
                 case RUIN_GUARD -> ClueKind.CHAIN_SCAR;
                 case EXPOSED_ROUTE -> ClueKind.EXPOSED_ROUTE_DAMAGE;
             };
+            int clueX = toward(encounter.x(), ARRIVAL_X, STANDOFF);
+            int clueZ = toward(encounter.z(), ARRIVAL_Z, STANDOFF);
+            if (clueX == encounter.x() && clueZ == encounter.z()) {
+                clueX += encounter.x() == ARRIVAL_X ? 1 : Integer.signum(ARRIVAL_X - encounter.x());
+            }
             clues.add(new Clue(
                     kind,
                     encounter.pressure(),
                     encounter.anchorId(),
-                    toward(encounter.x(), ARRIVAL_X, STANDOFF),
+                    clueX,
                     encounter.y(),
-                    toward(encounter.z(), ARRIVAL_Z, STANDOFF)
+                    clueZ
             ));
         }
         return new Plan(clues);
