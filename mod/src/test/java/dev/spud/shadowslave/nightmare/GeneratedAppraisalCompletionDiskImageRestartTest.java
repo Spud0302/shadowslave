@@ -22,6 +22,8 @@ import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -36,11 +38,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p>This is deliberately below a live NeoForge restart: it materializes compressed SavedData-style receipt and
  * active-ownership images plus a compressed player attachment image, then discards the originating JVM. A fresh
- * JVM reconstructs those files, uses the production receipt codec and recovery planner to converge the player
- * award, and writes the post-replay disk images. A second fresh JVM proves the exact award is committed while
- * active ownership and completion authority are both absent. A separate immutable receipt oracle is test-only
- * expectation data; it is never used as runtime recovery authority and remains available after the live receipt
- * surface is deliberately consumed.</p>
+ * JVM reconstructs those files, uses the production receipt codec, active-instance replay selector and recovery
+ * planner to converge the player award, and writes the post-replay disk images. A second fresh JVM proves the exact
+ * award is committed while active ownership and completion authority are both absent. A separate immutable receipt
+ * oracle is test-only expectation data; it is never used as runtime recovery authority and remains available after
+ * the live receipt surface is deliberately consumed.</p>
  */
 class GeneratedAppraisalCompletionDiskImageRestartTest {
     private static final String ATTACHMENTS = "neoforge:attachments";
@@ -97,7 +99,8 @@ class GeneratedAppraisalCompletionDiskImageRestartTest {
         assertEquals(expectedReceipt, liveReceipt);
 
         NightmareInstance active = readOnlyActiveInstance(registryFile);
-        assertEquals(liveReceipt.instance(), active);
+        Optional<NightmareInstance> selected = selectActiveInstanceForReplay(Optional.of(active), liveReceipt);
+        assertEquals(Optional.of(active), selected);
 
         GeneratedAppraisalRecoveryService.PlayerState current = readPlayer(playerFile);
         GeneratedAppraisalRecoveryService.RecoveryPlan plan = GeneratedAppraisalRecoveryService.plan(
@@ -105,6 +108,35 @@ class GeneratedAppraisalCompletionDiskImageRestartTest {
         writePlayer(playerFile, plan.target());
         writeRegistry(registryFile, List.of());
         writeReceipts(receiptFile, List.of());
+    }
+
+    /**
+     * Calls the package-private production selector without widening its runtime API solely for a cross-package test.
+     * Reflection is intentionally restricted to this test seam; any selector exception is unwrapped unchanged.
+     */
+    @SuppressWarnings("unchecked")
+    private static Optional<NightmareInstance> selectActiveInstanceForReplay(
+            Optional<NightmareInstance> active,
+            NightmareCompletionReceiptData.Receipt receipt
+    ) throws Exception {
+        Method selector = GeneratedAppraisalRecoveryService.class.getDeclaredMethod(
+                "activeInstanceForReplay",
+                Optional.class,
+                NightmareCompletionReceiptData.Receipt.class
+        );
+        selector.setAccessible(true);
+        try {
+            return (Optional<NightmareInstance>) selector.invoke(null, active, receipt);
+        } catch (InvocationTargetException exception) {
+            Throwable cause = exception.getCause();
+            if (cause instanceof Exception checked) {
+                throw checked;
+            }
+            if (cause instanceof Error error) {
+                throw error;
+            }
+            throw new IllegalStateException("Production replay selector failed", cause);
+        }
     }
 
     private static void verify(
