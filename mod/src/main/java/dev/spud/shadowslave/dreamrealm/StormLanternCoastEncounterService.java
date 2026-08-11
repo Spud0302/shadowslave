@@ -45,8 +45,8 @@ public final class StormLanternCoastEncounterService {
         switch (clue.kind()) {
             case DISTURBED_FLOOD_EDGE -> {
                 level.setBlock(pos, Blocks.MUD.defaultBlockState(), 3);
-                level.setBlock(pos.east(), Blocks.MUD.defaultBlockState(), 3);
-                level.setBlock(pos.above(), Blocks.DEAD_BUSH.defaultBlockState(), 3);
+                level.setBlock(pos.east(), Blocks.CLAY.defaultBlockState(), 3);
+                level.setBlock(pos.west(), Blocks.GRAVEL.defaultBlockState(), 3);
             }
             case CHAIN_SCAR -> {
                 level.setBlock(pos, Blocks.CRACKED_DEEPSLATE_BRICKS.defaultBlockState(), 3);
