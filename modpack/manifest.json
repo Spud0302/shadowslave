@@ -48,7 +48,7 @@
         "type": "direct",
         "project": "net.tslat.smartbrainlib:SmartBrainLib-neoforge-1.21.1",
         "file": "SmartBrainLib-neoforge-1.21.1-1.16.11.jar",
-        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        "sha256": "68036561cc5511766d54cc0deabc3fc3a5e68f9e3db2478f2574ec82b494374b"
       },
       "license": "MPL-2.0",
       "removal_behavior": "This build cannot execute SmartBrainLib-backed creature brains without SmartBrainLib; Java-owned Nightmare Creature identity, sensing rules, progression, rewards, ownership and persistence remain loadable project state and do not migrate into the library."
