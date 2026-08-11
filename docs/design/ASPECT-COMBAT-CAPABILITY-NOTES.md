@@ -67,6 +67,32 @@ Possible design principles:
 
 The generic engine can understand a target/damage channel. Shadow Slave owns what `soul` actually means.
 
+## Canon check: Jet / Soul Reaper
+
+Jet is the strongest existing canon example for how soul-targeting combat should be understood.
+
+### CANON
+
+- Chapter 25 establishes that Soul Reaper Jet is feared because her Aspect Abilities disregard flesh and target soul cores directly; ordinary armour, physical damage resistance, and physical protection therefore do not answer that attack layer.
+- Chapter 378 establishes that soul attacks are **not defense-less true damage**. Saint's version of `Stalwart` provides complete immunity to mind and soul attacks, while the Mantle of the Underworld provides a moderate amount of protection against them.
+- Chapter 738 again shows dedicated soul-damage resistance as an explicit defensive property: Sunny uses `Stalwart` to gain substantial resistance while exposed to a soul-annihilation effect.
+- Chapters 1061-1062 show the severe resource/life constraint attached to Jet's own existence: her shattered soul core has critically limited essence, she conserves every drop, and when deprived of kills she can become too depleted even to summon a Memory.
+- Chapter 1483 shows that Jet's Aspect Legacy later grants her a soulbound mist weapon that can assume several weapon forms and can be summoned without consuming essence. This improves her execution options without erasing the wider peculiarities of her shattered soul/existence.
+
+### INFERRED design lesson
+
+Jet's balance demonstrates a useful distinction for the game:
+
+> bypassing **physical defense** means changing the defensive layer the opponent must answer on; it does not mean bypassing all defense.
+
+Therefore a future soul-targeting capability should generally interact with dedicated soul protection, resistance, immunity, unusual soul nature, Rank/power differences, action timing, positioning, reach/contact, and the attacker's own costs/constraints where appropriate.
+
+Do not implement Jet's personal death/essence condition as a universal tax on all soul-damage Aspects. That condition belongs to Jet's specific Aspect/Flaw/existence package. Other soul-interaction abilities may be balanced in completely different ways.
+
+### UNKNOWN
+
+This note does not claim a universal numeric formula for soul resistance, a fixed conversion between soul damage and bodily health, or that every soul-targeting ability follows Jet's exact mechanics. Those details remain ability-specific unless primary canon establishes otherwise.
+
 ## Capabilities should compose
 
 An action may carry multiple properties. For example, a spear thrust can be physical/piercing with reach and penetration; a hardening counter can add a defensive interaction; a phase strike can combine temporary non-interaction with an attack on exit; a short teleport cut can combine teleport displacement with a committed slash; a soul-targeting strike can add a different target layer while still requiring a valid attack action.
