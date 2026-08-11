@@ -42,7 +42,7 @@ public final class CombatPrototypeCommands {
     /**
      * Passive development telemetry only. LivingDamageEvent.Post observes immutable final damage
      * after health has been modified; it never changes the amount, cancels the event, or becomes
-     * canonical combat state.
+     * canonical combat state. NeoForge 21.1.x names the final health-loss accessor getNewDamage().
      */
     public static void onLivingDamage(LivingDamageEvent.Post event) {
         if (!(event.getEntity() instanceof ChainbackEntity chainback)
@@ -54,7 +54,7 @@ public final class CombatPrototypeCommands {
         PROTOTYPE_TELEMETRY.compute(
                 chainback.getUUID(),
                 (ignored, previous) -> (previous == null ? PrototypeTelemetry.empty() : previous)
-                        .recordHit(event.getHealthDamage(), chainback.isInDisplacementRecovery()));
+                        .recordHit(event.getNewDamage(), chainback.isInDisplacementRecovery()));
     }
 
     private static int setupChainbackSlice(ServerPlayer player) {
