@@ -16,6 +16,7 @@ public final class ModItems {
     public static final DeferredItem<Item> BORROWED_DAWN_MEMORY = ITEMS.registerItem("borrowed_dawn_memory", BorrowedDawnMemoryItem::new, new Item.Properties().stacksTo(1));
     public static final DeferredItem<Item> VEIL_STITCH_CASE_MEMORY = ITEMS.registerItem("veil_stitch_case_memory", VeilStitchCaseMemoryItem::new, new Item.Properties().stacksTo(1));
     public static final DeferredItem<Item> MIREWALKER_BOOTS_MEMORY = ITEMS.registerItem("mirewalker_boots_memory", MirewalkerBootsMemoryItem::new, new Item.Properties().stacksTo(1));
+    public static final DeferredItem<Item> STONEWAKE_SHIELD_MEMORY = ITEMS.registerItem("stonewake_shield_memory", StonewakeShieldMemoryItem::new, new Item.Properties().stacksTo(1));
 
     private ModItems() {}
     public static void register(IEventBus modEventBus) { ITEMS.register(modEventBus); }
