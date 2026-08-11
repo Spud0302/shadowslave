@@ -36,8 +36,7 @@ public final class DreamRealmPreviewService {
 
         var integration = DreamRealmWorldStoryIntegration.cinderRest();
         build(level, integration.slice());
-        DreamRealmStoryNpcRuntime.ensureAshenWatchCaptain(level,
-                ORIGIN.offset(integration.x(), integration.y(), integration.z()));
+        DreamRealmStoryNpcRuntime.ensureAshenWatchCaptain(level, cinderRestAnchor());
         var encounter = DreamRealmCreatureEncounterBinding.ashenExpanseAshBurrower();
         ensureAshBurrower(level, encounter);
         player.teleportTo(level, 0.5, ORIGIN.getY() + 2.0, 0.5, Set.of(), 0.0F, 0.0F);
@@ -62,6 +61,12 @@ public final class DreamRealmPreviewService {
 
     public static boolean isInside(ServerPlayer player) {
         return player.serverLevel().dimension().equals(DREAM_REALM_LEVEL);
+    }
+
+    /** Physical anchor for the existing Java-owned Cinder Rest integration. */
+    public static BlockPos cinderRestAnchor() {
+        var integration = DreamRealmWorldStoryIntegration.cinderRest();
+        return ORIGIN.offset(integration.x(), integration.y(), integration.z());
     }
 
     private static void ensureAshBurrower(ServerLevel level, DreamRealmCreatureEncounterBinding.Encounter encounter) {
