@@ -53,6 +53,9 @@ jobs:
       - name: Compile, unit test and package
         run: ./mod/gradlew -p mod build --stacktrace
 
+      - name: Boot NeoForge GameTest server
+        run: ./mod/gradlew -p mod runGameTestServer --no-daemon --stacktrace
+
       - name: Boot physical NeoForge client
         shell: bash
         run: |
