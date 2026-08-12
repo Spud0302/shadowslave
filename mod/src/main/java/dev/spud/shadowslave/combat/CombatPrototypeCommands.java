@@ -309,16 +309,20 @@ public final class CombatPrototypeCommands {
                                 baseline.openingDistance()
                         );
             } else {
+                float extraDamage = baseline.extraDamageSinceFirstObservation(chainback.getHealth());
                 HEALTH_PROBES.remove(player.getUUID());
                 String timing = baseline.firstObservedRecoveryTicks() == null
                         ? "no health drop during OPEN"
                         : baseline.ticksToFirstObservedDrop() + "t to first health drop";
+                String verdict = extraDamage > 0.0F
+                        ? "EXTRA DAMAGE OBSERVED"
+                        : healthDelta > 0.0F ? "DAMAGE OBSERVED" : "NO DAMAGE OBSERVED";
                 probeStatus = String.format(
                         " | health delta %.1f since earned OPEN baseline | opened at %.1f blocks | %s | verdict %s | probe CONSUMED",
                         healthDelta,
                         baseline.openingDistance(),
                         timing,
-                        healthDelta > 0.0F ? "DAMAGE OBSERVED" : "NO DAMAGE OBSERVED"
+                        verdict
                 );
             }
         }
