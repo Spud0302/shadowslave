@@ -79,6 +79,9 @@ public final class CombatPrototypeCommands {
         }
 
         if (baseline != null && baseline.chainbackId().equals(chainback.getUUID())) {
+            player.displayClientMessage(Component.literal(
+                    "OPEN • " + chainback.displacementRecoveryTicks() + "t • commit one iron-sword swing"
+            ).withStyle(ChatFormatting.GREEN), true);
             return;
         }
         if (!player.getMainHandItem().is(Items.IRON_SWORD)) {
@@ -89,6 +92,9 @@ public final class CombatPrototypeCommands {
         player.sendSystemMessage(Component.literal(
                 "Combat prototype OPEN: clean evade confirmed and health probe armed. Commit one iron-sword swing before the opening closes."
         ).withStyle(ChatFormatting.GREEN));
+        player.displayClientMessage(Component.literal(
+                "OPEN • " + chainback.displacementRecoveryTicks() + "t • commit one iron-sword swing"
+        ).withStyle(ChatFormatting.GREEN), true);
     }
 
     private static int setupChainbackSlice(ServerPlayer player) {
@@ -130,7 +136,7 @@ public final class CombatPrototypeCommands {
                 "Combat prototype ready: Better Combat is loaded. Chainback starts inside displacement range; read its warning, break range/line of sight, then punish the earned opening with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
-                "A clean evade arms the one-shot health probe automatically; the damage verdict resolves automatically when OPEN closes."
+                "A clean evade arms the one-shot health probe automatically; OPEN stays visible in the action bar until the punish window closes, then the damage verdict resolves automatically."
         ).withStyle(ChatFormatting.YELLOW));
         if (removed > 0) {
             player.sendSystemMessage(Component.literal(
