@@ -107,9 +107,10 @@ dependencies {
     implementation "net.tslat.smartbrainlib:SmartBrainLib-neoforge-${minecraft_version}:${smartbrainlib_version}"
 
     // Development-only combat spike. Better Combat owns mundane player attack input/timing,
-    // swing hitboxes and player attack animation for this branch. Shadow Slave does not import
-    // Better Combat Java APIs or make it canonical state authority.
-    runtimeOnly "maven.modrinth:5sy6g3kz:${bettercombat_version_id}"
+    // swing hitboxes and player attack animation for this branch. Shadow Slave compiles only
+    // against its narrow read-only CombatFlags admission API so a runtime-disabled player cannot
+    // produce a false-positive vanilla-combat verdict; no attack execution API becomes authority.
+    implementation "maven.modrinth:5sy6g3kz:${bettercombat_version_id}"
     runtimeOnly "maven.modrinth:gedNE4y2:${playeranimator_version_id}"
     runtimeOnly "maven.modrinth:9s6osm5g:${clothconfig_version_id}"
 
