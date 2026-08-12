@@ -247,7 +247,12 @@ public final class CombatPrototypeCommands {
         chainback.setPersistenceRequired();
         chainback.addTag(PROTOTYPE_CHAINBACK_TAG);
         chainback.setTarget(player);
-        level.addFreshEntity(chainback);
+        if (!level.addFreshEntity(chainback)) {
+            player.sendSystemMessage(Component.literal(
+                    "Combat prototype setup failed: the server rejected the tagged Chainback spawn. No sword was equipped; move to a valid test area and retry."
+            ).withStyle(ChatFormatting.RED));
+            return 0;
+        }
 
         player.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         player.sendSystemMessage(Component.literal(
