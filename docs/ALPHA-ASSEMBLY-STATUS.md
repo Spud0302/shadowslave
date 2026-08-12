@@ -1,15 +1,16 @@
 # Alpha assembly status
 
-**Assembly baseline:** `main@2e0097e8d1f21f3cadf89f3d8931fef94d2d6b94`
+**Assembly baseline:** `main@4b17902603abe46803fc672d43700fec64ded110`
 
 This file tracks integration state, not historical preview status. Live GitHub merge/CI state remains authoritative over stale root preview-era summaries.
 
 ## Current bounded integration lanes
 
-- **Dream Realm world slice:** PR #275, `gpt/drowned-bell-native-quarry-cut`, now targets current `main` directly. It cumulatively contains the #248 -> #249 -> #251 -> #258 -> #261 -> #265 -> #272/#273 lineage. #249/#251/#258/#261/#265/#272/#273 are already closed unmerged after containment proof. #248 remains open until the direct-to-main review context executes green and final containment is confirmed.
-- **Echo gameplay:** PR #276, current-main Ash Burrower GUARD + CARRY integration candidate. Historical cargo/combined edges were retired only after hosted-green containment proof.
-- **Nightmare recovery:** PR #278, current-main recovery consolidation. FakePlayer evidence is one-process/server-side only; Issue #34 remains open for genuine process/network reconnect evidence. Do not retire #259/#268 until #278 executes hosted CI successfully and containment is rechecked.
-- **Combat dependency experiment:** PR #277 remains a physical-admission spike. Do not promote Better Combat into release packaging without interactive evidence.
+- **Dream Realm world slice:** PR #275, `gpt/drowned-bell-native-quarry-cut`, now contains exact current `main@4b17902603abe46803fc672d43700fec64ded110` through integration helper #280. The integration retains both `DreamRealmWorldgenFeatures.register(modEventBus)` and Glass Road's `GlassRoadMemoryItem::onPlayerTick`. Historical world edges #249/#251/#258/#261/#265/#272/#273 remain retired only after containment proof; #248 stays open until the current-main cumulative head receives executed hosted validation and final containment is reconfirmed.
+- **Echo gameplay:** PR #276, `gpt/ash-burrower-guard-current-main`, is rooted on current main and remains the Ash Burrower GUARD + CARRY integration candidate.
+- **Gameplay interactions:** PR #279, `gpt/gameplay-alpha-current-main`, is rooted on current main and consolidates reviewed Ash Compass, Chainback, Drowned Listener and Stonewake interaction slices while preserving merged Glass Road APIs.
+- **Nightmare recovery:** PR #278, `gpt/recovery-alpha-current-main`, is rooted on current main. FakePlayer evidence is one-process/server-side only; Issue #34 remains open for genuine process/network reconnect evidence. The mature durability lineage ending at #178 remains separate until deliberately reconciled.
+- **Combat dependency experiment:** PR #277 remains physical-testing-gated. Do not promote Better Combat into release packaging without interactive evidence.
 
 ## Alpha checklist
 
@@ -18,27 +19,28 @@ This file tracks integration state, not historical preview status. Live GitHub m
 - [ ] Nightmare successful-completion recovery across a genuine process/network reconnect — Issue #34
 - [x] Scenario selection represented on merged main
 - [x] Generated identity award represented on merged main
-- [x] Memory/Echo ownership baseline represented on merged main/current integration lane
+- [x] Memory/Echo ownership baseline represented on merged/current integration lineage
 - [x] At least one real creature represented on merged main
-- [x] Dream Realm vertical slice represented on merged main; PR #275 is the current cumulative enhancement candidate
+- [x] Dream Realm vertical slice represented on merged main; PR #275 is the cumulative current-main enhancement candidate
 - [x] UI/presentation baseline represented on merged main
 - [x] Client/server packaging baseline represented on merged main
 
 ## Current world-integration evidence
 
-PR #275 exact source head `e7ebf4cecb4d0d2048b889e8ce54d182f89e6b96` passed Preview Gates #299 / Actions `31492576048` before direct-to-main retargeting.
+The pre-Glass-Road cumulative world tree passed Preview Gates #299 / Actions `31492576048` on exact functional head `e7ebf4cecb4d0d2048b889e8ce54d182f89e6b96`.
 
-Current main diverged from the world head at merge base `3138130eaa153e3c5996dbcc6d459788cb8d0069`. The 20 current-main-only commits change combat-design documentation and recovery research/tests only; none overlap #275's world/history/appraisal/native-worldgen paths. GitHub currently reports #275 mergeable against exact current main.
+Integration helper #280 merged exact `main@4b17902603abe46803fc672d43700fec64ded110` into the existing world branch as merge commit `05b9c1ab609f5377cc85b71b01dc62ea74558994`. The only overlapping runtime file was `ShadowSlaveMod.java`; the integrated tree keeps Dream Realm worldgen registration and Glass Road's player-tick hook.
 
-Fresh pull-request-context hosted CI is still required after this status commit before #248 can be retired as superseded.
+Preview Gates #403 / Actions `31613932477` triggered on `05b9c1ab...`, but both Java and datapack jobs terminated before executing repository steps (`steps=[]`, `runner_id=0`, no runner name). Treat that as hosted-runner allocation evidence, not a source/test/runtime failure. Do not retry unchanged heads merely to chase allocation.
 
 ## Remaining high-impact merge dependencies
 
-1. #275 direct-to-main hosted validation, then final #248 containment decision.
-2. #278 hosted execution before #259/#268 retirement; Issue #34 remains stronger than FakePlayer proof.
-3. Keep Issue #20 separate as the frozen-datapack global-selector architecture limitation.
-4. Avoid expanding standalone Memory/faction/world catalogues while these integration edges remain open.
+1. #275 needs an actually executed current-main hosted run before #248 can be retired.
+2. #279 needs executed hosted validation before #236/#256/#260/#264 can be retired.
+3. #278 needs executed hosted validation before #259/#268 can be retired; Issue #34 still requires genuine process/network-player recovery beyond FakePlayer.
+4. The mature durability lineage ending at #178 still needs deliberate API-level consolidation into #278 rather than a wholesale divergent-history merge.
+5. Keep Issue #20 separate as the frozen-datapack global-selector architecture limitation.
 
 ## Next assembly step
 
-Inspect the exact-head Preview Gates for this branch. If green, compare #248's identity/divergence contracts against the current #275 head and close #248 unmerged only if equivalent-or-stronger behavior is demonstrably retained. If CI exposes a real current-main conflict, repair it on this integration branch instead of reopening retired world-stack dependencies.
+Do not retry #275 unchanged while hosted runners remain unavailable. The next highest-impact recovery assembly is to port the smallest coherent durable successful-completion core from the mature #178 lineage into current-main #278, resolving API divergence explicitly and preserving the network-reconnect evidence boundary.
