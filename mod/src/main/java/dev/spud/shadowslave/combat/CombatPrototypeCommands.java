@@ -174,20 +174,23 @@ public final class CombatPrototypeCommands {
                     : " | probe unarmed; earn OPEN with a clean evade";
         } else {
             float healthDelta = baseline.health() - chainback.getHealth();
-            if (healthDelta > 0.0F) {
-                HEALTH_PROBES.remove(player.getUUID());
-                probeStatus = String.format(
-                        " | health delta %.1f since earned OPEN baseline | verdict DAMAGE OBSERVED | probe CONSUMED",
-                        healthDelta
-                );
-            } else if (opening) {
-                probeStatus = String.format(
-                        " | probe ARMED at %.1f health | commit one iron-sword swing before OPEN closes",
-                        baseline.health()
-                );
+            if (opening) {
+                probeStatus = healthDelta > 0.0F
+                        ? String.format(
+                                " | health delta %.1f observed during OPEN | final verdict pending until OPEN closes | probe remains ARMED",
+                                healthDelta
+                        )
+                        : String.format(
+                                " | probe ARMED at %.1f health | commit one iron-sword swing before OPEN closes",
+                                baseline.health()
+                        );
             } else {
                 HEALTH_PROBES.remove(player.getUUID());
-                probeStatus = " | health delta 0.0 since earned OPEN baseline | verdict NO DAMAGE OBSERVED | probe CONSUMED";
+                probeStatus = String.format(
+                        " | health delta %.1f since earned OPEN baseline | verdict %s | probe CONSUMED",
+                        healthDelta,
+                        healthDelta > 0.0F ? "DAMAGE OBSERVED" : "NO DAMAGE OBSERVED"
+                );
             }
         }
 
