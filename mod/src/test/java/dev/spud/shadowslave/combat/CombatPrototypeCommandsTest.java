@@ -88,6 +88,20 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
+    void statusCannotConsumeAndRearmTheProbeInsideTheSameOpening() throws Exception {
+        String source = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
+
+        assertTrue(source.contains("if (opening)"));
+        assertTrue(source.contains("health delta %.1f observed during OPEN | final verdict pending until OPEN closes | probe remains ARMED"));
+        assertTrue(source.contains("if (!opening)"));
+        assertTrue(source.contains("Combat prototype OPEN closed: health delta %.1f | verdict %s | probe CONSUMED."));
+
+        assertFalse(source.contains("LivingDamageEvent"));
+        assertFalse(source.contains("bettercombat.api"));
+    }
+
+    @Test
     void earnedOpeningRemainsReadableWithoutInterruptingThePhysicalExchange() throws Exception {
         String source = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
@@ -111,8 +125,7 @@ final class CombatPrototypeCommandsTest {
         assertTrue(source.contains("new ConcurrentHashMap<>()"));
         assertTrue(source.contains("baseline.chainbackId().equals(chainback.getUUID())"));
         assertTrue(source.contains("baseline.health() - chainback.getHealth()"));
-        assertTrue(source.contains("verdict DAMAGE OBSERVED | probe CONSUMED"));
-        assertTrue(source.contains("verdict NO DAMAGE OBSERVED | probe CONSUMED"));
+        assertTrue(source.contains("verdict %s | probe CONSUMED"));
         assertTrue(source.contains("HEALTH_PROBES.remove(player.getUUID())"));
 
         assertFalse(source.contains("SavedData"));
