@@ -39,12 +39,34 @@ final class CombatPrototypeCommandsTest {
         assertTrue(source.contains("BETTER_COMBAT_DISABLED_TAG = \"bettercombat_disabled\""));
         assertTrue(source.contains("ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)"));
         assertTrue(source.contains("player.getTags().contains(BETTER_COMBAT_DISABLED_TAG)"));
+        assertTrue(source.contains("BetterCombatSpikeAdapter.isAttackDisabled(player)"));
         assertTrue(source.contains("Combat prototype setup refused: Better Combat is not loaded"));
         assertTrue(source.contains("this player has Better Combat's persistent bettercombat_disabled tag"));
-        assertTrue(source.contains("Better Combat is loaded and not disabled by the persistent player tag"));
+        assertTrue(source.contains("CombatFlags API reports attacks disabled for this player by another mod/runtime flag"));
+        assertTrue(source.contains("CombatFlags confirms attacks are enabled for this player"));
 
-        assertFalse(source.contains("net.bettercombat"));
-        assertFalse(source.contains("CombatFlags"));
+        assertFalse(source.contains("net.bettercombat.api"));
+        assertFalse(source.contains("setAttacksDisabled"));
+    }
+
+    @Test
+    void betterCombatReadOnlyApiStaysBehindSpikeAdapter() throws Exception {
+        String adapterSource = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/combat/BetterCombatSpikeAdapter.java"));
+        String buildSource = Files.readString(Path.of("build.gradle"));
+
+        assertTrue(adapterSource.contains("import net.bettercombat.api.CombatFlags"));
+        assertTrue(adapterSource.contains("return CombatFlags.isAttackDisabled(player)"));
+        assertTrue(buildSource.contains("implementation \"maven.modrinth:5sy6g3kz:${bettercombat_version_id}\""));
+
+        assertFalse(adapterSource.contains("setAttacksDisabled"));
+        assertFalse(adapterSource.contains("WeaponAttributes"));
+        assertFalse(adapterSource.contains("AttackHandler"));
+        assertFalse(adapterSource.contains("LivingDamageEvent"));
+        assertFalse(adapterSource.contains("SoulService"));
+        assertFalse(adapterSource.contains("MemoryOwnership"));
+        assertFalse(adapterSource.contains("AspectService"));
+        assertFalse(adapterSource.contains("StabilityService"));
     }
 
     @Test
