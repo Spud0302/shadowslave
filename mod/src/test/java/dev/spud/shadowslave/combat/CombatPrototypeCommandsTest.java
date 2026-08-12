@@ -79,7 +79,7 @@ final class CombatPrototypeCommandsTest {
         assertTrue(commandSource.contains("if (!opening)"));
         assertTrue(commandSource.contains("String verdict = healthDelta > 0.0F ? \"DAMAGE OBSERVED\" : \"NO DAMAGE OBSERVED\""));
         assertTrue(commandSource.contains("Combat prototype OPEN closed: health delta %.1f | verdict %s | probe CONSUMED."));
-        assertTrue(commandSource.contains("the damage verdict resolves when OPEN closes"));
+        assertTrue(commandSource.contains("the final verdict resolves when OPEN closes"));
         assertTrue(modSource.contains("NeoForge.EVENT_BUS.addListener(CombatPrototypeCommands::onPlayerTick)"));
 
         assertFalse(commandSource.contains("LivingDamageEvent"));
@@ -116,6 +116,22 @@ final class CombatPrototypeCommandsTest {
         assertFalse(source.contains("StabilityService"));
         assertFalse(source.contains("bettercombat.api"));
         assertFalse(source.contains("LivingDamageEvent"));
+    }
+
+    @Test
+    void observedOpeningHitStopsPromptingAnotherAttack() throws Exception {
+        String source = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
+
+        assertTrue(source.contains("float healthDelta = baseline.health() - chainback.getHealth()"));
+        assertTrue(source.contains("if (healthDelta > 0.0F)"));
+        assertTrue(source.contains("HIT • %.1f damage • recover / reposition"));
+        assertTrue(source.contains("after damage is observed the prompt switches to recovery"));
+        assertTrue(source.indexOf("HIT • %.1f damage • recover / reposition")
+                < source.indexOf("OPEN • \" + chainback.displacementRecoveryTicks() + \"t • commit one iron-sword swing"));
+
+        assertFalse(source.contains("LivingDamageEvent"));
+        assertFalse(source.contains("bettercombat.api"));
     }
 
     @Test
