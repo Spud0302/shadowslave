@@ -79,12 +79,27 @@ final class CombatPrototypeCommandsTest {
         assertTrue(commandSource.contains("if (!opening)"));
         assertTrue(commandSource.contains("String verdict = healthDelta > 0.0F ? \"DAMAGE OBSERVED\" : \"NO DAMAGE OBSERVED\""));
         assertTrue(commandSource.contains("Combat prototype OPEN closed: health delta %.1f | verdict %s | probe CONSUMED."));
-        assertTrue(commandSource.contains("the damage verdict resolves automatically when OPEN closes"));
+        assertTrue(commandSource.contains("the damage verdict resolves automatically"));
         assertTrue(modSource.contains("NeoForge.EVENT_BUS.addListener(CombatPrototypeCommands::onPlayerTick)"));
 
         assertFalse(commandSource.contains("LivingDamageEvent"));
         assertFalse(commandSource.contains("onLivingDamage"));
         assertFalse(modSource.contains("CombatPrototypeCommands::onLivingDamage"));
+    }
+
+    @Test
+    void earnedOpeningRemainsReadableWithoutInterruptingThePhysicalExchange() throws Exception {
+        String source = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
+
+        assertTrue(source.contains("player.displayClientMessage(Component.literal("));
+        assertTrue(source.contains("\"OPEN • \" + chainback.displacementRecoveryTicks() + \"t • commit one iron-sword swing\""));
+        assertTrue(source.contains("withStyle(ChatFormatting.GREEN), true"));
+        assertTrue(source.contains("OPEN stays visible in the action bar until the punish window closes"));
+
+        assertFalse(source.contains("StabilityService"));
+        assertFalse(source.contains("bettercombat.api"));
+        assertFalse(source.contains("LivingDamageEvent"));
     }
 
     @Test
