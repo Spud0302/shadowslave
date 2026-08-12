@@ -78,6 +78,18 @@ public final class CombatPrototypeCommands {
 
         boolean opening = chainback.isInEvadedDisplacementOpening();
         boolean recovery = chainback.isInDisplacementRecovery();
+        if (opening && BetterCombatSpikeAdapter.isAttackDisabled(player)) {
+            if (baseline != null && baseline.chainbackId().equals(chainback.getUUID())) {
+                HEALTH_PROBES.remove(player.getUUID());
+            }
+            player.sendSystemMessage(Component.literal(
+                    "Combat prototype verdict INVALID: Better Combat attacks became disabled before the earned OPEN could be judged. Repeat after re-enabling Better Combat; do not count a vanilla fallback swing as spike evidence."
+            ).withStyle(ChatFormatting.RED));
+            player.displayClientMessage(Component.literal(
+                    "ATTACKS DISABLED • verdict invalid • re-enable / repeat"
+            ).withStyle(ChatFormatting.RED), true);
+            return;
+        }
         if (!opening) {
             if (baseline != null && baseline.chainbackId().equals(chainback.getUUID())) {
                 float healthDelta = baseline.health() - chainback.getHealth();
