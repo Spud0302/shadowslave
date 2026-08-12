@@ -89,8 +89,9 @@ public final class CombatPrototypeCommands {
                     verdictColor = ChatFormatting.RED;
                 }
                 player.sendSystemMessage(Component.literal(String.format(
-                        "Combat prototype OPEN closed: health delta %.1f | verdict %s | probe CONSUMED. Reposition before Chainback resumes pressure.",
+                        "Combat prototype OPEN closed: health delta %.1f | opened at %.1f blocks | verdict %s | probe CONSUMED. Reposition before Chainback resumes pressure.",
                         healthDelta,
+                        baseline.openingDistance(),
                         verdict
                 )).withStyle(verdictColor));
                 if (extraDamage > 0.0F) {
@@ -113,6 +114,7 @@ public final class CombatPrototypeCommands {
             return;
         }
 
+        double currentDistance = Math.sqrt(player.distanceToSqr(chainback));
         if (baseline != null && baseline.chainbackId().equals(chainback.getUUID())) {
             float healthDelta = baseline.health() - chainback.getHealth();
             if (healthDelta > 0.0F) {
@@ -134,9 +136,11 @@ public final class CombatPrototypeCommands {
                     )).withStyle(ChatFormatting.GREEN), true);
                 }
             } else {
-                player.displayClientMessage(Component.literal(
-                        "OPEN • " + chainback.displacementRecoveryTicks() + "t • commit one iron-sword swing"
-                ).withStyle(ChatFormatting.GREEN), true);
+                player.displayClientMessage(Component.literal(String.format(
+                        "OPEN • %dt • %.1f blocks • commit one iron-sword swing",
+                        chainback.displacementRecoveryTicks(),
+                        currentDistance
+                )).withStyle(ChatFormatting.GREEN), true);
             }
             return;
         }
@@ -144,13 +148,20 @@ public final class CombatPrototypeCommands {
             return;
         }
 
-        HEALTH_PROBES.put(player.getUUID(), new HealthProbeBaseline(chainback.getUUID(), chainback.getHealth()));
-        player.sendSystemMessage(Component.literal(
-                "Combat prototype OPEN: clean evade confirmed and health probe armed. Commit one iron-sword swing before the opening closes."
-        ).withStyle(ChatFormatting.GREEN));
-        player.displayClientMessage(Component.literal(
-                "OPEN • " + chainback.displacementRecoveryTicks() + "t • commit one iron-sword swing"
-        ).withStyle(ChatFormatting.GREEN), true);
+        HEALTH_PROBES.put(player.getUUID(), new HealthProbeBaseline(
+                chainback.getUUID(),
+                chainback.getHealth(),
+                currentDistance
+        ));
+        player.sendSystemMessage(Component.literal(String.format(
+                "Combat prototype OPEN: clean evade confirmed and health probe armed at %.1f blocks. Commit one iron-sword swing before the opening closes.",
+                currentDistance
+        )).withStyle(ChatFormatting.GREEN));
+        player.displayClientMessage(Component.literal(String.format(
+                "OPEN • %dt • %.1f blocks • commit one iron-sword swing",
+                chainback.displacementRecoveryTicks(),
+                currentDistance
+        )).withStyle(ChatFormatting.GREEN), true);
     }
 
     private static int setupChainbackSlice(ServerPlayer player) {
@@ -192,7 +203,7 @@ public final class CombatPrototypeCommands {
                 "Combat prototype ready: Better Combat is loaded. Chainback starts inside displacement range; read its warning, break range/line of sight, then punish the earned opening with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
-                "TELEGRAPH, connected RECOVERY, and earned OPEN stay visible in the action bar; after player damage is observed the prompt switches to recovery, and the final verdict resolves when OPEN closes."
+                "TELEGRAPH, connected RECOVERY, and earned OPEN stay visible in the action bar; OPEN also reports live Chainback distance, and the final verdict records opening distance so punish-fit can be judged separately from hit plumbing."
         ).withStyle(ChatFormatting.YELLOW));
         if (removed > 0) {
             player.sendSystemMessage(Component.literal(
@@ -236,27 +247,31 @@ public final class CombatPrototypeCommands {
                         ? String.format(" | EXTRA DAMAGE %.1f after first observed drop | reject/defer spike | probe remains ARMED", extraDamage)
                         : healthDelta > 0.0F
                         ? String.format(
-                                " | health delta %.1f observed during OPEN | final verdict pending until OPEN closes | probe remains ARMED",
-                                healthDelta
+                                " | health delta %.1f observed during OPEN | opened at %.1f blocks | final verdict pending until OPEN closes | probe remains ARMED",
+                                healthDelta,
+                                baseline.openingDistance()
                         )
                         : String.format(
-                                " | probe ARMED at %.1f health | commit one iron-sword swing before OPEN closes",
-                                baseline.health()
+                                " | probe ARMED at %.1f health | opened at %.1f blocks | commit one iron-sword swing before OPEN closes",
+                                baseline.health(),
+                                baseline.openingDistance()
                         );
             } else {
                 HEALTH_PROBES.remove(player.getUUID());
                 probeStatus = String.format(
-                        " | health delta %.1f since earned OPEN baseline | verdict %s | probe CONSUMED",
+                        " | health delta %.1f since earned OPEN baseline | opened at %.1f blocks | verdict %s | probe CONSUMED",
                         healthDelta,
+                        baseline.openingDistance(),
                         healthDelta > 0.0F ? "DAMAGE OBSERVED" : "NO DAMAGE OBSERVED"
                 );
             }
         }
 
         player.sendSystemMessage(Component.literal(String.format(
-                "Combat prototype status: Chainback health %.1f/%.1f | phase %s | telegraph %d ticks | recovery %d ticks%s",
+                "Combat prototype status: Chainback health %.1f/%.1f | distance %.1f blocks | phase %s | telegraph %d ticks | recovery %d ticks%s",
                 chainback.getHealth(),
                 chainback.getMaxHealth(),
+                Math.sqrt(player.distanceToSqr(chainback)),
                 phase,
                 telegraphTicks,
                 recoveryTicks,
@@ -294,16 +309,16 @@ public final class CombatPrototypeCommands {
         return tagged.size();
     }
 
-    private record HealthProbeBaseline(UUID chainbackId, float health, Float firstObservedHealth) {
-        private HealthProbeBaseline(UUID chainbackId, float health) {
-            this(chainbackId, health, null);
+    private record HealthProbeBaseline(UUID chainbackId, float health, double openingDistance, Float firstObservedHealth) {
+        private HealthProbeBaseline(UUID chainbackId, float health, double openingDistance) {
+            this(chainbackId, health, openingDistance, null);
         }
 
         private HealthProbeBaseline observeFirstHealthDrop(float currentHealth) {
             if (firstObservedHealth != null || currentHealth >= health) {
                 return this;
             }
-            return new HealthProbeBaseline(chainbackId, health, currentHealth);
+            return new HealthProbeBaseline(chainbackId, health, openingDistance, currentHealth);
         }
 
         private float firstObservedDamage() {
