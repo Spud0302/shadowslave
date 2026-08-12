@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class CombatPrototypeCommands {
     static final String PROTOTYPE_CHAINBACK_TAG = "shadowslave_combat_prototype";
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
+    private static final String BETTER_COMBAT_DISABLED_TAG = "bettercombat_disabled";
     private static final double CHAINBACK_SPAWN_DISTANCE = 3.5D;
     private static final double STATUS_RADIUS = 64.0D;
     private static final Map<UUID, HealthProbeBaseline> HEALTH_PROBES = new ConcurrentHashMap<>();
@@ -171,6 +172,12 @@ public final class CombatPrototypeCommands {
             ).withStyle(ChatFormatting.RED));
             return 0;
         }
+        if (player.getTags().contains(BETTER_COMBAT_DISABLED_TAG)) {
+            player.sendSystemMessage(Component.literal(
+                    "Combat prototype setup refused: this player has Better Combat's persistent bettercombat_disabled tag, so the next sword swing would use vanilla combat. Remove the tag before judging the spike."
+            ).withStyle(ChatFormatting.RED));
+            return 0;
+        }
 
         ServerLevel level = player.serverLevel();
         int removed = removeTaggedPrototypeChainbacks(player);
@@ -200,7 +207,7 @@ public final class CombatPrototypeCommands {
 
         player.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         player.sendSystemMessage(Component.literal(
-                "Combat prototype ready: Better Combat is loaded. Chainback starts inside displacement range; read its warning, break range/line of sight, then punish the earned opening with the iron sword."
+                "Combat prototype ready: Better Combat is loaded and not disabled by the persistent player tag. Chainback starts inside displacement range; read its warning, break range/line of sight, then punish the earned opening with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
                 "TELEGRAPH, connected RECOVERY, and earned OPEN stay visible in the action bar; OPEN also reports live Chainback distance, and the final verdict records opening distance so punish-fit can be judged separately from hit plumbing."
@@ -269,13 +276,8 @@ public final class CombatPrototypeCommands {
 
         player.sendSystemMessage(Component.literal(String.format(
                 "Combat prototype status: Chainback health %.1f/%.1f | distance %.1f blocks | phase %s | telegraph %d ticks | recovery %d ticks%s",
-                chainback.getHealth(),
-                chainback.getMaxHealth(),
-                Math.sqrt(player.distanceToSqr(chainback)),
-                phase,
-                telegraphTicks,
-                recoveryTicks,
-                probeStatus
+                chainback.getHealth(), chainback.getMaxHealth(), Math.sqrt(player.distanceToSqr(chainback)), phase,
+                telegraphTicks, recoveryTicks, probeStatus
         )).withStyle(opening ? ChatFormatting.GREEN : telegraph ? ChatFormatting.YELLOW : ChatFormatting.GRAY));
         return Command.SINGLE_SUCCESS;
     }
@@ -290,8 +292,7 @@ public final class CombatPrototypeCommands {
     }
 
     private static ChainbackEntity findNearestTaggedPrototypeChainback(ServerPlayer player) {
-        return player.serverLevel()
-                .getEntitiesOfClass(
+        return player.serverLevel().getEntitiesOfClass(
                         ChainbackEntity.class,
                         player.getBoundingBox().inflate(STATUS_RADIUS),
                         entity -> entity.getTags().contains(PROTOTYPE_CHAINBACK_TAG))
