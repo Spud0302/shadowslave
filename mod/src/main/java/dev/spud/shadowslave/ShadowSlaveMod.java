@@ -8,6 +8,7 @@ import dev.spud.shadowslave.dreamrealm.DreamRealmResourceInteractionRuntime;
 import dev.spud.shadowslave.dreamrealm.DreamRealmStoryNpcRuntime;
 import dev.spud.shadowslave.echo.EchoCommands;
 import dev.spud.shadowslave.echo.EchoManifestationService;
+import dev.spud.shadowslave.item.GlassRoadMemoryItem;
 import dev.spud.shadowslave.item.ModItems;
 import dev.spud.shadowslave.memory.MemoryCommands;
 import dev.spud.shadowslave.network.ModPayloads;
@@ -50,6 +51,7 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(DrownedBellListenerEntityAdapter::onEntityJoinLevel);
         NeoForge.EVENT_BUS.addListener(PreviewPowerService::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(EchoManifestationService::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(GlassRoadMemoryItem::onPlayerTick);
         LOGGER.info("Shadow Slave Java core is loading");
     }
 }
