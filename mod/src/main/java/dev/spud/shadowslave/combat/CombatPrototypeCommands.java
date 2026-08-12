@@ -81,7 +81,7 @@ public final class CombatPrototypeCommands {
                 "Combat prototype ready: Better Combat is loaded. Read Chainback's warning, break range/line of sight, then punish its recovery with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
-                "Use /shadowslave_combat status while the opening is OPEN to arm a transient health baseline, then run status again after one punish to read the health delta."
+                "Use /shadowslave_combat status while the opening is OPEN to arm one transient health measurement, then run status once after one punish to consume it and read DAMAGE OBSERVED or NO DAMAGE OBSERVED."
         ).withStyle(ChatFormatting.YELLOW));
         if (removed > 0) {
             player.sendSystemMessage(Component.literal(
@@ -112,13 +112,19 @@ public final class CombatPrototypeCommands {
         if (baseline == null || !baseline.chainbackId().equals(chainback.getUUID())) {
             if (opening) {
                 HEALTH_PROBES.put(player.getUUID(), new HealthProbeBaseline(chainback.getUUID(), chainback.getHealth()));
-                probeStatus = String.format(" | probe ARMED at %.1f health", chainback.getHealth());
+                probeStatus = String.format(" | probe ARMED at %.1f health for one measurement", chainback.getHealth());
             } else {
                 probeStatus = " | probe unarmed; wait for OPEN";
             }
         } else {
             float healthDelta = baseline.health() - chainback.getHealth();
-            probeStatus = String.format(" | health delta %.1f since OPEN baseline", healthDelta);
+            String verdict = healthDelta > 0.0F ? "DAMAGE OBSERVED" : "NO DAMAGE OBSERVED";
+            HEALTH_PROBES.remove(player.getUUID());
+            probeStatus = String.format(
+                    " | health delta %.1f since OPEN baseline | verdict %s | probe CONSUMED",
+                    healthDelta,
+                    verdict
+            );
         }
 
         player.sendSystemMessage(Component.literal(String.format(
