@@ -44,9 +44,10 @@ public final class CombatPrototypeCommands {
     }
 
     /**
-     * Development-only observer: arm a one-shot health baseline when the tagged Chainback enters
-     * the longer recovery earned by a clean evade, then resolve it automatically when that OPEN
-     * closes. This samples only server-owned health and does not observe, modify, or cancel damage.
+     * Development-only observer: keep Chainback's existing committed telegraph visible during the
+     * physical exchange, arm a one-shot health baseline when a clean evade earns OPEN, then resolve
+     * it automatically when OPEN closes. This samples only server-owned state and never modifies
+     * attack timing, hit selection, damage, recovery, or canonical Shadow Slave data.
      */
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
@@ -60,6 +61,12 @@ public final class CombatPrototypeCommands {
                 HEALTH_PROBES.remove(player.getUUID());
             }
             return;
+        }
+
+        if (chainback.isInDisplacementTelegraph()) {
+            player.displayClientMessage(Component.literal(
+                    "TELEGRAPH • " + chainback.displacementTelegraphTicks() + "t • break range / line of sight"
+            ).withStyle(ChatFormatting.YELLOW), true);
         }
 
         boolean opening = chainback.isInEvadedDisplacementOpening();
@@ -136,7 +143,7 @@ public final class CombatPrototypeCommands {
                 "Combat prototype ready: Better Combat is loaded. Chainback starts inside displacement range; read its warning, break range/line of sight, then punish the earned opening with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
-                "A clean evade arms the one-shot health probe automatically; OPEN stays visible in the action bar until the punish window closes, then the damage verdict resolves automatically."
+                "TELEGRAPH and OPEN stay visible in the action bar; a clean evade arms the one-shot health probe automatically and the damage verdict resolves when OPEN closes."
         ).withStyle(ChatFormatting.YELLOW));
         if (removed > 0) {
             player.sendSystemMessage(Component.literal(
