@@ -42,55 +42,58 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
-    void prototypeStatusReportsExistingActionPhaseAndHealthWithoutOwningDamageState() throws Exception {
+    void prototypeStatusDistinguishesEarnedOpeningFromConnectedRecovery() throws Exception {
         String commandSource = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
-        String modSource = Files.readString(Path.of(
-                "src/main/java/dev/spud/shadowslave/ShadowSlaveMod.java"));
         String chainbackSource = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/world/entity/ChainbackEntity.java"));
 
-        assertTrue(commandSource.contains("Commands.literal(\"status\")"));
         assertTrue(commandSource.contains("chainback.isInDisplacementTelegraph()"));
-        assertTrue(commandSource.contains("chainback.displacementTelegraphTicks()"));
         assertTrue(commandSource.contains("chainback.isInDisplacementRecovery()"));
-        assertTrue(commandSource.contains("chainback.displacementRecoveryTicks()"));
-        assertTrue(commandSource.contains("String phase = telegraph ? \"TELEGRAPH\" : opening ? \"OPEN\" : \"NEUTRAL\""));
-        assertTrue(commandSource.contains("chainback.getHealth()"));
-        assertTrue(commandSource.contains("probe ARMED"));
-        assertTrue(commandSource.contains("health delta %.1f since OPEN baseline"));
+        assertTrue(commandSource.contains("chainback.isInEvadedDisplacementOpening()"));
+        assertTrue(commandSource.contains("telegraph ? \"TELEGRAPH\" : opening ? \"OPEN\" : recovery ? \"RECOVERY\" : \"NEUTRAL\""));
 
-        assertFalse(commandSource.contains("LivingDamageEvent"));
-        assertFalse(commandSource.contains("onLivingDamage"));
-        assertFalse(commandSource.contains("PrototypeTelemetry"));
-        assertFalse(modSource.contains("CombatPrototypeCommands::onLivingDamage"));
+        assertTrue(chainbackSource.contains("private boolean displacementRecoveryOpening"));
+        assertTrue(chainbackSource.contains("this.displacementRecoveryOpening = !pullConnected"));
+        assertTrue(chainbackSource.contains("public boolean isInEvadedDisplacementOpening()"));
+        assertTrue(chainbackSource.contains("return this.displacementRecoveryTicks > 0 && this.displacementRecoveryOpening"));
+        assertTrue(chainbackSource.contains("this.displacementRecoveryOpening = false"));
 
-        assertTrue(chainbackSource.contains("public boolean isInDisplacementTelegraph()"));
-        assertTrue(chainbackSource.contains("public int displacementTelegraphTicks()"));
-        assertTrue(chainbackSource.contains("return this.displacementTelegraphTicks;"));
-        assertTrue(chainbackSource.contains("public boolean isInDisplacementRecovery()"));
-        assertTrue(chainbackSource.contains("public int displacementRecoveryTicks()"));
-        assertTrue(chainbackSource.contains("return this.displacementRecoveryTicks;"));
-        assertFalse(chainbackSource.contains("stability"));
+        assertFalse(chainbackSource.contains("StabilityService"));
         assertFalse(chainbackSource.contains("bettercombat"));
     }
 
     @Test
-    void openingHealthProbeIsTransientBoundToTargetAndConsumedAfterOneVerdict() throws Exception {
+    void earnedOpeningProbeArmsAutomaticallyWithoutDamageEventAuthority() throws Exception {
+        String commandSource = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
+        String modSource = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/ShadowSlaveMod.java"));
+
+        assertTrue(commandSource.contains("public static void onPlayerTick(PlayerTickEvent.Post event)"));
+        assertTrue(commandSource.contains("chainback.isInEvadedDisplacementOpening()"));
+        assertTrue(commandSource.contains("player.getMainHandItem().is(Items.IRON_SWORD)"));
+        assertTrue(commandSource.contains("new HealthProbeBaseline(chainback.getUUID(), chainback.getHealth())"));
+        assertTrue(commandSource.contains("Combat prototype OPEN: clean evade confirmed and health probe armed."));
+        assertTrue(modSource.contains("NeoForge.EVENT_BUS.addListener(CombatPrototypeCommands::onPlayerTick)"));
+
+        assertFalse(commandSource.contains("LivingDamageEvent"));
+        assertFalse(commandSource.contains("onLivingDamage"));
+        assertFalse(modSource.contains("CombatPrototypeCommands::onLivingDamage"));
+    }
+
+    @Test
+    void openingHealthProbeIsTransientTargetBoundAndOneShot() throws Exception {
         String source = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
 
         assertTrue(source.contains("Map<UUID, HealthProbeBaseline> HEALTH_PROBES"));
         assertTrue(source.contains("new ConcurrentHashMap<>()"));
-        assertTrue(source.contains("if (opening)"));
-        assertTrue(source.contains("new HealthProbeBaseline(chainback.getUUID(), chainback.getHealth())"));
         assertTrue(source.contains("baseline.chainbackId().equals(chainback.getUUID())"));
         assertTrue(source.contains("baseline.health() - chainback.getHealth()"));
-        assertTrue(source.contains("healthDelta > 0.0F ? \"DAMAGE OBSERVED\" : \"NO DAMAGE OBSERVED\""));
-        assertTrue(source.contains("probe CONSUMED"));
+        assertTrue(source.contains("verdict DAMAGE OBSERVED | probe CONSUMED"));
+        assertTrue(source.contains("verdict NO DAMAGE OBSERVED | probe CONSUMED"));
         assertTrue(source.contains("HEALTH_PROBES.remove(player.getUUID())"));
-        assertTrue(source.indexOf("float healthDelta = baseline.health() - chainback.getHealth()")
-                < source.indexOf("probeStatus = String.format(\n                    \" | health delta"));
 
         assertFalse(source.contains("SavedData"));
         assertFalse(source.contains("CompoundTag"));
