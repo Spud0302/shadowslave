@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.item;
 
+import dev.spud.shadowslave.dreamrealm.DreamRealmPreviewService;
 import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 
@@ -7,10 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class AshCompassMemoryItemTest {
     @Test
-    void readingReportsAnchoredRefugeDirectionAndDistance() {
-        assertEquals("the refuge is here", AshCompassMemoryItem.reading(new BlockPos(0, 64, 0), new BlockPos(2, 70, 1)));
-        assertEquals("refuge east, about 10 blocks away", AshCompassMemoryItem.reading(new BlockPos(0, 64, 0), new BlockPos(10, 80, 0)));
-        assertEquals("refuge northwest, about 14 blocks away", AshCompassMemoryItem.reading(new BlockPos(0, 64, 0), new BlockPos(-10, 64, -10)));
+    void readingReportsJavaOwnedCinderRestDirectionAndDistance() {
+        assertEquals("Cinder Rest is here", AshCompassMemoryItem.reading(new BlockPos(0, 160, 0), DreamRealmPreviewService.cinderRestAnchor()));
+        assertEquals("Cinder Rest east, about 10 blocks away", AshCompassMemoryItem.reading(new BlockPos(-10, 160, -1), DreamRealmPreviewService.cinderRestAnchor()));
+        assertEquals("Cinder Rest northwest, about 14 blocks away", AshCompassMemoryItem.reading(new BlockPos(10, 160, 9), DreamRealmPreviewService.cinderRestAnchor()));
     }
 
     @Test
@@ -23,5 +24,10 @@ class AshCompassMemoryItemTest {
         assertEquals("southwest", AshCompassMemoryItem.direction(-1, 1));
         assertEquals("west", AshCompassMemoryItem.direction(-1, 0));
         assertEquals("northwest", AshCompassMemoryItem.direction(-1, -1));
+    }
+
+    @Test
+    void cinderRestAnchorMatchesThePhysicalSettlementIntegration() {
+        assertEquals(new BlockPos(0, 161, -1), DreamRealmPreviewService.cinderRestAnchor());
     }
 }

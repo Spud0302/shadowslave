@@ -61,6 +61,7 @@ public final class PreviewResetService {
         @Override public void clearMemories() {
             MemoryManifestationService.clearAshCompassManifestations(player);
             MemoryManifestationService.clearGlassRoadManifestations(player);
+            MemoryManifestationService.clearStonewakeShieldManifestations(player);
             player.setData(ModAttachments.GLASS_ROAD_COMBAT, GlassRoadCombatData.empty());
             MemoryOwnershipService.replace(player, MemoryOwnershipData.empty());
         }

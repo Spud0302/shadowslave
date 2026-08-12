@@ -22,6 +22,12 @@ public final class ModItems {
             new Item.Properties().stacksTo(1)
     );
 
+    public static final DeferredItem<Item> STONEWAKE_SHIELD_MEMORY = ITEMS.registerItem(
+            "stonewake_shield_memory",
+            StonewakeShieldMemoryItem::new,
+            new Item.Properties().stacksTo(1)
+    );
+
     private ModItems() {
     }
 

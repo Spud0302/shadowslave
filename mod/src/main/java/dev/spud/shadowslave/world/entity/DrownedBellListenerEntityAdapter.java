@@ -3,8 +3,6 @@ package dev.spud.shadowslave.world.entity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Drowned;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
 /**
@@ -34,7 +32,6 @@ public final class DrownedBellListenerEntityAdapter {
             return;
         }
 
-        LivingEntity target = placeholder instanceof Drowned drowned ? drowned.getTarget() : null;
         DrownedListenerEntity listener = NightmareCreatureEntities.DROWNED_LISTENER.get().create(level);
         if (listener == null) {
             return;
@@ -44,9 +41,11 @@ public final class DrownedBellListenerEntityAdapter {
         listener.moveTo(placeholder.getX(), placeholder.getY(), placeholder.getZ(), placeholder.getYRot(), placeholder.getXRot());
         listener.setDeltaMovement(placeholder.getDeltaMovement());
         listener.setPersistenceRequired();
-        if (target != null) {
-            listener.setTarget(target);
-        }
+        // DrownedBellScenario seeds the vanilla placeholder with its player target so the legacy
+        // executor attacks immediately. Carrying that target into the Listener would bypass the
+        // VIBRATION / dry-ground / crouch acquisition contract because it is not vibration-owned.
+        // Start the replacement untargeted; vibration sensing or later retaliation may claim a
+        // target through their own explicit authority.
 
         placeholder.discard();
         level.addFreshEntity(listener);

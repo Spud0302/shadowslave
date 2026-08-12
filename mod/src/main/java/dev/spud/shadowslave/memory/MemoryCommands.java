@@ -15,10 +15,12 @@ public final class MemoryCommands {
         event.getDispatcher().register(Commands.literal("shadowslave_memory")
                 .then(Commands.literal("summon")
                         .then(Commands.literal("ash_compass").executes(context -> summon(context.getSource().getPlayerOrException(), "Ash Compass", MemoryManifestationService.summonAshCompass(context.getSource().getPlayerOrException()))))
-                        .then(Commands.literal("glass_road").executes(context -> summon(context.getSource().getPlayerOrException(), "Glass Road", MemoryManifestationService.summonGlassRoad(context.getSource().getPlayerOrException())))))
+                        .then(Commands.literal("glass_road").executes(context -> summon(context.getSource().getPlayerOrException(), "Glass Road", MemoryManifestationService.summonGlassRoad(context.getSource().getPlayerOrException()))))
+                        .then(Commands.literal("stonewake_shield").executes(context -> summon(context.getSource().getPlayerOrException(), "Stonewake Shield", MemoryManifestationService.summonStonewakeShield(context.getSource().getPlayerOrException())))))
                 .then(Commands.literal("dismiss")
                         .then(Commands.literal("ash_compass").executes(context -> dismiss(context.getSource().getPlayerOrException(), "Ash Compass", MemoryManifestationService.dismissAshCompass(context.getSource().getPlayerOrException()))))
-                        .then(Commands.literal("glass_road").executes(context -> dismiss(context.getSource().getPlayerOrException(), "Glass Road", MemoryManifestationService.dismissGlassRoad(context.getSource().getPlayerOrException()))))));
+                        .then(Commands.literal("glass_road").executes(context -> dismiss(context.getSource().getPlayerOrException(), "Glass Road", MemoryManifestationService.dismissGlassRoad(context.getSource().getPlayerOrException()))))
+                        .then(Commands.literal("stonewake_shield").executes(context -> dismiss(context.getSource().getPlayerOrException(), "Stonewake Shield", MemoryManifestationService.dismissStonewakeShield(context.getSource().getPlayerOrException()))))));
     }
 
     private static int summon(ServerPlayer player, String name, MemoryManifestationService.ManifestResult result) {
