@@ -85,6 +85,9 @@ final class CombatPrototypeCommandsTest {
 
         assertTrue(chainbackSource.contains("this.displacementRecoveryOpening = !pullConnected"));
         assertTrue(chainbackSource.contains("public boolean isInEvadedDisplacementOpening()"));
+        assertTrue(chainbackSource.contains("if (pullConnected)"));
+        assertTrue(chainbackSource.contains("SoundEvents.CHAIN_HIT"));
+        assertTrue(chainbackSource.contains("SoundEvents.CHAIN_BREAK"));
         assertFalse(chainbackSource.contains("bettercombat"));
         assertFalse(chainbackSource.contains("StabilityService"));
     }
