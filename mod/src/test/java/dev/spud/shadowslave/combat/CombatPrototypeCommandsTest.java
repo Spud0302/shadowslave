@@ -118,4 +118,20 @@ final class CombatPrototypeCommandsTest {
         assertFalse(source.contains("SoulService"));
         assertFalse(source.contains("StabilityService"));
     }
+
+    @Test
+    void displacementWarningAndRecoveryReserveInheritedSpiderCombatGoals() throws Exception {
+        String source = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/world/entity/ChainbackEntity.java"));
+
+        assertTrue(source.contains("this.goalSelector.addGoal(0, new DisplacementActionReservationGoal(this))"));
+        assertTrue(source.contains("return this.displacementTelegraphTicks > 0 || this.displacementRecoveryTicks > 0"));
+        assertTrue(source.contains("EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.JUMP)"));
+        assertTrue(source.contains("this.getNavigation().stop()"));
+        assertTrue(source.contains("this.chainback.setDeltaMovement(0.0D, motion.y, 0.0D)"));
+
+        assertFalse(source.contains("DisplacementRecoveryGoal"));
+        assertFalse(source.contains("bettercombat"));
+        assertFalse(source.contains("StabilityService"));
+    }
 }
