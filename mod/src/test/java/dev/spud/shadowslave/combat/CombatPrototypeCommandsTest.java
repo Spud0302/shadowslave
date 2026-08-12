@@ -136,6 +136,21 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
+    void openingClosureSurfacesImmediateHitOrMissHudVerdict() throws Exception {
+        String source = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
+
+        assertTrue(source.contains("HIT CONFIRMED • %.1f damage • reposition"));
+        assertTrue(source.contains("MISS • opening closed • reposition"));
+        assertTrue(source.contains("player.displayClientMessage(Component.literal(healthDelta > 0.0F"));
+        assertTrue(source.contains("withStyle(verdictColor), true"));
+
+        assertFalse(source.contains("LivingDamageEvent"));
+        assertFalse(source.contains("bettercombat.api"));
+        assertFalse(source.contains("StabilityService"));
+    }
+
+    @Test
     void openingHealthProbeIsTransientTargetBoundAndOneShot() throws Exception {
         String source = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
