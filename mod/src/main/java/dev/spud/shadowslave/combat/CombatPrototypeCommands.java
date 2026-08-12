@@ -74,18 +74,30 @@ public final class CombatPrototypeCommands {
         if (!opening) {
             if (baseline != null && baseline.chainbackId().equals(chainback.getUUID())) {
                 float healthDelta = baseline.health() - chainback.getHealth();
+                float extraDamage = baseline.extraDamageSinceFirstObservation(chainback.getHealth());
                 HEALTH_PROBES.remove(player.getUUID());
                 String verdict = healthDelta > 0.0F ? "DAMAGE OBSERVED" : "NO DAMAGE OBSERVED";
                 ChatFormatting verdictColor = healthDelta > 0.0F ? ChatFormatting.GREEN : ChatFormatting.RED;
+                if (extraDamage > 0.0F) {
+                    verdict = "EXTRA DAMAGE OBSERVED";
+                    verdictColor = ChatFormatting.RED;
+                }
                 player.sendSystemMessage(Component.literal(String.format(
                         "Combat prototype OPEN closed: health delta %.1f | verdict %s | probe CONSUMED. Reposition before Chainback resumes pressure.",
                         healthDelta,
                         verdict
                 )).withStyle(verdictColor));
-                player.displayClientMessage(Component.literal(healthDelta > 0.0F
-                        ? String.format("HIT CONFIRMED • %.1f damage • reposition", healthDelta)
-                        : "MISS • opening closed • reposition"
-                ).withStyle(verdictColor), true);
+                if (extraDamage > 0.0F) {
+                    player.displayClientMessage(Component.literal(String.format(
+                            "EXTRA DAMAGE • %.1f after first observed drop • reject/defer spike",
+                            extraDamage
+                    )).withStyle(ChatFormatting.RED), true);
+                } else {
+                    player.displayClientMessage(Component.literal(healthDelta > 0.0F
+                            ? String.format("HIT CONFIRMED • %.1f damage • reposition", healthDelta)
+                            : "MISS • opening closed • reposition"
+                    ).withStyle(verdictColor), true);
+                }
             }
             if (recovery) {
                 player.displayClientMessage(Component.literal(
@@ -98,10 +110,23 @@ public final class CombatPrototypeCommands {
         if (baseline != null && baseline.chainbackId().equals(chainback.getUUID())) {
             float healthDelta = baseline.health() - chainback.getHealth();
             if (healthDelta > 0.0F) {
-                player.displayClientMessage(Component.literal(String.format(
-                        "HIT • %.1f damage • recover / reposition",
-                        healthDelta
-                )).withStyle(ChatFormatting.GREEN), true);
+                HealthProbeBaseline observed = baseline.observeFirstHealthDrop(chainback.getHealth());
+                if (observed != baseline) {
+                    HEALTH_PROBES.put(player.getUUID(), observed);
+                    baseline = observed;
+                }
+                float extraDamage = baseline.extraDamageSinceFirstObservation(chainback.getHealth());
+                if (extraDamage > 0.0F) {
+                    player.displayClientMessage(Component.literal(String.format(
+                            "EXTRA DAMAGE • %.1f after first observed drop • stop / reject spike",
+                            extraDamage
+                    )).withStyle(ChatFormatting.RED), true);
+                } else {
+                    player.displayClientMessage(Component.literal(String.format(
+                            "HIT • %.1f damage • recover / reposition",
+                            baseline.firstObservedDamage()
+                    )).withStyle(ChatFormatting.GREEN), true);
+                }
             } else {
                 player.displayClientMessage(Component.literal(
                         "OPEN • " + chainback.displacementRecoveryTicks() + "t • commit one iron-sword swing"
@@ -200,7 +225,10 @@ public final class CombatPrototypeCommands {
         } else {
             float healthDelta = baseline.health() - chainback.getHealth();
             if (opening) {
-                probeStatus = healthDelta > 0.0F
+                float extraDamage = baseline.extraDamageSinceFirstObservation(chainback.getHealth());
+                probeStatus = extraDamage > 0.0F
+                        ? String.format(" | EXTRA DAMAGE %.1f after first observed drop | reject/defer spike | probe remains ARMED", extraDamage)
+                        : healthDelta > 0.0F
                         ? String.format(
                                 " | health delta %.1f observed during OPEN | final verdict pending until OPEN closes | probe remains ARMED",
                                 healthDelta
@@ -260,6 +288,24 @@ public final class CombatPrototypeCommands {
         return tagged.size();
     }
 
-    private record HealthProbeBaseline(UUID chainbackId, float health) {
+    private record HealthProbeBaseline(UUID chainbackId, float health, Float firstObservedHealth) {
+        private HealthProbeBaseline(UUID chainbackId, float health) {
+            this(chainbackId, health, null);
+        }
+
+        private HealthProbeBaseline observeFirstHealthDrop(float currentHealth) {
+            if (firstObservedHealth != null || currentHealth >= health) {
+                return this;
+            }
+            return new HealthProbeBaseline(chainbackId, health, currentHealth);
+        }
+
+        private float firstObservedDamage() {
+            return firstObservedHealth == null ? 0.0F : health - firstObservedHealth;
+        }
+
+        private float extraDamageSinceFirstObservation(float currentHealth) {
+            return firstObservedHealth == null ? 0.0F : Math.max(0.0F, firstObservedHealth - currentHealth);
+        }
     }
 }
