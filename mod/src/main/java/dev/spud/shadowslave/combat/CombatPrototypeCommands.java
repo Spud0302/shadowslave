@@ -44,10 +44,10 @@ public final class CombatPrototypeCommands {
     }
 
     /**
-     * Development-only observer: keep Chainback's existing committed telegraph visible during the
-     * physical exchange, arm a one-shot health baseline when a clean evade earns OPEN, then resolve
-     * it automatically when OPEN closes. This samples only server-owned state and never modifies
-     * attack timing, hit selection, damage, recovery, or canonical Shadow Slave data.
+     * Development-only observer: keep Chainback's existing committed telegraph/recovery readable during
+     * the physical exchange, arm a one-shot health baseline when a clean evade earns OPEN, then resolve
+     * it automatically when OPEN closes. This samples only server-owned state and never modifies attack
+     * timing, hit selection, damage, recovery, or canonical Shadow Slave data.
      */
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
@@ -70,6 +70,7 @@ public final class CombatPrototypeCommands {
         }
 
         boolean opening = chainback.isInEvadedDisplacementOpening();
+        boolean recovery = chainback.isInDisplacementRecovery();
         if (!opening) {
             if (baseline != null && baseline.chainbackId().equals(chainback.getUUID())) {
                 float healthDelta = baseline.health() - chainback.getHealth();
@@ -81,6 +82,11 @@ public final class CombatPrototypeCommands {
                         healthDelta,
                         verdict
                 )).withStyle(verdictColor));
+            }
+            if (recovery) {
+                player.displayClientMessage(Component.literal(
+                        "RECOVERY • " + chainback.displacementRecoveryTicks() + "t • Chainback connected • reposition"
+                ).withStyle(ChatFormatting.RED), true);
             }
             return;
         }
@@ -151,7 +157,7 @@ public final class CombatPrototypeCommands {
                 "Combat prototype ready: Better Combat is loaded. Chainback starts inside displacement range; read its warning, break range/line of sight, then punish the earned opening with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
-                "TELEGRAPH and OPEN stay visible in the action bar; after damage is observed the prompt switches to recovery, and the final verdict resolves when OPEN closes."
+                "TELEGRAPH, connected RECOVERY, and earned OPEN stay visible in the action bar; after player damage is observed the prompt switches to recovery, and the final verdict resolves when OPEN closes."
         ).withStyle(ChatFormatting.YELLOW));
         if (removed > 0) {
             player.sendSystemMessage(Component.literal(
