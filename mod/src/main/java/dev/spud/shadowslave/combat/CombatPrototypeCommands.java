@@ -86,9 +86,17 @@ public final class CombatPrototypeCommands {
         }
 
         if (baseline != null && baseline.chainbackId().equals(chainback.getUUID())) {
-            player.displayClientMessage(Component.literal(
-                    "OPEN • " + chainback.displacementRecoveryTicks() + "t • commit one iron-sword swing"
-            ).withStyle(ChatFormatting.GREEN), true);
+            float healthDelta = baseline.health() - chainback.getHealth();
+            if (healthDelta > 0.0F) {
+                player.displayClientMessage(Component.literal(String.format(
+                        "HIT • %.1f damage • recover / reposition",
+                        healthDelta
+                )).withStyle(ChatFormatting.GREEN), true);
+            } else {
+                player.displayClientMessage(Component.literal(
+                        "OPEN • " + chainback.displacementRecoveryTicks() + "t • commit one iron-sword swing"
+                ).withStyle(ChatFormatting.GREEN), true);
+            }
             return;
         }
         if (!player.getMainHandItem().is(Items.IRON_SWORD)) {
@@ -143,7 +151,7 @@ public final class CombatPrototypeCommands {
                 "Combat prototype ready: Better Combat is loaded. Chainback starts inside displacement range; read its warning, break range/line of sight, then punish the earned opening with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
-                "TELEGRAPH and OPEN stay visible in the action bar; a clean evade arms the one-shot health probe automatically and the damage verdict resolves when OPEN closes."
+                "TELEGRAPH and OPEN stay visible in the action bar; after damage is observed the prompt switches to recovery, and the final verdict resolves when OPEN closes."
         ).withStyle(ChatFormatting.YELLOW));
         if (removed > 0) {
             player.sendSystemMessage(Component.literal(
