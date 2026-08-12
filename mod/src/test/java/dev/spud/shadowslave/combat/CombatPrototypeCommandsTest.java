@@ -70,7 +70,7 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
-    void openingHealthProbeIsTransientAndBoundToTheTaggedTarget() throws Exception {
+    void openingHealthProbeIsTransientBoundToTargetAndConsumedAfterOneVerdict() throws Exception {
         String source = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
 
@@ -80,7 +80,11 @@ final class CombatPrototypeCommandsTest {
         assertTrue(source.contains("new HealthProbeBaseline(chainback.getUUID(), chainback.getHealth())"));
         assertTrue(source.contains("baseline.chainbackId().equals(chainback.getUUID())"));
         assertTrue(source.contains("baseline.health() - chainback.getHealth()"));
+        assertTrue(source.contains("healthDelta > 0.0F ? \"DAMAGE OBSERVED\" : \"NO DAMAGE OBSERVED\""));
+        assertTrue(source.contains("probe CONSUMED"));
         assertTrue(source.contains("HEALTH_PROBES.remove(player.getUUID())"));
+        assertTrue(source.indexOf("float healthDelta = baseline.health() - chainback.getHealth()")
+                < source.indexOf("probeStatus = String.format(\n                    \" | health delta"));
 
         assertFalse(source.contains("SavedData"));
         assertFalse(source.contains("CompoundTag"));
