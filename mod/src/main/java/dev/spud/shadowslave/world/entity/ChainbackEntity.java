@@ -107,6 +107,7 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
         this.getNavigation().stop();
         if (!pullConnected) {
             this.playSound(SoundEvents.CHAIN_BREAK, 0.9F, 0.75F);
+            this.emitEvadedRecoveryOpening();
         }
     }
 
@@ -121,6 +122,22 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
     /** Read-only remaining opening duration for development/runtime presentation and diagnostics. */
     public int displacementRecoveryTicks() {
         return this.displacementRecoveryTicks;
+    }
+
+    private void emitEvadedRecoveryOpening() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        serverLevel.sendParticles(
+                ParticleTypes.CLOUD,
+                this.getX(),
+                this.getY() + this.getBbHeight() * 0.5D,
+                this.getZ(),
+                12,
+                0.35D,
+                0.25D,
+                0.35D,
+                0.02D);
     }
 
     private void emitDisplacementTelegraph(LivingEntity target) {
