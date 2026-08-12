@@ -29,6 +29,7 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
     private int displacementCooldown;
     private int displacementTelegraphTicks;
     private int displacementRecoveryTicks;
+    private boolean displacementRecoveryOpening;
 
     public ChainbackEntity(EntityType<? extends ChainbackEntity> type, Level level) {
         super(type, level);
@@ -51,6 +52,9 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
         }
         if (this.displacementRecoveryTicks > 0) {
             this.displacementRecoveryTicks--;
+            if (this.displacementRecoveryTicks == 0) {
+                this.displacementRecoveryOpening = false;
+            }
             return;
         }
 
@@ -104,6 +108,7 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
     private void beginDisplacementRecovery(boolean pullConnected) {
         this.displacementTelegraphTicks = 0;
         this.displacementRecoveryTicks = ChainbackDisplacementBehavior.recoveryTicks(pullConnected);
+        this.displacementRecoveryOpening = !pullConnected;
         this.displacementCooldown = Math.max(this.displacementCooldown, ChainbackDisplacementBehavior.COOLDOWN_TICKS);
         this.getNavigation().stop();
         if (!pullConnected) {
@@ -126,15 +131,20 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
         return this.displacementTelegraphTicks;
     }
 
-    /**
-     * Exposes the existing creature-specific recovery as a read-only combat-opening signal.
-     * This is execution state only; it does not create a generic stability or progression system.
-     */
+    /** Read-only signal for any post-displacement recovery, connected or evaded. */
     public boolean isInDisplacementRecovery() {
         return this.displacementRecoveryTicks > 0;
     }
 
-    /** Read-only remaining opening duration for development/runtime presentation and diagnostics. */
+    /**
+     * Read-only signal for the longer punish opening earned by making the displacement miss.
+     * This remains creature-specific execution state rather than a generic stability system.
+     */
+    public boolean isInEvadedDisplacementOpening() {
+        return this.displacementRecoveryTicks > 0 && this.displacementRecoveryOpening;
+    }
+
+    /** Read-only remaining recovery duration for development/runtime presentation and diagnostics. */
     public int displacementRecoveryTicks() {
         return this.displacementRecoveryTicks;
     }
