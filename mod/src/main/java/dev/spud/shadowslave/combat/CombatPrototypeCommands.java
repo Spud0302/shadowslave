@@ -78,6 +78,19 @@ public final class CombatPrototypeCommands {
 
         boolean opening = chainback.isInEvadedDisplacementOpening();
         boolean recovery = chainback.isInDisplacementRecovery();
+        if (opening
+                && baseline != null
+                && baseline.chainbackId().equals(chainback.getUUID())
+                && !player.getMainHandItem().is(Items.IRON_SWORD)) {
+            HEALTH_PROBES.remove(player.getUUID());
+            player.sendSystemMessage(Component.literal(
+                    "Combat prototype verdict INVALID: the reference iron sword left the main hand after OPEN was armed. Repeat the slice; do not count damage from another item or empty hand as Better Combat moveset evidence."
+            ).withStyle(ChatFormatting.RED));
+            player.displayClientMessage(Component.literal(
+                    "WEAPON CHANGED • verdict invalid • reset / repeat"
+            ).withStyle(ChatFormatting.RED), true);
+            return;
+        }
         if (opening && BetterCombatSpikeAdapter.isAttackDisabled(player)) {
             if (baseline != null && baseline.chainbackId().equals(chainback.getUUID())) {
                 HEALTH_PROBES.remove(player.getUUID());
