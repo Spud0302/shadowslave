@@ -44,20 +44,40 @@ public final class CombatPrototypeCommands {
     }
 
     /**
-     * Development-only observer: arm the one-shot health baseline as soon as the tagged Chainback
-     * enters the longer recovery earned by a clean evade. This avoids requiring a command during
-     * the 18-tick punish window and does not observe, modify, or cancel damage events.
+     * Development-only observer: arm a one-shot health baseline when the tagged Chainback enters
+     * the longer recovery earned by a clean evade, then resolve it automatically when that OPEN
+     * closes. This samples only server-owned health and does not observe, modify, or cancel damage.
      */
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
+
         ChainbackEntity chainback = findNearestTaggedPrototypeChainback(player);
-        if (chainback == null || !chainback.isInEvadedDisplacementOpening()) {
+        HealthProbeBaseline baseline = HEALTH_PROBES.get(player.getUUID());
+        if (chainback == null) {
+            if (baseline != null) {
+                HEALTH_PROBES.remove(player.getUUID());
+            }
             return;
         }
 
-        HealthProbeBaseline baseline = HEALTH_PROBES.get(player.getUUID());
+        boolean opening = chainback.isInEvadedDisplacementOpening();
+        if (!opening) {
+            if (baseline != null && baseline.chainbackId().equals(chainback.getUUID())) {
+                float healthDelta = baseline.health() - chainback.getHealth();
+                HEALTH_PROBES.remove(player.getUUID());
+                String verdict = healthDelta > 0.0F ? "DAMAGE OBSERVED" : "NO DAMAGE OBSERVED";
+                ChatFormatting verdictColor = healthDelta > 0.0F ? ChatFormatting.GREEN : ChatFormatting.RED;
+                player.sendSystemMessage(Component.literal(String.format(
+                        "Combat prototype OPEN closed: health delta %.1f | verdict %s | probe CONSUMED. Reposition before Chainback resumes pressure.",
+                        healthDelta,
+                        verdict
+                )).withStyle(verdictColor));
+            }
+            return;
+        }
+
         if (baseline != null && baseline.chainbackId().equals(chainback.getUUID())) {
             return;
         }
@@ -67,7 +87,7 @@ public final class CombatPrototypeCommands {
 
         HEALTH_PROBES.put(player.getUUID(), new HealthProbeBaseline(chainback.getUUID(), chainback.getHealth()));
         player.sendSystemMessage(Component.literal(
-                "Combat prototype OPEN: clean evade confirmed and health probe armed. Commit one iron-sword swing, then use /shadowslave_combat status after the exchange."
+                "Combat prototype OPEN: clean evade confirmed and health probe armed. Commit one iron-sword swing before the opening closes."
         ).withStyle(ChatFormatting.GREEN));
     }
 
@@ -110,7 +130,7 @@ public final class CombatPrototypeCommands {
                 "Combat prototype ready: Better Combat is loaded. Read Chainback's warning, break range/line of sight, then punish its earned opening with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
-                "A clean evade now arms the one-shot health probe automatically. After one punish, use /shadowslave_combat status to consume the damage verdict."
+                "A clean evade arms the one-shot health probe automatically; the damage verdict resolves automatically when OPEN closes."
         ).withStyle(ChatFormatting.YELLOW));
         if (removed > 0) {
             player.sendSystemMessage(Component.literal(
