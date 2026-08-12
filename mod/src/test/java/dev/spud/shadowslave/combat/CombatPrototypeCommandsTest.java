@@ -98,4 +98,20 @@ final class CombatPrototypeCommandsTest {
         assertTrue(source.contains("tagged.forEach(ChainbackEntity::discard)"));
         assertTrue(source.contains("exactly one test target"));
     }
+
+    @Test
+    void evadedDisplacementHasAVisibleOpeningCueWithoutChangingCombatAuthority() throws Exception {
+        String source = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/world/entity/ChainbackEntity.java"));
+
+        assertTrue(source.contains("if (!pullConnected)"));
+        assertTrue(source.contains("this.emitEvadedRecoveryOpening()"));
+        assertTrue(source.contains("ParticleTypes.CLOUD"));
+        assertTrue(source.contains("serverLevel.sendParticles("));
+
+        assertFalse(source.contains("bettercombat"));
+        assertFalse(source.contains("MemoryOwnership"));
+        assertFalse(source.contains("SoulService"));
+        assertFalse(source.contains("StabilityService"));
+    }
 }
