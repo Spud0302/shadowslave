@@ -81,7 +81,7 @@ public final class CombatPrototypeCommands {
                 "Combat prototype ready: Better Combat is loaded. Read Chainback's warning, break range/line of sight, then punish its recovery with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
-                "Use /shadowslave_combat status while the opening is OPEN to arm one transient health measurement, then run status once after one punish to consume it and read DAMAGE OBSERVED or NO DAMAGE OBSERVED."
+                "Use /shadowslave_combat status to read TELEGRAPH/OPEN/NEUTRAL. While OPEN, status arms one transient health measurement; run status once after one punish to consume it."
         ).withStyle(ChatFormatting.YELLOW));
         if (removed > 0) {
             player.sendSystemMessage(Component.literal(
@@ -104,8 +104,11 @@ public final class CombatPrototypeCommands {
             return 0;
         }
 
+        boolean telegraph = chainback.isInDisplacementTelegraph();
+        int telegraphTicks = chainback.displacementTelegraphTicks();
         boolean opening = chainback.isInDisplacementRecovery();
         int openingTicks = chainback.displacementRecoveryTicks();
+        String phase = telegraph ? "TELEGRAPH" : opening ? "OPEN" : "NEUTRAL";
         HealthProbeBaseline baseline = HEALTH_PROBES.get(player.getUUID());
         String probeStatus;
 
@@ -128,13 +131,14 @@ public final class CombatPrototypeCommands {
         }
 
         player.sendSystemMessage(Component.literal(String.format(
-                "Combat prototype status: Chainback health %.1f/%.1f | opening %s | recovery %d ticks%s",
+                "Combat prototype status: Chainback health %.1f/%.1f | phase %s | telegraph %d ticks | recovery %d ticks%s",
                 chainback.getHealth(),
                 chainback.getMaxHealth(),
-                opening ? "OPEN" : "closed",
+                phase,
+                telegraphTicks,
                 openingTicks,
                 probeStatus
-        )).withStyle(opening ? ChatFormatting.GREEN : ChatFormatting.GRAY));
+        )).withStyle(opening ? ChatFormatting.GREEN : telegraph ? ChatFormatting.YELLOW : ChatFormatting.GRAY));
         return Command.SINGLE_SUCCESS;
     }
 
