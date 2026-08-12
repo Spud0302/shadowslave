@@ -104,6 +104,7 @@ final class CombatPrototypeCommandsTest {
         assertTrue(source.contains("EXTRA DAMAGE OBSERVED"));
         assertTrue(source.contains("TARGET LOST • verdict invalid • reset / repeat"));
         assertTrue(source.contains("ATTACKS DISABLED • verdict invalid • re-enable / repeat"));
+        assertTrue(source.contains("WEAPON CHANGED • verdict invalid • reset / repeat"));
         assertTrue(source.contains("HEALTH_PROBES.remove(player.getUUID())"));
 
         assertFalse(source.contains("LivingDamageEvent"));
@@ -111,6 +112,20 @@ final class CombatPrototypeCommandsTest {
         assertFalse(source.contains("CompoundTag"));
         assertFalse(source.contains("setPersistentData"));
         assertFalse(source.contains("net.bettercombat"));
+    }
+
+    @Test
+    void armedProbeInvalidatesIfReferenceWeaponLeavesMainHand() throws Exception {
+        String source = commandSource();
+
+        assertTrue(source.contains("baseline.chainbackId().equals(chainback.getUUID())"));
+        assertTrue(source.contains("!player.getMainHandItem().is(Items.IRON_SWORD)"));
+        assertTrue(source.contains("the reference iron sword left the main hand after OPEN was armed"));
+        assertTrue(source.contains("do not count damage from another item or empty hand as Better Combat moveset evidence"));
+        assertTrue(source.contains("WEAPON CHANGED • verdict invalid • reset / repeat"));
+
+        assertFalse(source.contains("DamageSource"));
+        assertFalse(source.contains("LivingDamageEvent"));
     }
 
     @Test
