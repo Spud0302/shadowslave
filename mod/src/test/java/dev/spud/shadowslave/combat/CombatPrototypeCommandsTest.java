@@ -169,6 +169,24 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
+    void healthProbeFlagsASecondObservedDamageDropWithoutBecomingDamageAuthority() throws Exception {
+        String source = Files.readString(Path.of(
+                "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
+
+        assertTrue(source.contains("Float firstObservedHealth"));
+        assertTrue(source.contains("observeFirstHealthDrop(chainback.getHealth())"));
+        assertTrue(source.contains("extraDamageSinceFirstObservation(chainback.getHealth())"));
+        assertTrue(source.contains("verdict = \"EXTRA DAMAGE OBSERVED\""));
+        assertTrue(source.contains("EXTRA DAMAGE • %.1f after first observed drop • stop / reject spike"));
+        assertTrue(source.contains("Math.max(0.0F, firstObservedHealth - currentHealth)"));
+
+        assertFalse(source.contains("LivingDamageEvent"));
+        assertFalse(source.contains("onLivingDamage"));
+        assertFalse(source.contains("bettercombat.api"));
+        assertFalse(source.contains("StabilityService"));
+    }
+
+    @Test
     void repeatedPhysicalRunsCannotAccumulateTaggedPrototypeTargets() throws Exception {
         String source = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
