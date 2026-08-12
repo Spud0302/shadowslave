@@ -6,7 +6,9 @@ import dev.spud.shadowslave.appraisal.generation.ExpandedIdentityContentCatalog;
 import dev.spud.shadowslave.appraisal.generation.GeneratedIdentityCandidate;
 import dev.spud.shadowslave.appraisal.generation.GenerationEvidence;
 import dev.spud.shadowslave.appraisal.generation.IdentityPrimitiveCatalog;
+import dev.spud.shadowslave.nightmare.LastSignalScenario;
 import dev.spud.shadowslave.nightmare.NightmareInstance;
+import dev.spud.shadowslave.nightmare.content.DrownedBellScenarioDefinition;
 import dev.spud.shadowslave.soul.SoulRank;
 import net.minecraft.resources.ResourceLocation;
 
@@ -71,13 +73,13 @@ public final class FirstNightmareAppraisalResolver {
         String role = requireText(historicalRoleId, "historicalRoleId").toLowerCase(Locale.ROOT);
         String resolution = requireText(resolutionId, "resolutionId").toLowerCase(Locale.ROOT);
 
-        if (scenario.equals("last_signal")) {
+        if (scenario.equals(LastSignalScenario.SCENARIO_ID)) {
             add(weights, "warning", 5);
             add(weights, "signal", 4);
             add(weights, "duty", 3);
             add(weights, "preservation", 2);
             add(weights, "resolve", 2);
-        } else if (scenario.equals("drowned_bell")) {
+        } else if (scenario.equals(DrownedBellScenarioDefinition.SCENARIO_ID)) {
             add(weights, "water", 5);
             add(weights, "warning", 3);
             add(weights, "resonance", 3);

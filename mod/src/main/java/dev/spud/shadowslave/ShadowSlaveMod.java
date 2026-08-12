@@ -6,6 +6,7 @@ import dev.spud.shadowslave.command.ShadowSlaveCommands;
 import dev.spud.shadowslave.dreamrealm.DreamRealmCommands;
 import dev.spud.shadowslave.dreamrealm.DreamRealmResourceInteractionRuntime;
 import dev.spud.shadowslave.dreamrealm.DreamRealmStoryNpcRuntime;
+import dev.spud.shadowslave.dreamrealm.DreamRealmWorldgenFeatures;
 import dev.spud.shadowslave.echo.EchoCommands;
 import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.item.ModItems;
@@ -31,6 +32,7 @@ public final class ShadowSlaveMod {
         ModAttachments.register(modEventBus);
         ModItems.register(modEventBus);
         NightmareCreatureEntities.register(modEventBus);
+        DreamRealmWorldgenFeatures.register(modEventBus);
 
         if (physicalSide == Dist.DEDICATED_SERVER) {
             modEventBus.addListener(ModPayloads::registerDedicatedServer);

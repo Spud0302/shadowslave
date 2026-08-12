@@ -2,6 +2,7 @@ package dev.spud.shadowslave.appraisal;
 
 import dev.spud.shadowslave.appraisal.generation.AttributeContentCatalog;
 import dev.spud.shadowslave.nightmare.NightmareInstance;
+import dev.spud.shadowslave.nightmare.content.DrownedBellScenarioDefinition;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,7 @@ class FirstNightmareAppraisalResolverTest {
 
     @Test
     void terminalResolutionIsPartOfThePermanentGenerationFingerprint() {
-        NightmareInstance completed = instance(new UUID(31L, 47L), "drowned_bell", "ferry_deckhand");
+        NightmareInstance completed = instance(new UUID(31L, 47L), DrownedBellScenarioDefinition.SCENARIO_ID, "ferry_deckhand");
 
         var tower = FirstNightmareAppraisalResolver.resolve(completed, "tower_held");
         var evacuation = FirstNightmareAppraisalResolver.resolve(completed, "villagers_evacuated");
@@ -73,7 +74,7 @@ class FirstNightmareAppraisalResolverTest {
     void drownedBellAwardsAlsoRemainInsideExecutableRuntimeBoundary() {
         for (long seed = 257; seed <= 512; seed++) {
             var award = FirstNightmareAppraisalResolver.resolve(
-                    instance(new UUID(seed, ~seed), "drowned_bell", "cistern_keeper"),
+                    instance(new UUID(seed, ~seed), DrownedBellScenarioDefinition.SCENARIO_ID, "cistern_keeper"),
                     "flood_diverted"
             );
 
@@ -86,7 +87,7 @@ class FirstNightmareAppraisalResolverTest {
     @Test
     void roleAndScenarioEvidenceFeedsExistingTagsWithoutClaimingCanonFormula() {
         var weights = FirstNightmareAppraisalResolver.evidenceWeights(
-                "drowned_bell", "cistern_keeper", "flood_diverted");
+                DrownedBellScenarioDefinition.SCENARIO_ID, "cistern_keeper", "flood_diverted");
 
         assertTrue(weights.getOrDefault("water", 0) >= 8);
         assertTrue(weights.getOrDefault("preservation", 0) >= 3);

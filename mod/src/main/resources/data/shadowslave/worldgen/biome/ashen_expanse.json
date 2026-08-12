@@ -28,5 +28,13 @@
   },
   "spawn_costs": {},
   "carvers": {},
-  "features": []
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [
+      "shadowslave:drowned_bell_later_anchor"
+    ]
+  ]
 }
