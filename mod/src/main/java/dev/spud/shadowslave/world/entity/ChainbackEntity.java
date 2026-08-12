@@ -116,6 +116,16 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
         return this.displacementTelegraphTicks > 0 || this.displacementRecoveryTicks > 0;
     }
 
+    /** Read-only signal that the creature is currently committed to its displacement warning. */
+    public boolean isInDisplacementTelegraph() {
+        return this.displacementTelegraphTicks > 0;
+    }
+
+    /** Read-only remaining warning duration for development/runtime presentation and diagnostics. */
+    public int displacementTelegraphTicks() {
+        return this.displacementTelegraphTicks;
+    }
+
     /**
      * Exposes the existing creature-specific recovery as a read-only combat-opening signal.
      * This is execution state only; it does not create a generic stability or progression system.
