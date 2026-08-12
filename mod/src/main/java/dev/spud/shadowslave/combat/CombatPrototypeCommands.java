@@ -59,6 +59,12 @@ public final class CombatPrototypeCommands {
         if (chainback == null) {
             if (baseline != null) {
                 HEALTH_PROBES.remove(player.getUUID());
+                player.sendSystemMessage(Component.literal(
+                        "Combat prototype verdict INVALID: the tagged Chainback disappeared while the OPEN health probe was armed. Repeat the slice; do not count this run as Better Combat evidence."
+                ).withStyle(ChatFormatting.RED));
+                player.displayClientMessage(Component.literal(
+                        "TARGET LOST • verdict invalid • reset / repeat"
+                ).withStyle(ChatFormatting.RED), true);
             }
             return;
         }
