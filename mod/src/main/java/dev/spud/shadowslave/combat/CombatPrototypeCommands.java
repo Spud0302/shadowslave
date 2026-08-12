@@ -114,10 +114,14 @@ public final class CombatPrototypeCommands {
                     verdict = "EXTRA DAMAGE OBSERVED";
                     verdictColor = ChatFormatting.RED;
                 }
+                String firstDropTiming = baseline.firstObservedRecoveryTicks() == null
+                        ? "no health drop during OPEN"
+                        : baseline.ticksToFirstObservedDrop() + "t to first health drop";
                 player.sendSystemMessage(Component.literal(String.format(
-                        "Combat prototype OPEN closed: health delta %.1f | opened at %.1f blocks | verdict %s | probe CONSUMED. Reposition before Chainback resumes pressure.",
+                        "Combat prototype OPEN closed: health delta %.1f | opened at %.1f blocks | %s | verdict %s | probe CONSUMED. Reposition before Chainback resumes pressure.",
                         healthDelta,
                         baseline.openingDistance(),
+                        firstDropTiming,
                         verdict
                 )).withStyle(verdictColor));
                 if (extraDamage > 0.0F) {
@@ -127,7 +131,11 @@ public final class CombatPrototypeCommands {
                     )).withStyle(ChatFormatting.RED), true);
                 } else {
                     player.displayClientMessage(Component.literal(healthDelta > 0.0F
-                            ? String.format("HIT CONFIRMED • %.1f damage • reposition", healthDelta)
+                            ? String.format(
+                                    "HIT CONFIRMED • %.1f damage • %dt into OPEN • reposition",
+                                    healthDelta,
+                                    baseline.ticksToFirstObservedDrop()
+                            )
                             : "MISS • opening closed • reposition"
                     ).withStyle(verdictColor), true);
                 }
@@ -144,7 +152,10 @@ public final class CombatPrototypeCommands {
         if (baseline != null && baseline.chainbackId().equals(chainback.getUUID())) {
             float healthDelta = baseline.health() - chainback.getHealth();
             if (healthDelta > 0.0F) {
-                HealthProbeBaseline observed = baseline.observeFirstHealthDrop(chainback.getHealth());
+                HealthProbeBaseline observed = baseline.observeFirstHealthDrop(
+                        chainback.getHealth(),
+                        chainback.displacementRecoveryTicks()
+                );
                 if (observed != baseline) {
                     HEALTH_PROBES.put(player.getUUID(), observed);
                     baseline = observed;
@@ -157,8 +168,9 @@ public final class CombatPrototypeCommands {
                     )).withStyle(ChatFormatting.RED), true);
                 } else {
                     player.displayClientMessage(Component.literal(String.format(
-                            "HIT • %.1f damage • recover / reposition",
-                            baseline.firstObservedDamage()
+                            "HIT • %.1f damage • %dt into OPEN • recover / reposition",
+                            baseline.firstObservedDamage(),
+                            baseline.ticksToFirstObservedDrop()
                     )).withStyle(ChatFormatting.GREEN), true);
                 }
             } else {
@@ -177,7 +189,8 @@ public final class CombatPrototypeCommands {
         HEALTH_PROBES.put(player.getUUID(), new HealthProbeBaseline(
                 chainback.getUUID(),
                 chainback.getHealth(),
-                currentDistance
+                currentDistance,
+                chainback.displacementRecoveryTicks()
         ));
         player.sendSystemMessage(Component.literal(String.format(
                 "Combat prototype OPEN: clean evade confirmed and health probe armed at %.1f blocks. Commit one iron-sword swing before the opening closes.",
@@ -241,7 +254,7 @@ public final class CombatPrototypeCommands {
                 "Combat prototype ready: Better Combat is loaded and CombatFlags confirms attacks are enabled for this player. Chainback starts inside displacement range; read its warning, break range/line of sight, then punish the earned opening with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
-                "TELEGRAPH, connected RECOVERY, and earned OPEN stay visible in the action bar; OPEN also reports live Chainback distance, and the final verdict records opening distance so punish-fit can be judged separately from hit plumbing."
+                "TELEGRAPH, connected RECOVERY, and earned OPEN stay visible in the action bar; OPEN reports live Chainback distance, and a successful punish reports ticks-to-first-health-drop so move fit can be judged separately from hit plumbing."
         ).withStyle(ChatFormatting.YELLOW));
         if (removed > 0) {
             player.sendSystemMessage(Component.literal(
@@ -285,8 +298,9 @@ public final class CombatPrototypeCommands {
                         ? String.format(" | EXTRA DAMAGE %.1f after first observed drop | reject/defer spike | probe remains ARMED", extraDamage)
                         : healthDelta > 0.0F
                         ? String.format(
-                                " | health delta %.1f observed during OPEN | opened at %.1f blocks | final verdict pending until OPEN closes | probe remains ARMED",
+                                " | health delta %.1f observed %dt into OPEN | opened at %.1f blocks | final verdict pending until OPEN closes | probe remains ARMED",
                                 healthDelta,
+                                baseline.ticksToFirstObservedDrop(),
                                 baseline.openingDistance()
                         )
                         : String.format(
@@ -296,10 +310,14 @@ public final class CombatPrototypeCommands {
                         );
             } else {
                 HEALTH_PROBES.remove(player.getUUID());
+                String timing = baseline.firstObservedRecoveryTicks() == null
+                        ? "no health drop during OPEN"
+                        : baseline.ticksToFirstObservedDrop() + "t to first health drop";
                 probeStatus = String.format(
-                        " | health delta %.1f since earned OPEN baseline | opened at %.1f blocks | verdict %s | probe CONSUMED",
+                        " | health delta %.1f since earned OPEN baseline | opened at %.1f blocks | %s | verdict %s | probe CONSUMED",
                         healthDelta,
                         baseline.openingDistance(),
+                        timing,
                         healthDelta > 0.0F ? "DAMAGE OBSERVED" : "NO DAMAGE OBSERVED"
                 );
             }
@@ -341,20 +359,41 @@ public final class CombatPrototypeCommands {
         return tagged.size();
     }
 
-    private record HealthProbeBaseline(UUID chainbackId, float health, double openingDistance, Float firstObservedHealth) {
-        private HealthProbeBaseline(UUID chainbackId, float health, double openingDistance) {
-            this(chainbackId, health, openingDistance, null);
+    private record HealthProbeBaseline(
+            UUID chainbackId,
+            float health,
+            double openingDistance,
+            int openingTicksAtArm,
+            Float firstObservedHealth,
+            Integer firstObservedRecoveryTicks
+    ) {
+        private HealthProbeBaseline(UUID chainbackId, float health, double openingDistance, int openingTicksAtArm) {
+            this(chainbackId, health, openingDistance, openingTicksAtArm, null, null);
         }
 
-        private HealthProbeBaseline observeFirstHealthDrop(float currentHealth) {
+        private HealthProbeBaseline observeFirstHealthDrop(float currentHealth, int currentRecoveryTicks) {
             if (firstObservedHealth != null || currentHealth >= health) {
                 return this;
             }
-            return new HealthProbeBaseline(chainbackId, health, openingDistance, currentHealth);
+            return new HealthProbeBaseline(
+                    chainbackId,
+                    health,
+                    openingDistance,
+                    openingTicksAtArm,
+                    currentHealth,
+                    currentRecoveryTicks
+            );
         }
 
         private float firstObservedDamage() {
             return firstObservedHealth == null ? 0.0F : health - firstObservedHealth;
+        }
+
+        private int ticksToFirstObservedDrop() {
+            if (firstObservedRecoveryTicks == null) {
+                return -1;
+            }
+            return Math.max(0, openingTicksAtArm - firstObservedRecoveryTicks);
         }
 
         private float extraDamageSinceFirstObservation(float currentHealth) {
