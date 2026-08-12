@@ -64,7 +64,7 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
-    void earnedOpeningProbeArmsAutomaticallyWithoutDamageEventAuthority() throws Exception {
+    void earnedOpeningProbeArmsAndResolvesAutomaticallyWithoutDamageEventAuthority() throws Exception {
         String commandSource = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
         String modSource = Files.readString(Path.of(
@@ -75,6 +75,10 @@ final class CombatPrototypeCommandsTest {
         assertTrue(commandSource.contains("player.getMainHandItem().is(Items.IRON_SWORD)"));
         assertTrue(commandSource.contains("new HealthProbeBaseline(chainback.getUUID(), chainback.getHealth())"));
         assertTrue(commandSource.contains("Combat prototype OPEN: clean evade confirmed and health probe armed."));
+        assertTrue(commandSource.contains("if (!opening)"));
+        assertTrue(commandSource.contains("String verdict = healthDelta > 0.0F ? \"DAMAGE OBSERVED\" : \"NO DAMAGE OBSERVED\""));
+        assertTrue(commandSource.contains("Combat prototype OPEN closed: health delta %.1f | verdict %s | probe CONSUMED."));
+        assertTrue(commandSource.contains("the damage verdict resolves automatically when OPEN closes"));
         assertTrue(modSource.contains("NeoForge.EVENT_BUS.addListener(CombatPrototypeCommands::onPlayerTick)"));
 
         assertFalse(commandSource.contains("LivingDamageEvent"));
