@@ -69,15 +69,11 @@ Run:
 
 The command first asks NeoForge's mod list whether the `bettercombat` mod is actually loaded. If it is absent, setup refuses to spawn/equip the slice. This prevents a vanilla-only iron-sword swing from being mistaken for evidence in favor of the dependency. The check uses only NeoForge loader metadata; it does not import or call Better Combat's Java API.
 
-When Better Combat is loaded, the command equips one ordinary iron sword and spawns one tagged existing Chainback six blocks in front of the player. The tag exists only so the development diagnostic can identify the intended test target.
+When Better Combat is loaded, the command equips one ordinary iron sword and spawns one tagged existing Chainback 3.5 blocks in front of the player. That is deliberately inside Chainback's existing 4-block displacement range so the physical run starts at the reference telegraph rather than requiring inherited Spider pursuit to close an unrelated setup gap. The tag exists only so the development diagnostic can identify the intended test target.
 
-Run this while the intended punish window is open:
+A clean range/line-of-sight evade that earns Chainback's longer `OPEN` recovery automatically arms a transient in-memory health baseline for that exact tagged Chainback when the player is holding the reference iron sword. When `OPEN` closes, the server consumes the baseline automatically and reports `DAMAGE OBSERVED` or `NO DAMAGE OBSERVED` with the health delta. `/shadowslave_combat status` remains available as a diagnostic view of `TELEGRAPH`, `OPEN`, ordinary `RECOVERY`, remaining ticks and the current probe state, but it is not required to play the exchange.
 
-```text
-/shadowslave_combat status
-```
-
-The first `status` call made while Chainback's existing displacement recovery is `OPEN` arms a transient in-memory baseline for that exact tagged Chainback and reports its authoritative health. A later `status` call reports the health delta from that baseline. The baseline is keyed to the player + Chainback UUID, is cleared by `chainback_slice` and `reset`, and is never written to `SavedData`, entity NBT, player persistence, or a damage-event mirror.
+The baseline is keyed to the player + Chainback UUID, is cleared by `chainback_slice` and `reset`, and is never written to `SavedData`, entity NBT, player persistence, or a damage-event mirror.
 
 This keeps the proof path deliberately below combat authority: the command only samples health that the server already owns. It does not listen to or modify damage, does not know how Better Combat selected the target, and cannot change hit timing, consequences, recovery, Rank, Memories, Aspects, Soul state, or progression.
 
@@ -87,14 +83,13 @@ Earlier spike heads attempted to count post-damage events directly. That observe
 
 A useful successful run is:
 
-1. spawn the slice and confirm setup reports that Better Combat is loaded;
-2. read the chain warning;
+1. spawn the slice and confirm setup reports that Better Combat is loaded and Chainback starts inside displacement range;
+2. require the chain warning to begin without waiting for inherited Spider pursuit to manufacture the encounter distance;
 3. break range or line of sight so the displacement misses;
-4. run `status` while recovery is `OPEN`; confirm the probe reports `ARMED` and note the opening ticks;
-5. punish once with Better Combat's ordinary iron-sword swing;
-6. run `status` again and require a positive health delta from the same OPEN baseline;
-7. repeat once outside the opening to compare the rhythm rather than inventing a separate stability system;
-8. confirm Chainback resumes its existing pursuit/special-action loop after recovery.
+4. confirm the clean evade produces the visible/audio `OPEN` cue and automatically arms the probe;
+5. punish exactly once with Better Combat's ordinary iron-sword swing;
+6. require the automatic `OPEN`-close verdict to report a positive health delta from that same opening;
+7. confirm Chainback returns to `NEUTRAL` and resumes its existing pursuit/special-action loop after recovery.
 
 A successful dependency verdict still requires physical observation that one intended swing corresponds to one ordinary attack outcome. The health delta probe deliberately does not claim to identify internal Better Combat hit-count semantics; visible double-hit behavior, duplicate health drops, or hidden vanilla bypass still reject the spike.
 
