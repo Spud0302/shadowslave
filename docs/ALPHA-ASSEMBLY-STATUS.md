@@ -1,7 +1,7 @@
 # Alpha assembly status
 
 **Snapshot:** 2026-08-12  
-**Current main:** `2e0097e8d1f21f3cadf89f3d8931fef94d2d6b94`  
+**Current main:** `4b17902603abe46803fc672d43700fec64ded110`  
 **Assembly branch:** `gpt/ash-burrower-guard-current-main` / PR #276
 
 Live GitHub merge state controls whenever an older status/handoff note disagrees with this snapshot.
@@ -12,19 +12,19 @@ Live GitHub merge state controls whenever an older status/handoff note disagrees
 | --- | --- |
 | Nightmare entry | Integrated on `main` |
 | Nightmare completion | Integrated on `main`; successful-completion recovery remains separately tracked under issue #34 |
-| Nightmare recovery | Healthy and contradictory disk-image/fresh-JVM cuts are integrated in the current recovery lineage; genuine successful-player recovery across a dedicated-server process boundary remains the explicit issue #34 gap |
+| Nightmare recovery | Current-main PR #278 contains contradictory-cut, GameTest, and one-process FakePlayer evidence; genuine successful-player recovery across a dedicated-server process boundary remains the explicit issue #34 gap |
 | Scenario selection | Integrated on `main` |
 | Generated identity award | Integrated on `main` |
-| Memory ownership/use | Integrated on `main`; additional Memory executors remain separate review edges |
-| Echo ownership/summoning | Integrated on `main`; PR #276 is the current hosted-green Ash Burrower GUARD + CARRY execution edge |
+| Memory ownership/use | Integrated on `main`; Glass Road is now merged and additional Memory executors remain separate review edges |
+| Echo ownership/summoning | Integrated on `main`; PR #276 is the current Ash Burrower GUARD + CARRY execution edge and is now re-rooted on current main |
 | At least one real creature | Integrated on `main`; hostile Ash Burrower uses SmartBrainLib while the owned Echo remains a separate Java command executor |
-| Dream Realm vertical slice | Integrated on `main` |
+| Dream Realm vertical slice | Integrated on `main`; cumulative native-worldgen expansion remains PR #275 |
 | UI/presentation | Integrated baseline on `main`, including GeckoLib creature/Echo presentation and gameplay keybinds |
-| Client/server packaging | Integrated baseline on `main`; PR #276 exact head `82c4f0fb7434df9c9d0391563c18c382721d9fef` passed hosted Preview Gates #331 |
+| Client/server packaging | Integrated baseline on `main`; #276's pre-re-root functional head passed hosted Preview Gates #331 and the new exact head awaits hosted execution |
 
 ## Current bounded assembly edges
 
-PR #276 was clean-ported directly onto `main@2e0097e8d1f21f3cadf89f3d8931fef94d2d6b94` to replace the ancestry-diverged #244 GUARD slice. It then selectively ported only the reviewed CARRY/cargo delta from #211 rather than rebasing #211/#214's obsolete manifestation ancestry.
+PR #276 has been re-rooted directly onto `main@4b17902603abe46803fc672d43700fec64ded110` after merged Glass Road PR #270. The Glass Road delta and #276 Echo/cargo/test delta have no overlapping paths, so the re-root preserves the newer Glass Road Memory APIs unchanged while retaining the reviewed Echo implementation.
 
 The resulting Ash Burrower Echo candidate keeps one coherent authority:
 
@@ -37,31 +37,32 @@ The resulting Ash Burrower Echo candidate keeps one coherent authority:
 - custom-component stacks fail closed rather than losing item metadata;
 - the hostile Ash Burrower remains the merged SmartBrainLib executor and is not replaced by owned-Echo command AI.
 
-PR #259 / `gpt/generated-appraisal-contradictory-current-main` is the current contradictory successful-completion recovery evidence edge. Exact head `984263cc2ec0f085a745a4b321230a2281cba058` passed Preview Gates #338 / Actions `31529951285`, including compile/unit/package, physical NeoForge client, same-world dedicated-server restart, frozen-datapack validation, and the deployed vanilla harness. Its contradiction test is the exact reviewed blob formerly carried by stale #228, so #228 is closed unmerged as demonstrably superseded. This still does not prove a real networked `ServerPlayer` reconnect across two dedicated-server JVMs.
+Current alpha integration lanes are #275 world, #276 Echo, #278 recovery, and #279 gameplay. #275 still needs explicit reconciliation with current main. #278 and #279 are already re-rooted on `main@4b179026...`. Better Combat #277 remains physical-testing-gated and is not alpha authority.
 
-No new Echo identity, creature, Nightmare content, reward rule, progression rule, or standalone catalogue item is introduced by these consolidations.
+No new Echo identity, creature, Nightmare content, reward rule, progression rule, or standalone catalogue item is introduced by this consolidation.
 
 ## Evidence and supersession state
 
-Preview Gates #322 / Actions `31509836660` passed on exact combined #276 gameplay/test head `18d5d7925bce202d0d84b414c91cb973e948a743`. Preview Gates #327 / Actions `31514539362`, #329 / Actions `31519989064`, and #331 / Actions `31525037363` also passed on the subsequent #276 documentation heads through `82c4f0fb7434df9c9d0391563c18c382721d9fef`.
+Preview Gates #322 / Actions `31509836660` passed on exact combined #276 gameplay/test head `18d5d7925bce202d0d84b414c91cb973e948a743`. Preview Gates #327 / Actions `31514539362`, #329 / Actions `31519989064`, and #331 / Actions `31525037363` also passed on subsequent #276 heads through `82c4f0fb7434df9c9d0391563c18c382721d9fef`.
 
-PR #262's functional/test correction is demonstrably contained in #276: `deploy.mjs`, `dimension_wait.mjs`, `harness_transport.mjs`, `harness_transport.test.mjs`, and `package.json` carry the same reviewed 90-second transport floor, unchanged 60-second authoritative observation budget, direct-entrypoint loading, Flaw preload, and regression tests. #262 exact head separately passed Preview Gates #287. Its research note is historical evidence rather than required runtime content.
+The current-main re-root preserves the reviewed #276 functional blobs while taking `4b179026...` as its sole parent; hosted validation for the new exact head must execute before the re-root itself is called green.
 
-- #244 is closed unmerged as demonstrably superseded by the current-main #276 guard port.
+- #244 is closed unmerged as demonstrably superseded by #276's guard integration.
 - #209 and #216 were previously closed unmerged as demonstrably superseded by the modern guard integration.
-- #262 is closed unmerged as demonstrably superseded by the same hosted-green transport correction now carried inside #276.
-- #211 is closed unmerged as demonstrably superseded after targeted cargo behavior/test comparison: #276 preserves the reviewed cargo authority and `EchoCargoStateTest` contracts while using the modern dedicated Echo executor.
-- #214 is closed unmerged as demonstrably superseded after targeted combined-executor comparison: #276 retains Java-owned GUARD_POINT/CARRY state, the dedicated `ASH_BURROWER_ECHO` executor, cargo persistence/unload semantics and old-placeholder removal, while strengthening GUARD from return/hold into bounded registered-threat interception.
-- #228 is closed unmerged as demonstrably superseded by hosted-green #259: both carry the exact same reviewed contradictory persisted-cut Java test blob, while #259 sits on the merged/current recovery lineage and retains the explicit real-player/process-boundary limitation.
+- #262 is closed unmerged as demonstrably superseded by the same reviewed transport correction carried inside #276.
+- #211 is closed unmerged after targeted cargo behavior/test comparison proved #276 retains the reviewed cargo authority and `EchoCargoStateTest` contracts.
+- #214 is closed unmerged after targeted combined-executor comparison proved #276 retains Java-owned GUARD_POINT/CARRY state while strengthening GUARD into bounded registered-threat interception.
+- #170 is closed unmerged because #276 carries equivalent-or-stronger test transport behavior and stronger direct-entrypoint regression coverage.
 
 ## Known blockers preserved
 
 - **Issue #34:** genuine successful-Nightmare player recovery across a NeoForge dedicated-server process boundary remains the correctness evidence gap; do not substitute codec/FakePlayer/disk-image reconstruction for that stronger claim.
 - **Issue #20:** the frozen datapack retains its documented global-selector architecture limitation.
+- Hosted CI has recently failed to allocate runners (`steps=[]`, `runner_id=0`) on several integration heads. Do not reinterpret that infrastructure failure as source/test evidence, and do not retry unchanged heads after the recorded stop condition.
 - Interactive/physical evidence blockers keep their recorded resume conditions; integration work should continue around them instead of inventing evidence.
 
 ## Next assembly order
 
-1. Inspect PR #268 and the current recovery branches against exact main for the narrowest production-recovery FakePlayer/GameTest step that can reduce #34 risk without being mislabeled as real reconnect evidence.
-2. If genuine player/process-boundary recovery remains physically blocked, preserve the blocker and reduce another already-reviewed integration edge rather than inventing evidence or adding content.
-3. Keep #276 as the single current Ash Burrower GUARD + CARRY review edge unless new review evidence requires correction.
+1. Inspect the new exact #276 current-main head once hosted runners execute; if source tests fail, resolve the concrete failure on this branch rather than recreating historical Echo stacks.
+2. Re-root #275 world onto `main@4b179026...` if its current-main conflict surface remains bounded.
+3. Continue reconciling the mature durability lineage into #278 without mislabeling FakePlayer evidence as a real two-JVM reconnect.
