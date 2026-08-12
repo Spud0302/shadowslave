@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class CombatPrototypeCommands {
     static final String PROTOTYPE_CHAINBACK_TAG = "shadowslave_combat_prototype";
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
-    private static final double CHAINBACK_SPAWN_DISTANCE = 6.0D;
+    private static final double CHAINBACK_SPAWN_DISTANCE = 3.5D;
     private static final double STATUS_RADIUS = 64.0D;
     private static final Map<UUID, HealthProbeBaseline> HEALTH_PROBES = new ConcurrentHashMap<>();
 
@@ -127,7 +127,7 @@ public final class CombatPrototypeCommands {
 
         player.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         player.sendSystemMessage(Component.literal(
-                "Combat prototype ready: Better Combat is loaded. Read Chainback's warning, break range/line of sight, then punish its earned opening with the iron sword."
+                "Combat prototype ready: Better Combat is loaded. Chainback starts inside displacement range; read its warning, break range/line of sight, then punish the earned opening with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
                 "A clean evade arms the one-shot health probe automatically; the damage verdict resolves automatically when OPEN closes."
