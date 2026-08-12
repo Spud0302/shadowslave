@@ -44,6 +44,9 @@ final class CombatPrototypeCommandsTest {
         assertTrue(source.contains("this player has Better Combat's persistent bettercombat_disabled tag"));
         assertTrue(source.contains("CombatFlags API reports attacks disabled for this player by another mod/runtime flag"));
         assertTrue(source.contains("CombatFlags confirms attacks are enabled for this player"));
+        assertTrue(source.contains("opening && BetterCombatSpikeAdapter.isAttackDisabled(player)"));
+        assertTrue(source.contains("Better Combat attacks became disabled before the earned OPEN could be judged"));
+        assertTrue(source.contains("ATTACKS DISABLED • verdict invalid • re-enable / repeat"));
 
         assertFalse(source.contains("net.bettercombat.api"));
         assertFalse(source.contains("setAttacksDisabled"));
@@ -100,6 +103,7 @@ final class CombatPrototypeCommandsTest {
         assertTrue(source.contains("NO DAMAGE OBSERVED"));
         assertTrue(source.contains("EXTRA DAMAGE OBSERVED"));
         assertTrue(source.contains("TARGET LOST • verdict invalid • reset / repeat"));
+        assertTrue(source.contains("ATTACKS DISABLED • verdict invalid • re-enable / repeat"));
         assertTrue(source.contains("HEALTH_PROBES.remove(player.getUUID())"));
 
         assertFalse(source.contains("LivingDamageEvent"));
