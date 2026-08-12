@@ -102,16 +102,17 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
-    void telegraphAndEarnedOpeningRemainReadableWithoutInterruptingThePhysicalExchange() throws Exception {
+    void telegraphConnectedRecoveryAndEarnedOpeningRemainReadableWithoutInterruptingThePhysicalExchange() throws Exception {
         String source = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
 
         assertTrue(source.contains("if (chainback.isInDisplacementTelegraph())"));
         assertTrue(source.contains("\"TELEGRAPH • \" + chainback.displacementTelegraphTicks() + \"t • break range / line of sight\""));
-        assertTrue(source.contains("withStyle(ChatFormatting.YELLOW), true"));
+        assertTrue(source.contains("boolean recovery = chainback.isInDisplacementRecovery()"));
+        assertTrue(source.contains("if (recovery)"));
+        assertTrue(source.contains("\"RECOVERY • \" + chainback.displacementRecoveryTicks() + \"t • Chainback connected • reposition\""));
         assertTrue(source.contains("\"OPEN • \" + chainback.displacementRecoveryTicks() + \"t • commit one iron-sword swing\""));
-        assertTrue(source.contains("withStyle(ChatFormatting.GREEN), true"));
-        assertTrue(source.contains("TELEGRAPH and OPEN stay visible in the action bar"));
+        assertTrue(source.contains("TELEGRAPH, connected RECOVERY, and earned OPEN stay visible in the action bar"));
 
         assertFalse(source.contains("StabilityService"));
         assertFalse(source.contains("bettercombat.api"));
@@ -126,7 +127,7 @@ final class CombatPrototypeCommandsTest {
         assertTrue(source.contains("float healthDelta = baseline.health() - chainback.getHealth()"));
         assertTrue(source.contains("if (healthDelta > 0.0F)"));
         assertTrue(source.contains("HIT • %.1f damage • recover / reposition"));
-        assertTrue(source.contains("after damage is observed the prompt switches to recovery"));
+        assertTrue(source.contains("after player damage is observed the prompt switches to recovery"));
         assertTrue(source.indexOf("HIT • %.1f damage • recover / reposition")
                 < source.indexOf("OPEN • \" + chainback.displacementRecoveryTicks() + \"t • commit one iron-sword swing"));
 
