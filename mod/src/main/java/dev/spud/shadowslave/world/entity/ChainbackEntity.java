@@ -111,7 +111,9 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
         this.displacementRecoveryOpening = !pullConnected;
         this.displacementCooldown = Math.max(this.displacementCooldown, ChainbackDisplacementBehavior.COOLDOWN_TICKS);
         this.getNavigation().stop();
-        if (!pullConnected) {
+        if (pullConnected) {
+            this.playSound(SoundEvents.CHAIN_HIT, 0.9F, 0.65F);
+        } else {
             this.playSound(SoundEvents.CHAIN_BREAK, 0.9F, 0.75F);
             this.emitEvadedRecoveryOpening();
         }
