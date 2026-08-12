@@ -42,7 +42,7 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
-    void prototypeStatusReportsExistingRecoveryAndHealthWithoutOwningDamageState() throws Exception {
+    void prototypeStatusReportsExistingActionPhaseAndHealthWithoutOwningDamageState() throws Exception {
         String commandSource = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
         String modSource = Files.readString(Path.of(
@@ -51,8 +51,11 @@ final class CombatPrototypeCommandsTest {
                 "src/main/java/dev/spud/shadowslave/world/entity/ChainbackEntity.java"));
 
         assertTrue(commandSource.contains("Commands.literal(\"status\")"));
+        assertTrue(commandSource.contains("chainback.isInDisplacementTelegraph()"));
+        assertTrue(commandSource.contains("chainback.displacementTelegraphTicks()"));
         assertTrue(commandSource.contains("chainback.isInDisplacementRecovery()"));
         assertTrue(commandSource.contains("chainback.displacementRecoveryTicks()"));
+        assertTrue(commandSource.contains("String phase = telegraph ? \"TELEGRAPH\" : opening ? \"OPEN\" : \"NEUTRAL\""));
         assertTrue(commandSource.contains("chainback.getHealth()"));
         assertTrue(commandSource.contains("probe ARMED"));
         assertTrue(commandSource.contains("health delta %.1f since OPEN baseline"));
@@ -62,6 +65,9 @@ final class CombatPrototypeCommandsTest {
         assertFalse(commandSource.contains("PrototypeTelemetry"));
         assertFalse(modSource.contains("CombatPrototypeCommands::onLivingDamage"));
 
+        assertTrue(chainbackSource.contains("public boolean isInDisplacementTelegraph()"));
+        assertTrue(chainbackSource.contains("public int displacementTelegraphTicks()"));
+        assertTrue(chainbackSource.contains("return this.displacementTelegraphTicks;"));
         assertTrue(chainbackSource.contains("public boolean isInDisplacementRecovery()"));
         assertTrue(chainbackSource.contains("public int displacementRecoveryTicks()"));
         assertTrue(chainbackSource.contains("return this.displacementRecoveryTicks;"));
