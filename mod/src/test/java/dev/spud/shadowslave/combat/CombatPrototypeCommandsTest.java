@@ -118,6 +118,16 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
+    void statusCannotDowngradeExtraDamageAfterOpeningCloses() throws Exception {
+        String source = commandSource();
+
+        assertTrue(source.contains("float extraDamage = baseline.extraDamageSinceFirstObservation(chainback.getHealth())"));
+        assertTrue(source.contains("String verdict = extraDamage > 0.0F"));
+        assertTrue(source.contains("? \"EXTRA DAMAGE OBSERVED\""));
+        assertTrue(source.contains(": healthDelta > 0.0F ? \"DAMAGE OBSERVED\" : \"NO DAMAGE OBSERVED\""));
+    }
+
+    @Test
     void armedProbeInvalidatesIfReferenceWeaponLeavesMainHand() throws Exception {
         String source = commandSource();
 
