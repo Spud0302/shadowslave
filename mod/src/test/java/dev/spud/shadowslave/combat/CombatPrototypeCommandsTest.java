@@ -17,7 +17,8 @@ final class CombatPrototypeCommandsTest {
         assertTrue(source.contains("NightmareCreatureEntities.CHAINBACK.get().create(level)"));
         assertTrue(source.contains("new ItemStack(Items.IRON_SWORD)"));
         assertTrue(source.contains("chainback.setTarget(player)"));
-        assertTrue(source.contains("CHAINBACK_SPAWN_DISTANCE = 6.0D"));
+        assertTrue(source.contains("CHAINBACK_SPAWN_DISTANCE = 3.5D"));
+        assertTrue(source.contains("Chainback starts inside displacement range"));
         assertTrue(source.contains("chainback.addTag(PROTOTYPE_CHAINBACK_TAG)"));
 
         assertFalse(source.contains("SoulService"));
