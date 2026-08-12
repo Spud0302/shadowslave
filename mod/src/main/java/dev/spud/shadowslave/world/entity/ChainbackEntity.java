@@ -37,7 +37,7 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.goalSelector.addGoal(0, new DisplacementRecoveryGoal(this));
+        this.goalSelector.addGoal(0, new DisplacementActionReservationGoal(this));
     }
 
     @Override
@@ -78,6 +78,7 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
 
         if (this.displacementTelegraphTicks <= 0) {
             this.displacementTelegraphTicks = ChainbackDisplacementBehavior.TELEGRAPH_TICKS;
+            this.getNavigation().stop();
             this.playSound(SoundEvents.CHAIN_PLACE, 0.8F, 0.7F);
             this.emitDisplacementTelegraph(target);
             return;
@@ -109,6 +110,10 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
             this.playSound(SoundEvents.CHAIN_BREAK, 0.9F, 0.75F);
             this.emitEvadedRecoveryOpening();
         }
+    }
+
+    private boolean isDisplacementActionReserved() {
+        return this.displacementTelegraphTicks > 0 || this.displacementRecoveryTicks > 0;
     }
 
     /**
@@ -167,22 +172,22 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
         return this.geoCache;
     }
 
-    private static final class DisplacementRecoveryGoal extends Goal {
+    private static final class DisplacementActionReservationGoal extends Goal {
         private final ChainbackEntity chainback;
 
-        private DisplacementRecoveryGoal(ChainbackEntity chainback) {
+        private DisplacementActionReservationGoal(ChainbackEntity chainback) {
             this.chainback = chainback;
             this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.JUMP));
         }
 
         @Override
         public boolean canUse() {
-            return this.chainback.isInDisplacementRecovery();
+            return this.chainback.isDisplacementActionReserved();
         }
 
         @Override
         public boolean canContinueToUse() {
-            return this.chainback.isInDisplacementRecovery();
+            return this.chainback.isDisplacementActionReserved();
         }
 
         @Override
