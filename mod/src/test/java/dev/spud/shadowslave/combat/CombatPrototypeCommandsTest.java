@@ -79,7 +79,7 @@ final class CombatPrototypeCommandsTest {
         assertTrue(commandSource.contains("if (!opening)"));
         assertTrue(commandSource.contains("String verdict = healthDelta > 0.0F ? \"DAMAGE OBSERVED\" : \"NO DAMAGE OBSERVED\""));
         assertTrue(commandSource.contains("Combat prototype OPEN closed: health delta %.1f | verdict %s | probe CONSUMED."));
-        assertTrue(commandSource.contains("the damage verdict resolves automatically"));
+        assertTrue(commandSource.contains("the damage verdict resolves when OPEN closes"));
         assertTrue(modSource.contains("NeoForge.EVENT_BUS.addListener(CombatPrototypeCommands::onPlayerTick)"));
 
         assertFalse(commandSource.contains("LivingDamageEvent"));
@@ -102,14 +102,16 @@ final class CombatPrototypeCommandsTest {
     }
 
     @Test
-    void earnedOpeningRemainsReadableWithoutInterruptingThePhysicalExchange() throws Exception {
+    void telegraphAndEarnedOpeningRemainReadableWithoutInterruptingThePhysicalExchange() throws Exception {
         String source = Files.readString(Path.of(
                 "src/main/java/dev/spud/shadowslave/combat/CombatPrototypeCommands.java"));
 
-        assertTrue(source.contains("player.displayClientMessage(Component.literal("));
+        assertTrue(source.contains("if (chainback.isInDisplacementTelegraph())"));
+        assertTrue(source.contains("\"TELEGRAPH • \" + chainback.displacementTelegraphTicks() + \"t • break range / line of sight\""));
+        assertTrue(source.contains("withStyle(ChatFormatting.YELLOW), true"));
         assertTrue(source.contains("\"OPEN • \" + chainback.displacementRecoveryTicks() + \"t • commit one iron-sword swing\""));
         assertTrue(source.contains("withStyle(ChatFormatting.GREEN), true"));
-        assertTrue(source.contains("OPEN stays visible in the action bar until the punish window closes"));
+        assertTrue(source.contains("TELEGRAPH and OPEN stay visible in the action bar"));
 
         assertFalse(source.contains("StabilityService"));
         assertFalse(source.contains("bettercombat.api"));
