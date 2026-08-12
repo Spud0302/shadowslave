@@ -135,13 +135,30 @@ final class CombatPrototypeCommandsTest {
         assertTrue(source.contains("TELEGRAPH • "));
         assertTrue(source.contains("RECOVERY • "));
         assertTrue(source.contains("OPEN • %dt • %.1f blocks • commit one iron-sword swing"));
-        assertTrue(source.contains("HIT • %.1f damage • recover / reposition"));
-        assertTrue(source.contains("HIT CONFIRMED • %.1f damage • reposition"));
+        assertTrue(source.contains("HIT • %.1f damage • %dt into OPEN • recover / reposition"));
+        assertTrue(source.contains("HIT CONFIRMED • %.1f damage • %dt into OPEN • reposition"));
         assertTrue(source.contains("MISS • opening closed • reposition"));
         assertTrue(source.contains("EXTRA DAMAGE • %.1f after first observed drop • stop / reject spike"));
 
         assertFalse(source.contains("StabilityService"));
         assertFalse(source.contains("LivingDamageEvent"));
+    }
+
+    @Test
+    void healthProbeMeasuresFirstHitTimingWithoutOwningAttackTiming() throws Exception {
+        String source = commandSource();
+
+        assertTrue(source.contains("int openingTicksAtArm"));
+        assertTrue(source.contains("Integer firstObservedRecoveryTicks"));
+        assertTrue(source.contains("chainback.displacementRecoveryTicks()"));
+        assertTrue(source.contains("ticksToFirstObservedDrop()"));
+        assertTrue(source.contains("openingTicksAtArm - firstObservedRecoveryTicks"));
+        assertTrue(source.contains("t to first health drop"));
+
+        assertFalse(source.contains("AttackHandler"));
+        assertFalse(source.contains("WeaponAttributes"));
+        assertFalse(source.contains("LivingDamageEvent"));
+        assertFalse(source.contains("playerAttackTimer"));
     }
 
     @Test
