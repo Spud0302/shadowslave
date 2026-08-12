@@ -2,6 +2,7 @@ package dev.spud.shadowslave.attachment;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.echo.EchoOwnershipData;
+import dev.spud.shadowslave.item.GlassRoadCombatData;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
 import dev.spud.shadowslave.preview.PreviewPowerData;
@@ -26,6 +27,7 @@ public final class ModAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<EchoOwnershipData>> ECHOES = ATTACHMENTS.register("echoes", () -> AttachmentType.builder(EchoOwnershipData::empty).serialize(EchoOwnershipData.CODEC.codec()).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<ImportedIdentityData>> IMPORTED_IDENTITY = ATTACHMENTS.register("imported_identity", () -> AttachmentType.builder(ImportedIdentityData::empty).serialize(ImportedIdentityData.CODEC.codec()).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<PreviewPowerData>> PREVIEW_POWER = ATTACHMENTS.register("preview_power", () -> AttachmentType.builder(PreviewPowerData::empty).serialize(PreviewPowerData.CODEC.codec()).copyOnDeath().build());
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<GlassRoadCombatData>> GLASS_ROAD_COMBAT = ATTACHMENTS.register("glass_road_combat", () -> AttachmentType.builder(GlassRoadCombatData::empty).build());
 
     private ModAttachments() {}
     public static void register(IEventBus modEventBus) { ATTACHMENTS.register(modEventBus); }

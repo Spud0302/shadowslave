@@ -16,6 +16,12 @@ public final class ModItems {
             new Item.Properties().stacksTo(1)
     );
 
+    public static final DeferredItem<Item> GLASS_ROAD_MEMORY = ITEMS.registerItem(
+            "glass_road_memory",
+            GlassRoadMemoryItem::new,
+            new Item.Properties().stacksTo(1)
+    );
+
     private ModItems() {
     }
 
