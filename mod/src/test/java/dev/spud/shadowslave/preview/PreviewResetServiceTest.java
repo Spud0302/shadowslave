@@ -32,7 +32,7 @@ class PreviewResetServiceTest {
     private static final ResourceLocation EFFECT = id("preview/flaw_effect/cold_ash");
 
     @Test
-    void resetPersistsAndVerifiesIntentBeforeMutationsAndClearsItAfterOneAuthoritativeSnapshot() {
+    void resetPersistsAndVerifiesIntentAndPlayerBeforeClearingAfterOneAuthoritativeSnapshot() {
         FakeOperations operations = new FakeOperations();
 
         PreviewResetService.reset(operations);
@@ -48,6 +48,7 @@ class PreviewResetServiceTest {
                 "clear_imported_identity",
                 "clear_preview_power",
                 "persist_player",
+                "verify_player",
                 "sync",
                 "complete_reset_intent",
                 "persist_registry"
@@ -63,6 +64,7 @@ class PreviewResetServiceTest {
         assertEquals(ImportedIdentityData.empty(), operations.importedIdentityAtSync);
         assertEquals(PreviewPowerData.empty(), operations.previewPowerAtSync);
         assertTrue(operations.playerStatePersistedBeforeSync);
+        assertTrue(operations.playerStateVerifiedBeforeSync);
         assertTrue(operations.resetIntentPresentAtSync);
         assertFalse(operations.resetIntentPresent);
 
@@ -93,6 +95,33 @@ class PreviewResetServiceTest {
     }
 
     @Test
+    void failedPlayerVerificationRetainsResetAuthorityAndStopsBeforeSyncOrCompletion() {
+        FakeOperations operations = new FakeOperations();
+        operations.failPlayerVerification = true;
+
+        assertThrows(IllegalStateException.class, () -> PreviewResetService.reset(operations));
+
+        assertEquals(List.of(
+                "begin_reset_intent",
+                "persist_registry",
+                "verify_reset_intent",
+                "abort_nightmare",
+                "clear_successful_completion",
+                "reset_soul",
+                "clear_soul_identity",
+                "clear_imported_identity",
+                "clear_preview_power",
+                "persist_player",
+                "verify_player"
+        ), operations.calls);
+        assertTrue(operations.resetIntentPresent);
+        assertFalse(operations.nightmareActive);
+        assertFalse(operations.successfulCompletionPresent);
+        assertTrue(operations.playerStatePersistedBeforeSync);
+        assertTrue(operations.snapshots.isEmpty());
+    }
+
+    @Test
     void replayIsIdempotentWhenDurableResetIntentAlreadyExists() {
         FakeOperations operations = new FakeOperations();
         operations.resetIntentPresent = true;
@@ -112,6 +141,7 @@ class PreviewResetServiceTest {
         assertEquals(PreviewPowerData.empty(), operations.previewPower);
         assertEquals(1, operations.snapshots.size());
         assertTrue(operations.playerStatePersistedBeforeSync);
+        assertTrue(operations.playerStateVerifiedBeforeSync);
     }
 
     private static final class FakeOperations implements PreviewResetService.Operations {
@@ -121,9 +151,11 @@ class PreviewResetServiceTest {
         private boolean nightmareActive = true;
         private boolean successfulCompletionPresent = true;
         private boolean failIntentVerification;
+        private boolean failPlayerVerification;
         private boolean resetIntentVerified;
         private boolean intentWasVerifiedBeforeNightmareMutation;
         private boolean playerStatePersistedBeforeSync;
+        private boolean playerStateVerifiedBeforeSync;
         private boolean resetIntentPresentAtSync;
         private SoulData soul = SoulTransitions.completeFirstNightmare(
                 SoulTransitions.beginFirstNightmare(SoulTransitions.infect(SoulData.uninfected())),
@@ -237,6 +269,18 @@ class PreviewResetServiceTest {
                     && identity.equals(SoulIdentityData.empty())
                     && importedIdentity.equals(ImportedIdentityData.empty())
                     && previewPower.equals(PreviewPowerData.empty());
+        }
+
+        @Override
+        public void verifyPlayerPersisted() {
+            calls.add("verify_player");
+            if (failPlayerVerification) {
+                throw new IllegalStateException("simulated preview reset player persistence verification failure");
+            }
+            if (!playerStatePersistedBeforeSync) {
+                throw new IllegalStateException("preview reset player state was not persisted");
+            }
+            playerStateVerifiedBeforeSync = true;
         }
 
         @Override

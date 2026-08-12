@@ -226,6 +226,13 @@ class PreviewResetRestartBoundaryTest {
         }
 
         @Override
+        public void verifyPlayerPersisted() {
+            if (!durable.playerCleared) {
+                throw new IllegalStateException("simulated persisted player reset is absent");
+            }
+        }
+
+        @Override
         public void sync(SoulData resetSoul) {
             // Client presentation is intentionally non-durable in this process-free model.
         }
