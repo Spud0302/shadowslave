@@ -178,6 +178,12 @@ public final class CombatPrototypeCommands {
             ).withStyle(ChatFormatting.RED));
             return 0;
         }
+        if (BetterCombatSpikeAdapter.isAttackDisabled(player)) {
+            player.sendSystemMessage(Component.literal(
+                    "Combat prototype setup refused: Better Combat's CombatFlags API reports attacks disabled for this player by another mod/runtime flag, so the next sword swing would use vanilla combat. Re-enable Better Combat before judging the spike."
+            ).withStyle(ChatFormatting.RED));
+            return 0;
+        }
 
         ServerLevel level = player.serverLevel();
         int removed = removeTaggedPrototypeChainbacks(player);
@@ -207,7 +213,7 @@ public final class CombatPrototypeCommands {
 
         player.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         player.sendSystemMessage(Component.literal(
-                "Combat prototype ready: Better Combat is loaded and not disabled by the persistent player tag. Chainback starts inside displacement range; read its warning, break range/line of sight, then punish the earned opening with the iron sword."
+                "Combat prototype ready: Better Combat is loaded and CombatFlags confirms attacks are enabled for this player. Chainback starts inside displacement range; read its warning, break range/line of sight, then punish the earned opening with the iron sword."
         ).withStyle(ChatFormatting.GOLD));
         player.sendSystemMessage(Component.literal(
                 "TELEGRAPH, connected RECOVERY, and earned OPEN stay visible in the action bar; OPEN also reports live Chainback distance, and the final verdict records opening distance so punish-fit can be judged separately from hit plumbing."
