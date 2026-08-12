@@ -82,6 +82,10 @@ public final class CombatPrototypeCommands {
                         healthDelta,
                         verdict
                 )).withStyle(verdictColor));
+                player.displayClientMessage(Component.literal(healthDelta > 0.0F
+                        ? String.format("HIT CONFIRMED • %.1f damage • reposition", healthDelta)
+                        : "MISS • opening closed • reposition"
+                ).withStyle(verdictColor), true);
             }
             if (recovery) {
                 player.displayClientMessage(Component.literal(
