@@ -23,6 +23,7 @@ The base mod should retain:
 - Soul/progression state and persistence;
 - Nightmare Spell lifecycle, First Nightmare infection/trial flow and appraisal transaction authority;
 - later-Nightmare Seed/Gate framework and provider admission/safety checks;
+- provider-independent technical recovery metadata sufficient to recover participants when optional Nightmare content disappears;
 - Aspect/Flaw/Attribute resolved identity state and a small dependable fallback generator;
 - Memory identity/ownership/manifestation authority plus provider APIs;
 - Echo identity/ownership/command/persistence authority plus provider APIs;
@@ -89,7 +90,7 @@ If the answer is “not required for the minimum loop”, “provider contract i
 
 - Nightmare lifecycle, appraisal persistence/recovery and resolved identity persistence;
 - Memory/Echo ownership and manifestation/command authority;
-- Seed/Gate framework with provider-gated activation;
+- Seed/Gate framework with provider-gated activation and provider-independent participant/Gate recovery;
 - provider/registry contracts;
 - one representative First Nightmare and Dream Realm vertical slice;
 - one representative Memory, Echo and Nightmare Creature execution path;
@@ -123,7 +124,15 @@ The base should retain only enough authored examples to prove those systems. Add
 
 Later-Nightmare Seed/Gate semantics remain base concepts, but a persistent escalating threat must not activate unless the current installation contains a legitimate resolvable provider path for that tier/content.
 
-If a provider required by an already-persisted unresolved Seed is removed, fail safe: freeze/dormant the affected threat rather than allowing an unwinnable Gate to mature.
+Provider removal safety applies to **all unresolved lifecycle phases**, not only immature Seeds:
+
+- an unresolved Seed whose provider disappears becomes unavailable/dormant and cannot mature further;
+- an already-bloomed linked Gate must be suspended or safely contained while remaining explicitly unresolved, so missing content cannot leave an unwinnable active breach or be mistaken for successful closure;
+- a participant already inside a provider-owned Nightmare must have a base-owned technical abort/recovery route back to safe base-known state even when the base cannot reconstruct the missing provider's structures or resolution graph;
+- provider disappearance must never itself award Nightmare success, appraisal, rewards or progression;
+- restoration or explicit migration may resume/resolve the retained state once a valid authority path exists.
+
+The detailed lifecycle contract is pinned in `docs/design/NIGHTMARE-SEED-EXPANSION-SAFETY.md`.
 
 ## Loop/automation guardrail
 
