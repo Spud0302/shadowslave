@@ -11,7 +11,7 @@ Combat Core may own:
 - reusable melee reach/arc geometry;
 - bounded movement/action reservation signals while an action is committed;
 - generic player and mob executor seams;
-- generic damage-resolution and presentation hooks.
+- generic consumer-owned resolution and presentation hooks.
 
 Combat Core must not know about:
 
@@ -29,18 +29,20 @@ Implemented fundamentals:
 - `CombatActionState` advances `IDLE -> WINDUP -> ACTIVE -> RECOVERY -> IDLE`, exposes commitment/reservation state, permits cancellation only before commitment, and allows one resolution per active window;
 - `MeleeGeometry` performs bounded reach/arc admission without importing Shadow Slave concepts;
 - `BasicPlayerMeleeExecutor` intercepts ordinary server-side melee against living targets and routes it through a 4-tick wind-up, 1-tick active window, and 6-tick recovery before one bounded resolution attempt;
-- `MobActionExecutor<T>` is a deliberately small AI seam: the consumer owns target identity, navigation, AI scheduling and actual effects while Combat Core owns timing, commitment, movement reservation and active-window consumption;
-- focused JUnit tests cover phase timing, malformed action definitions, geometry boundaries, and the generic mob timing seam.
+- `MobActionExecutor<T>` is a deliberately small reusable action seam: the consumer owns target identity, navigation/AI, actual damage or supernatural effects, and presentation while Combat Core owns timing, commitment, movement reservation and active-window consumption;
+- `MobActionExecutor.resolveActiveWindow(...)` invokes a consumer-owned effect at most once during the active window;
+- `MobActionExecutor.publishPhase(...)` emits presentation-only phase changes without making presentation canonical state;
+- focused JUnit tests currently cover phase timing, malformed action definitions, geometry boundaries, and the original generic mob timing seam.
 
-Source implementation is not the same as physical proof. Hosted jobs are currently failing before checkout with no runner allocation, so standalone build, packaging, client/server boot, and ordinary sword-vs-zombie play are not yet claimed successful.
+Source implementation is not the same as physical proof. Hosted jobs are currently failing before checkout with no runner allocation, so standalone build, packaging, client/server boot, and ordinary sword-vs-zombie play are not yet claimed successful. Focused hook tests are also still pending because the repository mutation path rejected the test-file update during this slice.
 
 Still required for MVP completion:
 
 - an executing standalone build/test/JAR workflow;
+- focused tests for the new consumer resolution/presentation hooks;
 - physical client and dedicated-server boot proof;
 - physical ordinary sword-vs-zombie timing proof;
 - one Shadow Slave player action adapter and one creature/action adapter;
-- the smallest generic resolution/presentation hook surface needed by those adapters;
 - final duplicate-authority audit after migration.
 
 ## Building independently
@@ -55,7 +57,7 @@ The development JAR is produced under `combat-core/build/libs/`.
 
 ## Shadow Slave integration rule
 
-A Shadow Slave adapter translates already-authored content into generic Combat Core actions/hooks. For example, Glass Road may provide its own Memory identity and supernatural semantics while Combat Core supplies commitment/timing/geometry. Chainback may retain its creature identity and special-action rules while using the generic mob action executor seam.
+A Shadow Slave adapter translates already-authored content into generic Combat Core actions/hooks. For example, Glass Road may provide its own Memory identity and supernatural semantics while Combat Core supplies commitment/timing/geometry. Chainback may retain its creature identity and special-action rules while using the generic action executor seam.
 
 If an integration would require Combat Core to import a Shadow Slave domain type, the boundary is wrong; keep that translation in `shadow-slave.jar`.
 
