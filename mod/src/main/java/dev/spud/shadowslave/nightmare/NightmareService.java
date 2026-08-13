@@ -70,19 +70,42 @@ public final class NightmareService {
                 assignment.historicalRoleId()
         );
         NightmareInstance prepared = instance;
+        boolean entryCommitted = false;
         try {
             prepared = prepareScenario(nightmareLevel, player, instance);
             registry.update(prepared);
-            SoulService.beginFirstNightmare(player);
-            player.teleportTo(
-                    nightmareLevel,
-                    prepared.origin().getX() + 0.5,
-                    prepared.origin().getY() + 1.0,
-                    prepared.origin().getZ() - 1.5,
-                    Set.of(),
-                    0.0F,
-                    0.0F
-            );
+            NightmareInstance committedPrepared = prepared;
+            NightmareEntryDurabilityCoordinator.commit(new NightmareEntryDurabilityCoordinator.Operations() {
+                @Override
+                public void persistPreparedOwnership() {
+                    SavedDataPersistence.saveAndWait(server);
+                }
+
+                @Override
+                public void applyPlayerEntry() {
+                    SoulService.beginFirstNightmare(player);
+                    player.teleportTo(
+                            nightmareLevel,
+                            committedPrepared.origin().getX() + 0.5,
+                            committedPrepared.origin().getY() + 1.0,
+                            committedPrepared.origin().getZ() - 1.5,
+                            Set.of(),
+                            0.0F,
+                            0.0F
+                    );
+                    if (!player.serverLevel().dimension().equals(NIGHTMARE_LEVEL)) {
+                        throw new IllegalStateException(
+                                "Nightmare entry teleport returned without moving the player into the Nightmare dimension"
+                        );
+                    }
+                }
+
+                @Override
+                public void persistCommittedPlayer() {
+                    server.getPlayerList().saveAll();
+                }
+            });
+            entryCommitted = true;
             player.sendSystemMessage(Component.literal("First Nightmare — " + scenarioDisplayName(prepared.scenarioId()))
                     .withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD));
             player.sendSystemMessage(Component.literal(
@@ -99,6 +122,13 @@ public final class NightmareService {
                     .withStyle(ChatFormatting.LIGHT_PURPLE));
             return prepared;
         } catch (RuntimeException exception) {
+            entryCommitted = entryCommitted || player.serverLevel().dimension().equals(NIGHTMARE_LEVEL);
+            if (entryCommitted) {
+                throw new IllegalStateException(
+                        "Nightmare entry committed before a later failure; active ownership was retained for recovery",
+                        exception
+                );
+            }
             teardown(server, prepared);
             SoulService.replace(player, beforeSoul);
             throw new IllegalStateException("Nightmare entry failed and was rolled back", exception);
