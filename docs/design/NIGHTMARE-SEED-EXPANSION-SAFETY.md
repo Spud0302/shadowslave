@@ -25,6 +25,7 @@ The base may own generic concepts such as:
 - discovery, persistence, maturation and Gate transition state;
 - participant/cohort and entry contracts;
 - scenario-provider registration and compatibility checks;
+- provider-independent technical recovery metadata for active Nightmare participants;
 - Gate/world-threat state that derives from a resolvable Seed;
 - safe handling when optional content is absent or removed.
 
@@ -56,15 +57,18 @@ A later-Nightmare expansion therefore activates both sides of the system: **the 
 
 Optional expansion removal must not doom an existing save.
 
-If a persisted Seed loses the provider needed to resolve it, the safest default is:
+If persisted unresolved state loses the provider needed to resolve it, the base framework must fail safe rather than merely stop creating new content. The default contract is:
 
-1. retain its durable identity for possible restoration;
-2. mark it dormant/unavailable;
-3. freeze further maturation/escalation;
-4. do not manufacture a Gate that players cannot permanently close;
-5. resume only after a compatible provider is restored or a deliberate migration resolves the state.
+1. retain the durable Seed/Gate/provider identity for restoration, migration and diagnosis;
+2. mark the affected Seed/provider route unavailable and freeze further maturation/escalation;
+3. if the Seed already bloomed, suspend or safely contain the linked Gate and its continuing hostile escalation while preserving that it is **unresolved** — missing content must never be interpreted as victory or permanent closure;
+4. if players are already inside a provider-owned active Nightmare instance, use base-owned lifecycle/recovery metadata to abort or technically recover those participants to a safe base-known location before the provider-specific runtime is considered unavailable; retain enough recovery evidence to retry or diagnose failures, and do not award successful completion/appraisal merely because the provider disappeared;
+5. do not manufacture a new Gate, encounter escalation or other persistent threat whose durable resolution path is unavailable;
+6. resume the suspended Seed/Gate/instance only after a compatible provider is restored, or complete an explicit migration/administrative recovery that establishes a new valid authority path.
 
-Exact UX and migration semantics remain DESIGN/UNKNOWN until implemented.
+The recovery path must be content-independent: the base does not need to reconstruct a missing provider's structures or `ResolutionGraph` in order to return participants safely or suspend an active Gate. Provider-specific cleanup may improve presentation, but it cannot be the only way to avoid a stranded player or unwinnable persistent threat.
+
+Exact UX, suspended-Gate presentation, migration semantics and administrator tooling remain DESIGN/UNKNOWN until implemented.
 
 ## Expansion boundary
 
@@ -78,10 +82,10 @@ A later-Nightmare content JAR should register authored content against the base 
 - original-history baselines and appraisal evidence;
 - tier-appropriate rewards/advancement presentation.
 
-`shadow-slave.jar` remains authority for persistent player progression, Nightmare lifecycle contracts, Seed/Gate identity and cross-expansion compatibility.
+`shadow-slave.jar` remains authority for persistent player progression, Nightmare lifecycle contracts, technical participant recovery, Seed/Gate identity and cross-expansion compatibility.
 
 ## Broader addon rule
 
-The same safety principle should be reused for other optional persistent systems: optional content may increase variety, difficulty and progression possibilities, but removing it must not leave base-owned persistent state in an unwinnable or permanently escalating condition.
+The same safety principle should be reused for other optional persistent systems: optional content may increase variety, difficulty and progression possibilities, but removing it must not leave base-owned persistent state in an unwinnable, permanently escalating, or player-stranding condition.
 
 This is an architectural constraint, not permission to split existing runtime systems into separate JARs yet.
