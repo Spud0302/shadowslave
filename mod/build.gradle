@@ -38,6 +38,13 @@ sourceSets {
         compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
         runtimeClasspath += output + compileClasspath
     }
+
+    stormLanternWipTest {
+        java.srcDir 'src/stormLanternWipTest/java'
+        resources.srcDir 'src/stormLanternWipTest/resources'
+        compileClasspath += sourceSets.main.output + sourceSets.stormLanternWip.output + configurations.testCompileClasspath
+        runtimeClasspath += output + compileClasspath + configurations.testRuntimeClasspath
+    }
 }
 
 neoForge {
@@ -111,6 +118,18 @@ dependencies {
 
 tasks.named('test', Test).configure {
     useJUnitPlatform()
+}
+
+tasks.register('stormLanternWipTest', Test) {
+    group = 'verification'
+    description = 'Runs provider-present tests with the optional Storm Lantern WIP source set on the classpath.'
+    testClassesDirs = sourceSets.stormLanternWipTest.output.classesDirs
+    classpath = sourceSets.stormLanternWipTest.runtimeClasspath
+    useJUnitPlatform()
+}
+
+tasks.named('check').configure {
+    dependsOn tasks.named('stormLanternWipTest')
 }
 
 tasks.register('stormLanternWipJar', Jar) {
