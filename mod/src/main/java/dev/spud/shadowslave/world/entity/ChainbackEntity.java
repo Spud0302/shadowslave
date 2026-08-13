@@ -59,15 +59,15 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
         if (this.level().isClientSide) {
             return;
         }
-        if (this.evadedPenaltyTicks > 0) {
-            this.evadedPenaltyTicks--;
-            return;
-        }
 
         long nowTick = this.level().getGameTime();
         if (this.displacementAction.actionReserved(nowTick)) {
             this.displacementAction.publishPhase(nowTick, this::presentDisplacementPhase);
             this.displacementAction.resolveActiveWindow(nowTick, (target, ignored) -> this.resolveDisplacement(target));
+            return;
+        }
+        if (this.evadedPenaltyTicks > 0) {
+            this.evadedPenaltyTicks--;
             return;
         }
 
@@ -139,7 +139,7 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
             double x = target.getX() + (this.getX() - target.getX()) * progress;
             double y = targetHeight + (sourceHeight - targetHeight) * progress;
             double z = target.getZ() + (this.getZ() - target.getZ()) * progress;
-            serverLevel.sendParticles(ParticleTypes.CRIT, x, y, z, 1, 0.03D, 0.03D, 0.03D, 0.0D);
+            serverLevel.sendParticles(ParticleTypes.CRIT, x, y, z, 1, 0.03D, 0.03D, 0.03D, 0.03D, 0.0D);
         }
     }
 
