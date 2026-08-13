@@ -83,11 +83,13 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
         if (this.displacementTelegraphTicks <= 0) {
             this.displacementTelegraphTicks = ChainbackDisplacementBehavior.TELEGRAPH_TICKS;
             this.getNavigation().stop();
+            this.getLookControl().setLookAt(target, 30.0F, 30.0F);
             this.playSound(SoundEvents.CHAIN_PLACE, 0.8F, 0.7F);
             this.emitDisplacementTelegraph(target);
             return;
         }
 
+        this.getLookControl().setLookAt(target, 30.0F, 30.0F);
         if (ChainbackDisplacementBehavior.shouldTelegraphPulse(this.displacementTelegraphTicks)) {
             this.emitDisplacementTelegraph(target);
         }
