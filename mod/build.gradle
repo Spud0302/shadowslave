@@ -92,6 +92,7 @@ neoForge {
 }
 
 dependencies {
+    implementation 'dev.spud.combatcore:combat-core:0.0.1-wip'
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
     implementation "net.tslat.smartbrainlib:SmartBrainLib-neoforge-${minecraft_version}:${smartbrainlib_version}"
 
