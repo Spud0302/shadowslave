@@ -10,6 +10,12 @@ on:
       - reopened
     paths:
       - 'combat-core/**'
+      - 'mod/build.gradle'
+      - 'mod/settings.gradle'
+      - 'mod/src/main/java/dev/spud/shadowslave/item/GlassRoadCombatData.java'
+      - 'mod/src/main/java/dev/spud/shadowslave/item/GlassRoadMemoryItem.java'
+      - 'mod/src/main/java/dev/spud/shadowslave/world/entity/ChainbackEntity.java'
+      - 'mod/src/test/java/dev/spud/shadowslave/item/GlassRoadMemoryItemTest.java'
       - '.github/workflows/combat-core.yml'
 
 permissions:
@@ -45,6 +51,9 @@ jobs:
 
       - name: Test and build standalone combat-core project
         run: ./mod/gradlew -p combat-core clean test build --stacktrace
+
+      - name: Compile and test Shadow Slave consumer adapters
+        run: ./mod/gradlew -p mod test --stacktrace
 
       - name: Boot physical NeoForge client
         shell: bash
