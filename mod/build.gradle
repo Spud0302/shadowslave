@@ -31,6 +31,15 @@ repositories {
     }
 }
 
+sourceSets {
+    stormLanternWip {
+        java.srcDir 'src/stormLanternWip/java'
+        resources.srcDir 'src/stormLanternWip/resources'
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
 neoForge {
     version = project.neo_version
     addModdingDependenciesTo sourceSets.test
@@ -102,6 +111,18 @@ dependencies {
 
 tasks.named('test', Test).configure {
     useJUnitPlatform()
+}
+
+tasks.register('stormLanternWipJar', Jar) {
+    group = 'build'
+    description = 'Packages optional Storm Lantern Coast WIP content separately from shadowslave.jar.'
+    archiveBaseName = 'ss-region-storm-lantern-wip'
+    archiveClassifier = ''
+    from sourceSets.stormLanternWip.output
+}
+
+tasks.named('assemble').configure {
+    dependsOn tasks.named('stormLanternWipJar')
 }
 
 var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
