@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.item;
 
+import dev.spud.combatcore.api.CombatPhase;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.content.memory.MemoryContentCatalog;
 import dev.spud.shadowslave.memory.MemoryOwnershipService;
@@ -46,16 +47,17 @@ public final class GlassRoadMemoryItem extends Item {
 
         long now = serverPlayer.serverLevel().getGameTime();
         GlassRoadCombatData state = serverPlayer.getData(ModAttachments.GLASS_ROAD_COMBAT);
-        if (state.committed(now)) {
+        CombatPhase phase = state.phaseAt(now);
+        if (phase == CombatPhase.WINDUP || phase == CombatPhase.ACTIVE) {
             serverPlayer.sendSystemMessage(Component.literal("Glass Road is already committed to the line.").withStyle(ChatFormatting.GRAY));
             return InteractionResultHolder.fail(stack);
         }
-        if (state.recovering(now)) {
+        if (phase == CombatPhase.RECOVERY) {
             serverPlayer.sendSystemMessage(Component.literal("Glass Road has not yet recovered its edge.").withStyle(ChatFormatting.GRAY));
             return InteractionResultHolder.fail(stack);
         }
+        if (!state.start(now)) return InteractionResultHolder.fail(stack);
 
-        serverPlayer.setData(ModAttachments.GLASS_ROAD_COMBAT, new GlassRoadCombatData(now + WINDUP_TICKS, 0L));
         serverPlayer.sendSystemMessage(Component.literal("Glass Road stills for a precise cut...").withStyle(ChatFormatting.AQUA));
         return InteractionResultHolder.sidedSuccess(stack, false);
     }
@@ -64,8 +66,10 @@ public final class GlassRoadMemoryItem extends Item {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         long now = player.serverLevel().getGameTime();
         GlassRoadCombatData state = player.getData(ModAttachments.GLASS_ROAD_COMBAT);
-        if (!state.readyToResolve(now)) return;
+        state.resolve(now, () -> resolveCleanEdge(player));
+    }
 
+    private static void resolveCleanEdge(ServerPlayer player) {
         boolean manifested = player.getMainHandItem().is(ModItems.GLASS_ROAD_MEMORY.get()) || player.getOffhandItem().is(ModItems.GLASS_ROAD_MEMORY.get());
         boolean owned = MemoryOwnershipService.owns(player, MEMORY_ID);
         Optional<LivingEntity> target = manifested && owned ? findCleanEdgeTarget(player) : Optional.empty();
@@ -75,7 +79,6 @@ public final class GlassRoadMemoryItem extends Item {
         } else {
             player.sendSystemMessage(Component.literal("The committed cut finds only empty road.").withStyle(ChatFormatting.GRAY));
         }
-        player.setData(ModAttachments.GLASS_ROAD_COMBAT, new GlassRoadCombatData(0L, now + RECOVERY_TICKS));
     }
 
     private static Optional<LivingEntity> findCleanEdgeTarget(ServerPlayer player) {
