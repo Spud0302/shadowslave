@@ -32,22 +32,25 @@ Implemented fundamentals:
 - `MobActionExecutor<T>` is a deliberately small reusable action seam: the consumer owns target identity, navigation/AI, actual damage or supernatural effects, and presentation while Combat Core owns timing, commitment, movement reservation and active-window consumption;
 - `MobActionExecutor.resolveActiveWindow(...)` invokes a consumer-owned effect at most once during the active window;
 - `MobActionExecutor.publishPhase(...)` emits presentation-only phase changes without making presentation canonical state;
-- focused JUnit tests currently cover phase timing, malformed action definitions, geometry boundaries, and the original generic mob timing seam.
+- focused JUnit tests cover phase timing, malformed action definitions, geometry boundaries, and generic mob timing;
+- Shadow Slave now consumes Combat Core as an included independent Gradle build on the WIP branch;
+- Glass Road is the first Shadow Slave player-action adapter in source: Combat Core owns its 10-tick wind-up, one-tick active window, 16-tick recovery, reservation and one-resolution guard, while Shadow Slave still owns Memory identity/ownership, manifested-item checks, target selection, damage and messages;
+- the Glass Road test pins the adapter boundary and one-shot phase behavior.
 
-Source implementation is not the same as physical proof. Hosted jobs are currently failing before checkout with no runner allocation, so standalone build, packaging, client/server boot, and ordinary sword-vs-zombie play are not yet claimed successful. Focused hook tests are also still pending because the repository mutation path rejected the test-file update during this slice.
+Source implementation is not the same as physical proof. Exact-head hosted jobs are still failing before checkout with no runner allocation, so standalone build, combined Shadow Slave consumer build, packaging, client/server boot, and ordinary sword-vs-zombie play are not yet claimed successful.
 
 Still required for MVP completion:
 
-- an executing standalone build/test/JAR workflow;
-- focused tests for the new consumer resolution/presentation hooks;
+- an executing standalone build/test/JAR workflow and executing Shadow Slave consumer build;
+- focused tests for the generic presentation callback surface;
 - physical client and dedicated-server boot proof;
 - physical ordinary sword-vs-zombie timing proof;
-- one Shadow Slave player action adapter and one creature/action adapter;
+- one Shadow Slave creature/action adapter, preferably Chainback after current-main reconciliation;
 - final duplicate-authority audit after migration.
 
 ## Building independently
 
-The directory is its own Gradle project (`settings.gradle`, `build.gradle`, `gradle.properties`). From the repository root it can be built with the repository's existing Gradle wrapper without making it a subproject of `shadow-slave.jar`:
+The directory is its own Gradle project (`settings.gradle`, `build.gradle`, `gradle.properties`). From the repository root it can be built with the repository's existing Gradle wrapper:
 
 ```bash
 ./mod/gradlew -p combat-core test build
@@ -55,9 +58,11 @@ The directory is its own Gradle project (`settings.gradle`, `build.gradle`, `gra
 
 The development JAR is produced under `combat-core/build/libs/`.
 
+The Shadow Slave consumer build uses Gradle composite-build substitution rather than turning Combat Core into a Shadow Slave subproject: `mod/settings.gradle` includes `../combat-core`, and `mod/build.gradle` consumes `dev.spud.combatcore:combat-core:0.0.1-wip`.
+
 ## Shadow Slave integration rule
 
-A Shadow Slave adapter translates already-authored content into generic Combat Core actions/hooks. For example, Glass Road may provide its own Memory identity and supernatural semantics while Combat Core supplies commitment/timing/geometry. Chainback may retain its creature identity and special-action rules while using the generic action executor seam.
+A Shadow Slave adapter translates already-authored content into generic Combat Core actions/hooks. Glass Road demonstrates the intended direction: Shadow Slave provides Memory identity and supernatural semantics while Combat Core supplies action timing/commitment. Chainback may retain its creature identity and special-action rules while using the generic action executor seam.
 
 If an integration would require Combat Core to import a Shadow Slave domain type, the boundary is wrong; keep that translation in `shadow-slave.jar`.
 
