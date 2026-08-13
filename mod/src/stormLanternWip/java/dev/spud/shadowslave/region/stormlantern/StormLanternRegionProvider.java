@@ -6,6 +6,7 @@ import java.util.Set;
 
 public final class StormLanternRegionProvider implements DreamRealmRegionProvider {
     public static final String REGION_ID = "storm_lantern_coast";
+    public static final String HISTORICAL_SITE_ID = "drowned_bell_cliff_settlement";
 
     @Override
     public String providerId() {
@@ -19,6 +20,6 @@ public final class StormLanternRegionProvider implements DreamRealmRegionProvide
 
     @Override
     public Set<String> supportedHistoricalSiteIds() {
-        return Set.of();
+        return Set.of(HISTORICAL_SITE_ID);
     }
 }
