@@ -1,90 +1,115 @@
-# Shadow Slave — current issues and limitations
+# Shadow Slave — current issues, blockers, and limitations
 
-**Canonical state:** `PROJECT-STATUS.md`  
-**Current Java candidate:** `0.1.0-preview.2` on PR #19  
-**Status:** Claude's returned blocker and disconnect gap are corrected; fresh gate and review pending
+**Status date:** 2026-08-13  
+**Canonical current state:** `PROJECT-STATUS.md`  
+**Baseline:** `main@c72a8f1cdeab8d7316e0a65db0486b765d0b5627`
 
-The previous long-form datapack and alpha issue history remains in Git history and is referenced under
-`docs/history/`. This file tracks the current preview and shipped datapack limitations.
+The old August 1 preview.2 / Claude correction batch is historical evidence, not the current issue list. Preserve those records under `docs/reviews/`, `docs/history/`, Git history, and their original issues/PRs rather than carrying obsolete status forward here.
 
-## Claude finding correction batch
+## 1. Successful-completion recovery still lacks the strongest process/network proof
 
-Claude's 2026-08-01 pass found seven issues. The current PR branch contains candidate fixes and regression coverage:
+Issue #34 remains open.
 
-| Issue | Current correction |
-| --- | --- |
-| #20 | frozen datapack uses a persistent global trial lock; it refuses another entrant while the owner is online or offline, and releases only after teardown |
-| #21 | README and this authoritative issue file state the one-active-trial ceiling, disconnect behaviour, and deeper global-selector limitation |
-| #22 | `SoulData` returns `DataResult.error` for invariant failures instead of throwing through the codec |
-| #23 | stored schema is validated and dispatched explicitly; schema 1 migrates deliberately and schema 2 is validated exactly as stored |
-| #24 | every Nightmare-Spell state at or beyond Dreamer requires the permanent appraised Aspect and Flaw pair |
-| #25 | completed imports require retained Carrier evidence, and modern identities require matching mechanics tags |
-| #26 | `test/reset` restores an enterable health baseline after removing transient state and modifiers |
+Current main and the recovery lineage have durable completion receipts, exact generated-appraisal replay state, persisted-image verification, fresh-JVM/disk-image evidence, login-precedence contracts, and a same-world two-JVM dedicated-server restart substrate. #278 additionally carries a bounded server-side FakePlayer GameTest proof.
 
-Claude's first correction review is preserved in `docs/reviews/2026-08-01-claude-review-of-preview-fixes.md`. The response is appended there rather than erasing the returned findings.
+What is **not** yet proven is the strongest target: a genuine networked `ServerPlayer` completing/recovering through production login behavior across two dedicated-server JVMs while exact return state, active ownership teardown, appraisal/rewards, and receipt consumption converge exactly once.
 
-## Frozen datapack multiplayer limitation
+Do not relabel FakePlayer, codec, disk-image, or same-world boot evidence as that proof.
 
-`datapack-v1.0.0` has one global Nightmare dimension, bossbar, creature selector, and persistent trial slot. **Only one player may own a First Nightmare at a time.**
+## 2. Prepared Nightmare world/chunk durability remains blocked
 
-The slot now remains occupied if its owner disconnects or the server restarts. Another player is refused until the original owner reconnects and reaches normal teardown. This prevents the ordinary orphan-creature overlap Claude reproduced.
+The prepared-world durability work tracked through #158 remains blocked under its recorded resume conditions. Do not add another speculative checkpoint or retry the blocked lane without new evidence, a credible physical test seam, or owner input that changes the boundary.
 
-If the owner will never return, an administrator must perform deliberate recovery rather than silently admitting another player. Killing the orphan and clearing `$global ss_trial_lock` without understanding the player's retained `ss_in_nightmare` state can destroy or duplicate progression evidence.
+## 3. Hosted GitHub runner allocation is blocking current exact-head validation
 
-The deeper command-era architecture still uses global `@e[tag=ss_creature]` selectors. `testserver/defect_issue20_stray_creature.mjs` deliberately demonstrates that a manually introduced unrelated entity carrying that tag can still affect the prototype objective. It remains outside the release gate. True per-player entity ownership belongs to the Java `NightmareService` and is not claimed for the frozen datapack.
+Several current integration heads have GitHub Actions runs that reached a completed failure state **before checkout**, with no job steps/runner allocation. This has affected current-main validation for lanes including #275, #276, #278, #279, and Combat Core #282.
 
-## Verification status
+This is infrastructure evidence:
 
-No blocker is currently proven against the latest correction head, but the replacement gate has not yet run. The earlier validator clean, lifecycle 32/32, and Flaw 39/39 results predate the persistent-lock changes.
+- it is not a source/test/runtime failure;
+- it is not a green gate;
+- older green source-lineage runs remain useful but do not validate a newer current-main re-root;
+- do not repeatedly rerun an unchanged head solely to chase allocation.
 
-Required next run:
+Resume when runners are credibly available, owner intervention changes execution conditions, or a substantive source change creates a legitimate new head.
 
-```bash
-cd testserver
-npm run deploy
-npm test
+## 4. Combat Core MVP is source-implemented but physically unproven
 
-./mod/gradlew -p mod clean build
-mod/verify-smoke.sh
-python3 shadowslave/tools/validate.py
-```
+PR #282 is Draft.
 
-`regression_issue20.mjs` must complete the offline-owner sequence and terminate with exit 0; printing PASS while keeping Mineflayer sockets open is not a pass.
+Current source includes the standalone NeoForge project, action phase/state primitives, bounded melee geometry, and an ordinary server-side player-melee proof. Remaining MVP evidence includes:
 
-## Open evidence gaps
+- standalone build/JUnit execution;
+- physical NeoForge client and dedicated-server boot;
+- ordinary sword-vs-target play proof;
+- a generic mob executor seam;
+- generic damage/presentation hooks needed by the Shadow Slave integration proof;
+- one representative Shadow Slave player integration and one creature/action integration;
+- final duplicate-authority audit.
 
-1. The complete Java path through Carrier, Aspirant, Dreamer/Sleeper, Kindle, and Cold Ash has not been played by Andrew.
-2. Claude has not yet verified the latest correction head.
-3. Real Java logout/login persistence at Carrier, active Nightmare, and Dreamer stages remains untested end to end.
-4. Active Java-instance restart recovery lacks a complete restart scenario.
-5. Two-player simultaneous Java-preview instances need live multiplayer verification.
-6. Migration needs a backed-up real frozen-datapack world test and idempotent second invocation.
-7. Signal-fire completion and return position need interactive verification.
-8. Ordinary Nightmare death needs cleanup and wording verification.
+Do not expand into limb injury, advanced stability, broad damage channels, parry trees, Essence economy, advanced movement, or build graphs before the MVP proves those seams are needed.
 
-Use `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md` for the complete criteria.
+## 5. Storm Lantern / Drowned Bell module extraction is incomplete
 
-## Known Java preview limitations
+PR #283 is Draft. The direction is now to preserve the Drowned Bell/later-site identity proof in base while moving deeper Storm Lantern region vocabulary into an optional provider/WIP module.
 
-- onboarding uses `/shadowslave preview_begin`; natural infection/exhaustion is not implemented;
-- The Last Signal is one handcrafted DESIGN scenario;
-- the campfire interaction is a development terminal trigger, not the mature completion engine;
-- one vanilla Husk is a pressure placeholder;
-- no historical body/inventory/provisional power replacement;
-- no corpse Gate after First-Nightmare failure;
-- appraisal is a fixed DESIGN result rather than a canonical or procedural formula;
-- imported identities persist, but all imported mechanics are not implemented;
-- no later Seeds, Dream Realm progression, Memories, Echoes, or later ranks;
-- no modpack manifest or adapters;
-- no public Java release.
+Still required before destructive cleanup:
 
-## Lore risks
+- independent optional JAR build/load proof;
+- provider-present runtime discovery;
+- equivalent-or-stronger site/encounter behavior for whatever is ported;
+- a clear compatibility/removal path;
+- deletion of duplicate base execution only after those proofs.
 
-- Do not treat The Last Signal, Last Light, Kindle, Cold Ash, or their appraisal as canon.
-- Do not generalise the campfire click into universal Nightmare completion.
-- Future completion must follow `docs/NIGHTMARE-SEED-ROADMAP.md`.
-- Exact later-Seed rules require renewed primary-novel verification.
+Do not resume broad Storm Lantern expansion inside the base mod simply because #275 contains useful reviewed work.
 
-## Reporting
+## 6. Current Nightmare entry durability primitive is not yet integrated
 
-Record defects with the exact build and commit, reproduction steps, expected versus observed behaviour, logs or screenshots, and whether the issue is correctness, presentation, balance, lore wording, or missing scope.
+PR #284 is Draft. `NightmareEntryDurabilityCoordinator` pins the intended ordering, but current-main `NightmareService.tryEnter(...)` is not yet wired through it.
+
+The integration must preserve newer scenario assignment, Drowned Bell support, generated appraisal/recovery, Glass Road, and current persistence APIs instead of wholesale-porting stale cumulative ancestry.
+
+## 7. Provider-removal safety is a design contract, not a finished runtime feature
+
+Merged #281 now requires optional later-Nightmare providers to fail safe when missing:
+
+- unresolved Seeds must stop escalating;
+- already-bloomed linked Gates must be suspended/contained while remaining unresolved;
+- participants already inside provider-owned active Nightmares need a base-owned technical recovery route;
+- provider disappearance must never itself award success, appraisal, rewards, or progression.
+
+The architecture is pinned in `docs/design/NIGHTMARE-SEED-EXPANSION-SAFETY.md`; later runtime implementation remains outstanding.
+
+## 8. Current integration candidates are not merge-ready until exact-head evidence exists
+
+- #275 — cumulative Drowned Bell/Storm Lantern world integration — Draft / current head not executed successfully.
+- #276 — Ash Burrower guard + carry integration — older lineage green; current-main re-root failed before checkout.
+- #278 — recovery consolidation — current-main exact head failed before checkout; mature #178 durability contracts are not yet fully reconciled.
+- #279 — gameplay interaction consolidation — source PRs were individually green; current-main exact head failed before checkout.
+
+Do not close their source PRs solely because these consolidation branches exist. Retire sources only after successful exact-head validation and final containment/equivalence checks.
+
+## 9. The frozen datapack is legacy/reference architecture
+
+The frozen datapack remains useful as a reference/regression product, but its single global Nightmare slot and command-era global selectors are not the target architecture for Java multiplayer or provider/module work.
+
+Do not spend current alpha scope trying to evolve the frozen datapack into feature parity with the Java mod unless the owner explicitly requests maintenance of that product.
+
+## 10. No public Java release / full interactive alpha acceptance yet
+
+Merged main has a substantial playable foundation, but no public Java release is claimed. Outstanding release-level evidence includes an accepted current-main integration state, interactive play/feel validation of the assembled alpha, and resolution or explicit deferral of the correctness boundaries above.
+
+## Admin/backlog limitation
+
+Issue #285 tracks the archive pass. Closing a stale base-breadth PR under that issue preserves its branch/history; it is not evidence that the implementation is bad or permanently rejected. Reopen only when a coherent provider/WIP module actually needs it, a missing base contract is demonstrated, or the owner changes the scope boundary.
+
+## Reporting new defects
+
+Record:
+
+- exact branch/head/build;
+- reproduction steps;
+- expected vs observed result;
+- logs/workflow/job evidence where relevant;
+- whether the finding is correctness, integration, presentation, balance, lore, packaging, external infrastructure, or missing scope;
+- whether an existing durable/replay authority still survives the failure.
