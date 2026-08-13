@@ -23,20 +23,25 @@ Dependency direction is one-way: Shadow Slave may depend on Combat Core; Combat 
 
 ## Current MVP state
 
-Implemented pure fundamentals:
+Implemented fundamentals:
 
 - `CombatActionDefinition` validates one small action contract;
 - `CombatActionState` advances `IDLE -> WINDUP -> ACTIVE -> RECOVERY -> IDLE`, exposes commitment/reservation state, permits cancellation only before commitment, and allows one resolution per active window;
 - `MeleeGeometry` performs bounded reach/arc admission without importing Shadow Slave concepts;
-- focused JUnit tests cover phase timing, malformed action definitions, and geometry boundaries.
+- `BasicPlayerMeleeExecutor` intercepts ordinary server-side melee against living targets and routes it through a 4-tick wind-up, 1-tick active window, and 6-tick recovery before one bounded resolution attempt;
+- `MobActionExecutor<T>` is a deliberately small AI seam: the consumer owns target identity, navigation, AI scheduling and actual effects while Combat Core owns timing, commitment, movement reservation and active-window consumption;
+- focused JUnit tests cover phase timing, malformed action definitions, geometry boundaries, and the generic mob timing seam.
 
-Not yet implemented and therefore not claimed playable:
+Source implementation is not the same as physical proof. Hosted jobs are currently failing before checkout with no runner allocation, so standalone build, packaging, client/server boot, and ordinary sword-vs-zombie play are not yet claimed successful.
 
-- ordinary sword input/execution against a zombie;
-- mob executor integration;
-- damage/presentation hooks;
-- Glass Road or Chainback adapters;
-- physical client/server boot proof.
+Still required for MVP completion:
+
+- an executing standalone build/test/JAR workflow;
+- physical client and dedicated-server boot proof;
+- physical ordinary sword-vs-zombie timing proof;
+- one Shadow Slave player action adapter and one creature/action adapter;
+- the smallest generic resolution/presentation hook surface needed by those adapters;
+- final duplicate-authority audit after migration.
 
 ## Building independently
 
@@ -50,7 +55,7 @@ The development JAR is produced under `combat-core/build/libs/`.
 
 ## Shadow Slave integration rule
 
-A Shadow Slave adapter translates already-authored content into generic Combat Core actions/hooks. For example, Glass Road may provide its own Memory identity and supernatural damage semantics while Combat Core supplies commitment/timing/geometry. Chainback may retain its creature identity and special-action rules while using a generic mob action executor seam.
+A Shadow Slave adapter translates already-authored content into generic Combat Core actions/hooks. For example, Glass Road may provide its own Memory identity and supernatural semantics while Combat Core supplies commitment/timing/geometry. Chainback may retain its creature identity and special-action rules while using the generic mob action executor seam.
 
 If an integration would require Combat Core to import a Shadow Slave domain type, the boundary is wrong; keep that translation in `shadow-slave.jar`.
 
