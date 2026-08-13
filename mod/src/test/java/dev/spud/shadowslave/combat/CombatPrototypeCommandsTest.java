@@ -195,6 +195,7 @@ final class CombatPrototypeCommandsTest {
         assertTrue(source.contains("return this.displacementTelegraphTicks > 0 || this.displacementRecoveryTicks > 0"));
         assertTrue(source.contains("EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.JUMP)"));
         assertTrue(source.contains("this.chainback.setDeltaMovement(0.0D, motion.y, 0.0D)"));
+        assertTrue(source.contains("this.getLookControl().setLookAt(target, 30.0F, 30.0F)"));
 
         assertFalse(source.contains("bettercombat"));
         assertFalse(source.contains("MemoryOwnership"));
