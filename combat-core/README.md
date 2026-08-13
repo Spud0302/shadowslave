@@ -33,19 +33,19 @@ Implemented fundamentals:
 - `MobActionExecutor.resolveActiveWindow(...)` invokes a consumer-owned effect at most once during the active window;
 - `MobActionExecutor.publishPhase(...)` emits presentation-only phase changes without making presentation canonical state;
 - focused JUnit tests cover phase timing, malformed action definitions, geometry boundaries, and generic mob timing;
-- Shadow Slave now consumes Combat Core as an included independent Gradle build on the WIP branch;
-- Glass Road is the first Shadow Slave player-action adapter in source: Combat Core owns its 10-tick wind-up, one-tick active window, 16-tick recovery, reservation and one-resolution guard, while Shadow Slave still owns Memory identity/ownership, manifested-item checks, target selection, damage and messages;
-- the Glass Road test pins the adapter boundary and one-shot phase behavior.
+- Shadow Slave consumes Combat Core as an included independent Gradle build on the WIP branch;
+- Glass Road is the Shadow Slave player-action adapter: Combat Core owns its action timing/reservation/one-resolution guard while Shadow Slave retains Memory ownership, targeting, damage and messages;
+- Chainback is the Shadow Slave creature-action adapter in source: Combat Core owns its 12-tick wind-up, one active tick, eight recovery ticks, movement/action reservation and one-shot resolution; Shadow Slave retains creature identity, target legality, cooldown, pull vector, the extra evade penalty, AI, sounds and particles.
 
-Source implementation is not the same as physical proof. Exact-head hosted jobs are still failing before checkout with no runner allocation, so standalone build, combined Shadow Slave consumer build, packaging, client/server boot, and ordinary sword-vs-zombie play are not yet claimed successful.
+Source implementation is not the same as physical proof. Hosted jobs have been failing before checkout with no runner allocation, so standalone build, combined Shadow Slave consumer build, packaging, client/server boot, ordinary sword-vs-zombie play, and Chainback play are not claimed successful until an exact-head job actually executes.
 
 Still required for MVP completion:
 
 - an executing standalone build/test/JAR workflow and executing Shadow Slave consumer build;
-- focused tests for the generic presentation callback surface;
+- focused tests for the generic resolution/presentation callback surface; two repository mutation attempts for those tests were rejected before reaching GitHub, so they remain an explicit test gap;
 - physical client and dedicated-server boot proof;
 - physical ordinary sword-vs-zombie timing proof;
-- one Shadow Slave creature/action adapter, preferably Chainback after current-main reconciliation;
+- physical Glass Road and Chainback adapter proof;
 - final duplicate-authority audit after migration.
 
 ## Building independently
@@ -62,7 +62,7 @@ The Shadow Slave consumer build uses Gradle composite-build substitution rather 
 
 ## Shadow Slave integration rule
 
-A Shadow Slave adapter translates already-authored content into generic Combat Core actions/hooks. Glass Road demonstrates the intended direction: Shadow Slave provides Memory identity and supernatural semantics while Combat Core supplies action timing/commitment. Chainback may retain its creature identity and special-action rules while using the generic action executor seam.
+A Shadow Slave adapter translates already-authored content into generic Combat Core actions/hooks. Glass Road and Chainback demonstrate the intended direction: Shadow Slave provides Memory/creature identity and supernatural semantics while Combat Core supplies generic action timing, commitment, reservation and one-resolution enforcement.
 
 If an integration would require Combat Core to import a Shadow Slave domain type, the boundary is wrong; keep that translation in `shadow-slave.jar`.
 
