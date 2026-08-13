@@ -1,94 +1,82 @@
 # Shadow Slave project status
 
-**Status date:** 2026-08-01  
-**Stable main:** Java `0.1.0-alpha.4`, Claude-verified  
-**Active preview:** PR #19 / `gpt/live-datapack-import`  
-**Corrected Java candidate:** `shadowslave-0.1.0-preview.2.jar`  
-**Runtime source commit:** `9cbfe57a05095e31c1980093e4d57ea9a2f7e10c`
+**Status date:** 2026-08-13  
+**Authoritative baseline:** `main@c72a8f1cdeab8d7316e0a65db0486b765d0b5627`  
+**Release state:** active alpha development; no public Java release
 
-## Products
+## Current direction
 
-| Product | Current state | Public release |
-| --- | --- | --- |
-| Vanilla datapack | completed reference; one active First Nightmare at a time | `datapack-v1.0.0` |
-| Java stable main | persistent Soul foundation, networking/UI, and pure migration | none |
-| Java playable preview | corrected preview.2 Java gate green; Claude/player review pending | not a release |
-| Nightmare Spell modpack | design only | none |
+PR #281 is merged and is the current scope/architecture guardrail. `shadow-slave.jar` keeps canonical Shadow Slave authority, persistence, provider contracts, and small representative playable slices. Deep generic combat belongs in standalone `combat-core`; broad region/content work should move behind coherent optional provider/WIP modules rather than continuing to widen the base JAR.
 
-## Playable preview scope
+Read before expanding scope:
 
-PR #19 contains:
+- `docs/design/MODULAR-JAR-BOUNDARIES.md`
+- `docs/design/NIGHTMARE-SEED-EXPANSION-SAFETY.md`
+- `docs/LORE-SOURCE-POLICY.md`
+- `docs/NIGHTMARE-SEED-ROADMAP.md`
 
-- transactional live datapack migration with read-back verification, rollback, and no legacy cleanup;
-- persistent imported and native Aspect/Flaw instance records;
-- persistent per-player Nightmare registry and separate scenario slots;
-- one Java entry choke point and one teardown path;
-- bundled Nightmare dimension;
-- playable DESIGN scenario **The Last Signal** with the **last watchkeeper** role;
-- central-conflict completion by restoring a signal fire, with combat optional;
-- fixed DESIGN appraisal **Last Light** / **Kindle** / **Cold Ash**;
-- expanded O-key Soul screen;
-- onboarding, inspection, recovery, reset, and migration commands.
+## What merged main already represents
 
-## Claude finding correction batch
+Current main is well beyond the old August 1 preview.2 baseline. The merged lineage includes:
 
-Claude's 2026-08-01 review found issues #20–#26. The active branch now contains candidate fixes:
+- persistent Soul / Aspect / Flaw / Attribute identity and Nightmare lifecycle authority;
+- multiple First-Nightmare scenario/role/appraisal integration work;
+- generated appraisal state plus durable successful-completion recovery records and restart-focused evidence;
+- Memory ownership/manifestation with Ash Compass and Glass Road playable examples;
+- Echo ownership/commands with an Ash Burrower baseline;
+- registered Nightmare Creature execution and GeckoLib/SmartBrainLib infrastructure;
+- an Ashen Expanse / Cinder Rest Dream Realm vertical slice;
+- normal gameplay keybinds backed by server-authoritative intents;
+- a real same-world two-JVM dedicated-server restart gate;
+- the bounded Glass Road commitment/recovery combat proof;
+- design constraints for combat, progression, Essence, injuries, and supernatural target/defense interactions without treating those notes as blanket implementation authorization.
 
-- `SoulData` codec invariant failures become `DataResult.error` rather than raw load exceptions;
-- schema versions are validated and explicitly migrated/dispatched;
-- every post-First-Nightmare Nightmare-Spell state retains Aspect/Flaw identity;
-- completed datapack imports require the retained Carrier tag;
-- generated identities require their matching mechanics tags;
-- datapack `test/reset` restores an enterable health baseline;
-- the frozen datapack refuses a second concurrent First Nightmare before shared state is created;
-- README and authoritative issues documentation state that one-active-trial ceiling.
+The frozen datapack remains a historical/reference product. It is not the architecture target for new Java gameplay work.
 
-The original findings remain in `docs/reviews/2026-08-01-claude-test-findings.md`.
+## Active integration / WIP lanes
 
-## Corrected Java evidence
+### #282 — Combat Core MVP — Draft
 
-GitHub Actions `Java core` run **34** / ID `30686670446` passed:
+Standalone NeoForge `combat-core` now has source-level action phases, bounded melee geometry, and an ordinary server-side player-melee proof. It remains Draft because hosted jobs have repeatedly failed before runner allocation/checkout, so standalone build, physical client/server boot, play proof, mob execution, Shadow Slave integration, and final duplicate-authority audit are not yet established.
 
-- Gradle wrapper validation;
-- compilation and expanded unit tests;
-- physical-client startup;
-- dedicated-server startup;
-- JAR packaging;
-- artifact upload.
+### #283 — Storm Lantern provider extraction — Draft
 
-Artifact ID: `8814240590`.
+First physical extraction of reviewed Storm Lantern vocabulary behind an optional region-provider/WIP boundary. It is intentionally not merge-ready yet and must prove independent provider loading/equivalence before duplicate base implementation is removed.
 
-```text
-archive SHA-256  a7ee670001042ee9c783ceb191e667fefdf043acd1b6fa498438434907291d79
-JAR SHA-256      48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9
-```
+### #284 — Nightmare entry durability on current main — Draft
 
-Full artifact details belong in `docs/PLAYABLE-PREVIEW-PROVENANCE.md`.
+Re-establishes the base entry-ordering primitive on current main. It is intentionally Draft until `NightmareService.tryEnter(...)` is actually wired through the coordinator without importing stale cumulative ancestry.
 
-## Evidence boundary
+### #275 / #276 / #278 / #279 — current integration candidates
 
-The corrected **Java** gate is green. This does not yet prove:
+These consolidate world, Echo, recovery, and gameplay slices respectively. Their current exact heads are **not green**: recent Preview Gates attempts on the current-main re-roots failed before any repository step executed because no hosted runner was allocated. Their older source-lineage passes remain useful evidence but are not substitutes for exact-head current-main validation.
 
-- the deployed frozen-datapack lifecycle/Flaw/concurrency Mineflayer gate;
-- Claude's independent bulk verification of the corrected head;
-- Andrew's complete interactive playthrough;
-- real relog/restart persistence;
-- live Java multiplayer instance separation and gameplay feel.
+Do not rerun unchanged heads merely to chase runner allocation. Resume when runner availability changes, owner intervention creates a credible execution opportunity, or a substantive source change creates a new validation target.
 
-The old `0.1.0-preview.1` JAR is superseded by the correction candidate and must not be used as evidence for issues #20–#26.
+## Current correctness boundaries
 
-## Frozen datapack multiplayer contract
+- **Issue #34 remains open:** successful-completion recovery still lacks a genuine networked `ServerPlayer` reconnect across two dedicated-server JVMs. FakePlayer/fresh-JVM/disk-image evidence is valuable but not equivalent to that boundary.
+- **Prepared Nightmare world/chunk durability remains blocked** under the recorded #158 resume conditions.
+- Provider-removal safety is now architecturally pinned: unavailable providers must not leave maturing Seeds, active unwinnable Gates, or stranded active-Nightmare participants. The runtime implementation of that later-Nightmare provider-removal contract is still future work.
 
-The datapack can run on a multiplayer server, but it owns one global Nightmare dimension, bossbar, and creature slot. Only one player may be inside a First Nightmare at a time. A second entrant is refused until teardown releases the slot. True simultaneous per-player trials are provided by the Java architecture.
+## Repository cleanup state
 
-## Lore boundary
+Issue #285 tracks the 2026-08-13 archive pass. Stale base-breadth PRs are being closed **without deleting their branches**, so useful implementation/history remains available for provider/WIP ports while the active PR queue reflects the current modular direction.
 
-Novel mechanics remain authoritative. The handcrafted scenario, fixed appraisal, Aspect, ability, and Flaw are labelled **DESIGN**. Future Nightmare completion and later Seed behaviour must follow `docs/NIGHTMARE-SEED-ROADMAP.md` and begin with renewed primary-lore verification.
+The Better Combat spike #277 is archived as comparison evidence; #282 Combat Core is the active generic-combat path.
 
-## Next actions
+## Merge / evidence rule
 
-1. Run the deployed datapack gate: `cd testserver && npm run deploy && npm test`.
-2. Claude bulk-reviews the corrected PR head and records verified, verified with fixes, or blocked.
-3. Andrew plays `0.1.0-preview.2` and records presentation/feel findings.
-4. Fix evidence-backed defects without broad content expansion.
-5. Merge only after the corrected evidence is accepted.
+- Runtime/integration PRs are not merge-ready merely because their source lineage passed on an older base.
+- Draft means intentionally incomplete.
+- A workflow that fails with no runner/steps is infrastructure evidence, not a source failure and not a pass.
+- Supersede or retire source PRs only after ancestry/equivalence evidence proves the successor contains the needed behavior.
+- Documentation/admin PRs may merge without runtime gates when their paths do not trigger those gates, but substantive review findings must be resolved first.
+
+## Next admin/development priorities
+
+1. Keep the active queue centered on #282, #283, #284 and the current integration candidates rather than reopening archived breadth.
+2. Obtain real executed exact-head validation for #276/#278/#279 when hosted runners are available.
+3. Continue Combat Core only to its MVP acceptance boundary, then integrate representative Shadow Slave actions instead of expanding generic feature scope.
+4. Wire #284 into current-main entry carefully and preserve the mature #152/#178 durability contracts as source evidence.
+5. Continue Storm Lantern work through the provider/WIP boundary rather than broadening the base region implementation.

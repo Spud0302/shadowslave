@@ -1,117 +1,94 @@
-# GPT handoff — playable preview baseline
+# GPT handoff — current modular alpha
 
 **Read first in a new GPT or Claude session.**  
 **Repository:** `Spud0302/shadowslave`  
-**Baseline branch:** `main`
-**Candidate version:** `0.1.0-preview.2`
+**Baseline branch:** `main`  
+**Status baseline:** `main@c72a8f1cdeab8d7316e0a65db0486b765d0b5627` on 2026-08-13
 
-## Mandatory lore source
+## Mandatory first reads
 
-Before any lore-sensitive design, implementation, naming or review, read the **[lore source policy](docs/LORE-SOURCE-POLICY.md)**.
+Before lore-sensitive design or implementation, read `docs/LORE-SOURCE-POLICY.md` and verify relevant primary novel evidence. Keep **CANON**, **INFERRED**, **DESIGN**, **UNKNOWN**, and **COMPATIBILITY** distinct.
 
-The project owner has designated [NovelFull](https://novelfull.com/shadow-slave.html) as the working full-chapter research access source. That host is not itself canonical: use novel chapter text rather than site metadata, memory or wiki summaries as the authority, and use [official WebNovel](https://www.webnovel.com/book/shadow-slave_22196546206090805) for official wording and publication cross-checks. Check relevant later clarifications, summarise evidence without committing novel text, and keep **CANON**, **INFERRED**, **DESIGN** and **UNKNOWN** distinct.
+Before choosing scope or reviving old work, also read:
 
-## Current state
+- `PROJECT-STATUS.md`
+- `ISSUES.md`
+- `docs/design/MODULAR-JAR-BOUNDARIES.md`
+- `docs/design/NIGHTMARE-SEED-EXPANSION-SAFETY.md`
+- `docs/NIGHTMARE-SEED-ROADMAP.md`
 
-The playable Java slice and live migration from PR #19 are merged into `main`. Claude reviewed the #20–#26 correction batch at `ad03e00` and returned one blocking test-harness hang plus one real disconnect gap in the frozen datapack's single-trial guard.
+Do not treat old PR descriptions or the August 1 preview documents as current authority when they conflict with current main or these status files.
 
-Both returned items are addressed in the merged source:
+## Current architecture direction
 
-- `regression_issue20.mjs` terminates cleanly on success and failure;
-- the frozen datapack uses a persistent `$global` score in `ss_trial_lock`, so the one shared First-Nightmare slot remains occupied while its owner is offline and across server restarts;
-- teardown releases the lock only after shared creature cleanup;
-- the regression now kicks Alice mid-trial, proves Bob is refused while Alice is offline, reconnects Alice, proves resume/completion, then proves Bob can enter after teardown;
-- Claude's global-selector defect probe is restored separately as `testserver/defect_issue20_stray_creature.mjs`, deliberately outside `npm test`.
+Merged PR #281 establishes the active development model:
 
-The exact response to Claude's review is in `docs/reviews/2026-08-01-claude-review-of-preview-fixes.md`.
+- `shadow-slave.jar` owns Shadow Slave grammar/authority, persistence, provider contracts, and representative playable slices;
+- `combat-core` is Shadow-Slave-agnostic generic combat infrastructure;
+- broad Dream Realm/region/Memory/Echo/creature content should preferentially live in coherent provider/WIP modules;
+- advanced identity generation may eventually become an optional generator module while base retains a deterministic fallback;
+- provider removal must fail safe for persisted Seeds, active Gates, and participants already inside provider-owned Nightmares;
+- resolved permanent state never silently rerolls because an optional provider/generator changes.
 
-## Evidence already established
+Do not deepen a base feature simply because an old open branch already contains more implementation.
 
-Java runtime source `9cbfe57a05095e31c1980093e4d57ea9a2f7e10c` passed GitHub Actions `Java core` run 34 / ID `30686670446`:
+## Active lanes
 
-- wrapper validation;
-- compilation and expanded JUnit suite;
-- physical-client startup;
-- dedicated-server startup;
-- JAR packaging and upload.
+### #282 — `gpt/combat-core-mvp` — Draft
 
-No Java runtime source changed in the disconnect-lock response. The replacement JAR remains `0.1.0-preview.2` with SHA-256:
+Active generic combat direction. Source currently contains the independent project, action phases, melee geometry, and an ordinary server-side player-melee proof. Hosted jobs have failed before checkout/no runner allocation, so no standalone build or physical boot/play success is claimed. Keep scope at MVP.
 
-```text
-48686e2598f9d5354acaec6544e4a5b024206fc0944c75e026cb67586298d9d9
-```
+### #283 — `gpt/storm-lantern-region-wip-extraction` — Draft
 
-Claude independently established before returning the latest changes:
+First Storm Lantern optional provider/WIP extraction. Preserve the Drowned Bell / later-site identity proof while moving deeper region vocabulary out of the base. Do not delete duplicate base/source implementation until provider-present loading and equivalence are proven.
 
-- validator clean;
-- lifecycle 32/32;
-- Flaw 39/39;
-- #22–#26 code shapes accepted by inspection.
+### #284 — `gpt/base-entry-durability-current-main` — Draft
 
-Those datapack counts predate the persistent-lock regression and are not proof of the current head.
+Current-main recovery slice pinning entry durability ordering. The coordinator is not yet wired into `NightmareService.tryEnter(...)`; do not call this solved or merge-ready.
 
-## Next verification
+### #275 / #276 / #278 / #279
 
-Fresh evidence is still needed against current `main`:
+Current world, Echo, recovery, and gameplay integration candidates. Recent exact-head Preview Gates on current-main re-roots failed before any repository step ran because no hosted runner was allocated. Older green source-lineage evidence remains relevant, but these heads are not green.
 
-```bash
-cd testserver
-npm run deploy
-npm test
+### Recovery source evidence
 
-./mod/gradlew -p mod clean build
-mod/verify-smoke.sh
-python3 shadowslave/tools/validate.py
-```
+Keep #152, #158, and #178 available as mature correctness/durability evidence until the current-main recovery lane deliberately absorbs or replaces their contracts. Do not close them just for age.
 
-The datapack gate must now prove:
+## Current blockers / non-claims
 
-1. lifecycle 32/32;
-2. Flaw 39/39;
-3. `regression_issue20.mjs` exits 0 after the disconnect/reconnect sequence;
-4. no process remains hanging after PASS.
+- Issue #34 still lacks a genuine networked `ServerPlayer` reconnect across two dedicated-server JVMs for successful-completion recovery.
+- #158 prepared Nightmare world/chunk durability remains blocked under its recorded resume conditions.
+- Combat Core does not yet have an executed standalone build/physical boot/play gate.
+- Storm Lantern provider extraction is incomplete and is not release/module admission yet.
+- Provider-removal Seed/Gate/active-instance safety is architecturally specified but not yet a finished runtime subsystem.
+- No public Java release is claimed.
 
-`defect_issue20_stray_creature.mjs` is not a release-gate test. It deliberately demonstrates that a manually introduced unrelated entity carrying the prototype-global `ss_creature` tag can still affect the global objective. That is retained as an architecture limitation rather than confused with the supported one-slot contract.
+## Backlog cleanup
 
-## Playable Java loop
+Issue #285 records the archive pass. Stale faction/investigation content PRs and Better Combat spike #277 have been closed unmerged while their branches/history remain preserved.
 
-```text
-Uninfected
-→ /shadowslave preview_begin
-→ Carrier
-→ Aspirant / Dormant inside The Last Signal
-→ restore the signal fire
-→ Dreamer/Sleeper / Dormant
-→ Last Light / Awakened Aspect Rank
-→ Kindle ability + Cold Ash Flaw
-```
+Treat an archived PR as source/WIP material, not active base scope. Reopen only when an active provider/module explicitly consumes it, equivalence analysis shows it owns a missing base contract, or the owner changes direction.
 
-The scenario, role, fixed appraisal, Aspect, ability, and Flaw are **DESIGN**, not asserted canon. Future Nightmare completion follows `docs/NIGHTMARE-SEED-ROADMAP.md`: central-conflict terminal resolution, separate challenger outcome, then appraisal.
+## Working rules
 
-## Claude findings and current resolution
-
-Full original reasoning remains in `docs/reviews/2026-08-01-claude-test-findings.md`.
-
-| Issue | Merged state |
-| --- | --- |
-| #20 | ordinary concurrent and disconnect overlap is prevented by a persistent global slot; deeper global-selector limitation remains explicitly measured out of gate |
-| #21 | authoritative docs state the one-active-trial ceiling, offline ownership behaviour, and admin recovery boundary |
-| #22 | `SoulData.CODEC` converts invariant failures to `DataResult.error` |
-| #23 | stored schemas are validated and explicitly dispatched |
-| #24 | post-First-Nightmare Spell states retain Aspect, Aspect Rank, and Flaw |
-| #25 | inconsistent completed/generated migration evidence fails closed |
-| #26 | datapack `test/reset` restores an enterable health baseline |
-
-## Manual Java preview
-
-Use `mod/PREVIEW-PLAY-GUIDE.md` and `docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`. Important unproven items remain real relog/restart persistence, death/recovery wording, exact signal completion, multiplayer Java instance separation, and feel/readability.
-
-## Workflow rules
-
-- GPT does not write directly to or merge into `main`.
-- Every GPT commit includes `Co-Authored-By: ChatGPT <gpt@openai.com>`.
+- Default to a `gpt/` branch and PR for repository changes; do not casually write directly to `main`.
+- **Explicit owner authorization can include admin/merge work.** When the owner directly asks for merges/admin cleanup, GPT may merge a PR only after verifying the exact head is appropriate: not intentionally incomplete, no unresolved substantive review finding, and required evidence is satisfied for the type of change.
+- Never merge a Draft runtime/integration PR merely to simplify the graph.
+- Never interpret a no-runner/no-steps workflow failure as a pass or as a code defect.
+- Do not blindly rerun unchanged hosted heads just to chase runner allocation.
+- Every GPT-authored commit includes `Co-Authored-By: ChatGPT <gpt@openai.com>`.
 - Use JDK 21.
-- Use `mod/verify-smoke.sh`; bare Gradle smoke-task success is not a valid gate.
-- Treat merged PRs as historical context and verify current repository state before following an old status instruction.
-- Preserve original findings and review records; append corrections rather than rewriting history.
-- Never assume lore. Check primary novel evidence before adding or generalising mechanics, and label project inventions as DESIGN.
+- Preserve reviewed history/evidence; port or supersede only with explicit containment/equivalence proof.
+- Avoid broad catalogue/runtime growth in the base when #281 says the lane belongs behind a provider/module boundary.
+- Design notes for limb injury, advanced stability, target layers, Essence economy, movement/build graphs, etc. are constraints for future systems, not authorization to implement all of them now.
+
+## Useful current sequence
+
+When taking over development:
+
+1. Re-read current PR state before assuming an old handoff is still accurate.
+2. Keep #282 at Combat Core MVP and obtain a real executed build/boot/play proof before expanding it.
+3. Continue #284 by wiring only the current-main entry durability contract, preserving newer gameplay/appraisal APIs.
+4. Let #283 prove the provider boundary before resuming broad Storm Lantern work.
+5. Resume #276/#278/#279 exact-head validation only when hosted execution is credibly available or a substantive source change creates a new validation target.
+6. Use #285 to keep archived breadth out of the active queue unless a module explicitly needs it.
