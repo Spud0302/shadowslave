@@ -10,15 +10,19 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
- * Deliberately tiny first playable executor: ordinary server-side player melee is
- * committed to a single wind-up/active/recovery action before damage resolves.
+ * Deliberately tiny first playable executor: ordinary server-side sword attacks
+ * are committed to a single wind-up/active/recovery action before damage
+ * resolves.
  *
  * This is a proof path, not a weapon catalogue or final vanilla-equivalence layer.
+ * Punches, tools and other weapon families deliberately remain vanilla until a
+ * later need proves they belong in Combat Core.
  */
 public final class BasicPlayerMeleeExecutor {
     private static final CombatActionDefinition BASIC_ATTACK =
@@ -31,6 +35,7 @@ public final class BasicPlayerMeleeExecutor {
     public static void onAttack(AttackEntityEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (!(event.getTarget() instanceof LivingEntity target)) return;
+        if (!(player.getMainHandItem().getItem() instanceof SwordItem)) return;
 
         event.setCanceled(true);
 
