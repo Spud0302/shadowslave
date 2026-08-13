@@ -9,3 +9,7 @@ plugins {
 }
 
 rootProject.name = 'shadowslave-mod'
+
+// Keep Combat Core as an independent Gradle build/JAR while allowing this
+// consumer build to compile and run against its published project coordinates.
+includeBuild('../combat-core')
