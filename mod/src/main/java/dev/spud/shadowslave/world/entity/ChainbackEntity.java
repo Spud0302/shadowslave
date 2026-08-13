@@ -139,7 +139,7 @@ public final class ChainbackEntity extends Spider implements GeoEntity {
             double x = target.getX() + (this.getX() - target.getX()) * progress;
             double y = targetHeight + (sourceHeight - targetHeight) * progress;
             double z = target.getZ() + (this.getZ() - target.getZ()) * progress;
-            serverLevel.sendParticles(ParticleTypes.CRIT, x, y, z, 1, 0.03D, 0.03D, 0.03D, 0.03D, 0.0D);
+            serverLevel.sendParticles(ParticleTypes.CRIT, x, y, z, 1, 0.03D, 0.03D, 0.03D, 0.0D);
         }
     }
 
