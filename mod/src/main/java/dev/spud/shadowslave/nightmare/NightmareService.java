@@ -417,8 +417,7 @@ public final class NightmareService {
                 LastSignalScenario.removeOwnedEntities(nightmareLevel, instance);
             } else if (instance.scenarioId().equals(DrownedBellScenarioDefinition.SCENARIO_ID)) {
                 DrownedBellScenario.removeOwnedEntities(nightmareLevel, instance);
-            }
-            else {
+            } else {
                 ShadowSlaveMod.LOGGER.warn(
                         "Nightmare scenario {} has no teardown cleanup for instance {}",
                         instance.scenarioId(),
