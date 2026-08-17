@@ -29,3 +29,4 @@ __pycache__/
 # build artifacts — the pack is built from shadowslave/, never committed
 dist-*.zip
 shadowslave-*.zip
+.idea/
