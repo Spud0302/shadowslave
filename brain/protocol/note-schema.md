@@ -36,6 +36,25 @@ Use these when relevant:
 - test_links — tests, workflows, and evidence.
 - supersedes — uid of an older immutable record.
 - task_id — claim shared across claim, log, evidence, and handoff.
+- derived_from — uids or repository paths this note summarizes or depends on.
+
+## Derived notes and invalidation
+
+A summary, context packet, index, or snapshot that restates another note is
+**derived**. Declare its sources in `derived_from`, using their uids where the
+source is a vault note.
+
+The validator then warns when a source's `updated` date is newer than the
+derived note's, which makes the dependency chain checkable:
+
+```text
+authority note -> derived summary -> context packet
+```
+
+The warning identifies a possible staleness, not a defect. Refreshing a derived
+note requires judgement about what actually changed, so no tool rewrites prose
+automatically. Immutable records — closed evidence, handoffs, accepted decisions
+— are exempt: they describe a moment and are not expected to track their sources.
 
 ## Authority and lifecycle are separate
 

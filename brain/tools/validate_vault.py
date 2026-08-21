@@ -55,8 +55,15 @@ REQUIRED_HOME = {"claim": "brain/ai/claims", "handoff": "brain/ai/handoffs", "lo
 ADVISORY_HOME = {"decision": "brain/decisions"}
 
 WIKILINK = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]")
+NESTED_KEY = re.compile(r"^[A-Za-z_][\w.-]*\s*:")
+INLINE_CODE = re.compile(r"`[^`]+`")
 ISO_DATE = "%Y-%m-%d"
 ISO_STAMP = "%Y-%m-%dT%H:%M:%SZ"
+
+# Records that describe a moment rather than tracking their sources.
+IMMUTABLE_STATES = ("closed", "superseded", "archived")
+# ~4 characters per token; the agreed ceiling for a context packet is ~2000.
+PACKET_CHAR_BUDGET = 8000
 
 
 class Finding:
@@ -101,11 +108,21 @@ def parse_frontmatter(text):
         return None, "frontmatter block is never closed"
 
     data = {}
+    declared = set()
     key = None
     for line in lines[1:end]:
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         stripped = line.strip()
+
+        # Fail loudly on anything this parser cannot represent. Guessing is how
+        # a block list once read as empty and made a held path look free; an
+        # indented "key: value" would otherwise land as a bogus top-level key.
+        if line[:1] in (" ", "\t") and not stripped.startswith("- ") \
+                and NESTED_KEY.match(stripped):
+            return None, ("nested mappings are not supported; rewrite %r as a flat "
+                          "key or a block list" % stripped)
+
         if stripped.startswith("- "):
             if key is None:
                 continue
@@ -122,6 +139,9 @@ def parse_frontmatter(text):
             continue
         raw_key, _, raw_val = line.partition(":")
         key = raw_key.strip()
+        if key in declared:
+            return None, "duplicate frontmatter key %r; one silently wins" % key
+        declared.add(key)
         raw_val = raw_val.strip()
         if raw_val in ("", "[]", "~", "null"):
             data[key] = [] if raw_val == "[]" else None
@@ -317,6 +337,26 @@ def check_note(path, root, link_index, uid_owners, findings, now):
             findings.append(Finding("warn", "BOOL_INVALID", rel,
                                     "%s='%s' should be true or false" % (key, val)))
 
+    # A handoff asserting that something passed, with no command anywhere in its
+    # verification section, cannot be distinguished later from one that never ran
+    # anything. Advisory on purpose: a false failure here teaches agents to
+    # ignore warnings, which costs more than the check saves.
+    if kind == "handoff":
+        section = extract_section(text, "Verification performed")
+        if section is not None and "```" not in section \
+                and not INLINE_CODE.search(section):
+            findings.append(Finding("warn", "VERIFICATION_UNPROVEN", rel,
+                                    "'Verification performed' names no command; a pass claim "
+                                    "without its command is not evidence"))
+
+    if parent == "brain/ai/context" and name != "README.md":
+        size = len(text)
+        if size > PACKET_CHAR_BUDGET:
+            findings.append(Finding("warn", "PACKET_OVERSIZE", rel,
+                                    "%d characters exceeds the ~%d budget; a packet must stay "
+                                    "cheaper to load than exploring the repository"
+                                    % (size, PACKET_CHAR_BUDGET)))
+
     for target in set(WIKILINK.findall(text)):
         # Inside a Markdown table an alias pipe must be escaped as "\|", which
         # otherwise leaves a trailing backslash on the captured target.
@@ -326,6 +366,69 @@ def check_note(path, root, link_index, uid_owners, findings, now):
                                     "wikilink [[%s]] does not resolve" % target))
 
     return meta
+
+
+def extract_section(text, heading):
+    """Return the body under a heading, or None when the heading is absent."""
+    lines = text.splitlines()
+    start = None
+    for i, line in enumerate(lines):
+        if line.startswith("#") and line.lstrip("#").strip().lower() == heading.lower():
+            start = i + 1
+            break
+    if start is None:
+        return None
+    body = []
+    for line in lines[start:]:
+        if line.startswith("#") and not line.startswith("#####"):
+            break
+        body.append(line)
+    return "\n".join(body)
+
+
+def check_derived_from(notes, root, findings):
+    """Warn when a source note changed after the note derived from it.
+
+    Immutable records are exempt: a closed handoff or evidence record describes
+    a moment and is not expected to follow its sources.
+    """
+    by_uid = {}
+    by_path = {}
+    for rel, meta in notes.items():
+        if not meta:
+            continue
+        if meta.get("uid"):
+            by_uid[meta["uid"]] = (rel, meta)
+        by_path[rel] = (rel, meta)
+        by_path[rel.rsplit(".", 1)[0]] = (rel, meta)
+
+    for rel, meta in notes.items():
+        if not meta or meta.get("state") in IMMUTABLE_STATES:
+            continue
+        sources = meta.get("derived_from")
+        if not sources:
+            continue
+        own = meta.get("updated")
+        if not isinstance(own, str):
+            continue
+        for ref in (sources if isinstance(sources, list) else [sources]):
+            found = by_uid.get(ref) or by_path.get(str(ref).strip().strip("/"))
+            if not found:
+                findings.append(Finding("warn", "DERIVED_UNRESOLVED", rel,
+                                        "derived_from '%s' matches no note in the vault" % ref))
+                continue
+            src_rel, src_meta = found
+            src_updated = src_meta.get("updated")
+            if not isinstance(src_updated, str):
+                continue
+            try:
+                if datetime.strptime(src_updated, ISO_DATE) > datetime.strptime(own, ISO_DATE):
+                    findings.append(Finding("warn", "DERIVED_STALE", rel,
+                                            "source %s was updated %s, after this note's %s; "
+                                            "review before relying on it"
+                                            % (src_rel, src_updated, own)))
+            except ValueError:
+                continue
 
 
 def check_cross_references(notes, findings):
@@ -419,6 +522,7 @@ def main(argv=None):
             findings.append(Finding("error", "UNREADABLE", rel, str(exc)))
 
     check_cross_references(notes, findings)
+    check_derived_from(notes, root, findings)
     check_commits(root, notes, findings)
     if not args.changed_only:
         check_canvases(root, link_index, findings)

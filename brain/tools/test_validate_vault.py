@@ -256,6 +256,94 @@ class ValidatorTest(unittest.TestCase):
                    note(uid="ss-living", state="active", captured_commit=old))
         self.assertFinds("SNAPSHOT_STALE")
 
+    # --- parser fails loudly rather than guessing (item 16)
+
+    def test_nested_mapping_is_rejected_not_guessed(self):
+        """An indented 'key: value' would otherwise land as a bogus top-level key."""
+        text = ("---\nuid: ss-nest\nrecord_kind: design\nauthority: context\n"
+                "lore_class: DESIGN\nstate: active\nowner: a\n"
+                "created: 2026-08-21\nupdated: 2026-08-21\n"
+                "budget:\n  tokens: 2000\n---\n\n# Nested\n")
+        meta, err = validate_vault.parse_frontmatter(text)
+        self.assertIsNone(meta)
+        self.assertIn("nested", err)
+        self.write("brain/design/nested.md", text)
+        self.assertFinds("FRONTMATTER")
+
+    def test_duplicate_key_is_rejected(self):
+        meta, err = validate_vault.parse_frontmatter(
+            "---\nuid: a\nstate: active\nstate: closed\n---\n\nbody\n")
+        self.assertIsNone(meta)
+        self.assertIn("duplicate", err)
+
+    def test_list_item_containing_a_url_still_parses(self):
+        meta, err = validate_vault.parse_frontmatter(
+            "---\nuid: a\nsources:\n  - https://example.com/x\n---\n\nbody\n")
+        self.assertIsNone(err)
+        self.assertEqual(meta["sources"], ["https://example.com/x"])
+
+    # --- derived_from invalidation (item 11)
+
+    def test_derived_note_stale_when_source_is_newer(self):
+        self.write("brain/design/source.md",
+                   note(uid="ss-src", created="2026-08-01", updated="2026-08-21"))
+        self.write("brain/design/summary.md",
+                   note(uid="ss-sum", created="2026-08-01", updated="2026-08-05",
+                        derived_from="ss-src"))
+        self.assertFinds("DERIVED_STALE")
+
+    def test_derived_note_current_when_source_is_older(self):
+        self.write("brain/design/source.md",
+                   note(uid="ss-src", created="2026-08-01", updated="2026-08-01"))
+        self.write("brain/design/summary.md",
+                   note(uid="ss-sum", created="2026-08-01", updated="2026-08-21",
+                        derived_from="ss-src"))
+        self.assertNotIn("DERIVED_STALE", self.codes())
+
+    def test_immutable_record_is_exempt_from_derived_staleness(self):
+        self.write("brain/design/source.md",
+                   note(uid="ss-src", created="2026-08-01", updated="2026-08-21"))
+        self.write("brain/ai/handoffs/20260801T000000Z--claude--done.md",
+                   note(uid="ss-hand", record_kind="handoff", state="closed",
+                        task_id="t", created="2026-08-01", updated="2026-08-01",
+                        derived_from="ss-src",
+                        _body="## Verification performed\n\n`python x.py` -> ok\n"))
+        self.assertNotIn("DERIVED_STALE", self.codes())
+
+    def test_unresolved_derived_from_warns(self):
+        self.write("brain/design/summary.md",
+                   note(uid="ss-sum", derived_from="ss-nothing-here"))
+        self.assertFinds("DERIVED_UNRESOLVED")
+
+    # --- handoff verification (item 18)
+
+    def test_handoff_without_a_command_warns(self):
+        self.write("brain/ai/handoffs/20260821T000000Z--claude--vague.md",
+                   note(uid="ss-vague", record_kind="handoff", state="closed", task_id="t",
+                        _body="## Verification performed\n\nAll tests pass.\n"))
+        self.assertFinds("VERIFICATION_UNPROVEN")
+
+    def test_handoff_naming_its_command_passes(self):
+        self.write("brain/ai/handoffs/20260821T000000Z--claude--proven.md",
+                   note(uid="ss-proven", record_kind="handoff", state="closed", task_id="t",
+                        _body="## Verification performed\n\n"
+                              "- `python brain/tools/validate_vault.py` -> 0 errors\n"))
+        self.assertNotIn("VERIFICATION_UNPROVEN", self.codes())
+
+    # --- context packet budget (item 19)
+
+    def test_oversized_context_packet_warns(self):
+        body = "filler paragraph. " * 600
+        self.write("brain/ai/context/huge.md",
+                   note(uid="ss-context-huge", record_kind="context", _body=body))
+        self.assertFinds("PACKET_OVERSIZE")
+
+    def test_normal_context_packet_passes(self):
+        self.write("brain/ai/context/small.md",
+                   note(uid="ss-context-small", record_kind="context",
+                        _body="## Goal\n\nOne bounded task.\n"))
+        self.assertNotIn("PACKET_OVERSIZE", self.codes())
+
     # --- cross references
 
     def test_unresolved_supersedes(self):

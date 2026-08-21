@@ -129,7 +129,10 @@ def gather(root, paths, now):
             if err or not meta:
                 continue
             captured = meta.get("captured_commit")
+            # Same rule as validate_vault: only a living note can be stale. A
+            # closed evidence record is pinned to a past commit by design.
             if isinstance(captured, str) and captured and "replace" not in captured \
+                    and meta.get("state") not in validate_vault.IMMUTABLE_STATES \
                     and not head.startswith(captured):
                 stale_notes.append({"file": path.relative_to(root).as_posix(),
                                     "captured_commit": captured})
@@ -230,7 +233,7 @@ def render(brief, paths):
 
     if brief["stale_snapshots"]:
         add("")
-        add("STALE DERIVED NOTES — captured_commit is behind HEAD")
+        add("STALE DERIVED NOTES - living notes whose captured_commit is behind HEAD")
         for note in brief["stale_snapshots"]:
             add("  %s (%s)" % (note["file"], note["captured_commit"]))
 

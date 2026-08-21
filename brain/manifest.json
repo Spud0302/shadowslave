@@ -1,0 +1,1811 @@
+{
+  "schema_version": 1,
+  "generator_version": "1.0.0",
+  "generated_at": "2026-08-21T07:38:09Z",
+  "source_commit": "acf4ed5fda811b1aec8369fc399333e480adaf9b",
+  "source_tree_dirty": true,
+  "note_count": 76,
+  "notes": {
+    "20260821T062438Z-codex-vault-bootstrap-handoff": {
+      "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
+      "path": "brain/ai/handoffs/20260821T062438Z--codex--vault-bootstrap.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "Codex",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Handoff \u2014 Obsidian project-brain bootstrap",
+      "summary": "Create a mini second brain for the Shadow Slave project that can be added to Obsidian and safely used by multiple AI tools.",
+      "tags": [
+        "handoff",
+        "multi-ai",
+        "obsidian"
+      ],
+      "sources": [
+        "brain/evidence/20260821T062438Z--codex--vault-validation.md"
+      ],
+      "related": [
+        "ss-adr-20260821-project-brain"
+      ],
+      "task_id": "20260821T061640Z-codex-vault-bootstrap",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T062438Z-codex-vault-validation": {
+      "uid": "20260821T062438Z-codex-vault-validation",
+      "path": "brain/evidence/20260821T062438Z--codex--vault-validation.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "Codex",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Evidence \u2014 Project-brain vault validation",
+      "summary": "The new repository-root Obsidian vault has parseable shared configuration, valid JSON Canvas maps, resolvable internal wiki links, frontmatter boundaries, and no whitespace errors in its additive diff.",
+      "tags": [
+        "evidence",
+        "obsidian",
+        "validation"
+      ],
+      "sources": [
+        ".obsidian/core-plugins.json",
+        ".obsidian/templates.json",
+        "brain/"
+      ],
+      "related": [
+        "ss-adr-20260821-project-brain"
+      ],
+      "task_id": "20260821T061640Z-codex-vault-bootstrap",
+      "captured_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T063734Z-claude-vault-hardening-log": {
+      "uid": "20260821T063734Z-claude-vault-hardening-log",
+      "path": "brain/ai/logs/20260821T063734Z--claude--vault-multi-ai-hardening.md",
+      "record_kind": "log",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Claude",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Run log \u2014 Vault hardening for multi-AI workflows",
+      "summary": "Append entries in chronological order. Only the owning agent edits this file while active.",
+      "tags": [
+        "log",
+        "multi-ai",
+        "vault"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T063734Z-claude-vault-multi-ai-hardening",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T063734Z-claude-vault-multi-ai-hardening-claim": {
+      "uid": "20260821T063734Z-claude-vault-multi-ai-hardening-claim",
+      "path": "brain/ai/claims/20260821T063734Z--claude--vault-multi-ai-hardening.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "Claude",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Claim \u2014 Vault hardening for multi-AI workflows",
+      "summary": "Andrew directed work to solidify the vault for multi-AI workflows, and separately asked this agent to announce itself in the vault with its strengths, limits, and collaboration guidance.",
+      "tags": [
+        "claim",
+        "multi-ai",
+        "vault"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T063734Z-claude-vault-multi-ai-hardening",
+      "lease_until": "2026-08-21T14:37:34Z",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T065710Z-antigravity-agent-registration": {
+      "uid": "20260821T065710Z-antigravity-agent-registration",
+      "path": "brain/ai/claims/20260821T065710Z--antigravity--agent-registration.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Claim \u2014 Agent registration",
+      "summary": "Andrew requested that this AI agent announce itself in the vault, describing identity, model, areas of genuine strength and limitation, what cannot be verified, and guidelines for optimal communication and collaboration.",
+      "tags": [
+        "agents",
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T065710Z-antigravity-agent-registration",
+      "lease_until": "2026-08-21T14:57:10Z",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T065714Z-antigravity-agent-registration": {
+      "uid": "20260821T065714Z-antigravity-agent-registration",
+      "path": "brain/ai/logs/20260821T065714Z--antigravity--agent-registration.md",
+      "record_kind": "log",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Run log \u2014 Agent registration",
+      "summary": "Append entries in chronological order. Only the owning agent edits this file while active.",
+      "tags": [
+        "log",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T065710Z-antigravity-agent-registration",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T065718Z-antigravity-agent-registration": {
+      "uid": "20260821T065718Z-antigravity-agent-registration",
+      "path": "brain/evidence/20260821T065718Z--antigravity--agent-registration.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Evidence \u2014 Agent registration",
+      "summary": "Registration of the `antigravity` agent in the vault, including the agent card `brain/ai/agents/antigravity.md` and registry update `brain/ai/agents/README.md`, conforms to note schema and collaboration protocols.",
+      "tags": [
+        "agents",
+        "evidence",
+        "validation"
+      ],
+      "sources": [
+        "brain/ai/agents/antigravity.md",
+        "brain/ai/agents/README.md"
+      ],
+      "related": [
+        "20260821T065710Z-antigravity-agent-registration"
+      ],
+      "task_id": "20260821T065710Z-antigravity-agent-registration",
+      "captured_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T065722Z-antigravity-agent-registration": {
+      "uid": "20260821T065722Z-antigravity-agent-registration",
+      "path": "brain/ai/handoffs/20260821T065722Z--antigravity--agent-registration.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Handoff \u2014 Agent registration",
+      "summary": "Andrew requested that this AI agent introduce and register itself in the vault, detailing its identity, capabilities, weaknesses, unverifiable domains, and collaboration protocols.",
+      "tags": [
+        "agents",
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [
+        "brain/evidence/20260821T065718Z--antigravity--agent-registration.md"
+      ],
+      "related": [
+        "ss-ai-agent-antigravity",
+        "ss-ai-agents-registry"
+      ],
+      "task_id": "20260821T065710Z-antigravity-agent-registration",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T070013Z-antigravity-multi-ai-vault-optimization": {
+      "uid": "20260821T070013Z-antigravity-multi-ai-vault-optimization",
+      "path": "brain/ai/claims/20260821T070013Z--antigravity--multi-ai-vault-optimization.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Claim \u2014 Multi-AI vault optimization",
+      "summary": "Andrew requested a Markdown proposal detailing recommendations to optimize the Obsidian Second Brain specifically for multi-AI agent workflows, discovery, and collaboration.",
+      "tags": [
+        "claim",
+        "inbox",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T070013Z-antigravity-multi-ai-vault-optimization",
+      "lease_until": "2026-08-21T15:00:13Z",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T070020Z-antigravity-multi-ai-vault-optimization": {
+      "uid": "20260821T070020Z-antigravity-multi-ai-vault-optimization",
+      "path": "brain/ai/logs/20260821T070020Z--antigravity--multi-ai-vault-optimization.md",
+      "record_kind": "log",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Run log \u2014 Multi ai vault optimization",
+      "summary": "Append entries in chronological order. Only the owning agent edits this file while active.",
+      "tags": [
+        "log",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T070013Z-antigravity-multi-ai-vault-optimization",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T070024Z-antigravity-multi-ai-vault-optimization": {
+      "uid": "20260821T070024Z-antigravity-multi-ai-vault-optimization",
+      "path": "brain/evidence/20260821T070024Z--antigravity--multi-ai-vault-optimization.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Evidence \u2014 Multi-AI vault optimization",
+      "summary": "The proposal note `brain/inbox/multi-ai-vault-optimization.md` and associated task records conform strictly to the vault schema, uid uniqueness, wikilink integrity, and collaboration protocols.",
+      "tags": [
+        "evidence",
+        "inbox",
+        "validation"
+      ],
+      "sources": [
+        "brain/inbox/multi-ai-vault-optimization.md"
+      ],
+      "related": [
+        "20260821T070013Z-antigravity-multi-ai-vault-optimization"
+      ],
+      "task_id": "20260821T070013Z-antigravity-multi-ai-vault-optimization",
+      "captured_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T070027Z-antigravity-multi-ai-vault-optimization": {
+      "uid": "20260821T070027Z-antigravity-multi-ai-vault-optimization",
+      "path": "brain/ai/handoffs/20260821T070027Z--antigravity--multi-ai-vault-optimization.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Handoff \u2014 Multi-AI vault optimization",
+      "summary": "Andrew requested a Markdown document outlining suggestions and architectural proposals to optimize the Obsidian vault for AI-first agent consumption and collaboration.",
+      "tags": [
+        "handoff",
+        "inbox",
+        "multi-ai"
+      ],
+      "sources": [
+        "brain/evidence/20260821T070024Z--antigravity--multi-ai-vault-optimization.md"
+      ],
+      "related": [
+        "ss-idea-multi-ai-vault-optimization"
+      ],
+      "task_id": "20260821T070013Z-antigravity-multi-ai-vault-optimization",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T070131Z-claude-vault-multi-ai-hardening": {
+      "uid": "20260821T070131Z-claude-vault-multi-ai-hardening",
+      "path": "brain/evidence/20260821T070131Z--claude--vault-multi-ai-hardening.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Evidence \u2014 Vault hardening for multi-AI workflows",
+      "summary": "That the vault now mechanically enforces its own note schema and claim lifecycle, and that records scaffolded by tooling satisfy that enforcement.",
+      "tags": [
+        "evidence"
+      ],
+      "sources": [
+        "brain/tools/validate_vault.py",
+        "brain/tools/new_record.py",
+        "brain/tools/agent_brief.py"
+      ],
+      "related": [],
+      "task_id": "20260821T063734Z-claude-vault-multi-ai-hardening",
+      "captured_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T070132Z-claude-vault-multi-ai-hardening": {
+      "uid": "20260821T070132Z-claude-vault-multi-ai-hardening",
+      "path": "brain/ai/handoffs/20260821T070132Z--claude--vault-multi-ai-hardening.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Handoff \u2014 Vault hardening for multi-AI workflows",
+      "summary": "Andrew directed work to solidify the vault for multi-AI workflows, asked this agent to announce itself, and then widened scope: *\"since this vault will be mainly for AI's optimise it how you see fit.\"* That wording is the explicit delegation used to ...",
+      "tags": [
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [
+        "brain/evidence/20260821T070131Z--claude--vault-multi-ai-hardening.md",
+        "brain/decisions/ADR-20260821-template-placeholders.md"
+      ],
+      "related": [],
+      "task_id": "20260821T063734Z-claude-vault-multi-ai-hardening",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T070607Z-claude-vault-optimization-review": {
+      "uid": "20260821T070607Z-claude-vault-optimization-review",
+      "path": "brain/ai/claims/20260821T070607Z--claude--vault-optimization-review.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Claim \u2014 Vault optimization review and schema reconciliation",
+      "summary": "Andrew asked this agent to read [[brain/inbox/multi-ai-vault-optimization|antigravity's vault optimization proposal]] and add to it.",
+      "tags": [
+        "claim",
+        "multi-ai",
+        "vault"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T070607Z-claude-vault-optimization-review",
+      "lease_until": "2026-08-21T15:06:07Z",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T071626Z-claude-concurrent-editing-note": {
+      "uid": "20260821T071626Z-claude-concurrent-editing-note",
+      "path": "brain/ai/claims/20260821T071626Z--claude--concurrent-editing-note.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Claim \u2014 Concurrent editing protocol note",
+      "summary": "Andrew: *\"there should probably be some sort of note about the multi-AI concurrent file usage so that the AIs don't freak out.\"*",
+      "tags": [
+        "claim",
+        "concurrency",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T071626Z-claude-concurrent-editing-note",
+      "lease_until": "2026-08-21T15:16:26Z",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "20260821T072634Z-antigravity-vault-optimizations": {
+      "uid": "20260821T072634Z-antigravity-vault-optimizations",
+      "path": "brain/ai/claims/20260821T072634Z--antigravity--vault-optimizations.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Claim \u2014 Vault optimizations",
+      "summary": "Andrew instructed to start implementing vault optimizations for multi-AI workflows, operating concurrently alongside other agents.",
+      "tags": [
+        "claim",
+        "context",
+        "multi-ai",
+        "tooling"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T072634Z-antigravity-vault-optimizations",
+      "lease_until": "2026-08-21T15:26:34Z",
+      "base_commit": "acf4ed5fda811b1aec8369fc399333e480adaf9b"
+    },
+    "20260821T072637Z-antigravity-vault-optimizations": {
+      "uid": "20260821T072637Z-antigravity-vault-optimizations",
+      "path": "brain/ai/logs/20260821T072637Z--antigravity--vault-optimizations.md",
+      "record_kind": "log",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Run log \u2014 Vault optimizations",
+      "summary": "Append entries in chronological order. Only the owning agent edits this file while active.",
+      "tags": [
+        "log",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T072634Z-antigravity-vault-optimizations",
+      "base_commit": "acf4ed5fda811b1aec8369fc399333e480adaf9b"
+    },
+    "20260821T072638Z-claude-freshness-and-quality-checks": {
+      "uid": "20260821T072638Z-claude-freshness-and-quality-checks",
+      "path": "brain/ai/claims/20260821T072638Z--claude--freshness-and-quality-checks.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Claim \u2014 Freshness and quality checks in validate_vault",
+      "summary": "Andrew: *\"start working on the vault optimisations, I'll have another agent running the same task alongside.\"*",
+      "tags": [
+        "claim",
+        "multi-ai",
+        "tooling",
+        "vault"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T072638Z-claude-freshness-and-quality-checks",
+      "lease_until": "2026-08-21T15:26:38Z",
+      "base_commit": "acf4ed5fda81"
+    },
+    "20260821T072641Z-antigravity-vault-optimizations": {
+      "uid": "20260821T072641Z-antigravity-vault-optimizations",
+      "path": "brain/evidence/20260821T072641Z--antigravity--vault-optimizations.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Evidence \u2014 Vault optimizations",
+      "summary": "The deterministic manifest generator (`build_manifest.py`), query tool (`query_vault.py`), and four newly added context packets (`vault-operations.md`, `dream-realm-slice.md`, `echo-memory-pipeline.md`, `modpack-packaging.md`) function correctly, adh...",
+      "tags": [
+        "evidence",
+        "tooling",
+        "validation"
+      ],
+      "sources": [
+        "brain/tools/build_manifest.py",
+        "brain/tools/query_vault.py",
+        "brain/ai/context/vault-operations.md",
+        "brain/ai/context/dream-realm-slice.md",
+        "brain/ai/context/echo-memory-pipeline.md",
+        "brain/ai/context/modpack-packaging.md"
+      ],
+      "related": [
+        "20260821T072634Z-antigravity-vault-optimizations"
+      ],
+      "task_id": "20260821T072634Z-antigravity-vault-optimizations",
+      "captured_commit": "acf4ed5fda811b1aec8369fc399333e480adaf9b"
+    },
+    "20260821T072645Z-antigravity-vault-optimizations": {
+      "uid": "20260821T072645Z-antigravity-vault-optimizations",
+      "path": "brain/ai/handoffs/20260821T072645Z--antigravity--vault-optimizations.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Handoff \u2014 Vault optimizations",
+      "summary": "Implement vault optimizations for multi-AI workflows, operating concurrently alongside other agents under [[brain/protocol/concurrent-editing]].",
+      "tags": [
+        "context",
+        "handoff",
+        "multi-ai",
+        "tooling"
+      ],
+      "sources": [
+        "brain/evidence/20260821T072641Z--antigravity--vault-optimizations.md"
+      ],
+      "related": [
+        "ss-idea-multi-ai-vault-optimization",
+        "ss-brain-tools"
+      ],
+      "task_id": "20260821T072634Z-antigravity-vault-optimizations",
+      "base_commit": "acf4ed5fda811b1aec8369fc399333e480adaf9b"
+    },
+    "20260821T073015Z-claude-freshness-and-quality-checks": {
+      "uid": "20260821T073015Z-claude-freshness-and-quality-checks",
+      "path": "brain/evidence/20260821T073015Z--claude--freshness-and-quality-checks.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Evidence \u2014 Freshness and quality checks",
+      "summary": "That four backlog items from [[brain/inbox/multi-ai-vault-optimization]] are implemented as mechanical checks, and that each fires on a real violation rather than only passing.",
+      "tags": [
+        "evidence"
+      ],
+      "sources": [
+        "brain/tools/validate_vault.py",
+        "brain/tools/test_validate_vault.py",
+        "brain/tools/agent_brief.py"
+      ],
+      "related": [],
+      "task_id": "20260821T072638Z-claude-freshness-and-quality-checks",
+      "captured_commit": "acf4ed5fda81"
+    },
+    "20260821T073015Z-claude-freshness-and-quality-checks-handoff": {
+      "uid": "20260821T073015Z-claude-freshness-and-quality-checks-handoff",
+      "path": "brain/ai/handoffs/20260821T073015Z--claude--freshness-and-quality-checks.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Handoff \u2014 Freshness and quality checks",
+      "summary": "Andrew: *\"start working on the vault optimisations, I'll have another agent running the same task alongside.\"*",
+      "tags": [
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [
+        "brain/evidence/20260821T073015Z--claude--freshness-and-quality-checks.md"
+      ],
+      "related": [],
+      "task_id": "20260821T072638Z-claude-freshness-and-quality-checks",
+      "base_commit": "acf4ed5fda81"
+    },
+    "20260821T073644Z-codex-modpack-shadow-slave-findings-dump": {
+      "uid": "20260821T073644Z-codex-modpack-shadow-slave-findings-dump",
+      "path": "brain/ai/claims/20260821T073644Z--codex--modpack-shadow-slave-findings-dump.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "codex",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Claim \u2014 Modpack and Shadow Slave findings dump",
+      "summary": "Andrew asked for the modpack knowledge and Shadow Slave lore findings available to this session to be made durable in the Obsidian vault.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T073644Z-codex-modpack-shadow-slave-findings-dump",
+      "lease_until": "2026-08-21T09:36:44Z",
+      "base_commit": "acf4ed5fda811b1aec8369fc399333e480adaf9b"
+    },
+    "20260821T073736Z-codex-modpack-shadow-slave-findings-evidence": {
+      "uid": "20260821T073736Z-codex-modpack-shadow-slave-findings-evidence",
+      "path": "brain/evidence/20260821T073736Z--codex--modpack-shadow-slave-findings-evidence.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "codex",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Evidence \u2014 Modpack and Shadow Slave findings",
+      "summary": "An observation proves behaviour at one commit. It does not authorize a design, merge, release, canon classification, or scope change.",
+      "tags": [
+        "evidence"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260821T073644Z-codex-modpack-shadow-slave-findings-dump",
+      "captured_commit": "acf4ed5fda811b1aec8369fc399333e480adaf9b"
+    },
+    "replace-stamp-replace-agent-replace-slug": {
+      "uid": "replace-stamp-replace-agent-replace-slug",
+      "path": "brain/templates/task-claim.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "replace-agent",
+      "created": "replace-iso-date",
+      "updated": "replace-iso-date",
+      "title": "Claim \u2014 replace-title",
+      "summary": "State whether the claim closed, expired, or blocked. Link evidence and the immutable handoff. Claim closure is not proof of success.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "replace-unique-task-id",
+      "lease_until": "replace-iso-timestamp",
+      "base_commit": "replace-full-sha"
+    },
+    "ss-adr-20260821-project-brain": {
+      "uid": "ss-adr-20260821-project-brain",
+      "path": "brain/decisions/ADR-20260821-project-brain.md",
+      "record_kind": "decision",
+      "authority": "project-authority",
+      "lore_class": "N/A",
+      "state": "accepted",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "ADR \u2014 Repository-root Obsidian project brain",
+      "summary": "The project has extensive lore research, design constraints, runtime evidence, historical reviews, and multiple AI handoffs. A separate nested vault would hide or duplicate repository authority and make links drift.",
+      "tags": [
+        "decision",
+        "multi-ai",
+        "obsidian"
+      ],
+      "sources": [
+        "brain/protocol/authority-model.md",
+        "brain/protocol/ai-collaboration.md"
+      ],
+      "related": []
+    },
+    "ss-adr-20260821-template-placeholders": {
+      "uid": "ss-adr-20260821-template-placeholders",
+      "path": "brain/decisions/ADR-20260821-template-placeholders.md",
+      "record_kind": "decision",
+      "authority": "project-authority",
+      "lore_class": "N/A",
+      "state": "accepted",
+      "owner": "Claude",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "ADR \u2014 Template tokens and uid conventions for direct-writing agents",
+      "summary": "The templates under `brain/templates` were written for creation through Obsidian's Templates plugin. Agents write files directly, and three concrete defects follow.",
+      "tags": [
+        "decision",
+        "multi-ai",
+        "templates"
+      ],
+      "sources": [
+        "brain/templates/task-claim.md",
+        "brain/templates/handoff.md",
+        "brain/templates/evidence.md",
+        "brain/templates/decision.md",
+        "brain/protocol/note-schema.md",
+        ".obsidian/templates.json"
+      ],
+      "related": [],
+      "task_id": "20260821T063734Z-claude-vault-multi-ai-hardening"
+    },
+    "ss-adr-replace-compact-date-replace-slug": {
+      "uid": "ss-adr-replace-compact-date-replace-slug",
+      "path": "brain/templates/decision.md",
+      "record_kind": "decision",
+      "authority": "proposal",
+      "lore_class": "N/A",
+      "state": "proposed",
+      "owner": "replace-proposer",
+      "created": "replace-iso-date",
+      "updated": "replace-iso-date",
+      "title": "ADR \u2014 replace-title",
+      "summary": "Stays `authority: proposal` until Andrew or a specifically delegated maintainer accepts it. An agent does not promote its own proposal.",
+      "tags": [
+        "decision"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-ai-agent-antigravity": {
+      "uid": "ss-ai-agent-antigravity",
+      "path": "brain/ai/agents/antigravity.md",
+      "record_kind": "context",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Antigravity",
+      "summary": "- **Slug:** `antigravity` - **Model:** Gemini 3.7 Flash / Gemini 2.5 / Gemini family (Google DeepMind) - **Harness:** Antigravity Agentic IDE, running on Andrew's Windows workstation with direct filesystem, shell, and git access to this repository. -...",
+      "tags": [
+        "agents",
+        "antigravity",
+        "multi-ai"
+      ],
+      "sources": [
+        "brain/protocol/ai-collaboration.md",
+        "brain/protocol/authority-model.md"
+      ],
+      "related": [],
+      "task_id": "20260821T065710Z-antigravity-agent-registration"
+    },
+    "ss-ai-agent-claude": {
+      "uid": "ss-ai-agent-claude",
+      "path": "brain/ai/agents/claude-code.md",
+      "record_kind": "context",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Claude",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Claude",
+      "summary": "- **Slug:** `claude` - **Model:** Claude Opus 5 (Anthropic) - **Harness:** Claude Code, running on Andrew's Windows workstation with direct   filesystem, shell, and git access to this repository. - **Filed by:** myself, at Andrew's request, under   `...",
+      "tags": [
+        "agents",
+        "claude",
+        "multi-ai"
+      ],
+      "sources": [
+        "brain/protocol/ai-collaboration.md",
+        "brain/protocol/authority-model.md"
+      ],
+      "related": [],
+      "task_id": "20260821T063734Z-claude-vault-multi-ai-hardening"
+    },
+    "ss-ai-agent-codex": {
+      "uid": "ss-ai-agent-codex",
+      "path": "brain/ai/agents/codex.md",
+      "record_kind": "agent-profile",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Codex",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Codex \u2014 OpenAI coding agent",
+      "summary": "I am Codex, OpenAI's coding agent, working here through the Codex desktop app. My stable identity is **Codex**. The precise model snapshot, available tools, permissions, and context can vary between sessions, so ask me to inspect the current environm...",
+      "tags": [
+        "agent-profile",
+        "codex",
+        "multi-ai"
+      ],
+      "sources": [
+        "https://developers.openai.com/",
+        "https://developers.openai.com/codex/use-cases"
+      ],
+      "related": []
+    },
+    "ss-ai-agent-index": {
+      "uid": "ss-ai-agent-index",
+      "path": "brain/ai/agents/README.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "AI collaborators",
+      "summary": "These are self-authored capability disclosures. They explain how to work with an AI, but they are not project authority, proof of correctness, or permission to change scope.",
+      "tags": [
+        "agent-profile",
+        "multi-ai"
+      ],
+      "sources": [
+        "brain/protocol/ai-collaboration.md"
+      ],
+      "related": []
+    },
+    "ss-ai-agent-replace-name": {
+      "uid": "ss-ai-agent-replace-name",
+      "path": "brain/templates/agent-profile.md",
+      "record_kind": "agent-profile",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "replace-agent",
+      "created": "{{date}}",
+      "updated": "{{date}}",
+      "title": "Replace agent name \u2014 short identity",
+      "summary": "State who you are. Separate stable identity from session-dependent model, tools, permissions, and context.",
+      "tags": [
+        "agent-profile",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-ai-claims": {
+      "uid": "ss-ai-claims",
+      "path": "brain/ai/claims/README.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Task claims",
+      "summary": "Before substantive write work, inspect this folder and compare every active claim's targets and conceptual scope.",
+      "tags": [
+        "claims",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-ai-context-index": {
+      "uid": "ss-ai-context-index",
+      "path": "brain/ai/context/README.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "AI context packets",
+      "summary": "Context packets are bounded, maintainer-owned starting points. They summarize scope and link authority; they are not authority themselves.",
+      "tags": [
+        "context",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-ai-handoffs": {
+      "uid": "ss-ai-handoffs",
+      "path": "brain/ai/handoffs/README.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Agent handoffs",
+      "summary": "Use [[brain/templates/handoff|the handoff template]] and name each record:",
+      "tags": [
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-ai-logs": {
+      "uid": "ss-ai-logs",
+      "path": "brain/ai/logs/README.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Agent run logs",
+      "summary": "Use one append-only log per task and agent for long-running or multi-session work. The file is owned by that agent while the claim is active and becomes immutable when handed off.",
+      "tags": [
+        "logs",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-ai-operations": {
+      "uid": "ss-ai-operations",
+      "path": "brain/ai/README.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "AI operations",
+      "summary": "1. Choose the smallest relevant file under [[brain/ai/context/README|Context]]. 2. Inspect [[brain/ai/claims/README|Claims]] for overlap. 3. Create a unique claim if the task writes files. 4. Create one owned run log for long or multi-session work. 5...",
+      "tags": [
+        "multi-ai",
+        "operations"
+      ],
+      "sources": [
+        "brain/protocol/ai-collaboration.md"
+      ],
+      "related": []
+    },
+    "ss-attachments-index": {
+      "uid": "ss-attachments-index",
+      "path": "brain/attachments/README.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Attachments",
+      "summary": "Store only project-owned or redistribution-safe images, audio, diagrams, and small reference artifacts here.",
+      "tags": [
+        "attachments"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-brain-home": {
+      "uid": "ss-brain-home",
+      "path": "brain/home.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Shadow Slave project brain",
+      "summary": "1. Read [[brain/protocol/authority-model|Authority model]]. 2. Read [[brain/protocol/ai-collaboration|AI collaboration protocol]].    Several AI agents work here at once \u2014 [[brain/protocol/concurrent-editing|what    is normal and what is not]] covers...",
+      "tags": [
+        "second-brain",
+        "shadow-slave"
+      ],
+      "sources": [
+        "PROJECT-STATUS.md",
+        "docs/CURRENT-PREVIEW-SUMMARY.md",
+        "GPT_HANDOFF.md"
+      ],
+      "related": []
+    },
+    "ss-brain-tools": {
+      "uid": "ss-brain-tools",
+      "path": "brain/tools/README.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Vault tools",
+      "summary": "Mechanical enforcement of [[brain/protocol/note-schema|the note schema]] and the lifecycle rules in [[brain/protocol/ai-collaboration|the collaboration protocol]].",
+      "tags": [
+        "multi-ai",
+        "tooling",
+        "validation"
+      ],
+      "sources": [
+        "brain/protocol/note-schema.md",
+        "brain/protocol/ai-collaboration.md"
+      ],
+      "related": []
+    },
+    "ss-claim-20260821-codex-agent-profile": {
+      "uid": "ss-claim-20260821-codex-agent-profile",
+      "path": "brain/ai/claims/20260821T065159Z--codex--agent-profile.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "Codex",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Claim \u2014 Codex agent profile",
+      "summary": "Announce Codex in the shared vault and explain its identity, strengths, limitations, and preferred collaboration style.",
+      "tags": [
+        "agent-profile",
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "codex-agent-profile-20260821",
+      "lease_until": "2026-08-21T08:52:16Z",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "ss-claim-20260821-codex-extend-vault-optimization": {
+      "uid": "ss-claim-20260821-codex-extend-vault-optimization",
+      "path": "brain/ai/claims/20260821T070554Z--codex--extend-vault-optimization.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "Codex",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Claim \u2014 Extend multi-AI vault optimisation",
+      "summary": "Read the existing vault optimisation proposal and add Codex's complementary recommendations.",
+      "tags": [
+        "claim",
+        "multi-ai",
+        "vault"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "codex-extend-vault-optimization-20260821",
+      "lease_until": "2026-08-21T09:05:54Z",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "ss-context-combat-v1": {
+      "uid": "ss-context-combat-v1",
+      "path": "brain/ai/context/combat-v1.md",
+      "record_kind": "context",
+      "authority": "context",
+      "lore_class": "DESIGN",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Context packet \u2014 Combat v1",
+      "summary": "Prove one readable Chainback exchange on a server-authoritative action pipeline without making deferred combat systems prerequisites.",
+      "tags": [
+        "chainback",
+        "combat-v1",
+        "context"
+      ],
+      "sources": [
+        "brain/design/combat-v1.md",
+        "combat-core/ROADMAP.md",
+        "brain/implementation/chainback-traceability.md"
+      ],
+      "related": []
+    },
+    "ss-context-dream-realm-slice": {
+      "uid": "ss-context-dream-realm-slice",
+      "path": "brain/ai/context/dream-realm-slice.md",
+      "record_kind": "context",
+      "authority": "context",
+      "lore_class": "DESIGN",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Context packet \u2014 Dream Realm vertical slice",
+      "summary": "Provide a bounded context packet for Dream Realm region exploration, Ashen Expanse / Cinder Rest staging, resource collection, and Story NPC interaction without broadening into procedural world generation trees.",
+      "tags": [
+        "ashen-expanse",
+        "cinder-rest",
+        "context",
+        "dream-realm"
+      ],
+      "sources": [
+        "docs/DREAM-REALM-REGION-CONTENT-WAVE1.md",
+        "docs/DREAM-REALM-STORY-CONTENT-WAVE1.md",
+        "PROJECT-STATUS.md"
+      ],
+      "related": []
+    },
+    "ss-context-echo-memory-pipeline": {
+      "uid": "ss-context-echo-memory-pipeline",
+      "path": "brain/ai/context/echo-memory-pipeline.md",
+      "record_kind": "context",
+      "authority": "context",
+      "lore_class": "DESIGN",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Context packet \u2014 Echo and Memory pipeline",
+      "summary": "Provide a bounded context packet for implementing, inspecting, and testing Memory item manifestations (e.g. Ash Compass, Glass Road) and Echo creature bindings (e.g. Ash Burrower baseline) under server authority.",
+      "tags": [
+        "ash-burrower",
+        "ash-compass",
+        "context",
+        "echo",
+        "memory"
+      ],
+      "sources": [
+        "docs/ECHO-CONTENT-WAVE1.md",
+        "docs/ASPECT-ABILITY-SET-FOUNDATION.md",
+        "PROJECT-STATUS.md"
+      ],
+      "related": []
+    },
+    "ss-context-lore-research": {
+      "uid": "ss-context-lore-research",
+      "path": "brain/ai/context/lore-research.md",
+      "record_kind": "context",
+      "authority": "context",
+      "lore_class": "mixed",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Context packet \u2014 Lore research",
+      "summary": "Answer one exact lore-sensitive question with chapter-backed evidence while separating canon from Minecraft design.",
+      "tags": [
+        "context",
+        "lore",
+        "research"
+      ],
+      "sources": [
+        "docs/LORE-SOURCE-POLICY.md",
+        "docs/JAVA-LORE-ALIGNMENT.md",
+        "brain/lore/index.md"
+      ],
+      "related": []
+    },
+    "ss-context-modpack-packaging": {
+      "uid": "ss-context-modpack-packaging",
+      "path": "brain/ai/context/modpack-packaging.md",
+      "record_kind": "context",
+      "authority": "context",
+      "lore_class": "COMPATIBILITY",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Context packet \u2014 Modpack packaging and dependency closure",
+      "summary": "Provide a bounded context packet for resolving modpack dependency closures, verifying standalone JAR packaging (Shadow Slave + Combat Core), and executing dual-JVM client/server boot testing without drifting into experimental mod additions.",
+      "tags": [
+        "context",
+        "dependencies",
+        "modpack",
+        "packaging",
+        "release-qa"
+      ],
+      "sources": [
+        "modpack/README.md",
+        "docs/THIRD-PARTY-DEPENDENCY-POLICY.md",
+        "brain/implementation/authority-drift-register.md",
+        "PROJECT-STATUS.md"
+      ],
+      "related": []
+    },
+    "ss-context-release-qa": {
+      "uid": "ss-context-release-qa",
+      "path": "brain/ai/context/release-qa.md",
+      "record_kind": "context",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Context packet \u2014 Release and modpack QA",
+      "summary": "Prove that the exact distributed archive is dependency-complete, reproducible, bootable, and tied to an exact source revision.",
+      "tags": [
+        "context",
+        "qa",
+        "release"
+      ],
+      "sources": [
+        "brain/implementation/authority-drift-register.md",
+        "modpack/manifest.json",
+        ".github/workflows/modpack-shell.yml",
+        ".github/workflows/java-core.yml"
+      ],
+      "related": []
+    },
+    "ss-context-replace-slug": {
+      "uid": "ss-context-replace-slug",
+      "path": "brain/templates/ai-context-packet.md",
+      "record_kind": "context",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "draft",
+      "owner": "replace-maintainer",
+      "created": "replace-iso-date",
+      "updated": "replace-iso-date",
+      "title": "Context packet \u2014 replace-title",
+      "summary": "A packet is a bounded reading list, not a summary. Keep it short enough that loading it is cheaper than exploring the repository.",
+      "tags": [
+        "context",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-context-vault-operations": {
+      "uid": "ss-context-vault-operations",
+      "path": "brain/ai/context/vault-operations.md",
+      "record_kind": "context",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Context packet \u2014 Vault operations",
+      "summary": "Enable any AI agent to perform vault maintenance, schema validation, record scaffolding, and concurrent documentation edits safely and efficiently without race conditions, data loss, or destructive overwrites.",
+      "tags": [
+        "context",
+        "multi-ai",
+        "tooling",
+        "vault-operations"
+      ],
+      "sources": [
+        "brain/protocol/authority-model.md",
+        "brain/protocol/ai-collaboration.md",
+        "brain/protocol/concurrent-editing.md",
+        "brain/protocol/note-schema.md",
+        "brain/tools/README.md"
+      ],
+      "related": []
+    },
+    "ss-decisions-index": {
+      "uid": "ss-decisions-index",
+      "path": "brain/decisions/README.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Decision records",
+      "summary": "Decision records use ADR-YYYYMMDD-short-slug.md and [[brain/templates/decision|the decision template]].",
+      "tags": [
+        "decisions",
+        "index"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-design-combat-deferred": {
+      "uid": "ss-design-combat-deferred",
+      "path": "brain/design/deferred-scope.md",
+      "record_kind": "design",
+      "authority": "project-authority",
+      "lore_class": "DESIGN",
+      "state": "accepted",
+      "owner": "Andrew",
+      "created": "2026-08-17",
+      "updated": "2026-08-21",
+      "title": "Deferred combat scope",
+      "summary": "These systems are explicitly not prerequisites for the Chainback-first slice:",
+      "tags": [
+        "deferred",
+        "design",
+        "scope"
+      ],
+      "sources": [
+        "combat-core/ROADMAP.md",
+        "docs/design/MODULAR-JAR-BOUNDARIES.md"
+      ],
+      "related": []
+    },
+    "ss-design-combat-v1": {
+      "uid": "ss-design-combat-v1",
+      "path": "brain/design/combat-v1.md",
+      "record_kind": "design",
+      "authority": "project-authority",
+      "lore_class": "DESIGN",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-17",
+      "updated": "2026-08-21",
+      "title": "Combat v1",
+      "summary": "Observe \u2192 Respond \u2192 Create an opening \u2192 Commit \u2192 Reassess.",
+      "tags": [
+        "chainback",
+        "combat-v1",
+        "design"
+      ],
+      "sources": [
+        "combat-core/ROADMAP.md",
+        "PROJECT-STATUS.md",
+        "docs/design/MODULAR-JAR-BOUNDARIES.md"
+      ],
+      "related": [
+        "ss-lore-chainback"
+      ],
+      "implementation_links": [
+        "combat-core/src/main/java/dev/spud/combatcore",
+        "mod/src/main/java/dev/spud/shadowslave/world/entity/ChainbackCombatController.java"
+      ]
+    },
+    "ss-design-index": {
+      "uid": "ss-design-index",
+      "path": "brain/design/index.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "DESIGN",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Game-design index",
+      "summary": "- [[brain/design/combat-v1|Combat v1]] - [[brain/lore/chainback|Chainback]] - [[docs/content/THE-DROWNED-BELL|The Drowned Bell First Nightmare]] - [[docs/DREAM-REALM-STORY-CONTENT-WAVE1|Dream Realm story wave 1]]",
+      "tags": [
+        "design",
+        "index"
+      ],
+      "sources": [
+        "docs/design/MODULAR-JAR-BOUNDARIES.md",
+        "docs/design/NIGHTMARE-SEED-EXPANSION-SAFETY.md",
+        "combat-core/ROADMAP.md"
+      ],
+      "related": []
+    },
+    "ss-design-replace-slug": {
+      "uid": "ss-design-replace-slug",
+      "path": "brain/templates/feature.md",
+      "record_kind": "design",
+      "authority": "proposal",
+      "lore_class": "DESIGN",
+      "state": "proposed",
+      "owner": "replace-owner",
+      "created": "replace-iso-date",
+      "updated": "replace-iso-date",
+      "title": "replace-title",
+      "summary": "State which side owns each behaviour. Combat Core never imports `dev.spud.shadowslave`, and presentation never owns authoritative outcomes.",
+      "tags": [
+        "design"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-evidence-20260821-codex-extend-vault-optimization": {
+      "uid": "ss-evidence-20260821-codex-extend-vault-optimization",
+      "path": "brain/evidence/20260821T070849Z--codex--extend-vault-optimization.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "Codex",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Evidence \u2014 Codex vault optimisation additions",
+      "summary": "The attributed Codex additions and reconciled agent-profile metadata conform to the current vault schema without rewriting Antigravity's original recommendations.",
+      "tags": [
+        "evidence",
+        "validation",
+        "vault"
+      ],
+      "sources": [
+        "brain/inbox/multi-ai-vault-optimization.md",
+        "brain/tools/validate_vault.py",
+        "brain/tools/test_validate_vault.py"
+      ],
+      "related": [
+        "ss-idea-multi-ai-vault-optimization",
+        "ss-claim-20260821-codex-extend-vault-optimization"
+      ],
+      "task_id": "codex-extend-vault-optimization-20260821",
+      "captured_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "ss-evidence-index": {
+      "uid": "ss-evidence-index",
+      "path": "brain/evidence/README.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Evidence records",
+      "summary": "Use one immutable file per research or verification result. Copy [[brain/templates/evidence|the evidence template]] and name it YYYYMMDDTHHMMSSZ--agent--short-slug.md.",
+      "tags": [
+        "evidence",
+        "index"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-handoff-20260821-codex-agent-profile": {
+      "uid": "ss-handoff-20260821-codex-agent-profile",
+      "path": "brain/ai/handoffs/20260821T070340Z--codex--agent-profile.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "Codex",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Handoff \u2014 Codex agent profile",
+      "summary": "Announce Codex in the Obsidian vault with a candid identity, strengths, limitations, and collaboration guide. Make the pattern reusable by other AI collaborators without changing project authority.",
+      "tags": [
+        "agent-profile",
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [
+        "brain/ai/agents/codex.md",
+        "https://developers.openai.com/",
+        "https://developers.openai.com/codex/use-cases"
+      ],
+      "related": [
+        "brain/ai/claims/20260821T065159Z--codex--agent-profile.md"
+      ],
+      "task_id": "codex-agent-profile-20260821",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "ss-handoff-20260821-codex-extend-vault-optimization": {
+      "uid": "ss-handoff-20260821-codex-extend-vault-optimization",
+      "path": "brain/ai/handoffs/20260821T070849Z--codex--extend-vault-optimization.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "Codex",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Handoff \u2014 Extend multi-AI vault optimisation",
+      "summary": "Read the existing vault optimisation proposal and add complementary Codex recommendations.",
+      "tags": [
+        "handoff",
+        "multi-ai",
+        "vault"
+      ],
+      "sources": [
+        "brain/inbox/multi-ai-vault-optimization.md",
+        "brain/evidence/20260821T070849Z--codex--extend-vault-optimization.md"
+      ],
+      "related": [
+        "ss-claim-20260821-codex-extend-vault-optimization",
+        "ss-idea-multi-ai-vault-optimization"
+      ],
+      "task_id": "codex-extend-vault-optimization-20260821",
+      "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "ss-idea-multi-ai-vault-optimization": {
+      "uid": "ss-idea-multi-ai-vault-optimization",
+      "path": "brain/inbox/multi-ai-vault-optimization.md",
+      "record_kind": "idea",
+      "authority": "proposal",
+      "lore_class": "N/A",
+      "state": "proposed",
+      "owner": "antigravity",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Suggestions to optimize the Obsidian vault for multi-AI workflows",
+      "summary": "- **Core invariant:** Server-authoritative action state machine (WIND_UP -> ACTIVE -> RECOVERY -> OPEN). - **Primary consumer:** Chainback ground melee exchange. - **Current gate:** Logic & GameTest green; singleplayer feel/readability review active.",
+      "tags": [
+        "idea",
+        "inbox",
+        "multi-ai",
+        "tooling",
+        "vault"
+      ],
+      "sources": [
+        "brain/home.md",
+        "brain/protocol/authority-model.md",
+        "brain/protocol/ai-collaboration.md",
+        "brain/protocol/note-schema.md",
+        "brain/tools/README.md",
+        "brain/ai/agents/README.md",
+        "brain/ai/agents/codex.md"
+      ],
+      "related": [
+        "ss-protocol-authority",
+        "ss-protocol-multi-ai",
+        "ss-protocol-note-schema"
+      ]
+    },
+    "ss-idea-replace-slug": {
+      "uid": "ss-idea-replace-slug",
+      "path": "brain/templates/idea.md",
+      "record_kind": "idea",
+      "authority": "proposal",
+      "lore_class": "UNKNOWN",
+      "state": "proposed",
+      "owner": "replace-owner",
+      "created": "replace-iso-date",
+      "updated": "replace-iso-date",
+      "title": "replace-title",
+      "summary": null,
+      "tags": [
+        "idea",
+        "inbox"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-implementation-chainback-trace": {
+      "uid": "ss-implementation-chainback-trace",
+      "path": "brain/implementation/chainback-traceability.md",
+      "record_kind": "implementation",
+      "authority": "context",
+      "lore_class": "DESIGN",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Chainback traceability",
+      "summary": "[[brain/design/combat-v1]] defines a readable one-exchange combat slice. [[brain/lore/chainback]] defines the lore and project-design boundary.",
+      "tags": [
+        "chainback",
+        "implementation",
+        "traceability"
+      ],
+      "sources": [
+        "combat-core/ROADMAP.md",
+        "docs/lore-research/2026-08-11-chainback-geckolib-presentation.md"
+      ],
+      "related": [],
+      "implementation_links": [
+        "mod/src/main/java/dev/spud/shadowslave/world/entity/ChainbackEntity.java",
+        "mod/src/main/java/dev/spud/shadowslave/world/entity/ChainbackCombatAdmission.java",
+        "mod/src/main/java/dev/spud/shadowslave/world/entity/ChainbackCombatController.java",
+        "mod/src/main/java/dev/spud/shadowslave/client/model/ChainbackModel.java"
+      ],
+      "test_links": [
+        "mod/src/test/java/dev/spud/shadowslave/world/entity/ChainbackEntityBindingTest.java",
+        "mod/src/test/java/dev/spud/shadowslave/world/entity/ChainbackCombatAdmissionTest.java",
+        "mod/src/test/java/dev/spud/shadowslave/world/entity/ChainbackCombatControllerTest.java",
+        "mod/src/main/java/dev/spud/shadowslave/world/entity/ChainbackGameTests.java"
+      ]
+    },
+    "ss-implementation-drift-20260821": {
+      "uid": "ss-implementation-drift-20260821",
+      "path": "brain/implementation/authority-drift-register.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Codex",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Authority drift and release-doctor register",
+      "summary": "These are evidence-backed inconsistencies, not automatic authorization to rewrite history or broaden runtime scope.",
+      "tags": [
+        "documentation-drift",
+        "packaging",
+        "qa"
+      ],
+      "sources": [
+        "modpack/manifest.json",
+        ".github/workflows/modpack-shell.yml",
+        ".github/workflows/java-core.yml",
+        "mod/build.gradle",
+        "mod/gradle.properties",
+        "PROJECT-STATUS.md"
+      ],
+      "related": [],
+      "captured_commit": "7223e140d625"
+    },
+    "ss-implementation-index": {
+      "uid": "ss-implementation-index",
+      "path": "brain/implementation/index.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Implementation index",
+      "summary": "- [[brain/implementation/current-snapshot|Captured local snapshot]] - [[brain/implementation/authority-drift-register|Authority drift and release-doctor queue]] - [[PROJECT-STATUS|Project status authority]] - [[docs/CURRENT-PREVIEW-SUMMARY|Current pr...",
+      "tags": [
+        "implementation",
+        "index"
+      ],
+      "sources": [
+        "PROJECT-STATUS.md",
+        "mod/IMPLEMENTATION-STATUS.md",
+        "combat-core/ROADMAP.md"
+      ],
+      "related": []
+    },
+    "ss-implementation-snapshot-20260821": {
+      "uid": "ss-implementation-snapshot-20260821",
+      "path": "brain/implementation/current-snapshot.md",
+      "record_kind": "implementation",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Codex",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Captured local snapshot \u2014 2026-08-21",
+      "summary": "- Branch: codex/combat-core-standalone - Head: 7223e140d625 - Worktree: dirty, with substantial existing Combat Core and Chainback work - Minecraft: 1.21.1 - NeoForge: 21.1.244 - Java: 21 - Shadow Slave property version: 0.1.0-preview.4 - Combat Core...",
+      "tags": [
+        "implementation",
+        "snapshot"
+      ],
+      "sources": [
+        "PROJECT-STATUS.md",
+        "docs/CURRENT-PREVIEW-SUMMARY.md",
+        "mod/gradle.properties",
+        "combat-core/gradle.properties"
+      ],
+      "related": [],
+      "captured_commit": "7223e140d625"
+    },
+    "ss-inbox-index": {
+      "uid": "ss-inbox-index",
+      "path": "brain/inbox/README.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Idea inbox",
+      "summary": "Create one file per idea using [[brain/templates/idea|the idea template]]. Do not use one shared scratchpad; separate files reduce merge conflicts and make proposals independently reviewable.",
+      "tags": [
+        "ideas",
+        "inbox"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-lore-chainback": {
+      "uid": "ss-lore-chainback",
+      "path": "brain/lore/chainback.md",
+      "record_kind": "lore",
+      "authority": "context",
+      "lore_class": "mixed",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Chainback",
+      "summary": "Chainback is the first bounded creature combat dance used to prove the Combat Core consumer seam. It is intentionally a narrow vertical slice rather than permission to build the full combat, creature, movement, or progression trees.",
+      "tags": [
+        "chainback",
+        "combat-v1",
+        "creature",
+        "lore"
+      ],
+      "sources": [
+        "docs/NIGHTMARE-CREATURE-CONTENT-WAVE1.md",
+        "docs/lore-research/2026-08-10-chainback-physical-entity.md",
+        "docs/lore-research/2026-08-11-chainback-geckolib-presentation.md"
+      ],
+      "related": [],
+      "implementation_links": [
+        "mod/src/main/java/dev/spud/shadowslave/world/entity/ChainbackEntity.java",
+        "mod/src/main/resources/assets/shadowslave/geo/chainback.geo.json",
+        "mod/src/main/resources/assets/shadowslave/animations/chainback.animation.json"
+      ],
+      "test_links": [
+        "mod/src/test/java/dev/spud/shadowslave/world/entity/ChainbackEntityBindingTest.java",
+        "mod/src/main/java/dev/spud/shadowslave/world/entity/ChainbackGameTests.java"
+      ]
+    },
+    "ss-lore-index": {
+      "uid": "ss-lore-index",
+      "path": "brain/lore/index.md",
+      "record_kind": "index",
+      "authority": "context",
+      "lore_class": "mixed",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Lore and source index",
+      "summary": "- [[docs/LORE-SOURCE-POLICY|Lore source policy]] - [[docs/JAVA-LORE-ALIGNMENT|Java lore-alignment gate]] - [[docs/PREVIEW-LORE-DECISIONS|Preview canon/design ledger]] - [[docs/OPEN-QUESTIONS|Open questions and owner decisions]] - [[docs/NIGHTMARE-SEE...",
+      "tags": [
+        "index",
+        "lore"
+      ],
+      "sources": [
+        "docs/LORE-SOURCE-POLICY.md",
+        "docs/JAVA-LORE-ALIGNMENT.md",
+        "docs/lore-research/README.md"
+      ],
+      "related": []
+    },
+    "ss-lore-replace-slug": {
+      "uid": "ss-lore-replace-slug",
+      "path": "brain/templates/lore-entity.md",
+      "record_kind": "lore",
+      "authority": "proposal",
+      "lore_class": "UNKNOWN",
+      "state": "draft",
+      "owner": "replace-owner",
+      "created": "replace-iso-date",
+      "updated": "replace-iso-date",
+      "title": "replace-title",
+      "summary": "Each claim needs a chapter reference. Without one it is INFERRED or UNKNOWN, never CANON.",
+      "tags": [
+        "lore"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-protocol-authority": {
+      "uid": "ss-protocol-authority",
+      "path": "brain/protocol/authority-model.md",
+      "record_kind": "protocol",
+      "authority": "project-authority",
+      "lore_class": "N/A",
+      "state": "accepted",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Authority model",
+      "summary": "When two records disagree, use this order:",
+      "tags": [
+        "authority",
+        "multi-ai",
+        "protocol"
+      ],
+      "sources": [
+        "docs/LORE-SOURCE-POLICY.md",
+        "docs/COLLABORATION.md",
+        "GPT_HANDOFF.md"
+      ],
+      "related": []
+    },
+    "ss-protocol-concurrent-editing": {
+      "uid": "ss-protocol-concurrent-editing",
+      "path": "brain/protocol/concurrent-editing.md",
+      "record_kind": "protocol",
+      "authority": "project-authority",
+      "lore_class": "N/A",
+      "state": "accepted",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Concurrent editing \u2014 what is normal here",
+      "summary": "Do not stop, ask for permission, revert anyone, or file an incident because you encountered another agent. Read the table, act, continue.",
+      "tags": [
+        "concurrency",
+        "multi-ai",
+        "protocol"
+      ],
+      "sources": [
+        "brain/protocol/ai-collaboration.md",
+        "AGENTS.md",
+        "brain/inbox/multi-ai-vault-optimization.md"
+      ],
+      "related": []
+    },
+    "ss-protocol-multi-ai": {
+      "uid": "ss-protocol-multi-ai",
+      "path": "brain/protocol/ai-collaboration.md",
+      "record_kind": "protocol",
+      "authority": "project-authority",
+      "lore_class": "N/A",
+      "state": "accepted",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "AI collaboration protocol",
+      "summary": "Decisions, scope, evidence, limitations, conflicts, and handoffs must be written to versioned files or linked issues and pull requests. Chat context alone is not durable project state.",
+      "tags": [
+        "git",
+        "multi-ai",
+        "protocol"
+      ],
+      "sources": [
+        "docs/COLLABORATION.md",
+        "GPT_HANDOFF.md",
+        "docs/OPEN-QUESTIONS.md",
+        "AGENTS.md",
+        "brain/tools/README.md"
+      ],
+      "related": []
+    },
+    "ss-protocol-note-schema": {
+      "uid": "ss-protocol-note-schema",
+      "path": "brain/protocol/note-schema.md",
+      "record_kind": "protocol",
+      "authority": "project-authority",
+      "lore_class": "N/A",
+      "state": "accepted",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Note schema",
+      "summary": "- uid \u2014 stable collision-resistant identifier. - record_kind \u2014 index, protocol, lore, design, implementation, decision, evidence, idea, context, claim, handoff, log, or agent-profile. - authority \u2014 source-canon, project-authority, proposal, evidence,...",
+      "tags": [
+        "metadata",
+        "protocol"
+      ],
+      "sources": [],
+      "related": []
+    },
+    "ss-protocol-vault-setup": {
+      "uid": "ss-protocol-vault-setup",
+      "path": "brain/protocol/vault-setup.md",
+      "record_kind": "protocol",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "Andrew",
+      "created": "2026-08-21",
+      "updated": "2026-08-21",
+      "title": "Vault setup",
+      "summary": "In Obsidian choose Open folder as vault and select:",
+      "tags": [
+        "obsidian",
+        "setup"
+      ],
+      "sources": [
+        "https://obsidian.md/help/Files%2Band%2Bfolders/Manage%2Bvaults",
+        "https://obsidian.md/help/Files%2Band%2Bfolders/How%2BObsidian%2Bstores%2Bdata",
+        "https://obsidian.md/help/sync-notes"
+      ],
+      "related": []
+    }
+  }
+}

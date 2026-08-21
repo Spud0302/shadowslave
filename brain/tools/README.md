@@ -42,10 +42,34 @@ Zero third-party dependencies, Python 3.8+. Exit `0` clean, `1` on any error,
 **Errors** — required properties, enum values for `record_kind`, `authority`,
 `lore_class`, and `state`, ISO date format and ordering, `uid` uniqueness,
 filename conventions, claim placement, claim `lease_until` presence and expiry,
-and `supersedes` resolving to a real `uid`.
+`supersedes` resolving to a real `uid`, unsubstituted template scaffolding, and
+frontmatter this parser cannot represent.
 
 **Warnings** — unresolved wikilinks, unknown commit hashes, `captured_commit`
-values behind HEAD, broken Canvas node references, and advisory placement.
+behind HEAD on a *living* note, `derived_from` sources newer than the note that
+summarises them, handoffs whose verification section names no command, oversized
+context packets, broken Canvas node references, and advisory placement.
+
+### The parser refuses to guess
+
+`parse_frontmatter` handles the flat scalar and block-list subset this vault
+uses. It returns an error, rather than a best guess, on a nested mapping or a
+duplicate key.
+
+This is deliberate. An earlier version parsed a block list as empty, and the
+claim collision check consequently reported "clear to proceed" for a path an
+active claim held. A safety tool that answers confidently and wrongly is worse
+than one that refuses to answer, so anything ambiguous is now a hard failure.
+
+### Freshness
+
+Declare a summary's inputs in `derived_from`, using source uids. The validator
+warns when a source's `updated` date is newer than the derived note's, which
+turns the dependency chain into something checkable. Immutable records — closed
+evidence, handoffs, accepted decisions — are exempt, because they describe a
+moment and are not expected to track their sources.
+
+The same rule governs `captured_commit`: only a living note can be stale.
 
 ### Why local rather than CI
 
@@ -99,10 +123,13 @@ run the validator afterwards.
 python brain/tools/test_validate_vault.py
 ```
 
-26 tests, each constructing a throwaway vault containing exactly one violation
+42 tests, each constructing a throwaway vault containing exactly one violation
 and asserting the matching code is reported. Run this after changing validation
 rules — a check that cannot be observed failing is not evidence that the vault is
 clean.
+
+Every check has both a positive and a negative case, because a validator that
+only ever passes also passes a smoke test.
 
 ## test_new_record.py
 
@@ -114,3 +141,27 @@ python brain/tools/test_new_record.py
 `test_every_kind_passes_validation`: every record kind the scaffolder emits must
 satisfy `validate_vault.py`. That closes the loop between the two tools, so a
 template drifting out of conformance surfaces here rather than in a filed record.
+
+## build_manifest.py
+
+Generates a deterministic, sorted, provenance-stamped `brain/manifest.json` indexing all notes, metadata, titles, and summaries.
+
+```bash
+python brain/tools/build_manifest.py
+python brain/tools/build_manifest.py --check
+```
+
+Runs `test_build_manifest.py` to verify sorting determinism and drift detection.
+
+## query_vault.py
+
+Fast CLI tool for AI agents and maintainers to query notes and inspect active claims without manually parsing YAML files.
+
+```bash
+python brain/tools/query_vault.py --kind design
+python brain/tools/query_vault.py --tag combat-v1
+python brain/tools/query_vault.py --active-claims
+python brain/tools/query_vault.py --search "Chainback" --json
+```
+
+Runs `test_query_vault.py` for query test coverage.
