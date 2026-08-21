@@ -8,8 +8,8 @@ owner: codex
 task_id: 20260821T073644Z-codex-modpack-shadow-slave-findings-dump
 created: 2026-08-21
 updated: 2026-08-21
-branch: vault/multi-ai-brain
-captured_commit: acf4ed5fda811b1aec8369fc399333e480adaf9b
+branch: packaging/combat-core-closure
+captured_commit: 8c32d355f0397b89ab6c0553b8f3612fb992f474
 worktree_dirty: true
 sources:
   - modpack/manifest.json
@@ -17,6 +17,7 @@ sources:
   - modpack/ARCHIVE-VERIFICATION.md
   - modpack/EXTERNAL-BUILD-PROVENANCE.md
   - modpack/tools/build_package.py
+  - modpack/tools/check_dependency_closure.py
   - modpack/tools/validate_manifest.py
   - modpack/tools/verify_package.py
   - modpack/tests/
@@ -41,6 +42,7 @@ sources:
   - brain/design/combat-v1.md
   - brain/design/deferred-scope.md
   - brain/lore/chainback.md
+  - brain/evidence/20260821T074514Z--claude--modpack-combat-core-closure.md
   - "Shadow Slave chapters 1, 2, 4, 15, 54, 74, 218, 354, 743, 778, 972, 1306, 1822, 1825, 1827, 2029, 2031-2033, 2048, 2061, 2397, 2412, 2444, 2834, 2902, and 3012"
 related:
   - ss-context-lore-research
@@ -48,6 +50,7 @@ related:
   - ss-design-combat-v1
   - ss-lore-chainback
   - ss-implementation-index
+  - 20260821T074514Z-claude-modpack-combat-core-closure
 supersedes: []
 tags:
   - evidence
@@ -71,8 +74,8 @@ Minecraft design for novel mechanics.
 ## Environment and method
 
 - Workspace: `<repository root>`
-- Branch: `vault/multi-ai-brain`
-- Captured HEAD: `acf4ed5fda811b1aec8369fc399333e480adaf9b`
+- Branch at final capture: `packaging/combat-core-closure`
+- Captured HEAD: `8c32d355f0397b89ab6c0553b8f3612fb992f474`
 - Worktree: dirty, with 80 pre-existing entries before this claim
 - Python: bundled Codex workspace runtime because `python` was not on `PATH`
 - Lore method: bounded `lore-research` context packet, mandatory source-policy
@@ -82,6 +85,12 @@ Minecraft design for novel mechanics.
   Shadow Slave metadata, local JARs, and the latest local GameTest log were
   inspected directly. Current source was used instead of the two stale derived
   implementation snapshots reported by the vault brief.
+- Concurrent state: the pass began at
+  `vault/multi-ai-brain@acf4ed5fda81`. The shared branch advanced and switched
+  while work was in progress. Claude then claimed and completed the declared
+  Combat Core closure, committed as
+  `packaging/combat-core-closure@8c32d355f039`; this snapshot re-ran the package
+  checks against that post-fix state.
 
 ## Preconditions
 
@@ -90,6 +99,12 @@ brain/ai/handoffs` exited 0 before writing. It reported 77 notes, zero errors,
 no active claims or path overlaps, and two pre-existing stale-snapshot warnings
 for `brain/implementation/authority-drift-register.md` and
 `brain/implementation/current-snapshot.md`.
+
+During the pass, claim
+`20260821T073922Z-claude-modpack-combat-core-closure` overlapped the read-only
+modpack inspection. Its targets were not edited here. This evidence records the
+pre-fix reproduction and the stable post-fix result after Claude closed that
+claim.
 
 ## Command or research procedure
 
@@ -102,7 +117,7 @@ The bundled Python interpreter was used for these exact commands:
 & "C:\Users\spud0\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" -m unittest discover -s modpack/tests -v
 ```
 
-Observed output:
+Initial observed output before the concurrent closure fix:
 
 ```text
 OK: modpack/manifest.json
@@ -118,6 +133,23 @@ The exact result was:
 RequiredByCore  : combat_core, geckolib, smartbrainlib
 DeclaredByPack  : shadowslave, geckolib, smartbrainlib
 MissingFromPack : combat_core
+```
+
+After the closure fix settled, these exact checks were re-run:
+
+```powershell
+& "C:\Users\spud0\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" modpack/tools/validate_manifest.py
+& "C:\Users\spud0\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" modpack/tools/check_dependency_closure.py
+& "C:\Users\spud0\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" -m unittest discover -s modpack/tests -v
+```
+
+Post-fix result:
+
+```text
+OK: modpack/manifest.json
+OK: all 5 required dependencies are covered.
+Ran 50 tests in 0.234s
+OK
 ```
 
 A source-boundary search was also run:
@@ -153,13 +185,17 @@ Shadow Slave package in the searched source tree.
 - **OBSERVED:** The repository contains a real development packaging shell,
   despite the root README still saying that the modpack is design-only with no
   manifest. It includes a manifest, deterministic builder, archive verifier,
-  external-provenance tool, workflow, and 33 passing unit tests.
+  external-provenance tool, dependency-closure check, workflow, and 50 passing
+  unit tests.
 - **OBSERVED:** `modpack/manifest.json` identifies pack version `0.0.0-dev` for
   Minecraft `1.21.1`, NeoForge `21.1.244`, and Java 21. It is a repository ZIP
   format, not a Modrinth `.mrpack` or public release.
 - **OBSERVED:** The local Java line is Shadow Slave `0.1.0-preview.4` plus the
   separate `combat_core` `0.0.4-wip` JAR. The Shadow Slave metadata requires
   Combat Core, GeckoLib `4.9.2`, and SmartBrainLib `1.16.11` on both sides.
+- **OBSERVED:** The post-fix manifest now declares all three required non-platform
+  dependencies, including Combat Core as a first-party `local_gradle_build`
+  component packaged at `mods/combat-core.jar`.
 - **OBSERVED:** GeckoLib is active presentation infrastructure for current
   creature models/animation. SmartBrainLib is active execution infrastructure
   for the Ash Burrower. They are not merely hypothetical dependency candidates.
@@ -175,12 +211,16 @@ Shadow Slave package in the searched source tree.
 ### A2. What the package tooling proves
 
 - **OBSERVED PASS:** The current manifest validates.
-- **OBSERVED PASS:** All 33 package, archive, provenance, and workflow-contract
-  unit tests passed in this session.
+- **OBSERVED PASS:** The closure checker accounts for all five required mod IDs:
+  NeoForge and Minecraft through the platform, then Combat Core, GeckoLib, and
+  SmartBrainLib through declared components.
+- **OBSERVED PASS:** All 50 package, closure, archive, provenance, and
+  workflow-contract unit tests passed against the post-fix worktree.
 - **OBSERVED:** The builder requires declared components, checks their exact
-  SHA-256 values, rejects missing/unknown inputs and path collisions, writes
-  sorted fixed-metadata ZIP entries, embeds payload sizes and hashes, and uses
-  atomic output replacement.
+  SHA-256 values for remote inputs, accepts a declared first-party local Gradle
+  artifact whose built digest is recorded in generated provenance, rejects
+  missing/unknown inputs and path collisions, writes sorted fixed-metadata ZIP
+  entries, embeds payload sizes and hashes, and uses atomic output replacement.
 - **OBSERVED:** The verifier checks unique safe paths, fixed archive metadata,
   complete embedded-provenance coverage, byte lengths, and hashes.
 - **OBSERVED:** External provenance can bind a repository, full source commit,
@@ -188,17 +228,19 @@ Shadow Slave package in the searched source tree.
   digest. It remains unsigned and is not publisher authenticity, source review,
   or cross-toolchain reproducibility proof.
 
-These passes prove the internal package-format contract with supplied bytes.
-They do not prove that the current preview is dependency-complete or bootable.
+These passes prove the declared dependency closure and internal package-format
+contract with supplied bytes. They do not prove version-range compatibility or
+that the current preview is bootable.
 
-### A3. Release-blocking and verification gaps
+### A3. Closure transition and remaining verification gaps
 
-1. **OBSERVED P0 — missing dependency closure.** The current Shadow Slave JAR
-   requires `combat_core 0.0.4-wip`, but the manifest and advertised archive
-   inventory contain only the Shadow Slave core, GeckoLib, and SmartBrainLib.
-   An archive built from the current manifest can verify internally while still
-   being unable to load preview.4.
-2. **OBSERVED P0 — fixture-only CI.** `modpack-shell.yml` writes the literal
+1. **OBSERVED CLOSED IN THE CURRENT WORKTREE — declared dependency closure.**
+   The initial manifest omitted required `combat_core 0.0.4-wip`; the defect was
+   reproduced before the fix. Claude's overlapping claim added Combat Core,
+   first-party local-build packaging support, and a fail-closed closure check.
+   The post-fix checker exits 0 and the suite increased from 33 to 50 passing
+   tests. This closes declared closure only; it is not a boot result.
+2. **OBSERVED OPEN P0 — fixture-only CI.** `modpack-shell.yml` writes the literal
    bytes `ci-core-fixture` as `shadowslave-core.jar`, assembles that fixture,
    and verifies ZIP integrity. It does not build the real Shadow Slave or Combat
    Core JARs and does not boot the extracted pack.
@@ -241,7 +283,8 @@ The same log warns that its reused world moved Combat Core from `0.0.3-wip` to
 
 - **OBSERVED:** Root `README.md` says no manifest or dependency package exists;
   current source contradicts the first half. The accurate state is that package
-  infrastructure exists but no dependency-complete, boot-tested release exists.
+  infrastructure and declared closure exist, but no real-JAR, boot-tested
+  release exists.
 - **OBSERVED:** `docs/THIRD-PARTY-DEPENDENCY-POLICY.md` still says the manifest
   has no components and SmartBrainLib is only spike-approved. Current manifest,
   metadata, and runtime source require/use it.
@@ -456,7 +499,14 @@ A-F; consult those ledgers for source links, exceptions, and fuller chronology.
 
 - Local JAR identities are recorded in Section A4. They are dirty-worktree
   observations, not release checksums.
-- Package verification result: manifest valid; 33/33 tests passed.
+- Initial package verification: manifest valid; 33/33 tests passed; direct
+  comparison exposed missing `combat_core`.
+- Post-fix package verification: manifest valid; all 5 required dependency IDs
+  covered; 50/50 tests passed.
+- Claude's overlapping closure evidence records a deterministic fixture archive
+  containing `mods/combat-core.jar`, verified with SHA-256
+  `8a3c81228b0b8e8b13f8bfe2af1b07a51a2327b2434af1539a4c162e10ae3715`.
+  It used fixture JARs and is not a runtime artifact.
 - Local runtime log: `mod/run/logs/latest.log`, 2026-08-21 local GameTest run,
   four project/runtime mods loaded, 2/2 required GameTests passed.
 - Decisive lore chapter clusters:
@@ -478,23 +528,27 @@ A-F; consult those ledgers for source links, exceptions, and fuller chronology.
   bytes/hashes were not independently fetched in this pass.
 - The Shadow Slave or Combat Core Gradle builds were not rerun. Their local JARs
   and GameTest log pre-existed this task.
-- No real pack archive was assembled, extracted, or verified from the current
-  JARs. No dedicated-server pack boot, separate client join, two-JVM test,
-  launcher export, signing, publication, or clean-machine reproduction ran.
+- A deterministic fixture archive was assembled and verified by the overlapping
+  closure claim, but no pack was assembled from the current real JARs. No
+  dedicated-server pack boot, separate client join, two-JVM test, launcher
+  export, signing, publication, or clean-machine reproduction ran.
 - No physical playtest occurred. Combat feel, telegraph readability, spacing,
   art quality, and fun remain human evidence.
-- No code, manifest, workflow, shared authority note, or lore ledger was fixed.
+- This claim did not edit code, manifests, workflows, shared authority notes,
+  or lore ledgers. The overlapping Claude claim fixed declared closure only.
   Findings do not authorize implementation, release, or canon promotion.
 
 ## Conclusion
 
 The vault now has a consolidated snapshot of both bodies of knowledge. The
 modpack has meaningful deterministic packaging and provenance infrastructure,
-but preview.4 is not yet a complete package: Combat Core is missing from the
-declared closure, CI packages a fixture, and no assembled archive boot has been
-proved. The lore research establishes strong architecture constraints across
-progression, Aspects/Flaws, Memories, Nightmares, Soul systems, Echoes, and
-presentation while preserving open algorithms, source conflicts, and all
-Minecraft-authored content as DESIGN rather than canon.
+and its declared dependency closure now includes Combat Core with a fail-closed
+regression check. Preview.4 is still not a proven runnable modpack: CI packages
+a fixture, version ranges are not evaluated by the closure check, and no archive
+built from the real JARs has been booted. The lore research establishes strong
+architecture constraints across progression, Aspects/Flaws, Memories,
+Nightmares, Soul systems, Echoes, and presentation while preserving open
+algorithms, source conflicts, and all Minecraft-authored content as DESIGN
+rather than canon.
 
 An observation proves behaviour at one commit. It does not authorize a design, merge, release, canon classification, or scope change.
