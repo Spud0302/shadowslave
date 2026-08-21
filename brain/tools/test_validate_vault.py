@@ -12,6 +12,7 @@ import contextlib
 import io
 import json
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -228,6 +229,32 @@ class ValidatorTest(unittest.TestCase):
                    note(uid="ss-ai-agent-legacy", record_kind="context"))
         _, report = self.run_validator()
         self.assertEqual(report["errors"], 0, report["findings"])
+
+    def test_closed_evidence_is_not_stale_when_head_moves(self):
+        """captured_commit on a closed record is history, not staleness.
+
+        Regression: after the first vault commit, every immutable evidence
+        record reported SNAPSHOT_STALE simply because HEAD had advanced.
+        """
+        subprocess.run(["git", "init", "-q"], cwd=str(self.root),
+                       capture_output=True, check=True)
+        subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
+                        "commit", "-q", "--allow-empty", "-m", "one"],
+                       cwd=str(self.root), capture_output=True, check=True)
+        old = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(self.root),
+                             capture_output=True, text=True, check=True).stdout.strip()
+        subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
+                        "commit", "-q", "--allow-empty", "-m", "two"],
+                       cwd=str(self.root), capture_output=True, check=True)
+
+        self.write("brain/evidence/20260821T000000Z--claude--done.md",
+                   note(uid="ss-ev-closed", record_kind="evidence", authority="evidence",
+                        state="closed", task_id="t1", captured_commit=old))
+        self.assertNotIn("SNAPSHOT_STALE", self.codes())
+
+        self.write("brain/design/living.md",
+                   note(uid="ss-living", state="active", captured_commit=old))
+        self.assertFinds("SNAPSHOT_STALE")
 
     # --- cross references
 

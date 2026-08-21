@@ -354,7 +354,12 @@ def check_commits(root, notes, findings):
             if git_output(root, ["cat-file", "-e", sha + "^{commit}"]) is None:
                 findings.append(Finding("warn", "COMMIT_UNKNOWN", rel,
                                         "%s='%s' is not a commit in this repository" % (key, sha)))
-            elif key == "captured_commit" and not head.startswith(sha):
+            elif key == "captured_commit" and not head.startswith(sha) \
+                    and meta.get("state") not in ("closed", "superseded", "archived"):
+                # Only living notes can be stale. On a closed evidence record
+                # captured_commit is an immutable historical fact, and warning
+                # about it would fire on every record forever once HEAD moves --
+                # noise that teaches agents to ignore warnings.
                 findings.append(Finding("warn", "SNAPSHOT_STALE", rel,
                                         "captured_commit '%s' is behind HEAD '%s'; refresh or "
                                         "mark the note stale before relying on it" % (sha, head[:12])))
