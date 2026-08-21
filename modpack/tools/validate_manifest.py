@@ -10,7 +10,13 @@ from typing import Any
 
 ALLOWED_COMPONENT_ROLES = {"execution_provider", "presentation_provider", "infrastructure", "content"}
 ALLOWED_SIDES = {"client", "server", "both"}
-ALLOWED_SOURCES = {"modrinth", "curseforge", "direct"}
+# A pinned digest exists to verify a third-party download. A first-party JAR
+# built from this repository has no digest until it is built, so it declares an
+# artifact glob and a package path instead, and provenance records the digest
+# that actually shipped.
+LOCAL_SOURCE = "local_gradle_build"
+REMOTE_SOURCES = {"modrinth", "curseforge", "direct"}
+ALLOWED_SOURCES = REMOTE_SOURCES | {LOCAL_SOURCE}
 SHA256_LENGTH = 64
 
 
@@ -77,6 +83,7 @@ def validate_manifest(data: Any) -> None:
 
     components = require_list(root.get("components"), "components")
     seen_ids: set[str] = set()
+    seen_package_paths: set[str] = set()
     for index, raw_component in enumerate(components):
         path = f"components[{index}]"
         component = require_object(raw_component, path)
@@ -99,13 +106,38 @@ def validate_manifest(data: Any) -> None:
             raise ManifestError(f"{path}.owns_canonical_state must be false")
 
         source = require_object(component.get("source"), f"{path}.source")
-        if source.get("type") not in ALLOWED_SOURCES:
+        source_type = source.get("type")
+        if source_type not in ALLOWED_SOURCES:
             raise ManifestError(f"{path}.source.type is unsupported")
         require_text(source.get("project"), f"{path}.source.project")
-        require_text(source.get("file"), f"{path}.source.file")
-        digest = require_text(source.get("sha256"), f"{path}.source.sha256").lower()
-        if len(digest) != SHA256_LENGTH or any(ch not in "0123456789abcdef" for ch in digest):
-            raise ManifestError(f"{path}.source.sha256 must be a 64-character hexadecimal digest")
+
+        if source_type == LOCAL_SOURCE:
+            require_text(source.get("artifact_glob"), f"{path}.source.artifact_glob")
+            local_package_path = require_safe_relative_path(
+                source.get("package_path"), f"{path}.source.package_path"
+            )
+            if not local_package_path.startswith("mods/") or not local_package_path.endswith(".jar"):
+                raise ManifestError(f"{path}.source.package_path must be a JAR under mods/")
+            if local_package_path == owner_package_path:
+                raise ManifestError(
+                    f"{path}.source.package_path collides with the canonical state owner"
+                )
+            if local_package_path in seen_package_paths:
+                raise ManifestError(f"duplicate component package path: {local_package_path}")
+            seen_package_paths.add(local_package_path)
+            # Reject a pinned digest rather than ignoring it: a digest that is
+            # never checked reads as a guarantee this build cannot make.
+            for unsupported in ("file", "sha256"):
+                if source.get(unsupported) is not None:
+                    raise ManifestError(
+                        f"{path}.source.{unsupported} is not valid for a {LOCAL_SOURCE} component"
+                    )
+        else:
+            require_text(source.get("file"), f"{path}.source.file")
+            digest = require_text(source.get("sha256"), f"{path}.source.sha256").lower()
+            if len(digest) != SHA256_LENGTH or any(ch not in "0123456789abcdef" for ch in digest):
+                raise ManifestError(f"{path}.source.sha256 must be a 64-character hexadecimal digest")
+
         require_text(component.get("license"), f"{path}.license")
         require_text(component.get("removal_behavior"), f"{path}.removal_behavior")
 

@@ -23,7 +23,8 @@ excludes:
 depends_on:
   - ss-context-lore-research
   - ss-protocol-note-schema
-overlaps_with: []
+overlaps_with:
+  - 20260821T073922Z-claude-modpack-combat-core-closure
 tags:
   - multi-ai
   - claim
@@ -79,13 +80,23 @@ Create one combined, immutable evidence snapshot that:
 
 The write depends on the bounded lore-research context packet, its mandatory
 source policy/alignment reads, current repository source, and existing research
-ledgers. The pre-write brief reported no active claims or path overlaps.
+ledgers. The pre-write brief reported no active claims or path overlaps. During
+the evidence pass, Claude opened the overlapping implementation claim
+`20260821T073922Z-claude-modpack-combat-core-closure`; this claim remains
+read-only with respect to Claude's targets and will snapshot the result after
+that in-flight fix reaches a stable handoff.
 
 ## Coordination notes
 
 The repository began with 80 unrelated dirty entries. They are preserved. The
 pre-write brief at `vault/multi-ai-brain@acf4ed5fda81` reported 77 notes, zero
 errors, and two pre-existing stale-snapshot warnings outside this claim.
+
+While the evidence draft was being validated, another agent advanced HEAD to
+`c71b5caa8011` and switched the shared worktree to
+`packaging/combat-core-closure`. Claude then began the claimed dependency-closure
+fix. No Claude-owned path is edited by this claim; the draft evidence will be
+updated from the stable post-fix state before it is treated as immutable.
 
 ## Closure
 

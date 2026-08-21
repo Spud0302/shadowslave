@@ -20,6 +20,23 @@
   },
   "components": [
     {
+      "id": "combat-core-0",
+      "mod_id": "combat_core",
+      "version": "0.0.4-wip",
+      "role": "execution_provider",
+      "side": "both",
+      "required": true,
+      "owns_canonical_state": false,
+      "source": {
+        "type": "local_gradle_build",
+        "project": "dev.spud.combatcore:combat-core",
+        "artifact_glob": "combat-core/build/libs/*.jar",
+        "package_path": "mods/combat-core.jar"
+      },
+      "license": "Project-owned",
+      "removal_behavior": "shadowslave declares combat_core as a required dependency at an exact version, so NeoForge refuses to load the pack without it. Combat Core owns generic action timing, melee geometry and outcome resolution only; canonical Soul, Aspect, Flaw, Memory, Echo, Rank, Nightmare and progression state remain entirely in shadowslave-core, and Combat Core never imports dev.spud.shadowslave."
+    },
+    {
       "id": "geckolib-4",
       "mod_id": "geckolib",
       "version": "4.9.2",

@@ -11,9 +11,9 @@ from pathlib import Path, PurePosixPath
 import zipfile
 
 try:
-    from modpack.tools.validate_manifest import load_and_validate
+    from modpack.tools.validate_manifest import LOCAL_SOURCE, load_and_validate
 except ModuleNotFoundError:
-    from validate_manifest import load_and_validate
+    from validate_manifest import LOCAL_SOURCE, load_and_validate
 
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
 FILE_MODE = 0o100644 << 16
@@ -64,6 +64,12 @@ def zip_info(path: str) -> zipfile.ZipInfo:
 def component_target(component: dict[str, object]) -> str:
     source = component["source"]
     assert isinstance(source, dict)
+    # A locally built component states its package path outright, because its
+    # file name carries a build-dependent version and is not fixed in advance.
+    if source.get("type") == LOCAL_SOURCE:
+        return safe_archive_path(
+            str(source["package_path"]), f"component {component['id']} package path"
+        )
     file_name = str(source["file"])
     if "\\" in file_name or PurePosixPath(file_name).name != file_name or not file_name.endswith(".jar"):
         raise PackageError(f"component {component['id']} source.file must be a JAR filename")
@@ -111,12 +117,17 @@ def build_package(
         if not local_path.is_file():
             raise PackageError(f"component JAR does not exist for {component_id}: {local_path}")
         data = local_path.read_bytes()
-        expected_digest = component["source"]["sha256"].lower()
-        actual_digest = sha256_bytes(data)
-        if actual_digest != expected_digest:
-            raise PackageError(
-                f"component SHA-256 mismatch for {component_id}: expected {expected_digest}, got {actual_digest}"
-            )
+        # A third-party download is verified against its pinned digest. A
+        # first-party JAR built from this repository has no digest until it is
+        # built, so the generated provenance below records what actually
+        # shipped instead.
+        if component["source"].get("type") != LOCAL_SOURCE:
+            expected_digest = component["source"]["sha256"].lower()
+            actual_digest = sha256_bytes(data)
+            if actual_digest != expected_digest:
+                raise PackageError(
+                    f"component SHA-256 mismatch for {component_id}: expected {expected_digest}, got {actual_digest}"
+                )
         target = component_target(component)
         if target in entries:
             raise PackageError(f"component package path collides with another entry: {target}")
