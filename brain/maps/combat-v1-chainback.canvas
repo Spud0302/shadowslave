@@ -1,0 +1,220 @@
+{
+  "nodes": [
+    {
+      "id": "phase-telegraph",
+      "type": "text",
+      "x": -1300,
+      "y": -300,
+      "width": 260,
+      "height": 120,
+      "text": "## TELEGRAPH\nReadable WIND_UP",
+      "color": "3"
+    },
+    {
+      "id": "phase-response",
+      "type": "text",
+      "x": -900,
+      "y": -300,
+      "width": 260,
+      "height": 120,
+      "text": "## RESPONSE\nSpacing, LOS, or supported defense",
+      "color": "5"
+    },
+    {
+      "id": "phase-result",
+      "type": "text",
+      "x": -500,
+      "y": -300,
+      "width": 260,
+      "height": 120,
+      "text": "## RESULT\nHIT, MISS, or DEFENSE\nExactly once",
+      "color": "1"
+    },
+    {
+      "id": "phase-recovery",
+      "type": "text",
+      "x": -100,
+      "y": -300,
+      "width": 260,
+      "height": 120,
+      "text": "## RECOVERY\nBounded opening",
+      "color": "2"
+    },
+    {
+      "id": "phase-punish",
+      "type": "text",
+      "x": 300,
+      "y": -300,
+      "width": 260,
+      "height": 120,
+      "text": "## ONE PUNISH\nOne expected result",
+      "color": "4"
+    },
+    {
+      "id": "phase-reassess",
+      "type": "text",
+      "x": 700,
+      "y": -300,
+      "width": 260,
+      "height": 120,
+      "text": "## REASSESS\nResume decisions",
+      "color": "6"
+    },
+    {
+      "id": "combat-v1-note",
+      "type": "file",
+      "x": -1180,
+      "y": 80,
+      "width": 380,
+      "height": 300,
+      "file": "brain/design/combat-v1.md",
+      "color": "3"
+    },
+    {
+      "id": "chainback-note",
+      "type": "file",
+      "x": -700,
+      "y": 80,
+      "width": 380,
+      "height": 300,
+      "file": "brain/lore/chainback.md",
+      "color": "6"
+    },
+    {
+      "id": "core-roadmap",
+      "type": "file",
+      "x": -220,
+      "y": 80,
+      "width": 380,
+      "height": 300,
+      "file": "combat-core/ROADMAP.md",
+      "color": "5"
+    },
+    {
+      "id": "traceability-note",
+      "type": "file",
+      "x": 260,
+      "y": 80,
+      "width": 380,
+      "height": 300,
+      "file": "brain/implementation/chainback-traceability.md",
+      "color": "4"
+    },
+    {
+      "id": "context-note",
+      "type": "file",
+      "x": 740,
+      "y": 80,
+      "width": 380,
+      "height": 300,
+      "file": "brain/ai/context/combat-v1.md",
+      "color": "5"
+    },
+    {
+      "id": "deferred-note",
+      "type": "file",
+      "x": -220,
+      "y": 500,
+      "width": 380,
+      "height": 280,
+      "file": "brain/design/deferred-scope.md",
+      "color": "1"
+    },
+    {
+      "id": "evidence-note",
+      "type": "file",
+      "x": 260,
+      "y": 500,
+      "width": 380,
+      "height": 280,
+      "file": "brain/evidence/README.md",
+      "color": "4"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-phase-1",
+      "fromNode": "phase-telegraph",
+      "fromSide": "right",
+      "toNode": "phase-response",
+      "toSide": "left"
+    },
+    {
+      "id": "edge-phase-2",
+      "fromNode": "phase-response",
+      "fromSide": "right",
+      "toNode": "phase-result",
+      "toSide": "left"
+    },
+    {
+      "id": "edge-phase-3",
+      "fromNode": "phase-result",
+      "fromSide": "right",
+      "toNode": "phase-recovery",
+      "toSide": "left"
+    },
+    {
+      "id": "edge-phase-4",
+      "fromNode": "phase-recovery",
+      "fromSide": "right",
+      "toNode": "phase-punish",
+      "toSide": "left"
+    },
+    {
+      "id": "edge-phase-5",
+      "fromNode": "phase-punish",
+      "fromSide": "right",
+      "toNode": "phase-reassess",
+      "toSide": "left"
+    },
+    {
+      "id": "edge-design-chainback",
+      "fromNode": "combat-v1-note",
+      "fromSide": "right",
+      "toNode": "chainback-note",
+      "toSide": "left",
+      "label": "first slice"
+    },
+    {
+      "id": "edge-chainback-core",
+      "fromNode": "chainback-note",
+      "fromSide": "right",
+      "toNode": "core-roadmap",
+      "toSide": "left",
+      "label": "adapts"
+    },
+    {
+      "id": "edge-core-trace",
+      "fromNode": "core-roadmap",
+      "fromSide": "right",
+      "toNode": "traceability-note",
+      "toSide": "left",
+      "label": "executed by"
+    },
+    {
+      "id": "edge-trace-context",
+      "fromNode": "traceability-note",
+      "fromSide": "right",
+      "toNode": "context-note",
+      "toSide": "left",
+      "label": "bounded context"
+    },
+    {
+      "id": "edge-deferred-core",
+      "fromNode": "deferred-note",
+      "fromSide": "top",
+      "toNode": "core-roadmap",
+      "toSide": "bottom",
+      "label": "scope guard"
+    },
+    {
+      "id": "edge-evidence-trace",
+      "fromNode": "evidence-note",
+      "fromSide": "top",
+      "toNode": "traceability-note",
+      "toSide": "bottom",
+      "label": "proof"
+    }
+  ]
+}
+
