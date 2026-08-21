@@ -1,24 +1,45 @@
 package dev.spud.shadowslave.item;
 
-/** Transient server-authoritative commitment/recovery state for Glass Road's clean-edge action. */
-public record GlassRoadCombatData(long strikeAt, long recoveryUntil) {
-    public GlassRoadCombatData {
-        if (strikeAt < 0 || recoveryUntil < 0) throw new IllegalArgumentException("combat timestamps cannot be negative");
-    }
+import dev.spud.combatcore.api.CombatActionDefinition;
+import dev.spud.combatcore.api.CombatPhase;
+import dev.spud.combatcore.api.MobActionExecutor;
+
+/**
+ * Transient Shadow Slave adapter for Glass Road's clean-edge action.
+ *
+ * Combat Core owns generic phase timing and the one-resolution guard. Shadow
+ * Slave still owns the Memory identity, ownership checks, targeting, damage,
+ * messages and all supernatural semantics.
+ */
+public final class GlassRoadCombatData {
+    static final CombatActionDefinition CLEAN_EDGE_ACTION = new CombatActionDefinition(
+            "shadowslave:glass_road/clean_edge",
+            GlassRoadMemoryItem.WINDUP_TICKS,
+            1,
+            GlassRoadMemoryItem.RECOVERY_TICKS,
+            GlassRoadMemoryItem.REACH
+    );
+
+    private static final Object ACTION_CONTEXT = new Object();
+    private final MobActionExecutor<Object> executor = new MobActionExecutor<>();
 
     public static GlassRoadCombatData empty() {
-        return new GlassRoadCombatData(0L, 0L);
+        return new GlassRoadCombatData();
     }
 
-    public boolean committed(long now) {
-        return strikeAt > now;
+    public boolean start(long now) {
+        return executor.start(CLEAN_EDGE_ACTION, ACTION_CONTEXT, now);
     }
 
-    public boolean readyToResolve(long now) {
-        return strikeAt > 0L && strikeAt <= now;
+    public CombatPhase phaseAt(long now) {
+        return executor.phaseAt(now);
     }
 
-    public boolean recovering(long now) {
-        return recoveryUntil > now;
+    public boolean resolve(long now, Runnable resolution) {
+        return executor.resolveActiveWindow(now, (ignored, definition) -> resolution.run());
+    }
+
+    public boolean actionReserved(long now) {
+        return executor.actionReserved(now);
     }
 }

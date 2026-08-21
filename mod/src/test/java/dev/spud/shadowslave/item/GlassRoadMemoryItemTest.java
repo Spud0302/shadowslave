@@ -1,8 +1,11 @@
 package dev.spud.shadowslave.item;
 
+import dev.spud.combatcore.api.CombatPhase;
 import dev.spud.shadowslave.content.memory.MemoryContentCatalog;
 import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -21,17 +24,30 @@ class GlassRoadMemoryItemTest {
     }
 
     @Test
-    void commitmentAndRecoveryAreDistinctWindows() {
-        GlassRoadCombatData committed = new GlassRoadCombatData(110L, 0L);
-        assertTrue(committed.committed(100L));
-        assertFalse(committed.readyToResolve(100L));
-        assertTrue(committed.readyToResolve(110L));
+    void cleanEdgeDelegatesCommitmentResolutionAndRecoveryToCombatCore() {
+        GlassRoadCombatData state = GlassRoadCombatData.empty();
+        AtomicInteger resolutions = new AtomicInteger();
 
-        GlassRoadCombatData recovering = new GlassRoadCombatData(0L, 126L);
-        assertTrue(recovering.recovering(110L));
-        assertFalse(recovering.recovering(126L));
-        assertEquals(10, GlassRoadMemoryItem.WINDUP_TICKS);
-        assertEquals(16, GlassRoadMemoryItem.RECOVERY_TICKS);
+        assertTrue(state.start(100L));
+        assertEquals(CombatPhase.WINDUP, state.phaseAt(100L));
+        assertEquals(CombatPhase.WINDUP, state.phaseAt(109L));
+        assertFalse(state.resolve(109L, resolutions::incrementAndGet));
+
+        assertEquals(CombatPhase.ACTIVE, state.phaseAt(110L));
+        assertTrue(state.resolve(110L, resolutions::incrementAndGet));
+        assertFalse(state.resolve(110L, resolutions::incrementAndGet));
+        assertEquals(1, resolutions.get());
+
+        assertEquals(CombatPhase.RECOVERY, state.phaseAt(111L));
+        assertFalse(state.start(111L));
+        assertEquals(CombatPhase.RECOVERY, state.phaseAt(126L));
+        assertEquals(CombatPhase.IDLE, state.phaseAt(127L));
+        assertTrue(state.start(127L));
+
+        assertEquals(10, GlassRoadCombatData.CLEAN_EDGE_ACTION.windupTicks());
+        assertEquals(1, GlassRoadCombatData.CLEAN_EDGE_ACTION.activeTicks());
+        assertEquals(16, GlassRoadCombatData.CLEAN_EDGE_ACTION.recoveryTicks());
+        assertEquals(GlassRoadMemoryItem.REACH, GlassRoadCombatData.CLEAN_EDGE_ACTION.reach());
     }
 
     @Test

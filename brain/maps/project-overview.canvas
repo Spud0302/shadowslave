@@ -1,0 +1,143 @@
+{
+  "nodes": [
+    {
+      "id": "project-home",
+      "type": "file",
+      "x": 0,
+      "y": 0,
+      "width": 420,
+      "height": 320,
+      "file": "brain/home.md",
+      "color": "5"
+    },
+    {
+      "id": "authority-model",
+      "type": "file",
+      "x": -620,
+      "y": -360,
+      "width": 420,
+      "height": 300,
+      "file": "brain/protocol/authority-model.md",
+      "color": "1"
+    },
+    {
+      "id": "lore-index",
+      "type": "file",
+      "x": 620,
+      "y": -360,
+      "width": 420,
+      "height": 300,
+      "file": "brain/lore/index.md",
+      "color": "6"
+    },
+    {
+      "id": "design-index",
+      "type": "file",
+      "x": 620,
+      "y": 0,
+      "width": 420,
+      "height": 300,
+      "file": "brain/design/index.md",
+      "color": "3"
+    },
+    {
+      "id": "implementation-index",
+      "type": "file",
+      "x": 620,
+      "y": 360,
+      "width": 420,
+      "height": 300,
+      "file": "brain/implementation/index.md",
+      "color": "4"
+    },
+    {
+      "id": "ai-operations",
+      "type": "file",
+      "x": -620,
+      "y": 360,
+      "width": 420,
+      "height": 300,
+      "file": "brain/ai/README.md",
+      "color": "5"
+    },
+    {
+      "id": "decisions-index",
+      "type": "file",
+      "x": -620,
+      "y": 0,
+      "width": 420,
+      "height": 300,
+      "file": "brain/decisions/README.md",
+      "color": "2"
+    },
+    {
+      "id": "evidence-index",
+      "type": "file",
+      "x": 0,
+      "y": 440,
+      "width": 420,
+      "height": 260,
+      "file": "brain/evidence/README.md",
+      "color": "4"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-home-authority",
+      "fromNode": "project-home",
+      "fromSide": "left",
+      "toNode": "authority-model",
+      "toSide": "right",
+      "label": "governed by"
+    },
+    {
+      "id": "edge-home-lore",
+      "fromNode": "project-home",
+      "fromSide": "right",
+      "toNode": "lore-index",
+      "toSide": "left",
+      "label": "lore"
+    },
+    {
+      "id": "edge-home-design",
+      "fromNode": "project-home",
+      "fromSide": "right",
+      "toNode": "design-index",
+      "toSide": "left",
+      "label": "design"
+    },
+    {
+      "id": "edge-home-implementation",
+      "fromNode": "project-home",
+      "fromSide": "right",
+      "toNode": "implementation-index",
+      "toSide": "left",
+      "label": "implementation"
+    },
+    {
+      "id": "edge-home-ai",
+      "fromNode": "project-home",
+      "fromSide": "left",
+      "toNode": "ai-operations",
+      "toSide": "right",
+      "label": "multi-AI"
+    },
+    {
+      "id": "edge-home-decisions",
+      "fromNode": "project-home",
+      "fromSide": "left",
+      "toNode": "decisions-index",
+      "toSide": "right",
+      "label": "decisions"
+    },
+    {
+      "id": "edge-home-evidence",
+      "fromNode": "project-home",
+      "fromSide": "bottom",
+      "toNode": "evidence-index",
+      "toSide": "top",
+      "label": "evidence"
+    }
+  ]
+}
+

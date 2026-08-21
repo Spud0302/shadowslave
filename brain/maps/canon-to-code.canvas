@@ -1,0 +1,153 @@
+{
+  "nodes": [
+    {
+      "id": "pipeline-label",
+      "type": "text",
+      "x": -1180,
+      "y": -300,
+      "width": 1980,
+      "height": 120,
+      "text": "# Canon to code\nSource evidence → classified claim → accepted design → implementation trace → reproducible evidence",
+      "color": "5"
+    },
+    {
+      "id": "source-policy",
+      "type": "file",
+      "x": -1180,
+      "y": 0,
+      "width": 380,
+      "height": 320,
+      "file": "docs/LORE-SOURCE-POLICY.md",
+      "color": "1"
+    },
+    {
+      "id": "chainback-source",
+      "type": "file",
+      "x": -700,
+      "y": 0,
+      "width": 380,
+      "height": 320,
+      "file": "docs/lore-research/2026-08-11-chainback-geckolib-presentation.md",
+      "color": "6"
+    },
+    {
+      "id": "chainback-classification",
+      "type": "file",
+      "x": -220,
+      "y": 0,
+      "width": 380,
+      "height": 320,
+      "file": "brain/lore/chainback.md",
+      "color": "6"
+    },
+    {
+      "id": "combat-design",
+      "type": "file",
+      "x": 260,
+      "y": 0,
+      "width": 380,
+      "height": 320,
+      "file": "brain/design/combat-v1.md",
+      "color": "3"
+    },
+    {
+      "id": "implementation-trace",
+      "type": "file",
+      "x": 740,
+      "y": 0,
+      "width": 380,
+      "height": 320,
+      "file": "brain/implementation/chainback-traceability.md",
+      "color": "4"
+    },
+    {
+      "id": "evidence-records",
+      "type": "file",
+      "x": 1220,
+      "y": 0,
+      "width": 380,
+      "height": 320,
+      "file": "brain/evidence/README.md",
+      "color": "4"
+    },
+    {
+      "id": "authority-check",
+      "type": "file",
+      "x": -220,
+      "y": 450,
+      "width": 380,
+      "height": 280,
+      "file": "brain/protocol/authority-model.md",
+      "color": "1"
+    },
+    {
+      "id": "qa-context",
+      "type": "file",
+      "x": 740,
+      "y": 450,
+      "width": 380,
+      "height": 280,
+      "file": "brain/ai/context/release-qa.md",
+      "color": "5"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-policy-source",
+      "fromNode": "source-policy",
+      "fromSide": "right",
+      "toNode": "chainback-source",
+      "toSide": "left",
+      "label": "governs research"
+    },
+    {
+      "id": "edge-source-classification",
+      "fromNode": "chainback-source",
+      "fromSide": "right",
+      "toNode": "chainback-classification",
+      "toSide": "left",
+      "label": "supports"
+    },
+    {
+      "id": "edge-classification-design",
+      "fromNode": "chainback-classification",
+      "fromSide": "right",
+      "toNode": "combat-design",
+      "toSide": "left",
+      "label": "constrains"
+    },
+    {
+      "id": "edge-design-implementation",
+      "fromNode": "combat-design",
+      "fromSide": "right",
+      "toNode": "implementation-trace",
+      "toSide": "left",
+      "label": "implemented by"
+    },
+    {
+      "id": "edge-implementation-evidence",
+      "fromNode": "implementation-trace",
+      "fromSide": "right",
+      "toNode": "evidence-records",
+      "toSide": "left",
+      "label": "verified by"
+    },
+    {
+      "id": "edge-authority-classification",
+      "fromNode": "authority-check",
+      "fromSide": "top",
+      "toNode": "chainback-classification",
+      "toSide": "bottom",
+      "label": "authority check"
+    },
+    {
+      "id": "edge-qa-implementation",
+      "fromNode": "qa-context",
+      "fromSide": "top",
+      "toNode": "implementation-trace",
+      "toSide": "bottom",
+      "label": "release proof"
+    }
+  ]
+}
+

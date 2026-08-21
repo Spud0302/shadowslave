@@ -1,0 +1,123 @@
+name: Combat Core MVP
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - ready_for_review
+      - reopened
+    paths:
+      - 'combat-core/**'
+      - 'mod/build.gradle'
+      - 'mod/settings.gradle'
+      - 'mod/src/main/java/dev/spud/shadowslave/item/GlassRoadCombatData.java'
+      - 'mod/src/main/java/dev/spud/shadowslave/item/GlassRoadMemoryItem.java'
+      - 'mod/src/main/java/dev/spud/shadowslave/world/entity/ChainbackEntity.java'
+      - 'mod/src/test/java/dev/spud/shadowslave/item/GlassRoadMemoryItemTest.java'
+      - '.github/workflows/combat-core.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Enforce Shadow Slave independence
+        run: |
+          if grep -R --line-number --fixed-strings 'dev.spud.shadowslave' combat-core/src combat-core/build.gradle combat-core/settings.gradle; then
+            echo 'combat-core must not import or depend on Shadow Slave implementation classes'
+            exit 1
+          fi
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Test and build standalone combat-core project
+        run: ./mod/gradlew -p combat-core clean test build --stacktrace
+
+      - name: Compile and test Shadow Slave consumer adapters
+        run: ./mod/gradlew -p mod test --stacktrace
+
+      - name: Boot physical NeoForge client
+        shell: bash
+        run: |
+          set -euo pipefail
+          log="$RUNNER_TEMP/combat-core-client.log"
+          setsid xvfb-run -a ./mod/gradlew -p combat-core runClient --no-daemon >"$log" 2>&1 &
+          client_group=$!
+          cleanup() {
+            kill -TERM -- "-$client_group" >/dev/null 2>&1 || true
+            sleep 2
+            kill -KILL -- "-$client_group" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          for _ in $(seq 1 180); do
+            if grep -Fq 'Combat Core mod loaded' "$log" && grep -Fq 'minecraft:textures/atlas/gui.png-atlas' "$log"; then
+              echo 'Combat Core physical client reached resource initialization.'
+              exit 0
+            fi
+            if ! kill -0 "$client_group" >/dev/null 2>&1; then
+              cat "$log"
+              echo 'Combat Core client exited before resource initialization.' >&2
+              exit 1
+            fi
+            sleep 1
+          done
+          cat "$log"
+          echo 'Combat Core client did not reach resource initialization within 180 seconds.' >&2
+          exit 1
+
+      - name: Boot dedicated NeoForge server
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p combat-core/run
+          printf 'eula=true\n' > combat-core/run/eula.txt
+          log="$RUNNER_TEMP/combat-core-server.log"
+          setsid ./mod/gradlew -p combat-core runServer --no-daemon >"$log" 2>&1 &
+          server_group=$!
+          cleanup() {
+            kill -TERM -- "-$server_group" >/dev/null 2>&1 || true
+            sleep 2
+            kill -KILL -- "-$server_group" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          for _ in $(seq 1 180); do
+            if grep -Fq 'Combat Core mod loaded' "$log" && grep -Eq 'Done \([0-9.]+s\)! For help, type "help"' "$log"; then
+              echo 'Combat Core dedicated server reached ready state.'
+              exit 0
+            fi
+            if ! kill -0 "$server_group" >/dev/null 2>&1; then
+              cat "$log"
+              echo 'Combat Core server exited before ready state.' >&2
+              exit 1
+            fi
+            sleep 1
+          done
+          cat "$log"
+          echo 'Combat Core server did not reach ready state within 180 seconds.' >&2
+          exit 1
+
+      - name: Upload development JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: combat-core-dev
+          path: combat-core/build/libs/*.jar
+          if-no-files-found: error
