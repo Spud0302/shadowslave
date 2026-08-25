@@ -31,7 +31,7 @@ Provide a bounded context packet for resolving modpack dependency closures, veri
 - [[modpack/README]] — Modpack structure and verification harness.
 - [[docs/THIRD-PARTY-DEPENDENCY-POLICY]] — Approved third-party libraries (GeckoLib, SmartBrainLib).
 - [[brain/implementation/authority-drift-register]] — Known P0 pack closure and CI fixture gaps.
-- [[combat-core/ROADMAP]] — Combat Core integration status.
+- [[combat-core/README]] — Combat Core integration status.
 
 ## Do
 

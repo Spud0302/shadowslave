@@ -28,6 +28,11 @@ TITLE_RE = re.compile(r"^#\s+(.+)$", re.MULTILINE)
 ABSTRACT_RE = re.compile(r"^>\s*\[!abstract\][^\n]*\n((?:>[^\n]*\n?)+)", re.MULTILINE)
 
 
+
+# Manifest fields that record how the manifest was produced rather than what
+# it contains. Excluded from --check comparison; see the check branch in main().
+PROVENANCE_FIELDS = frozenset({"generated_at", "source_commit", "source_tree_dirty"})
+
 def extract_title_and_summary(text):
     """Extract document title and short summary from markdown text."""
     # Find body after frontmatter
@@ -162,11 +167,16 @@ def main(argv=None):
         existing = manifest_path.read_text(encoding="utf-8")
         try:
             existing_data = json.loads(existing)
-            # Compare note mappings ignoring generated_at timestamp
-            m_copy = dict(manifest)
-            m_copy.pop("generated_at", None)
-            e_copy = dict(existing_data)
-            e_copy.pop("generated_at", None)
+            # Compare note content only. The provenance fields describe when
+            # and where the manifest was generated, not what it contains, and
+            # every one of them changes without the vault changing:
+            # generated_at on every run, source_commit on the very commit that
+            # records the manifest, source_tree_dirty between a working tree
+            # and a clean CI checkout. Comparing them made --check impossible
+            # to satisfy once committed, which is how the manifest on main
+            # drifted unnoticed.
+            m_copy = {k: v for k, v in manifest.items() if k not in PROVENANCE_FIELDS}
+            e_copy = {k: v for k, v in existing_data.items() if k not in PROVENANCE_FIELDS}
             if m_copy == e_copy:
                 print("Manifest is up-to-date.")
                 return 0

@@ -139,6 +139,62 @@ tags:
         self.assertEqual(keys, ["ss-a-note", "ss-z-note"])
         self.assertEqual(manifest["notes"]["ss-z-note"]["tags"], ["apple", "zebra"])
 
+    def test_check_mode_survives_commit_and_clean_checkout(self):
+        """--check must compare content, not provenance.
+
+        Committing the manifest moves HEAD, so source_commit in the recorded
+        file is always one commit behind, and a CI checkout is clean where a
+        working tree is dirty. When --check compared those fields the manifest
+        could never be in sync once committed.
+        """
+        self._write_note(
+            "provenance.md",
+            """---
+uid: ss-provenance
+record_kind: idea
+authority: proposal
+lore_class: N/A
+state: proposed
+owner: tester
+created: 2026-08-25
+updated: 2026-08-25
+---
+
+# Provenance
+Body.
+""",
+        )
+        out_path = self.brain / "manifest.json"
+        self.assertEqual(
+            build_manifest.main(["--root", str(self.tmp), "--output", str(out_path)]), 0
+        )
+
+        # Commit the manifest. HEAD moves, so the recorded source_commit is now
+        # stale and the tree is clean rather than dirty.
+        subprocess.run(["git", "-C", str(self.tmp), "add", "-A"], check=True)
+        subprocess.run(
+            ["git", "-C", str(self.tmp), "commit", "-m", "record manifest"],
+            check=True,
+            stdout=subprocess.DEVNULL,
+        )
+
+        recorded = json.loads(out_path.read_text(encoding="utf-8"))
+        head = subprocess.run(
+            ["git", "-C", str(self.tmp), "rev-parse", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        self.assertNotEqual(
+            recorded["source_commit"], head, "precondition: recorded commit should be behind HEAD"
+        )
+
+        self.assertEqual(
+            build_manifest.main(["--root", str(self.tmp), "--output", str(out_path), "--check"]),
+            0,
+            "committed manifest with unchanged notes must still be in sync",
+        )
+
     def test_check_mode_detects_drift(self):
         self._write_note(
             "test.md",

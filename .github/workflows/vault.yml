@@ -1,0 +1,85 @@
+name: Vault integrity
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - ready_for_review
+      - reopened
+    paths:
+      - 'brain/**'
+      - '.github/workflows/vault.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'brain/**'
+      - '.github/workflows/vault.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  vault:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      # fetch-depth: 0 is required. validate_vault.py resolves every
+      # base_commit and captured_commit against local history; a shallow
+      # checkout cannot see them and reports the whole vault as unknown.
+      - name: Check out claimed source repository and commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate vault
+        run: python3 brain/tools/validate_vault.py
+
+      # validate_vault.py classifies broken links as warnings, so it exits 0 on
+      # them and the plain step above cannot catch a dangling reference. That is
+      # how combat-core/ROADMAP.md stayed referenced 12 times while never having
+      # existed. Promote the link codes to blocking here.
+      #
+      # --strict is deliberately not used instead: COMMIT_UNKNOWN and
+      # SNAPSHOT_STALE are legitimately mid-flight on open work, and blocking on
+      # them would fail unrelated pull requests.
+      - name: Fail on broken links
+        run: |
+          python3 brain/tools/validate_vault.py --format json > "$RUNNER_TEMP/vault.json"
+          python3 - "$RUNNER_TEMP/vault.json" <<'PY'
+          import json, sys
+
+          BLOCKING = {"LINK_BROKEN", "CANVAS_LINK_BROKEN"}
+
+          report = json.load(open(sys.argv[1]))
+          blocking = [f for f in report["findings"] if f["code"] in BLOCKING]
+
+          for f in blocking:
+              print(f"::error file={f['path']}::{f['code']}: {f['message']}")
+
+          advisory = report["warnings"] - len(blocking)
+          print(
+              f"{report['notes_checked']} notes checked, "
+              f"{report['errors']} error(s), "
+              f"{len(blocking)} blocking link warning(s), "
+              f"{advisory} advisory warning(s)"
+          )
+
+          sys.exit(1 if blocking or report["errors"] else 0)
+          PY
+
+      - name: Check manifest is in sync
+        run: |
+          if ! python3 brain/tools/build_manifest.py --check; then
+            echo '::error::brain/manifest.json is stale. Run: python3 brain/tools/build_manifest.py'
+            exit 1
+          fi
+
+      - name: Run vault tool tests
+        run: python3 -m unittest discover -s brain/tools -p 'test_*.py' -v

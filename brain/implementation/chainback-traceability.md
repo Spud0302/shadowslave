@@ -8,7 +8,7 @@ owner: Andrew
 created: 2026-08-21
 updated: 2026-08-21
 sources:
-  - combat-core/ROADMAP.md
+  - combat-core/README.md
   - docs/lore-research/2026-08-11-chainback-geckolib-presentation.md
 implementation_links:
   - mod/src/main/java/dev/spud/shadowslave/world/entity/ChainbackEntity.java

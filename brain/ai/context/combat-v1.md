@@ -9,7 +9,7 @@ created: 2026-08-21
 updated: 2026-08-21
 sources:
   - brain/design/combat-v1.md
-  - combat-core/ROADMAP.md
+  - combat-core/README.md
   - brain/implementation/chainback-traceability.md
 tags:
   - context
@@ -29,7 +29,7 @@ Prove one readable Chainback exchange on a server-authoritative action pipeline 
 - [[brain/design/deferred-scope]]
 - [[brain/lore/chainback]]
 - [[brain/implementation/chainback-traceability]]
-- [[combat-core/ROADMAP]]
+- [[combat-core/README]]
 - [[docs/design/MODULAR-JAR-BOUNDARIES]]
 
 ## Do

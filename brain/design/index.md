@@ -10,7 +10,7 @@ updated: 2026-08-21
 sources:
   - docs/design/MODULAR-JAR-BOUNDARIES.md
   - docs/design/NIGHTMARE-SEED-EXPANSION-SAFETY.md
-  - combat-core/ROADMAP.md
+  - combat-core/README.md
 tags:
   - design
   - index

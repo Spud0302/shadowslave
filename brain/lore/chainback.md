@@ -71,7 +71,7 @@ Chainback is the first bounded creature combat dance used to prove the Combat Co
 
 - [[brain/design/combat-v1|Combat v1]]
 - [[brain/implementation/chainback-traceability|Chainback traceability]]
-- [[combat-core/ROADMAP|Combat Core roadmap]]
+- [[combat-core/README|Combat Core MVP state]]
 - [[docs/lore-research/2026-08-10-chainback-physical-entity|Physical entity evidence]]
 - [[docs/lore-research/2026-08-11-chainback-geckolib-presentation|Presentation evidence]]
 
