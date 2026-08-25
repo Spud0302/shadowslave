@@ -8,7 +8,7 @@ owner: Andrew
 created: 2026-08-17
 updated: 2026-08-21
 sources:
-  - combat-core/ROADMAP.md
+  - combat-core/README.md
   - PROJECT-STATUS.md
   - docs/design/MODULAR-JAR-BOUNDARIES.md
 related:
@@ -76,5 +76,5 @@ This slice does not require a full injury system, Soul damage, complete Essence 
 - [[brain/lore/chainback|Chainback]]
 - [[brain/implementation/chainback-traceability|Traceability]]
 - [[brain/ai/context/combat-v1|AI context packet]]
-- [[combat-core/ROADMAP|Combat Core roadmap]]
+- [[combat-core/README|Combat Core MVP state]]
 

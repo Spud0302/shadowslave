@@ -8,7 +8,7 @@ owner: Andrew
 created: 2026-08-17
 updated: 2026-08-21
 sources:
-  - combat-core/ROADMAP.md
+  - combat-core/README.md
   - docs/design/MODULAR-JAR-BOUNDARIES.md
 tags:
   - design

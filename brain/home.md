@@ -66,7 +66,7 @@ tags:
 - [[docs/LORE-SOURCE-POLICY|Lore source policy]]
 - [[docs/JAVA-LORE-ALIGNMENT|Java lore-alignment gate]]
 - [[docs/PREVIEW-LORE-DECISIONS|Preview lore decisions]]
-- [[combat-core/ROADMAP|Combat Core roadmap]]
+- [[combat-core/README|Combat Core MVP state]]
 - [[mod/IMPLEMENTATION-STATUS|Java implementation status]]
 
 ## Health and drift

@@ -10,7 +10,7 @@ updated: 2026-08-21
 sources:
   - PROJECT-STATUS.md
   - mod/IMPLEMENTATION-STATUS.md
-  - combat-core/ROADMAP.md
+  - combat-core/README.md
 tags:
   - implementation
   - index
@@ -34,7 +34,7 @@ tags:
 - SmartBrainLib: replaceable creature-brain execution provider.
 - Modpack shell: deterministic assembly and provenance layer; it must package the complete dependency closure.
 
-See [[docs/design/MODULAR-JAR-BOUNDARIES]] and [[combat-core/ROADMAP]].
+See [[docs/design/MODULAR-JAR-BOUNDARIES]] and [[combat-core/README]].
 
 ## Evidence and testing
 
