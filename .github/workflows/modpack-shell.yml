@@ -59,8 +59,10 @@ jobs:
       - name: Build and verify deterministic fixture package
         run: |
           printf 'ci-core-fixture' > "$RUNNER_TEMP/shadowslave-core.jar"
+          printf 'ci-combat-core-fixture' > "$RUNNER_TEMP/combat-core.jar"
           python3 modpack/tools/build_package.py \
             --core-jar "$RUNNER_TEMP/shadowslave-core.jar" \
+            --component-jar "combat-core-0=$RUNNER_TEMP/combat-core.jar" \
             --component-jar "geckolib-4=$RUNNER_TEMP/geckolib-neoforge-1.21.1-4.9.2.jar" \
             --component-jar "smartbrainlib-1=$RUNNER_TEMP/SmartBrainLib-neoforge-1.21.1-1.16.11.jar" \
             --output "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"

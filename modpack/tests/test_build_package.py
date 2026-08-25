@@ -14,17 +14,33 @@ ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = ROOT / "modpack" / "manifest.json"
 
 
+def fixture_filename(component: dict, data: bytes) -> str:
+    """Name the on-disk fixture JAR, pinning a digest only where one belongs.
+
+    A remote component is verified against `source.sha256`, so the fixture
+    rewrites that digest to match its payload. A `local_gradle_build` component
+    is built from this repository and pins no digest; setting one is rejected by
+    the validator, and its archive path comes from `source.package_path`.
+    """
+    source = component["source"]
+    if source.get("type") == "local_gradle_build":
+        return source["package_path"].rsplit("/", 1)[-1]
+    source["sha256"] = hashlib.sha256(data).hexdigest()
+    return source["file"]
+
+
 def fixture_manifest(root: Path) -> tuple[Path, dict[str, Path]]:
     modpack = root / "modpack"
     modpack.mkdir()
     (modpack / "README.md").write_text("fixture", encoding="utf-8")
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     components: dict[str, Path] = {}
+    # See fixture_filename: a locally built component pins no digest, so the
+    # fixture must not invent one.
     for component in manifest["components"]:
         component_id = component["id"]
         data = f"deterministic-{component_id}-fixture".encode()
-        component["source"]["sha256"] = hashlib.sha256(data).hexdigest()
-        local = root / component["source"]["file"]
+        local = root / fixture_filename(component, data)
         local.write_bytes(data)
         components[component_id] = local
 
@@ -113,7 +129,11 @@ class DeterministicPackageTest(unittest.TestCase):
             root = Path(directory)
             manifest_path, components = fixture_manifest(root)
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            manifest["components"][0]["source"]["file"] = "bad\\name.jar"
+            # Must target a remote component: only those carry source.file, and
+            # the manifest now leads with a local_gradle_build component.
+            remote = next(c for c in manifest["components"]
+                          if c["source"].get("type") != "local_gradle_build")
+            remote["source"]["file"] = "bad\\name.jar"
             manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
             core = root / "core.jar"
             core.write_bytes(b"core")

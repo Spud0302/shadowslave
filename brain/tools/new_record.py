@@ -48,6 +48,21 @@ SLUG = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 DEFAULT_LEASE_HOURS = 8
 
 
+def worktree_label(root):
+    """Name the checkout without publishing a filesystem path.
+
+    The field exists to tell concurrent checkouts apart, which a label does just
+    as well as an absolute path. This repository is public, so emitting
+    "C:/Users/<name>/..." would publish the operator's username on every claim.
+    """
+    git_dir = git_output(root, ["rev-parse", "--absolute-git-dir"])
+    common = git_output(root, ["rev-parse", "--path-format=absolute", "--git-common-dir"])
+    if git_dir and common and Path(git_dir) != Path(common):
+        # A linked worktree: its directory name is what distinguishes it.
+        return root.name
+    return "primary"
+
+
 def set_key(lines, key, value):
     """Set a frontmatter key in place, or insert it before the closing fence."""
     pattern = re.compile(r"^%s\s*:" % re.escape(key))
@@ -119,7 +134,7 @@ def build(kind, slug, agent, args, root, now):
             "%Y-%m-%dT%H:%M:%SZ"),
         "replace-maintainer": agent,
         "replace-proposer": agent,
-        "replace-worktree": root.as_posix(),
+        "replace-worktree": worktree_label(root),
         "replace-full-sha": git_output(root, ["rev-parse", "HEAD"]) or "replace-full-sha",
         "replace-task-id": task_id or "replace-task-id",
         "replace-branch": git_output(root, ["rev-parse", "--abbrev-ref", "HEAD"])

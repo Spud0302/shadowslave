@@ -24,8 +24,14 @@ class PackageVerificationTest(unittest.TestCase):
         components: dict[str, Path] = {}
         for component in manifest["components"]:
             data = f"verified-{component['id']}-fixture".encode()
-            component["source"]["sha256"] = hashlib.sha256(data).hexdigest()
-            local = root / component["source"]["file"]
+            source = component["source"]
+            # A local_gradle_build component pins no digest -- the validator
+            # rejects one -- and states its archive path outright.
+            if source.get("type") == "local_gradle_build":
+                local = root / source["package_path"].rsplit("/", 1)[-1]
+            else:
+                source["sha256"] = hashlib.sha256(data).hexdigest()
+                local = root / source["file"]
             local.write_bytes(data)
             components[component["id"]] = local
 

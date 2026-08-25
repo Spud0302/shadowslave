@@ -21,6 +21,21 @@ tags:
 
 # AI collaboration protocol
 
+## The repository is public
+
+`github.com/Spud0302/shadowslave` is a public repository. Every note, claim,
+log, evidence record, handoff, and commit message is world-readable once pushed,
+and deleting a record later does not unpublish it.
+
+Do not commit absolute machine paths, personal data, private account
+identifiers, credentials, or substantial copied novel text. A claim's `worktree`
+field carries a label such as `primary` rather than a filesystem path;
+`new_record.py` generates it.
+
+This was not recorded anywhere until 2026-08-21, by which point eleven claims
+had published the operator's home directory. Those were redacted; the tool no
+longer emits a path.
+
 ## The repository is the communication channel
 
 Decisions, scope, evidence, limitations, conflicts, and handoffs must be written to versioned files or linked issues and pull requests. Chat context alone is not durable project state.

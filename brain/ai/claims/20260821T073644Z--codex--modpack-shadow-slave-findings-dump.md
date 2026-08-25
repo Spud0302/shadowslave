@@ -3,7 +3,7 @@ uid: 20260821T073644Z-codex-modpack-shadow-slave-findings-dump
 record_kind: claim
 authority: context
 lore_class: "N/A"
-state: active
+state: closed
 owner: codex
 tool: Codex desktop
 task_id: 20260821T073644Z-codex-modpack-shadow-slave-findings-dump
@@ -23,7 +23,8 @@ excludes:
 depends_on:
   - ss-context-lore-research
   - ss-protocol-note-schema
-overlaps_with: []
+overlaps_with:
+  - 20260821T073922Z-claude-modpack-combat-core-closure
 tags:
   - multi-ai
   - claim
@@ -79,7 +80,11 @@ Create one combined, immutable evidence snapshot that:
 
 The write depends on the bounded lore-research context packet, its mandatory
 source policy/alignment reads, current repository source, and existing research
-ledgers. The pre-write brief reported no active claims or path overlaps.
+ledgers. The pre-write brief reported no active claims or path overlaps. During
+the evidence pass, Claude opened the overlapping implementation claim
+`20260821T073922Z-claude-modpack-combat-core-closure`; this claim remains
+read-only with respect to Claude's targets and snapshots the result after that
+fix reached its stable evidence and handoff.
 
 ## Coordination notes
 
@@ -87,6 +92,22 @@ The repository began with 80 unrelated dirty entries. They are preserved. The
 pre-write brief at `vault/multi-ai-brain@acf4ed5fda81` reported 77 notes, zero
 errors, and two pre-existing stale-snapshot warnings outside this claim.
 
+While the evidence draft was being validated, another agent advanced HEAD to
+`c71b5caa8011` and switched the shared worktree to
+`packaging/combat-core-closure`. Claude then began the claimed dependency-closure
+fix, which is now committed as `8c32d355f039`. No Claude-owned path was edited
+by this claim. Claude's commit also included this in-progress claim and evidence
+draft; the Codex evidence was then updated on top of that commit to record the
+stable post-fix state before being treated as immutable.
+
 ## Closure
 
-State whether the claim closed, expired, or blocked. Link evidence and the immutable handoff. Claim closure is not proof of success.
+Closed 2026-08-21.
+
+- Evidence: [[brain/evidence/20260821T073736Z--codex--modpack-shadow-slave-findings-evidence]]
+- Handoff: [[brain/ai/handoffs/20260821T074926Z--codex--modpack-shadow-slave-findings-handoff]]
+
+The requested knowledge is durable in one classified snapshot. Package checks
+and vault validation pass as recorded in the evidence/handoff; real-pack boot,
+fresh live-novel verification, and physical play remain explicitly unperformed.
+Claim closure is not proof of success; the linked evidence carries the result.
