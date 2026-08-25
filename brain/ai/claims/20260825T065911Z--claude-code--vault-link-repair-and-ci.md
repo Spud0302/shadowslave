@@ -3,7 +3,7 @@ uid: 20260825T065911Z-claude-code-vault-link-repair-and-ci
 record_kind: claim
 authority: context
 lore_class: "N/A"
-state: active
+state: closed
 owner: claude-code
 tool: claude-code
 task_id: 20260825T065911Z-claude-code-vault-link-repair-and-ci
@@ -128,4 +128,18 @@ the concurrent-editing protocol. Changing exactly one node's `file` value.
 
 ## Closure
 
-Closed 2026-08-25 by claude-code once CI is green on the resulting PR.
+Closed 2026-08-25 by claude-code. All acceptance criteria met and verified on
+PR #4 run 32819779073 (job `vault`, conclusion success):
+
+- `88 note(s) checked, 0 error(s), 19 warning(s)` — no LINK_BROKEN or
+  CANVAS_LINK_BROKEN remain.
+- `88 notes checked, 0 error(s), 0 blocking link warning(s), 19 advisory
+  warning(s)` — the link gate ran and passed.
+- `Manifest is up-to-date.` on a clean checkout at a commit other than the one
+  recorded in the manifest, which is the case the provenance fix exists for.
+- `Ran 64 tests ... OK`.
+
+Claim closure is not proof of correctness: the 17 COMMIT_UNKNOWN and 2
+SNAPSHOT_STALE warnings are untouched and still open work, and the link gate
+protects against dangling references only — it cannot tell whether a resolved
+link points at the *right* note.
