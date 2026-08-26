@@ -1,0 +1,27 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="combat_core"
+version="0.0.1-wip"
+displayName="Combat Core"
+authors="Spud0302"
+description='''
+Small generic server-authoritative combat action core for Minecraft 1.21.1.
+It intentionally contains no Shadow Slave progression, lore, Memory, Aspect, Echo, Soul, or Nightmare concepts.
+'''
+
+[[dependencies.combat_core]]
+modId="neoforge"
+type="required"
+versionRange="[21.1.244,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.combat_core]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1]"
+ordering="NONE"
+side="BOTH"

@@ -1,0 +1,30 @@
+--------------------------------------------------------------------------------
+
+Command-Line:
+ - /usr/lib/jvm/java-21-openjdk-amd64/bin/java
+ - -jar
+ - /root/.gradle/caches/modules-2/files-2.1/io.codechicken/DiffPatch/2.0.0.36/5b32f9baa0c0371c0dc80a3b88794960af0c6b44/DiffPatch-2.0.0.36-all.jar
+ - /root/.gradle/caches/neoformruntime/intermediate_results/patch_15aea36781abfdc6c49625cf34e6f159a8924e0e_output.zip
+ - /root/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/21.1.244/d39af05e5ce805d24073f98ae9f86a57f40212b6/neoforge-21.1.244-userdev.jar
+ - --prefix
+ - patches/
+ - --patch
+ - --archive
+ - ZIP
+ - --output
+ - ./output.zip
+ - --log-level
+ - WARN
+ - --mode
+ - OFFSET
+ - --archive-rejects
+ - ZIP
+ - --reject
+ - ./outputRejects.zip
+ - --base-path-prefix
+ - a/
+ - --modified-path-prefix
+ - b/
+--------------------------------------------------------------------------------
+
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=42647 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=

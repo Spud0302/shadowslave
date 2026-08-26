@@ -56,6 +56,15 @@ jobs:
             '68036561cc5511766d54cc0deabc3fc3a5e68f9e3db2478f2574ec82b494374b' \
             "$RUNNER_TEMP/SmartBrainLib-neoforge-1.21.1-1.16.11.jar" | sha256sum --check --strict
 
+          # Note the version string: 'mc.1.21.1' is Minecraft 1.21.1, while
+          # 'mc.1.21.11' in the same repository is Minecraft 1.21.11.
+          curl --fail --location --silent --show-error \
+            'https://repo.redlance.org/public/com/zigythebird/playeranim/PlayerAnimationLibNeo/1.1.6%2Bmc.1.21.1/PlayerAnimationLibNeo-1.1.6%2Bmc.1.21.1.jar' \
+            --output "$RUNNER_TEMP/PlayerAnimationLibNeo-1.1.6+mc.1.21.1.jar"
+          printf '%s  %s\n' \
+            '3cab280cadd766fb0b92810bad74b0505ddac54d8d9d6c09d4dc05dc5ca8cb47' \
+            "$RUNNER_TEMP/PlayerAnimationLibNeo-1.1.6+mc.1.21.1.jar" | sha256sum --check --strict
+
       - name: Build and verify deterministic fixture package
         run: |
           printf 'ci-core-fixture' > "$RUNNER_TEMP/shadowslave-core.jar"
@@ -65,6 +74,7 @@ jobs:
             --component-jar "combat-core-0=$RUNNER_TEMP/combat-core.jar" \
             --component-jar "geckolib-4=$RUNNER_TEMP/geckolib-neoforge-1.21.1-4.9.2.jar" \
             --component-jar "smartbrainlib-1=$RUNNER_TEMP/SmartBrainLib-neoforge-1.21.1-1.16.11.jar" \
+            --component-jar "playeranimlib-1=$RUNNER_TEMP/PlayerAnimationLibNeo-1.1.6+mc.1.21.1.jar" \
             --output "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"
           python3 modpack/tools/verify_package.py \
             "$RUNNER_TEMP/nightmare-spell-modpack-dev.zip"

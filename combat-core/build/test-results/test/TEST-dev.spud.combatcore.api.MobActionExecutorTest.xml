@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.spud.combatcore.api.MobActionExecutorTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-08-26T05:41:23.097Z" hostname="vm" time="0.017">
+  <properties/>
+  <testcase name="resolvesConsumerEffectOnlyOnceInsideActiveWindow()" classname="dev.spud.combatcore.api.MobActionExecutorTest" time="0.014"/>
+  <testcase name="followsSharedActionTiming()" classname="dev.spud.combatcore.api.MobActionExecutorTest" time="0.001"/>
+  <testcase name="publishesOnlyPhaseTransitionsAndClearsTargetOnIdle()" classname="dev.spud.combatcore.api.MobActionExecutorTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

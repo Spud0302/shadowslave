@@ -1,0 +1,23 @@
+--------------------------------------------------------------------------------
+
+Command-Line:
+ - /usr/lib/jvm/java-21-openjdk-amd64/bin/java
+ - -jar
+ - /root/.gradle/caches/modules-2/files-2.1/net.neoforged.installertools/installertools/2.1.2/62740d5aa8f75f4a4d542d363bdda5b64a198f7a/installertools-2.1.2-fatjar.jar
+ - --task
+ - bundler_extract
+ - --input
+ - /root/.gradle/caches/neoformruntime/artifacts/minecraft_1.21.1_server.jar
+ - --output
+ - ./output.jar
+ - --jar-only
+--------------------------------------------------------------------------------
+
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=42647 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+Task: BUNDLER_EXTRACT
+Input:   /root/.gradle/caches/neoformruntime/artifacts/minecraft_1.21.1_server.jar
+Output:  /home/user/shadowslave/combat-core/build/tmp/neoformruntime/20260826-053857_extractServer/./output.jar
+All:     false
+JarOnly: true
+Libs:    false
+Extracted: versions/1.21.1/server-1.21.1.jar
