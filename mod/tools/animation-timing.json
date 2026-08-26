@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "comment": [
+    "Binds each combat action's phase timing to the GeckoLib clips that telegraph it.",
+    "Checked by mod/tools/validate_animation_timing.py.",
+    "Action tick counts are read from the Java sources and are not repeated here;",
+    "duplicating them would let the two drift silently, which is the bug this",
+    "tool exists to catch.",
+    "A clip may cover several phases, or one clip may be authored per phase.",
+    "Every phase must be covered exactly once, or the action declared unbound."
+  ],
+  "tolerance_ticks": 1,
+  "bindings": [
+    {
+      "action_id": "shadowslave:chainback_displacement",
+      "animation_file": "mod/src/main/resources/assets/shadowslave/animations/chainback.animation.json",
+      "clips": [
+        {
+          "animation": "attack.strike",
+          "covers": ["windup", "active", "recovery"]
+        }
+      ]
+    }
+  ],
+  "unbound": [
+    {
+      "action_id": "shadowslave:glass_road/clean_edge",
+      "reason": "No player animation is authored yet. The action commits the player for 10 wind-up + 1 active + 16 recovery = 27 ticks (1.35s) with nothing shown on the player, which reads as input lag. Bind this once a player clip exists; PlayerAnimator (MIT) is the likely route."
+    },
+    {
+      "action_id": "basic_melee",
+      "reason": "Combat Core's generic player melee intentionally has no Shadow Slave animation. It re-times the vanilla swing and stays Shadow-Slave-agnostic by design, so binding it here would violate the Combat Core ownership boundary."
+    }
+  ]
+}
