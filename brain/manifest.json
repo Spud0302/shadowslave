@@ -2,9 +2,9 @@
   "schema_version": 1,
   "generator_version": "1.0.0",
   "generated_at": "2026-10-22T01:10:26Z",
-  "source_commit": "0a6a0ceb9470b0d8942dd3a58c36fee95aafc642",
+  "source_commit": "8fb7244e86eacacb0c06775e39b2fcac24e7bcf1",
   "source_tree_dirty": true,
-  "note_count": 90,
+  "note_count": 91,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -915,6 +915,28 @@
       "task_id": "20260826T052844Z-claude-code-player-action-pose-curve",
       "lease_until": "2026-08-26T09:28:44Z",
       "base_commit": "b51af2dd95624cce7505a16092e33ac0f6ffddaf"
+    },
+    "20260826T063116Z-claude-code-pal-dependency": {
+      "uid": "20260826T063116Z-claude-code-pal-dependency",
+      "path": "brain/ai/claims/20260826T063116Z--claude-code--pal-dependency.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-08-26",
+      "updated": "2026-08-26",
+      "title": "Claim \u2014 Add PAL as a required dependency",
+      "summary": "Owner approved the library route and then opened the blocked hosts so the work could be compiled rather than written blind. Both happened 2026-08-26.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260826T063116Z-claude-code-pal-dependency",
+      "lease_until": "2026-08-26T10:31:16Z",
+      "base_commit": "9e4280b16c2d8b168a63ef34e2960468acdf6bb0"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",
