@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-08-25T07:06:28Z",
-  "source_commit": "72bfc6d2c5f34ef3fd9197d3f6553068ad95356f",
+  "generated_at": "2026-08-26T05:03:03Z",
+  "source_commit": "b4de24b6be17d244d0bf73c24fcbcec7afa75e6c",
   "source_tree_dirty": true,
-  "note_count": 85,
+  "note_count": 87,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -812,7 +812,7 @@
       "record_kind": "claim",
       "authority": "context",
       "lore_class": "N/A",
-      "state": "active",
+      "state": "closed",
       "owner": "claude-code",
       "created": "2026-08-25",
       "updated": "2026-08-25",
@@ -849,6 +849,28 @@
       "task_id": "20260825T065911Z-claude-code-vault-link-repair-and-ci",
       "lease_until": "2026-08-25T10:59:11Z",
       "base_commit": "d12c6b2d118dc3cc1e6cb009f4fad1bcaf7cad1d"
+    },
+    "20260826T050137Z-claude-code-combat-reference-study": {
+      "uid": "20260826T050137Z-claude-code-combat-reference-study",
+      "path": "brain/ai/claims/20260826T050137Z--claude-code--combat-reference-study.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-08-26",
+      "updated": "2026-08-26",
+      "title": "Claim \u2014 Reference study: mods to learn combat feel from",
+      "summary": "Owner request, 2026-08-26: record the code-reuse/licensing discussion and research which mods are worth *reading* to inform our own combat implementation.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260826T050137Z-claude-code-combat-reference-study",
+      "lease_until": "2026-08-26T09:01:37Z",
+      "base_commit": "b4de24b6be17d244d0bf73c24fcbcec7afa75e6c"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",
@@ -1672,6 +1694,35 @@
       ],
       "task_id": "codex-extend-vault-optimization-20260821",
       "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "ss-idea-combat-reference-study": {
+      "uid": "ss-idea-combat-reference-study",
+      "path": "brain/inbox/combat-reference-study.md",
+      "record_kind": "idea",
+      "authority": "proposal",
+      "lore_class": "N/A",
+      "state": "proposed",
+      "owner": "claude-code",
+      "created": "2026-08-26",
+      "updated": "2026-08-26",
+      "title": "Mods worth studying for combat feel, and a code-provenance policy",
+      "summary": "Research note. Authorises nothing. No dependency is proposed here.",
+      "tags": [
+        "combat",
+        "idea",
+        "inbox",
+        "licensing"
+      ],
+      "sources": [
+        "https://github.com/Antikythera-Studios/epicfight",
+        "https://github.com/ZsoltMolnarrr/BetterCombat",
+        "https://github.com/ZsoltMolnarrr/CombatRoll",
+        "https://github.com/KosmX/minecraftPlayerAnimator",
+        "https://github.com/bernie-g/geckolib",
+        "https://github.com/Tslat/SmartBrainLib",
+        "https://github.com/FTBTeam/FTB-Quests"
+      ],
+      "related": []
     },
     "ss-idea-multi-ai-vault-optimization": {
       "uid": "ss-idea-multi-ai-vault-optimization",

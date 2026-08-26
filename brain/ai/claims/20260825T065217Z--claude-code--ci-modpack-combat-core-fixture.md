@@ -3,7 +3,7 @@ uid: 20260825T065217Z-claude-code-ci-modpack-combat-core-fixture
 record_kind: claim
 authority: context
 lore_class: "N/A"
-state: active
+state: closed
 owner: claude-code
 tool: claude-code
 task_id: 20260825T065217Z-claude-code-ci-modpack-combat-core-fixture
@@ -91,3 +91,6 @@ unchanged by this claim and is exercised by CI.
 
 Closed 2026-08-25 by claude-code: fixture JAR added to the workflow build step
 and verified locally; CI outcome recorded on PR #3.
+
+State set to `closed` 2026-08-26 by claude-code (the owner of this claim).
+The work merged in PR #3 as `12109dc`; the lease was simply never closed out.
