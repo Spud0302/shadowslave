@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-08-26T05:29:11Z",
-  "source_commit": "b51af2dd95624cce7505a16092e33ac0f6ffddaf",
+  "generated_at": "2026-08-26T05:35:06Z",
+  "source_commit": "79efabb4a5f64619167db1c6ae1df580ebae7a40",
   "source_tree_dirty": true,
-  "note_count": 89,
+  "note_count": 90,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -988,6 +988,29 @@
       ],
       "related": [],
       "task_id": "20260821T063734Z-claude-vault-multi-ai-hardening"
+    },
+    "ss-adr-20260826-player-animation-library": {
+      "uid": "ss-adr-20260826-player-animation-library",
+      "path": "brain/decisions/ADR-20260826-player-animation-library.md",
+      "record_kind": "decision",
+      "authority": "proposal",
+      "lore_class": "N/A",
+      "state": "proposed",
+      "owner": "claude-code",
+      "created": "2026-08-26",
+      "updated": "2026-08-26",
+      "title": "ADR \u2014 Player animation library: PAL, not PlayerAnimator",
+      "summary": "**Proposal.** Agents do not promote decisions; this needs Andrew's acceptance.",
+      "tags": [
+        "decision"
+      ],
+      "sources": [
+        "https://github.com/KosmX/minecraftPlayerAnimator",
+        "https://github.com/PlayerAnimationLibrary/PlayerAnimationLibrary",
+        "https://github.com/KosmX/minecraftPlayerAnimator/issues/115",
+        "https://www.curseforge.com/minecraft/mc-mods/player-animation-library"
+      ],
+      "related": []
     },
     "ss-adr-replace-compact-date-replace-slug": {
       "uid": "ss-adr-replace-compact-date-replace-slug",
