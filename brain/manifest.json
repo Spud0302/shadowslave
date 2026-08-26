@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-08-26T05:03:03Z",
-  "source_commit": "b4de24b6be17d244d0bf73c24fcbcec7afa75e6c",
+  "generated_at": "2026-08-26T05:18:05Z",
+  "source_commit": "888a6ee2b98084fd01cbbff3bae76892def22129",
   "source_tree_dirty": true,
-  "note_count": 87,
+  "note_count": 88,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -871,6 +871,28 @@
       "task_id": "20260826T050137Z-claude-code-combat-reference-study",
       "lease_until": "2026-08-26T09:01:37Z",
       "base_commit": "b4de24b6be17d244d0bf73c24fcbcec7afa75e6c"
+    },
+    "20260826T051740Z-claude-code-animation-timing-validator": {
+      "uid": "20260826T051740Z-claude-code-animation-timing-validator",
+      "path": "brain/ai/claims/20260826T051740Z--claude-code--animation-timing-validator.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-08-26",
+      "updated": "2026-08-26",
+      "title": "Claim \u2014 Animation/action timing validator",
+      "summary": "Owner request, 2026-08-26: build the animation/action timing validator proposed in `brain/inbox/combat-reference-study`.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260826T051740Z-claude-code-animation-timing-validator",
+      "lease_until": "2026-08-26T09:17:40Z",
+      "base_commit": "888a6ee2b98084fd01cbbff3bae76892def22129"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",
