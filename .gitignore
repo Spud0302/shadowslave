@@ -30,3 +30,6 @@ __pycache__/
 dist-*.zip
 shadowslave-*.zip
 .idea/
+
+# Gradle local build state. Machine-specific caches and lock files.
+.gradle/
