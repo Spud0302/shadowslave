@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-08-26T05:18:05Z",
-  "source_commit": "888a6ee2b98084fd01cbbff3bae76892def22129",
+  "generated_at": "2026-08-26T05:29:11Z",
+  "source_commit": "b51af2dd95624cce7505a16092e33ac0f6ffddaf",
   "source_tree_dirty": true,
-  "note_count": 88,
+  "note_count": 89,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -893,6 +893,28 @@
       "task_id": "20260826T051740Z-claude-code-animation-timing-validator",
       "lease_until": "2026-08-26T09:17:40Z",
       "base_commit": "888a6ee2b98084fd01cbbff3bae76892def22129"
+    },
+    "20260826T052844Z-claude-code-player-action-pose-curve": {
+      "uid": "20260826T052844Z-claude-code-player-action-pose-curve",
+      "path": "brain/ai/claims/20260826T052844Z--claude-code--player-action-pose-curve.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-08-26",
+      "updated": "2026-08-26",
+      "title": "Claim \u2014 Player action pose curve (vanilla model route)",
+      "summary": "Owner chose the vanilla-model route for player animation, 2026-08-26: drive `HumanoidModel` limb rotations from combat phase rather than adding an animation framework. No new dependency, works with every skin and armour, and is the smallest addition ...",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260826T052844Z-claude-code-player-action-pose-curve",
+      "lease_until": "2026-08-26T09:28:44Z",
+      "base_commit": "b51af2dd95624cce7505a16092e33ac0f6ffddaf"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",
