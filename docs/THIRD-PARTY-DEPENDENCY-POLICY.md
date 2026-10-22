@@ -59,7 +59,7 @@ Boundary:
 
 **Adoption rule:** do not add GeckoLib as an unused Gradle dependency. Add it atomically with the first custom renderer/model slice, mod metadata, modpack component/provenance entry and exact CI gate.
 
-### APPROVED FOR SPIKE — SmartBrainLib
+### SUPERSEDED — SmartBrainLib (see REMOVED below)
 
 **Use:** reusable advanced Nightmare Creature sensing/behaviour once vanilla `Goal` implementations become the limiting factor.  
 **Known 1.21.1 NeoForge line:** 1.16.x; 1.16.11 is published for 1.21.1 at audit time.  
@@ -99,6 +99,12 @@ Pinned at 1.8.2 (Maven `team.lodestar.lodestone:lodestone:1.21.1-1.8.2.525` from
 - first use is `client/AbilityCastEffects`: a ring and flare in the Nature's colours on every ability cast, plus a short screen shake for Stone.
 
 Its metadata declares Minecraft `[1.21,1.21.1)`, yet NeoForge 21.1 loads it on 1.21.1 and all game tests pass with it present.
+
+### REMOVED — SmartBrainLib
+
+Removed on 2026-10-22 with the Nightmare Creatures rework. Every creature now runs on vanilla `Goal`s: a shared
+Class behaviour package (`creature/goal/ClassBehaviours`) plus each creature's own signature goals. It only ever
+drove the Ash Burrower, and owned no persisted state, so no save migration was needed.
 
 ### REMOVED — Combat Core (in-repo)
 

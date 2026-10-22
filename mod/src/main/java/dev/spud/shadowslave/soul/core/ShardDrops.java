@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.soul.core;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.creature.NightmareCreature;
 import dev.spud.shadowslave.item.ModDataComponents;
 import dev.spud.shadowslave.item.ModItems;
 import dev.spud.shadowslave.item.ShardContents;
@@ -13,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.Unit;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -25,11 +27,15 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import java.util.Optional;
 
 /**
- * Soul shards from kills (DESIGN). Each hostile mob has a creature rank:
- * most are Dormant, tougher kinds (armoured mobs, illagers, Nether mobs) are
+ * Soul shards from kills (DESIGN). Nightmare Creatures always leave one
+ * shard per core ({@link NightmareCreature#dropCoreShards}). Ordinary mobs
+ * leave faint shards now and then, worth a quarter as much and nothing to an
+ * Ascended core or higher (Jack, 2026-10-22), so Gates are the way forward.
+ *
+ * <p>Each ordinary hostile mob has a creature rank: most are Dormant, tougher kinds (armoured mobs, illagers, Nether mobs) are
  * Awakened, a few elites are Fallen, and bosses are Corrupted. Entity type
  * tags under {@code shadowslave:soul_shard/} pick the rank, so a datapack can
- * retune it. Only kills by a player drop shards.
+ * retune it. Only kills by a player drop shards.</p>
  *
  * <p>A player killed by another player leaves part of their core behind as a
  * shard the killer can absorb, unless the {@link #PVP_SHARDS} game rule is off.</p>
@@ -107,6 +113,8 @@ public final class ShardDrops {
         }
         if (victim instanceof ServerPlayer player) {
             dropPlayerShard(level, player, killer);
+        } else if (victim instanceof NightmareCreature creature) {
+            creature.dropCoreShards(level, killer);
         } else {
             dropMobShard(level, victim, level.getRandom());
         }
@@ -121,7 +129,9 @@ public final class ShardDrops {
         if (rank.isEmpty() || random.nextFloat() >= chance(victim, rank.get())) {
             return false;
         }
-        spawn(level, victim, new ItemStack(ModItems.shardFor(rank.get())));
+        ItemStack shard = new ItemStack(ModItems.shardFor(rank.get()));
+        shard.set(ModDataComponents.FAINT_SHARD.get(), Unit.INSTANCE);
+        spawn(level, victim, shard);
         return true;
     }
 

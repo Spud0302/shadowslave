@@ -84,6 +84,11 @@ public final class CoreService {
                     .withStyle(ChatFormatting.GRAY), true);
             return 0;
         }
+        if (SoulShardItem.isFaint(stack) && !CoreRules.faintShardsHelp(rank(player).get())) {
+            player.displayClientMessage(Component.literal("A faint shard no longer stirs a core of your Rank.")
+                    .withStyle(ChatFormatting.GRAY), true);
+            return 0;
+        }
         int units = SoulShardItem.units(stack, shard);
         int consumed = 0;
         while (!stack.isEmpty() && absorb(player, shard, units) > 0) {

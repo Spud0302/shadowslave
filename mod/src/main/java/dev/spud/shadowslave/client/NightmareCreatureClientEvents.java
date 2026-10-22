@@ -1,9 +1,7 @@
 package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
-import dev.spud.shadowslave.client.renderer.AshBurrowerEchoRenderer;
-import dev.spud.shadowslave.client.renderer.AshBurrowerRenderer;
-import dev.spud.shadowslave.client.renderer.ChainbackRenderer;
+import dev.spud.shadowslave.client.renderer.CreatureRenderer;
 import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
 import net.minecraft.client.renderer.entity.DrownedRenderer;
 import net.neoforged.api.distmarker.Dist;
@@ -19,11 +17,18 @@ public final class NightmareCreatureClientEvents {
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        // Project-owned GeckoLib presentation. Hostile/owned Ash Burrowers share creature visual
-        // identity; Chainback uses a separate project geometry. Java-owned state remains authority.
-        event.registerEntityRenderer(NightmareCreatureEntities.ASH_BURROWER.get(), AshBurrowerRenderer::new);
-        event.registerEntityRenderer(NightmareCreatureEntities.ASH_BURROWER_ECHO.get(), AshBurrowerEchoRenderer::new);
-        event.registerEntityRenderer(NightmareCreatureEntities.CHAINBACK.get(), ChainbackRenderer::new);
+        // Project-owned GeckoLib presentation drawn by mod/tools/draw_creatures.py. The Echo
+        // shares the hostile Ash Burrower's look. Java-owned state remains authority.
+        event.registerEntityRenderer(NightmareCreatureEntities.ASH_BURROWER.get(),
+                context -> new CreatureRenderer<>(context, "ash_burrower", 0.5F, true));
+        event.registerEntityRenderer(NightmareCreatureEntities.ASH_BURROWER_ECHO.get(),
+                context -> new CreatureRenderer<>(context, "ash_burrower", 0.5F, true));
+        event.registerEntityRenderer(NightmareCreatureEntities.CHAINBACK.get(),
+                context -> new CreatureRenderer<>(context, "chainback", 0.9F, true));
+        event.registerEntityRenderer(NightmareCreatureEntities.HOLLOW_MIMIC.get(),
+                context -> new CreatureRenderer<>(context, "hollow_mimic", 0.4F, false));
+        event.registerEntityRenderer(NightmareCreatureEntities.ASHEN_TYRANT.get(),
+                context -> new CreatureRenderer<>(context, "ashen_tyrant", 1.2F, true));
 
         // Remaining vanilla visual placeholder.
         event.registerEntityRenderer(NightmareCreatureEntities.DROWNED_LISTENER.get(), DrownedRenderer::new);

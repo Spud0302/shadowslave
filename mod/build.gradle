@@ -23,13 +23,6 @@ repositories {
         }
     }
     maven {
-        name = 'SmartBrainLib'
-        url = 'https://dl.cloudsmith.io/public/tslat/sbl/maven/'
-        content {
-            includeGroup('net.tslat.smartbrainlib')
-        }
-    }
-    maven {
         name = 'Lodestone'
         url = 'https://maven.blamejared.com'
         content {
@@ -112,7 +105,6 @@ neoForge {
 
 dependencies {
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
-    implementation "net.tslat.smartbrainlib:SmartBrainLib-neoforge-${minecraft_version}:${smartbrainlib_version}"
     // PAL's core module requests newer netty, fastutil, gson and slf4j than
     // Minecraft's strict pins, which Gradle cannot reconcile. Minecraft and
     // NeoForge already supply all four at runtime, so drop those transitive
@@ -154,7 +146,6 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             neo_version            : neo_version,
             loader_version_range   : loader_version_range,
             geckolib_version       : geckolib_version,
-            smartbrainlib_version  : smartbrainlib_version,
             lodestone_mod_version  : lodestone_mod_version,
             mod_id                 : mod_id,
             mod_name               : mod_name,

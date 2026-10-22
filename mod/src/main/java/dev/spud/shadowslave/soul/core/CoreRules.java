@@ -14,6 +14,11 @@ public final class CoreRules {
     /** Max health a saturated Dormant core adds; an Awakened core keeps it and adds the same again when full. */
     static final double HEALTH_PER_RANK = 4.0;
 
+    /** A faint shard (from an ordinary mob) carries this fraction of a creature shard's value. */
+    public static final int FAINT_DIVISOR = 4;
+    /** From this Rank on, faint shards give a core nothing at all. */
+    public static final SoulRank FAINT_CUTOFF = SoulRank.ASCENDED;
+
     private CoreRules() {
     }
 
@@ -35,6 +40,16 @@ public final class CoreRules {
         // A quarter for each rank the shard sits below the core, never less than one.
         int shift = Math.min(30, 2 * below);
         return Math.max(1, units >> shift);
+    }
+
+    /** Units a faint shard of this rank carries: a quarter of a creature shard's, never less than one. */
+    public static int faintUnits(ShardRank rank) {
+        return Math.max(1, rank.value() / FAINT_DIVISOR);
+    }
+
+    /** Whether faint shards still stir a core of this rank. */
+    public static boolean faintShardsHelp(SoulRank coreRank) {
+        return coreRank.ordinal() < FAINT_CUTOFF.ordinal();
     }
 
     public static boolean saturated(int saturation, SoulRank rank) {

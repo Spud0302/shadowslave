@@ -26,5 +26,13 @@
   "item.shadowslave.awakened_soul_shard": "Awakened Soul Shard",
   "item.shadowslave.fallen_soul_shard": "Fallen Soul Shard",
   "item.shadowslave.corrupted_soul_shard": "Corrupted Soul Shard",
-  "gamerule.shadowslavePvpSoulShards": "Players drop soul shards when killed by players"
+  "gamerule.shadowslavePvpSoulShards": "Players drop soul shards when killed by players",
+  "item.shadowslave.faint_shard": "Faint %s",
+  "entity.shadowslave.hollow_mimic": "Hollow Mimic",
+  "entity.shadowslave.ashen_tyrant": "Ashen Tyrant",
+  "item.shadowslave.ash_burrower_spawn_egg": "Ash Burrower Spawn Egg",
+  "item.shadowslave.chainback_spawn_egg": "Chainback Spawn Egg",
+  "item.shadowslave.hollow_mimic_spawn_egg": "Hollow Mimic Spawn Egg",
+  "item.shadowslave.ashen_tyrant_spawn_egg": "Ashen Tyrant Spawn Egg",
+  "gamerule.shadowslaveNightmareBlockDamage": "Nightmare Gates and creatures break blocks"
 }

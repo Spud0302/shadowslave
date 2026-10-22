@@ -3,6 +3,8 @@ package dev.spud.shadowslave.item;
 import dev.spud.shadowslave.ShadowSlaveMod;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Unit;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -16,6 +18,12 @@ public final class ModDataComponents {
             COMPONENTS.registerComponentType("shard_contents", builder -> builder
                     .persistent(ShardContents.CODEC)
                     .networkSynchronized(ShardContents.STREAM_CODEC));
+
+    /** Marks a shard from an ordinary (vanilla) mob: worth less, and nothing to a high-ranked core. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> FAINT_SHARD =
+            COMPONENTS.registerComponentType("faint_shard", builder -> builder
+                    .persistent(Unit.CODEC)
+                    .networkSynchronized(StreamCodec.unit(Unit.INSTANCE)));
 
     private ModDataComponents() {
     }

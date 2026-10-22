@@ -1,7 +1,7 @@
 # Playtest: launch Minecraft with the current build
 
 One command builds the mod from whatever branch you have checked out and opens
-Minecraft 1.21.1 with it loaded. NeoForge, GeckoLib, SmartBrainLib and
+Minecraft 1.21.1 with it loaded. NeoForge, GeckoLib, Lodestone and
 PlayerAnimationLib are pulled in automatically; you don't install anything into
 a launcher.
 
@@ -141,3 +141,26 @@ a blow is loaded, and the charge fades after 6 seconds.
 | Stone | Quake (45) | Stomp: hostile mobs within 5 blocks take damage, are thrown up and slowed |
 | Tide | Low Tide (30) | Surge forward on a wave that shoves mobs aside |
 | Tide | Undertow (40) | Drags mobs within 8 blocks of where you look toward that spot and slows them |
+
+## Nightmare Creatures
+
+Four creatures, each with its own model, animations and AI. Spawn them from the
+Spawn Eggs creative tab. Every creature has a **Rank** (Dormant, Awakened, ...)
+that sets its health, damage and armour and the rank of its shards, and a
+**Class** that sets how many shards it leaves (one per soul core) and how it
+fights. Killing one always drops its shards and the Spell tells you what you
+slew ("You have slain an Awakened Monster, Chainback.").
+
+| Creature | Rank and Class | How it hunts | How to beat it |
+| --- | --- | --- | --- |
+| Ash Burrower | Dormant Beast (1 shard) | Sinks into dirt, sand or gravel and follows footsteps, then bursts out under you. Calls its pack. Bolts from fire and torches. | Sneak (it hunts by vibration), stand on stone (it cannot burrow there and is dazed if it runs onto it), hit it to force it up; arrows miss it while it is under ground |
+| Chainback | Awakened Monster (2 shards) | Climbs walls, waits for you to look away and lunges, drags you toward it with a chain from 4-12 blocks. Retreats to heal when badly hurt, then comes back. | Break line of sight while the chain rattles; it is too wide for one-block gaps |
+| Hollow Mimic | Awakened Demon (3 shards) | In the dark it speaks to you in chat with another player's name, from where it waits. Feints, picks the weakest player, opens doors, walks round fire and lava. | Light (block light 10+ weakens it and silences it), stay in pairs (it will not close in unless struck), and notice its lines never have punctuation |
+| Ashen Tyrant | Awakened Tyrant (5 shards), the Gate Guardian | Slams the ground (ring of damage and knock-up, screen shake), spawns small copies of itself, drives the creatures around it. Boss bar. | Watch for the raised fists and step out of the ring; kill the small copies early |
+
+**Shards from ordinary mobs** are now *faint*: worth a quarter of a creature
+shard, and nothing at all to an Ascended core or higher.
+
+**Block damage.** `/gamerule shadowslaveNightmareBlockDamage false` stops
+Nightmare creatures (and, later, Gates) from breaking blocks, like
+`mobGriefing`. It is on by default.
