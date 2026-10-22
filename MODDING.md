@@ -32,9 +32,7 @@ The final automated checkpoint is green. Andrew's full playthrough and Claude's 
 
 ## Path A — Nightmare Spell modpack
 
-Location: [`modpack/`](modpack/)
-
-Current state: design only. No dependency JARs, manifest, adapters, or public package have been committed. The modpack will consume the same Java core; scripts and dependencies must never become canonical Soul or Nightmare storage.
+Dropped on 2026-10-22. The `modpack/` manifest and packaging tools were never used for a real pack and were removed with their CI check; they remain in Git history. The mod ships on its own.
 
 ## Current ordering
 
