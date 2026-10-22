@@ -56,7 +56,8 @@ datapack migration commands. Treat them as legacy until a later update picks the
 - `main` is protected by a ruleset that requires the `all-checks` job. PRs auto-merge once it
   passes, and merged branches are deleted automatically.
 - Workflows: Preview gates (`java-core.yml`: the mod build, game tests, client boot and a
-  server restart), Modpack shell, Package datapack (manual or `datapack-v*` tags only), and All
+  server restart), Package datapack (manual or `datapack-v*` tags only), and All
   checks. The frozen datapack is no longer tested in CI.
 - The `brain/` multi-agent vault (claims, leases, handoffs) was an experiment and has been
   removed with its Vault integrity workflow. Its notes remain in Git history.
+- The `modpack/` packaging tools and the Modpack shell check were removed; the mod ships on its own.
