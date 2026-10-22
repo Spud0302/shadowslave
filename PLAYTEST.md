@@ -53,3 +53,19 @@ its folder name.
 
 You play offline as `Dev`. Multiplayer servers that need a Microsoft account
 won't accept this client.
+
+## Rolling an Aspect (Dream Candle)
+
+Added by claude-code, 2026-10-22.
+
+1. Craft a **Dream Candle**: any candle plus an amethyst shard (shapeless). It is
+   also in the Functional Blocks creative tab.
+2. Place it within two blocks of your bed and light it (flint and steel).
+3. Sleep. When you wake, the Spell names your Aspect in chat and the candle burns
+   down. Without a lit Dream Candle, sleep is plain vanilla.
+
+You can only roll once. Operators can reroll with `/shadowslave aspect reroll`
+(optionally followed by player names), and `/shadowslave reset` clears the Soul
+entirely. The roll picks Ember, Mist, Stone or Tide, nudged slightly by how you
+played beforehand (lighting and smelting, sneaking, mining, swimming). Only
+Kindle (R key) and Cold Ash do anything so far; the other kits follow.

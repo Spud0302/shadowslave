@@ -2,6 +2,8 @@ package dev.spud.shadowslave;
 
 import com.mojang.logging.LogUtils;
 import dev.spud.shadowslave.attachment.ModAttachments;
+import dev.spud.shadowslave.awakening.DreamCandleRitual;
+import dev.spud.shadowslave.block.ModBlocks;
 import dev.spud.shadowslave.command.ShadowSlaveCommands;
 import dev.spud.shadowslave.dreamrealm.DreamRealmCommands;
 import dev.spud.shadowslave.dreamrealm.DreamRealmResourceInteractionRuntime;
@@ -30,6 +32,7 @@ public final class ShadowSlaveMod {
 
     public ShadowSlaveMod(IEventBus modEventBus, Dist physicalSide) {
         ModAttachments.register(modEventBus);
+        ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         NightmareCreatureEntities.register(modEventBus);
 
@@ -49,6 +52,7 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(DreamRealmResourceInteractionRuntime::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(DreamRealmStoryNpcRuntime::onEntityInteract);
         NeoForge.EVENT_BUS.addListener(DrownedBellListenerEntityAdapter::onEntityJoinLevel);
+        NeoForge.EVENT_BUS.addListener(DreamCandleRitual::onPlayerWakeUp);
         NeoForge.EVENT_BUS.addListener(PreviewPowerService::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(EchoManifestationService::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(GlassRoadMemoryItem::onPlayerTick);

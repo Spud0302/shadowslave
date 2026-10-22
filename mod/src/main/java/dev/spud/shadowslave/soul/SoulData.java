@@ -192,6 +192,21 @@ public record SoulData(
         );
     }
 
+    /** Replaces the Aspect and Flaw while keeping the reached stage; used by admin rerolls. */
+    public SoulData withIdentity(ResourceLocation aspect, SoulRank revealedAspectRank, ResourceLocation flaw) {
+        return new SoulData(
+                CURRENT_SCHEMA,
+                spellState,
+                awakeningPath,
+                soulRank,
+                Optional.of(Objects.requireNonNull(aspect, "aspect")),
+                Optional.of(Objects.requireNonNull(revealedAspectRank, "revealedAspectRank")),
+                Optional.of(Objects.requireNonNull(flaw, "flaw")),
+                importedFromDatapack,
+                migrationVersion
+        );
+    }
+
     public SoulData markImported(int completedMigrationVersion) {
         return new SoulData(
                 CURRENT_SCHEMA,
