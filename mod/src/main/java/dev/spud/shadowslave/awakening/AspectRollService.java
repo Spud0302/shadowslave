@@ -2,6 +2,7 @@ package dev.spud.shadowslave.awakening;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.ability.AbilityCooldownData;
+import dev.spud.shadowslave.ability.AbilityService;
 import dev.spud.shadowslave.ability.FlawStateData;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
@@ -54,6 +55,7 @@ public final class AspectRollService {
         }
         player.setData(ModAttachments.ABILITY_COOLDOWNS, AbilityCooldownData.empty());
         player.setData(ModAttachments.FLAW_STATE, FlawStateData.empty());
+        AbilityService.syncStatus(player);
 
         ShadowSlaveMod.LOGGER.info("Dream Candle roll {} for player {}: {} ({}), Flaw {}",
                 roll.candidate().generationFingerprint(), player.getScoreboardName(), roll.aspectName(),

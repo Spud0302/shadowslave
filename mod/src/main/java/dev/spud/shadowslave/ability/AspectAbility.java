@@ -18,6 +18,11 @@ public interface AspectAbility {
     default void tick(ServerPlayer player) {
     }
 
+    /** True while a press has set something up that the next press will finish. */
+    default boolean primed(ServerPlayer player) {
+        return false;
+    }
+
     enum Activation {
         /** The ability fired; its cooldown starts. */
         USED,

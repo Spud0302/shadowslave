@@ -70,7 +70,10 @@ You can only roll once. Operators can reroll with `/shadowslave aspect reroll`
 (optionally followed by player names), and `/shadowslave reset` clears the Soul
 entirely. The roll picks Ember, Mist, Stone or Tide, nudged slightly by how you
 played beforehand (lighting and smelting, sneaking, mining, swimming). Press R to use
-your Aspect's ability; feedback and cooldowns show above the hotbar.
+your Aspect's ability. Its slot sits left of the hotbar: the shade drains as the
+cooldown runs, the slot glows while Returning Tide's mark is set, and it flashes
+when the ability is ready again. Press O for the Soul screen, with tabs for your
+Aspect, Abilities, Flaw and Soul (click a tab or press 1-4).
 
 | Nature | Innate (always on) | Ability (R) | Flaw |
 | --- | --- | --- | --- |
