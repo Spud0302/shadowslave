@@ -1,0 +1,143 @@
+{
+ "parent": "block/block",
+ "textures": {
+  "particle": "minecraft:block/crying_obsidian",
+  "stone": "minecraft:block/crying_obsidian",
+  "side": "shadowslave:block/gate_lure_side_2",
+  "top": "shadowslave:block/gate_lure_top_2"
+ },
+ "elements": [
+  {
+   "from": [
+    2,
+    0,
+    2
+   ],
+   "to": [
+    14,
+    3,
+    14
+   ],
+   "faces": {
+    "north": {
+     "texture": "#stone"
+    },
+    "south": {
+     "texture": "#stone"
+    },
+    "east": {
+     "texture": "#stone"
+    },
+    "west": {
+     "texture": "#stone"
+    },
+    "up": {
+     "texture": "#stone"
+    },
+    "down": {
+     "texture": "#stone"
+    }
+   }
+  },
+  {
+   "from": [
+    4,
+    3,
+    4
+   ],
+   "to": [
+    12,
+    12,
+    12
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 9
+     }
+    },
+    "south": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 9
+     }
+    },
+    "east": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 9
+     }
+    },
+    "west": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 9
+     }
+    },
+    "up": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 9
+     }
+    },
+    "down": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 9
+     }
+    }
+   }
+  },
+  {
+   "from": [
+    3,
+    12,
+    3
+   ],
+   "to": [
+    13,
+    15,
+    13
+   ],
+   "faces": {
+    "north": {
+     "texture": "#stone",
+     "neoforge_data": {
+      "block_light": 9
+     }
+    },
+    "south": {
+     "texture": "#stone",
+     "neoforge_data": {
+      "block_light": 9
+     }
+    },
+    "east": {
+     "texture": "#stone",
+     "neoforge_data": {
+      "block_light": 9
+     }
+    },
+    "west": {
+     "texture": "#stone",
+     "neoforge_data": {
+      "block_light": 9
+     }
+    },
+    "up": {
+     "texture": "#top",
+     "neoforge_data": {
+      "block_light": 9
+     }
+    },
+    "down": {
+     "texture": "#stone",
+     "neoforge_data": {
+      "block_light": 9
+     }
+    }
+   }
+  }
+ ]
+}

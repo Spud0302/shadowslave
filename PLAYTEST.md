@@ -162,5 +162,38 @@ slew ("You have slain an Awakened Monster, Chainback.").
 shard, and nothing at all to an Ascended core or higher.
 
 **Block damage.** `/gamerule shadowslaveNightmareBlockDamage false` stops
-Nightmare creatures (and, later, Gates) from breaking blocks, like
-`mobGriefing`. It is on by default.
+Nightmare creatures and Gates from breaking blocks, like `mobGriefing`. It is
+on by default.
+
+## Nightmare Gates
+
+Gates don't open on their own yet: you call one when you are ready.
+
+1. Craft a **Gate Lure**: a Dormant soul shard on top, amethyst shard, crying
+   obsidian, amethyst shard in the middle row, three obsidian along the bottom.
+   It is also in the Functional Blocks creative tab. Mine it with an iron
+   pickaxe or better; a broken Lure keeps what it was fed.
+2. Place it and right-click it with soul shards to feed it. Each shard adds
+   pull: Dormant 1, Awakened 4, Fallen 16, Corrupted 64, and a faint shard a
+   quarter of its rank. Its runes light up as the pull grows, and the action
+   bar shows the **Category forecast** (right-click empty-handed to read it
+   again). Four Dormant shards are the least that calls a Gate (Category 1);
+   about 8 pull forecasts Category 2, 24 Category 3, 64 Category 4 and 160
+   Category 5. It holds 32 shards.
+3. **Sneak and right-click it empty-handed** to light it. The Lure burns away
+   and a Gate begins to open where it stood. Everyone within 96 blocks gets
+   the warning in chat and on screen, with the odds in the canon form
+   ("Category 2 (89%), 1 (8%), 3 (3%), higher (undefined)"), and a boss bar
+   counts down 30 seconds.
+4. The Gate opens at a Category rolled from those odds, then sends out waves
+   of Nightmare creatures (more, and of higher Rank, at higher Categories).
+   When the waves are nearly cleared, the **Gate Guardian** emerges: an
+   Ashen Tyrant, Dormant at Category 1 up to Corrupted at Category 5.
+5. Kill the Guardian and the Gate closes. Creatures it let out that are still
+   alive crumble to ash and drop nothing.
+
+A Gate only runs while a player is within 160 blocks, and two Gates can't
+open within 64 blocks of each other. With block damage on, the opening blast
+breaks the ground around the rift. Operators can use `/shadowslave gate open
+<1-5>` (a certain Category where you stand, no Lure needed), `/shadowslave gate
+status` and `/shadowslave gate close`.

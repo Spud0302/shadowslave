@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "C": {
+      "item": "minecraft:crying_obsidian"
+    },
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "S": {
+      "item": "shadowslave:dormant_soul_shard"
+    }
+  },
+  "pattern": [
+    " S ",
+    "ACA",
+    "OOO"
+  ],
+  "result": {
+    "count": 1,
+    "id": "shadowslave:gate_lure"
+  }
+}

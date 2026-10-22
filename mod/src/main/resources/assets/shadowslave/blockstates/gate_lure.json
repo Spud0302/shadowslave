@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "charge=0": {
+   "model": "shadowslave:block/gate_lure_0"
+  },
+  "charge=1": {
+   "model": "shadowslave:block/gate_lure_1"
+  },
+  "charge=2": {
+   "model": "shadowslave:block/gate_lure_2"
+  },
+  "charge=3": {
+   "model": "shadowslave:block/gate_lure_3"
+  },
+  "charge=4": {
+   "model": "shadowslave:block/gate_lure_4"
+  }
+ }
+}

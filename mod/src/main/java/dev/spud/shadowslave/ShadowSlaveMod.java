@@ -15,6 +15,9 @@ import dev.spud.shadowslave.dreamrealm.DreamRealmResourceInteractionRuntime;
 import dev.spud.shadowslave.dreamrealm.DreamRealmStoryNpcRuntime;
 import dev.spud.shadowslave.echo.EchoCommands;
 import dev.spud.shadowslave.echo.EchoManifestationService;
+import dev.spud.shadowslave.gate.GateCommands;
+import dev.spud.shadowslave.gate.GateRegistry;
+import dev.spud.shadowslave.gate.GateService;
 import dev.spud.shadowslave.item.ModDataComponents;
 import dev.spud.shadowslave.item.ModItems;
 import dev.spud.shadowslave.memory.MemoryCommands;
@@ -45,6 +48,7 @@ public final class ShadowSlaveMod {
         ShardDrops.bootstrap();
         NightmareRules.bootstrap();
         NightmareCreatureEntities.register(modEventBus);
+        GateRegistry.register(modEventBus);
 
         if (physicalSide == Dist.DEDICATED_SERVER) {
             modEventBus.addListener(ModPayloads::registerDedicatedServer);
@@ -82,6 +86,9 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(KitPassives::onBreathe);
         NeoForge.EVENT_BUS.addListener(KitPassives::onWakeUp);
         NeoForge.EVENT_BUS.addListener(EchoManifestationService::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(GateCommands::register);
+        NeoForge.EVENT_BUS.addListener(GateService::onServerTick);
+        NeoForge.EVENT_BUS.addListener(GateService::onLivingDeath);
         LOGGER.info("Shadow Slave Java core is loading");
     }
 }
