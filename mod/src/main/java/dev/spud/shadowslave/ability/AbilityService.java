@@ -110,7 +110,7 @@ public final class AbilityService {
             return AbilityStatusPayload.NONE;
         }
         return new AbilityStatusPayload(slots, EssenceService.current(player), EssenceService.capacity(player),
-                EssenceService.regenPerTick(player));
+                EssenceService.regenPerTick(player), ChannelService.strikePrimed(player));
     }
 
     /** Sends the HUD state to the owning client, if it has the mod's channel. */
@@ -127,7 +127,8 @@ public final class AbilityService {
         }
         List<AspectAbility> held = held(player);
         held.forEach(ability -> ability.tick(player));
-        if (EssenceService.tick(player) && !held.isEmpty()) {
+        boolean strikeFaded = ChannelService.tick(player);
+        if ((EssenceService.tick(player) || strikeFaded) && !held.isEmpty()) {
             syncStatus(player);
         }
     }

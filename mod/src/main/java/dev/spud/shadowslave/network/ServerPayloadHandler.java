@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.network;
 
 import dev.spud.shadowslave.ability.AbilityService;
+import dev.spud.shadowslave.ability.ChannelService;
 import dev.spud.shadowslave.awakening.SoulSeaService;
 import dev.spud.shadowslave.echo.EchoInstanceData;
 import dev.spud.shadowslave.echo.EchoManifestationService;
@@ -8,6 +9,7 @@ import dev.spud.shadowslave.echo.EchoOwnershipService;
 import dev.spud.shadowslave.echo.content.EchoContentCatalog;
 import dev.spud.shadowslave.memory.MemoryManifestationService;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
+import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoRequestPayload;
@@ -34,6 +36,13 @@ public final class ServerPayloadHandler {
         ServerPlayer player = serverPlayer(context, "Awakening");
         if (player != null) {
             SoulSeaService.requestAwakening(player, payload.abilityId());
+        }
+    }
+
+    public static void handleChannel(ChannelRequestPayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "Essence channeling");
+        if (player != null) {
+            ChannelService.channel(player, payload.strike());
         }
     }
 

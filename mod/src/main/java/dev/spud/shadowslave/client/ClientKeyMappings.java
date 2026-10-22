@@ -21,6 +21,7 @@ public final class ClientKeyMappings {
     public static final KeyMapping OPEN_SOUL = key("key.shadowslave.open_soul", GLFW.GLFW_KEY_O);
     public static final KeyMapping USE_ABILITY = key("key.shadowslave.use_ability", GLFW.GLFW_KEY_R);
     public static final KeyMapping USE_SECOND_ABILITY = key("key.shadowslave.use_second_ability", GLFW.GLFW_KEY_V);
+    public static final KeyMapping CHANNEL_ESSENCE = key("key.shadowslave.channel_essence", GLFW.GLFW_KEY_Z);
     public static final KeyMapping TOGGLE_MEMORY = key("key.shadowslave.toggle_memory", GLFW.GLFW_KEY_G);
     public static final KeyMapping TOGGLE_ECHO = key("key.shadowslave.toggle_echo", GLFW.GLFW_KEY_H);
     public static final KeyMapping TOGGLE_ECHO_MODE = key("key.shadowslave.toggle_echo_mode", GLFW.GLFW_KEY_J);
@@ -51,6 +52,7 @@ public final class ClientKeyMappings {
         event.register(OPEN_SOUL);
         event.register(USE_ABILITY);
         event.register(USE_SECOND_ABILITY);
+        event.register(CHANNEL_ESSENCE);
         event.register(TOGGLE_MEMORY);
         event.register(TOGGLE_ECHO);
         event.register(TOGGLE_ECHO_MODE);

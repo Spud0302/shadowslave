@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-10-22T11:17:45Z",
-  "source_commit": "2aebdce7f0a91e3473f0e33c22ccb245c595eb7c",
-  "source_tree_dirty": false,
-  "note_count": 122,
+  "generated_at": "2026-10-22T11:22:40Z",
+  "source_commit": "d4c38f7461ae1720c5494e9e6c4620a1e5c56ef4",
+  "source_tree_dirty": true,
+  "note_count": 125,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -1589,6 +1589,69 @@
       "related": [],
       "task_id": "20261022T111718Z-claude-code-candle-awakening",
       "base_commit": "4e472864e6779b2e6c08e1cc93f0ee8d158b069d"
+    },
+    "20261022T112233Z-claude-code-essence-channeling": {
+      "uid": "20261022T112233Z-claude-code-essence-channeling",
+      "path": "brain/ai/claims/20261022T112233Z--claude-code--essence-channeling.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Claim \u2014 Essence channeling for the Awakened",
+      "summary": "Jack (2026-10-22) approved the rank-up, essence and Soul Sea design in the \"Lore to gameplay ideas\" thread (doc https://claude.ai/artifact/6Ppkk9vv8V9LwEvBY2P1EQ). This claim is one slice of the Dormant-to-Awakened build: step 4, conscious channeling...",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T112233Z-claude-code-essence-channeling",
+      "lease_until": "2026-10-22T19:22:33Z",
+      "base_commit": "a609b07b0880cf2d85465bd140da2f46b9121a1b"
+    },
+    "20261022T112234Z-claude-code-essence-channeling": {
+      "uid": "20261022T112234Z-claude-code-essence-channeling",
+      "path": "brain/evidence/20261022T112234Z--claude-code--essence-channeling.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Evidence \u2014 Essence channeling for the Awakened",
+      "summary": "Dormant players cannot channel; a leap spends essence, launches the player and forgives its fall; a loaded blow hits harder once and only once.",
+      "tags": [
+        "evidence"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T112233Z-claude-code-essence-channeling",
+      "captured_commit": "a609b07b0880cf2d85465bd140da2f46b9121a1b"
+    },
+    "20261022T112235Z-claude-code-essence-channeling": {
+      "uid": "20261022T112235Z-claude-code-essence-channeling",
+      "path": "brain/ai/handoffs/20261022T112235Z--claude-code--essence-channeling.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Handoff \u2014 Essence channeling for the Awakened",
+      "summary": "Jack (2026-10-22) approved the rank-up, essence and Soul Sea design in the \"Lore to gameplay ideas\" thread (doc https://claude.ai/artifact/6Ppkk9vv8V9LwEvBY2P1EQ). This claim is one slice of the Dormant-to-Awakened build: step 4, conscious channeling...",
+      "tags": [
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T112233Z-claude-code-essence-channeling",
+      "base_commit": "a609b07b0880cf2d85465bd140da2f46b9121a1b"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",
