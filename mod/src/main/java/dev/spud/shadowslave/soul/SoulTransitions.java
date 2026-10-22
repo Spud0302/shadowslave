@@ -39,6 +39,23 @@ public final class SoulTransitions {
         return current.asDreamer(aspectId, aspectRank, flawId);
     }
 
+    /**
+     * Dream Candle ritual (DESIGN): the Spell names a Dormant Aspect on waking,
+     * without a First Nightmare. A reroll replaces the Aspect and Flaw but keeps
+     * the stage the player already reached.
+     */
+    public static SoulData awakenThroughRitual(
+            SoulData current,
+            ResourceLocation aspectId,
+            SoulRank aspectRank,
+            ResourceLocation flawId
+    ) {
+        if (current.spellState().isAtOrBeyondDreamer()) {
+            return current.withIdentity(aspectId, aspectRank, flawId);
+        }
+        return current.asDreamer(aspectId, aspectRank, flawId);
+    }
+
     public static SoulData reset() {
         return SoulData.uninfected();
     }

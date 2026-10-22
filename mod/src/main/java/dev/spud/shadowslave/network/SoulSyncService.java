@@ -26,6 +26,10 @@ public final class SoulSyncService {
     public static void sync(ServerPlayer player, SoulData soul, boolean openScreen) {
         Objects.requireNonNull(player, "player");
         Objects.requireNonNull(soul, "soul");
+        // Fake and game-test players have no negotiated mod channel to send on.
+        if (!player.connection.hasChannel(SoulSnapshotPayload.TYPE)) {
+            return;
+        }
         PacketDistributor.sendToPlayer(
                 player,
                 new SoulSnapshotPayload(
