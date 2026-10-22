@@ -7,6 +7,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ClientAbilityStateTest {
     @AfterEach
@@ -26,9 +28,18 @@ class ClientAbilityStateTest {
     }
 
     @Test
+    void readyCueSoundsOncePerCooldown() {
+        ClientAbilityState.update(new AbilityStatusPayload("shadowslave:a", "A", 20, 200, false), 1000);
+        assertFalse(ClientAbilityState.consumeReadyCue(1019));
+        assertTrue(ClientAbilityState.consumeReadyCue(1020));
+        assertFalse(ClientAbilityState.consumeReadyCue(1021));
+    }
+
+    @Test
     void readyWithoutACooldownNeverFlashes() {
         ClientAbilityState.update(new AbilityStatusPayload("shadowslave:a", "A", 0, 200, false), 1000);
         assertEquals(-1, ClientAbilityState.ticksSinceReady(1005));
+        assertFalse(ClientAbilityState.consumeReadyCue(1005));
     }
 
     @Test

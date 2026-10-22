@@ -8,7 +8,9 @@ import dev.spud.shadowslave.network.payload.ToggleAshCompassRequestPayload;
 import dev.spud.shadowslave.network.payload.UseAbilityRequestPayload;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.sounds.SoundEvents;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -30,6 +32,9 @@ public final class ClientGameEvents {
         consume(ClientKeyMappings.TOGGLE_MEMORY, ToggleAshCompassRequestPayload.INSTANCE, minecraft);
         consume(ClientKeyMappings.TOGGLE_ECHO, ToggleAshBurrowerEchoRequestPayload.INSTANCE, minecraft);
         consume(ClientKeyMappings.TOGGLE_ECHO_MODE, ToggleAshBurrowerEchoModeRequestPayload.INSTANCE, minecraft);
+        if (minecraft.level != null && ClientAbilityState.consumeReadyCue(minecraft.level.getGameTime())) {
+            minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_CHIME, 1.4F, 0.6F));
+        }
     }
 
     @SubscribeEvent

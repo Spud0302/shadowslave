@@ -73,7 +73,9 @@ played beforehand (lighting and smelting, sneaking, mining, swimming). Press R t
 your Aspect's ability. Its slot sits left of the hotbar: the shade drains as the
 cooldown runs, the slot glows while Returning Tide's mark is set, and it flashes
 when the ability is ready again. Press O for the Soul screen, with tabs for your
-Aspect, Abilities, Flaw and Soul (click a tab or press 1-4).
+Aspect, Abilities, Flaw and Soul (click a tab or press 1-4). Each ability has a
+casting pose that other players see too, and a soft chime tells you when it is
+ready again.
 
 | Nature | Innate (always on) | Ability (R) | Flaw |
 | --- | --- | --- | --- |

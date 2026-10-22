@@ -54,8 +54,16 @@ public final class HoldfastAbility implements AspectAbility {
 
     @Override
     public void tick(ServerPlayer player) {
-        if (isBraced(player) && player.isSprinting()) {
+        if (!isBraced(player)) {
+            return;
+        }
+        if (player.isSprinting()) {
             player.setSprinting(false);
+        }
+        ServerLevel level = player.serverLevel();
+        if (level.getGameTime() % 10 == 0) {
+            level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.STONE.defaultBlockState()),
+                    player.getX(), player.getY() + 0.05, player.getZ(), 6, 0.35, 0.0, 0.35, 0.0);
         }
     }
 

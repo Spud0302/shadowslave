@@ -18,6 +18,7 @@ public final class KindleAbility implements AspectAbility {
     static final int DURATION_TICKS = 20 * 10;
     static final int COOLDOWN_TICKS = 20 * 30;
     static final double IGNITE_RADIUS = 4.0;
+    private static final int RING_POINTS = 32;
     static final int IGNITE_SECONDS = 3;
 
     @Override
@@ -51,7 +52,14 @@ public final class KindleAbility implements AspectAbility {
 
         level.sendParticles(ParticleTypes.FLAME, player.getX(), player.getY() + 1.0, player.getZ(),
                 40, 0.6, 0.6, 0.6, 0.08);
+        // A ring of flame at the edge of Kindle's reach shows how far it caught.
+        for (int i = 0; i < RING_POINTS; i++) {
+            double angle = Math.PI * 2.0 * i / RING_POINTS;
+            level.sendParticles(ParticleTypes.SMALL_FLAME, player.getX() + Math.cos(angle) * IGNITE_RADIUS,
+                    player.getY() + 0.2, player.getZ() + Math.sin(angle) * IGNITE_RADIUS, 1, 0.0, 0.05, 0.0, 0.01);
+        }
         level.playSound(null, player.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.8F, 1.3F);
+        level.playSound(null, player.blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.PLAYERS, 0.4F, 0.8F);
         return Activation.USED;
     }
 }

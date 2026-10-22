@@ -1,12 +1,15 @@
 package dev.spud.shadowslave.client;
 
+import dev.spud.shadowslave.network.payload.AbilityCastPayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** Client-only application of read-only Soul snapshots, ability status and Spell reveals. */
+/** Client-only application of read-only Soul snapshots, ability status and casts, and Spell reveals. */
 public final class ClientPayloadHandler {
     private ClientPayloadHandler() {
     }
@@ -26,5 +29,14 @@ public final class ClientPayloadHandler {
         Minecraft minecraft = Minecraft.getInstance();
         long now = minecraft.level == null ? 0 : minecraft.level.getGameTime();
         ClientAbilityState.update(payload, now);
+    }
+
+    public static void handleAbilityCast(AbilityCastPayload payload, IPayloadContext context) {
+        Minecraft minecraft = Minecraft.getInstance();
+        ResourceLocation abilityId = ResourceLocation.tryParse(payload.abilityId());
+        if (minecraft.level != null && abilityId != null
+                && minecraft.level.getEntity(payload.entityId()) instanceof AbstractClientPlayer player) {
+            AbilityCastAnimations.play(player, abilityId);
+        }
     }
 }

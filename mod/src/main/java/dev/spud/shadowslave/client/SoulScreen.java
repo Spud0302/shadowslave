@@ -93,16 +93,29 @@ public final class SoulScreen extends Screen {
             switch (entry.style()) {
                 case NAME -> {
                     float scale = this.font.width(entry.text()) * 1.5F <= textWidth ? 1.5F : 1.0F;
+                    float textLeft = centre - this.font.width(entry.text()) * scale / 2.0F;
+                    if (!entry.icon().isEmpty()) {
+                        AbilityIcons.draw(graphics, entry.icon(), Math.round(textLeft) - 20, y - 2);
+                    }
                     graphics.pose().pushPose();
-                    graphics.pose().translate(centre - this.font.width(entry.text()) * scale / 2.0F, y, 0.0F);
+                    graphics.pose().translate(textLeft, y, 0.0F);
                     graphics.pose().scale(scale, scale, 1.0F);
                     graphics.drawString(this.font, entry.text(), 0, 0, entry.colour(), true);
                     graphics.pose().popPose();
                     y += Math.round(9 * scale) + 4;
                 }
                 case SUBTITLE, HEADING, VOICE -> {
-                    graphics.drawCenteredString(this.font, entry.text(), centre, y, entry.colour());
-                    y += 12;
+                    if (entry.icon().isEmpty()) {
+                        graphics.drawCenteredString(this.font, entry.text(), centre, y, entry.colour());
+                        y += 12;
+                    } else {
+                        // Icon and text are centred together as one unit.
+                        int width = 20 + this.font.width(entry.text());
+                        int x = centre - width / 2;
+                        AbilityIcons.draw(graphics, entry.icon(), x, y);
+                        graphics.drawString(this.font, entry.text(), x + 20, y + 4, entry.colour());
+                        y += 20;
+                    }
                 }
                 case BODY -> {
                     for (FormattedCharSequence line : this.font.split(Component.literal(entry.text()), textWidth)) {

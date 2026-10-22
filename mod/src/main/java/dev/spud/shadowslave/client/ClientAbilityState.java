@@ -11,6 +11,7 @@ public final class ClientAbilityState {
     private static AbilityStatusPayload status = AbilityStatusPayload.NONE;
     private static long readyAt;
     private static long receivedAt;
+    private static boolean readyCued;
 
     private ClientAbilityState() {
     }
@@ -19,6 +20,7 @@ public final class ClientAbilityState {
         status = payload;
         readyAt = clientGameTime + payload.remainingTicks();
         receivedAt = clientGameTime;
+        readyCued = false;
     }
 
     public static AbilityStatusPayload status() {
@@ -47,9 +49,19 @@ public final class ClientAbilityState {
         return clientGameTime - readyAt;
     }
 
+    /** True exactly once after a running cooldown ends, so the client can chime. */
+    public static boolean consumeReadyCue(long clientGameTime) {
+        if (readyCued || readyAt <= receivedAt || clientGameTime < readyAt || !status.hasAbility()) {
+            return false;
+        }
+        readyCued = true;
+        return true;
+    }
+
     public static void clear() {
         status = AbilityStatusPayload.NONE;
         readyAt = 0;
         receivedAt = 0;
+        readyCued = false;
     }
 }

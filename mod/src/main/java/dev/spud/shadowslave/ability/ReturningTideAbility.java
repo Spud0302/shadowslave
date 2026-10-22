@@ -63,7 +63,12 @@ public final class ReturningTideAbility implements AspectAbility {
     @Override
     public void tick(ServerPlayer player) {
         Mark mark = MARKS.get(player.getUUID());
-        if (mark != null && mark.expiresAt() <= player.serverLevel().getGameTime()) {
+        ServerLevel level = player.serverLevel();
+        if (mark != null && level.dimension().equals(mark.dimension()) && level.getGameTime() % 5 == 0) {
+            level.sendParticles(ParticleTypes.FALLING_WATER, mark.position().x, mark.position().y + 1.6, mark.position().z,
+                    4, 0.25, 0.3, 0.25, 0.0);
+        }
+        if (mark != null && mark.expiresAt() <= level.getGameTime()) {
             MARKS.remove(player.getUUID());
             if (pullBack(player, mark)) {
                 AbilityService.startCooldown(player, this);
