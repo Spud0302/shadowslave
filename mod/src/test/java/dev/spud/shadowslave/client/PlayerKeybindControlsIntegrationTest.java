@@ -25,7 +25,7 @@ class PlayerKeybindControlsIntegrationTest {
         String mappings = Files.readString(KEY_MAPPINGS);
 
         assertTrue(mappings.contains("OPEN_SOUL"));
-        assertTrue(mappings.contains("ACTIVATE_KINDLE"));
+        assertTrue(mappings.contains("USE_ABILITY"));
         assertTrue(mappings.contains("TOGGLE_MEMORY"));
         assertTrue(mappings.contains("TOGGLE_ECHO"));
         assertTrue(mappings.contains("TOGGLE_ECHO_MODE"));
@@ -42,7 +42,7 @@ class PlayerKeybindControlsIntegrationTest {
 
         assertTrue(events.contains("PacketDistributor.sendToServer(payload)"));
         assertTrue(events.contains("minecraft.screen == null"));
-        assertTrue(events.contains("ActivateKindleRequestPayload.INSTANCE"));
+        assertTrue(events.contains("UseAbilityRequestPayload.INSTANCE"));
         assertTrue(events.contains("ToggleAshCompassRequestPayload.INSTANCE"));
         assertTrue(events.contains("ToggleAshBurrowerEchoRequestPayload.INSTANCE"));
         assertTrue(events.contains("ToggleAshBurrowerEchoModeRequestPayload.INSTANCE"));
@@ -53,10 +53,10 @@ class PlayerKeybindControlsIntegrationTest {
         String dedicatedRegistration = Files.readString(PAYLOADS);
         String clientRegistration = Files.readString(CLIENT_PAYLOADS);
 
-        assertTrue(dedicatedRegistration.contains("NETWORK_VERSION = \"3\""));
+        assertTrue(dedicatedRegistration.contains("NETWORK_VERSION = \"4\""));
         for (String handler : new String[] {
                 "ServerPayloadHandler::handleOpenSoulScreen",
-                "ServerPayloadHandler::handleActivateKindle",
+                "ServerPayloadHandler::handleUseAbility",
                 "ServerPayloadHandler::handleToggleAshCompass",
                 "ServerPayloadHandler::handleToggleAshBurrowerEcho",
                 "ServerPayloadHandler::handleToggleAshBurrowerEchoMode"
@@ -70,7 +70,7 @@ class PlayerKeybindControlsIntegrationTest {
     void serverAuthoritativelyExecutesEveryIntent() throws IOException {
         String handler = Files.readString(SERVER_HANDLER);
 
-        assertTrue(handler.contains("PreviewPowerService.activateKindle(player)"));
+        assertTrue(handler.contains("AbilityService.useAbility(player)"));
         assertTrue(handler.contains("MemoryManifestationService.summonAshCompass(player)"));
         assertTrue(handler.contains("MemoryManifestationService.dismissAshCompass(player)"));
         assertTrue(handler.contains("EchoManifestationService.summonAshBurrower(player)"));

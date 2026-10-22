@@ -1,9 +1,9 @@
 package dev.spud.shadowslave.awakening;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.ability.AbilityCooldownData;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.nightmare.NightmareService;
-import dev.spud.shadowslave.preview.PreviewPowerData;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.identity.AspectInstanceData;
 import dev.spud.shadowslave.soul.identity.FlawInstanceData;
@@ -47,7 +47,7 @@ public final class AspectRollService {
             SoulIdentityService.replace(player, before);
             throw exception;
         }
-        player.setData(ModAttachments.PREVIEW_POWER, PreviewPowerData.empty());
+        player.setData(ModAttachments.ABILITY_COOLDOWNS, AbilityCooldownData.empty());
 
         ShadowSlaveMod.LOGGER.info("Dream Candle roll {} for player {}: {} ({}), Flaw {}",
                 roll.candidate().generationFingerprint(), player.getScoreboardName(), roll.aspectName(),

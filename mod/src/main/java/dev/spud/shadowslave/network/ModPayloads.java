@@ -1,17 +1,17 @@
 package dev.spud.shadowslave.network;
 
-import dev.spud.shadowslave.network.payload.ActivateKindleRequestPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshCompassRequestPayload;
+import dev.spud.shadowslave.network.payload.UseAbilityRequestPayload;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
-    public static final String NETWORK_VERSION = "3";
+    public static final String NETWORK_VERSION = "4";
 
     private ModPayloads() {
     }
@@ -33,9 +33,9 @@ public final class ModPayloads {
                 ServerPayloadHandler::handleOpenSoulScreen
         );
         registrar.playToServer(
-                ActivateKindleRequestPayload.TYPE,
-                ActivateKindleRequestPayload.STREAM_CODEC,
-                ServerPayloadHandler::handleActivateKindle
+                UseAbilityRequestPayload.TYPE,
+                UseAbilityRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleUseAbility
         );
         registrar.playToServer(
                 ToggleAshCompassRequestPayload.TYPE,

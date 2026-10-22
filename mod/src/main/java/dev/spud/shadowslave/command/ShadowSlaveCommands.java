@@ -2,6 +2,7 @@ package dev.spud.shadowslave.command;
 
 import com.mojang.brigadier.Command;
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.ability.AbilityService;
 import dev.spud.shadowslave.awakening.AspectRollService;
 import dev.spud.shadowslave.awakening.AspectRoller;
 import dev.spud.shadowslave.migration.DatapackMigrationOutcome;
@@ -11,7 +12,6 @@ import dev.spud.shadowslave.migration.ImportedIdentityService;
 import dev.spud.shadowslave.network.SoulSyncService;
 import dev.spud.shadowslave.nightmare.NightmareInstance;
 import dev.spud.shadowslave.nightmare.NightmareService;
-import dev.spud.shadowslave.preview.PreviewPowerService;
 import dev.spud.shadowslave.preview.PreviewResetService;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulRank;
@@ -57,6 +57,8 @@ public final class ShadowSlaveCommands {
                         .executes(context -> nightmareStatus(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("nightmare_recover")
                         .executes(context -> recoverNightmare(context.getSource().getPlayerOrException())))
+                .then(Commands.literal("ability")
+                        .executes(context -> kindle(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("kindle")
                         .executes(context -> kindle(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("migrate_datapack")
@@ -200,7 +202,7 @@ public final class ShadowSlaveCommands {
     }
 
     private static int kindle(ServerPlayer player) {
-        return PreviewPowerService.activateKindle(player) ? Command.SINGLE_SUCCESS : 0;
+        return AbilityService.useAbility(player) == AbilityService.Outcome.USED ? Command.SINGLE_SUCCESS : 0;
     }
 
     private static int migrateDatapack(ServerPlayer player) {

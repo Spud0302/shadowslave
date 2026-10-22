@@ -2,12 +2,12 @@ package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.network.ModPayloads;
 import dev.spud.shadowslave.network.ServerPayloadHandler;
-import dev.spud.shadowslave.network.payload.ActivateKindleRequestPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshCompassRequestPayload;
+import dev.spud.shadowslave.network.payload.UseAbilityRequestPayload;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -29,9 +29,9 @@ public final class ClientModPayloads {
                 ServerPayloadHandler::handleOpenSoulScreen
         );
         registrar.playToServer(
-                ActivateKindleRequestPayload.TYPE,
-                ActivateKindleRequestPayload.STREAM_CODEC,
-                ServerPayloadHandler::handleActivateKindle
+                UseAbilityRequestPayload.TYPE,
+                UseAbilityRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleUseAbility
         );
         registrar.playToServer(
                 ToggleAshCompassRequestPayload.TYPE,

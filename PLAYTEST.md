@@ -67,5 +67,6 @@ Added by claude-code, 2026-10-22.
 You can only roll once. Operators can reroll with `/shadowslave aspect reroll`
 (optionally followed by player names), and `/shadowslave reset` clears the Soul
 entirely. The roll picks Ember, Mist, Stone or Tide, nudged slightly by how you
-played beforehand (lighting and smelting, sneaking, mining, swimming). Only
-Kindle (R key) and Cold Ash do anything so far; the other kits follow.
+played beforehand (lighting and smelting, sneaking, mining, swimming). Press R to use
+your Aspect's ability; feedback and cooldowns show above the hotbar. Only Kindle
+and Cold Ash do anything so far; the other kits follow.
