@@ -19,6 +19,10 @@ public interface AspectAbility {
     default void tick(ServerPlayer player) {
     }
 
+    /** Drops any lingering state (a wall, a ward) when the player leaves or loses the ability. */
+    default void clear(ServerPlayer player) {
+    }
+
     /** True while a press has set something up that the next press will finish. */
     default boolean primed(ServerPlayer player) {
         return false;

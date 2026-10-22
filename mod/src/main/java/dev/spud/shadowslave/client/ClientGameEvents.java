@@ -29,6 +29,7 @@ public final class ClientGameEvents {
         Minecraft minecraft = Minecraft.getInstance();
         consume(ClientKeyMappings.OPEN_SOUL, OpenSoulScreenRequestPayload.INSTANCE, minecraft);
         consume(ClientKeyMappings.USE_ABILITY, new UseAbilityRequestPayload(0), minecraft);
+        consume(ClientKeyMappings.USE_SECOND_ABILITY, new UseAbilityRequestPayload(1), minecraft);
         consume(ClientKeyMappings.TOGGLE_MEMORY, ToggleAshCompassRequestPayload.INSTANCE, minecraft);
         consume(ClientKeyMappings.TOGGLE_ECHO, ToggleAshBurrowerEchoRequestPayload.INSTANCE, minecraft);
         consume(ClientKeyMappings.TOGGLE_ECHO_MODE, ToggleAshBurrowerEchoModeRequestPayload.INSTANCE, minecraft);

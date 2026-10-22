@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -35,6 +36,13 @@ public record AspectAbilitySetData(List<AspectAbilityData> abilities) {
     public boolean contains(ResourceLocation abilityId) {
         ResourceLocation checked = Objects.requireNonNull(abilityId, "abilityId");
         return abilities.stream().anyMatch(ability -> ability.abilityId().equals(checked));
+    }
+
+    /** This set plus {@code ability}; the set already holding that id is an error. */
+    public AspectAbilitySetData with(AspectAbilityData ability) {
+        List<AspectAbilityData> next = new ArrayList<>(abilities);
+        next.add(Objects.requireNonNull(ability, "ability"));
+        return new AspectAbilitySetData(next);
     }
 
     private static DataResult<AspectAbilitySetData> construct(List<AspectAbilityData> abilities) {

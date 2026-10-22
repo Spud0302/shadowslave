@@ -2,7 +2,9 @@ package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.ability.AbilityRegistry;
 import dev.spud.shadowslave.ability.AspectAbility;
+import dev.spud.shadowslave.awakening.AbilityVariant;
 import dev.spud.shadowslave.awakening.AspectKit;
+import dev.spud.shadowslave.awakening.KitLadder;
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
@@ -136,6 +138,7 @@ public final class SoulPages {
             }
             String description = kit.filter(value -> value.abilityId().toString().equals(id))
                     .map(AspectKit::abilityDescription)
+                    .or(() -> KitLadder.byAbility(ability.get().id()).map(AbilityVariant::description))
                     .orElse("");
             entries.add(Entry.withIcon(Style.HEADING, ability.get().displayName(), SpellStyle.ABILITY, id));
             if (!description.isEmpty()) {

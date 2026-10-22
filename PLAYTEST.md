@@ -97,3 +97,19 @@ quarter of their core out as a shard you can absorb; turn that off with
 | Mist | Sneaking sets off no sculk or wardens | Mist Passage: blink up to 8 blocks and turn invisible for 3 s (25 essence) | Borrowed Breath: each blink costs hunger, air runs out faster |
 | Stone | No knockback while standing still | Holdfast: Resistance II and no knockback for 6 s, no sprinting (35 essence) | Stone Sleep: slow after sleeping, you sink in water |
 | Tide | Breathe underwater | Returning Tide: press to mark, press again within 10 s (or wait) to be pulled back (30 essence) | Tidal Debt: weak if a day passes without touching water or rain |
+
+**Awakened abilities (second key, V).** Each Nature grows one of two abilities
+at Awakening. Until the Dream Candle rank-up lands, operators can grant one with
+`/shadowslave ability grant <name>` (tab completes; it must match your Nature).
+It goes on the V key, next to the first slot, and draws on the same essence pool.
+
+| Nature | Ability | What it does |
+| --- | --- | --- |
+| Ember | Carry the Flame (40) | Regeneration II and fire resistance to the player or tamed pet you look at, or yourself |
+| Ember | Ember Ward (45) | A ring of fire for 8 s; hostile mobs that touch it are thrown back burning |
+| Mist | Through the Haze (30) | Every creature and player within 32 blocks glows for 10 s |
+| Mist | Veil (45) | A dome of mist for 8 s; hostile mobs inside are blinded and lose their target |
+| Stone | Root in Stone (35) | A 3x3 stone wall two blocks ahead that crumbles after 12 s; it only fills empty space |
+| Stone | Quake (45) | Stomp: hostile mobs within 5 blocks take damage, are thrown up and slowed |
+| Tide | Low Tide (30) | Surge forward on a wave that shoves mobs aside |
+| Tide | Undertow (40) | Drags mobs within 8 blocks of where you look toward that spot and slows them |

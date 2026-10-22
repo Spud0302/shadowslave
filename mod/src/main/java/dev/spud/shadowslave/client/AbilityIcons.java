@@ -6,21 +6,26 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /** The 16x16 icons for each kit ability and Flaw, keyed by ability id or Flaw effect id. */
 final class AbilityIcons {
-    private static final Map<String, ResourceLocation> ICONS = Map.of(
-            "shadowslave:generation/ability/kindle", texture("ability/kindle"),
-            "shadowslave:generation/ability/mist_passage", texture("ability/mist_passage"),
-            "shadowslave:generation/ability/holdfast", texture("ability/holdfast"),
-            "shadowslave:generation/ability/returning_tide", texture("ability/returning_tide"),
-            "shadowslave:generation/flaw_effect/cold_ash", texture("flaw/cold_ash"),
-            "shadowslave:generation/flaw_effect/borrowed_breath", texture("flaw/borrowed_breath"),
-            "shadowslave:generation/flaw_effect/stone_sleep", texture("flaw/stone_sleep"),
-            "shadowslave:generation/flaw_effect/tidal_debt", texture("flaw/tidal_debt")
-    );
+    private static final Map<String, ResourceLocation> ICONS = icons(
+            List.of("kindle", "mist_passage", "holdfast", "returning_tide",
+                    "carry_the_flame", "ember_ward", "through_the_haze", "veil",
+                    "root_in_stone", "quake", "low_tide", "undertow"),
+            List.of("cold_ash", "borrowed_breath", "stone_sleep", "tidal_debt"));
+
     private AbilityIcons() {
+    }
+
+    private static Map<String, ResourceLocation> icons(List<String> abilities, List<String> flaws) {
+        Map<String, ResourceLocation> icons = new HashMap<>();
+        abilities.forEach(name -> icons.put("shadowslave:generation/ability/" + name, texture("ability/" + name)));
+        flaws.forEach(name -> icons.put("shadowslave:generation/flaw_effect/" + name, texture("flaw/" + name)));
+        return Map.copyOf(icons);
     }
 
     private static ResourceLocation texture(String name) {
