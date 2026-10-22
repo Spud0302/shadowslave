@@ -89,7 +89,7 @@ The datapack harness additionally needs to prove:
 
 ## Required manual playtest — not yet performed
 
-Use a disposable Minecraft 1.21.1 NeoForge 21.1.244 world.
+Use a disposable Minecraft 1.21.1 NeoForge 21.1.264 world.
 
 1. Install only `shadowslave-0.1.0-preview.2.jar` and remove `preview.1`.
 2. Join and press **O**; confirm Uninfected state and no invented Soul Rank.

@@ -4,9 +4,9 @@ This directory is the deterministic packaging boundary for Path A: a curated Neo
 
 ## Current status
 
-The manifest pins Minecraft `1.21.1`, NeoForge `21.1.244`, Java `21`, the locally built Shadow Slave core, and two required non-authoritative runtime providers:
+The manifest pins Minecraft `1.21.1`, NeoForge `21.1.264`, Java `21`, the locally built Shadow Slave core, and two required non-authoritative runtime providers:
 
-- GeckoLib `4.9.2` for custom model/animation presentation;
+- GeckoLib `4.9.3` for custom model/animation presentation;
 - SmartBrainLib `1.16.11` for bounded creature AI execution.
 
 Neither provider owns Soul state, Nightmare Creature identity, progression, rewards, persistence, Memory/Echo ownership, Rank/Class, or Nightmare lifecycle. The manifest records each exact artifact, licence, SHA-256 and removal behavior.
@@ -29,11 +29,11 @@ Build the current archive after compiling the Java core and fetching the exact p
 
 mkdir -p build/components
 curl --fail --location --silent --show-error \
-  'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/software/bernie/geckolib/geckolib-neoforge-1.21.1/4.9.2/geckolib-neoforge-1.21.1-4.9.2.jar' \
-  --output build/components/geckolib-neoforge-1.21.1-4.9.2.jar
+  'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/software/bernie/geckolib/geckolib-neoforge-1.21.1/4.9.3/geckolib-neoforge-1.21.1-4.9.3.jar' \
+  --output build/components/geckolib-neoforge-1.21.1-4.9.3.jar
 printf '%s  %s\n' \
-  '5e548466af9ab6aca7a91a7c7d4dc0dc8bc385e22958aed5da0e7bebd0fa3fba' \
-  'build/components/geckolib-neoforge-1.21.1-4.9.2.jar' | sha256sum --check --strict
+  '20a1995e4074f387ff549e2c57ea79dd7d41ee83c6afb9dd6a6e840e592d1c47' \
+  'build/components/geckolib-neoforge-1.21.1-4.9.3.jar' | sha256sum --check --strict
 
 curl --fail --location --silent --show-error \
   'https://dl.cloudsmith.io/public/tslat/sbl/maven/net/tslat/smartbrainlib/SmartBrainLib-neoforge-1.21.1/1.16.11/SmartBrainLib-neoforge-1.21.1-1.16.11.jar' \
@@ -44,7 +44,7 @@ printf '%s  %s\n' \
 
 python3 modpack/tools/build_package.py \
   --core-jar mod/build/libs/shadowslave-0.1.0-preview.2.jar \
-  --component-jar geckolib-4=build/components/geckolib-neoforge-1.21.1-4.9.2.jar \
+  --component-jar geckolib-4=build/components/geckolib-neoforge-1.21.1-4.9.3.jar \
   --component-jar smartbrainlib-1=build/components/SmartBrainLib-neoforge-1.21.1-1.16.11.jar \
   --output build/nightmare-spell-modpack-dev.zip
 ```
@@ -59,7 +59,7 @@ The package currently contains:
 README.md
 manifest.json
 mods/SmartBrainLib-neoforge-1.21.1-1.16.11.jar
-mods/geckolib-neoforge-1.21.1-4.9.2.jar
+mods/geckolib-neoforge-1.21.1-4.9.3.jar
 mods/shadowslave-core.jar
 provenance.json
 ```
