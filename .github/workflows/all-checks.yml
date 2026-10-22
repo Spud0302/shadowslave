@@ -1,0 +1,59 @@
+name: All checks
+
+# The one check to mark as required on main. Every other workflow only runs
+# when its own paths change, so none of them can be required without leaving
+# unrelated PRs waiting forever. This job runs on every PR, waits for whatever
+# other checks the PR triggered, and fails if any of them failed. Requiring it
+# is what lets GitHub's auto-merge wait for CI.
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - ready_for_review
+      - reopened
+
+permissions:
+  checks: read
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  all-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Wait for the other checks on this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Give path-filtered workflows time to register their runs.
+          sleep 30
+          while true; do
+            # Latest run per check name, so a re-run that passed replaces the failure.
+            runs="$(gh api "repos/$REPO/commits/$SHA/check-runs?per_page=100" \
+              --jq '[.check_runs[] | select(.name != "all-checks")]
+                    | group_by(.name) | map(max_by(.id))')"
+            failed="$(jq -r '.[] | select(.status == "completed"
+              and (.conclusion | IN("success", "skipped", "neutral") | not))
+              | "\(.name): \(.conclusion)"' <<<"$runs")"
+            if [ -n "$failed" ]; then
+              echo "::error::Failed checks:"$'\n'"$failed"
+              exit 1
+            fi
+            pending="$(jq -r '.[] | select(.status != "completed") | .name' <<<"$runs")"
+            if [ -z "$pending" ]; then
+              echo "Every other check passed or was skipped:"
+              jq -r '.[] | "  \(.name): \(.conclusion)"' <<<"$runs"
+              exit 0
+            fi
+            echo "Waiting on: $(tr '\n' ' ' <<<"$pending")"
+            sleep 20
+          done
