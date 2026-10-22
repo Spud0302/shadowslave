@@ -3,6 +3,7 @@ package dev.spud.shadowslave.world.entity;
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.creature.NightmareCreature;
 import dev.spud.shadowslave.echo.AshBurrowerEchoEntity;
+import dev.spud.shadowslave.gate.GateRiftEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -61,6 +62,17 @@ public final class NightmareCreatureEntities {
                     .eyeHeight(2.9F)
                     .fireImmune()
                     .clientTrackingRange(12)
+                    .build(registryName.toString())
+    );
+
+    /** The visible tear of a Gate; presentation only, the Gate itself lives in GateData. */
+    public static final Supplier<EntityType<GateRiftEntity>> GATE_RIFT = ENTITY_TYPES.register(
+            "gate_rift",
+            registryName -> EntityType.Builder.<GateRiftEntity>of(GateRiftEntity::new, MobCategory.MISC)
+                    .sized(1.4F, 3.8F)
+                    .fireImmune()
+                    .clientTrackingRange(16)
+                    .updateInterval(20)
                     .build(registryName.toString())
     );
 

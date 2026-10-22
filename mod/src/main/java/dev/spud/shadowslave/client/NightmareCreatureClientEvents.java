@@ -2,6 +2,7 @@ package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.client.renderer.CreatureRenderer;
+import dev.spud.shadowslave.client.renderer.GateRiftRenderer;
 import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
 import net.minecraft.client.renderer.entity.DrownedRenderer;
 import net.neoforged.api.distmarker.Dist;
@@ -29,6 +30,7 @@ public final class NightmareCreatureClientEvents {
                 context -> new CreatureRenderer<>(context, "hollow_mimic", 0.4F, false));
         event.registerEntityRenderer(NightmareCreatureEntities.ASHEN_TYRANT.get(),
                 context -> new CreatureRenderer<>(context, "ashen_tyrant", 1.2F, true));
+        event.registerEntityRenderer(NightmareCreatureEntities.GATE_RIFT.get(), GateRiftRenderer::new);
 
         // Remaining vanilla visual placeholder.
         event.registerEntityRenderer(NightmareCreatureEntities.DROWNED_LISTENER.get(), DrownedRenderer::new);

@@ -11,6 +11,9 @@ change is an edit here and a rerun. Glowing materials also go into
 Animations are written as sampled curves (catmull-rom between samples) from
 small functions of time, so a loop is a few lines of maths.
 
+It also draws the Gate's rift (an entity, built like a creature) and the
+Gate Lure block's charge models and textures.
+
 Coordinates are Bedrock model units: 16 per block, y up from the feet,
 the creature faces -z. Needs Pillow.
 """
@@ -45,6 +48,10 @@ MATERIALS = {
     "shroud": ((34, 31, 38), "cloth", False),
     "hollow": ((12, 10, 14), "smooth", False),
     "eye_ember": ((255, 170, 60), "ember", True),
+    "rift": ((150, 70, 240), "rift", False),
+    "rift_core": ((235, 215, 255), "rift", False),
+    "rift_edge": ((46, 18, 70), "cracks", False),
+    "rift_shard": ((24, 14, 34), "shard", False),
 }
 
 SHADE = {"up": 1.12, "down": 0.62, "north": 1.0, "south": 0.82, "east": 0.9, "west": 0.9}
@@ -274,6 +281,45 @@ def ashen_tyrant():
     return mirror(b)
 
 
+def gate_rift():
+    # A tall lens-shaped tear standing a little off the ground: an outer violet
+    # body, a brighter seam down its middle, ragged dark splinters along both
+    # edges, and four shards of the other side drifting around it. The renderer
+    # draws the whole texture translucent and full-bright.
+    widths = [3, 6, 10, 13, 16, 18, 19, 19, 18, 16, 13, 10, 6, 3]
+    seg = 4
+    base = 4
+    tear, seam, edge = [], [], []
+    for i, w in enumerate(widths):
+        y = base + i * seg
+        tear.append(box([-w / 2, y, -0.5], [w, seg, 1], "rift"))
+        sw = max(1, round(w * 0.35))
+        seam.append(box([-sw / 2, y, -0.75], [sw, seg, 1.5], "rift_core"))
+        if 0 < i < len(widths) - 1:
+            tilt = 18 if i < len(widths) / 2 else -18
+            edge.append(box([w / 2 - 0.5, y, -1], [1.5, seg + 1, 2], "rift_edge",
+                            rotation=[0, 0, -tilt], pivot=[w / 2, y, 0]))
+            if i % 3 == 1:
+                edge.append(box([w / 2 + 0.5, y + 1, -0.5], [2, 1, 1], "rift_shard",
+                                rotation=[0, 0, 25 if i % 2 else -25], pivot=[w / 2 + 0.5, y + 1, 0]))
+    top = base + len(widths) * seg
+    mid = base + len(widths) * seg / 2
+    b = [
+        bone("root", [0, 0, 0]),
+        bone("tear", [0, mid, 0], parent="root", cubes=tear + seam),
+        bone("left_edge", [5, mid, 0], parent="tear", cubes=edge),
+        bone("shard_1", [12, 40, 0], parent="root", cubes=[
+            box([11, 39, -1], [2, 3, 2], "rift_shard", rotation=[20, 30, 15], pivot=[12, 40, 0])]),
+        bone("shard_2", [-12, 22, 2], parent="root", cubes=[
+            box([-13, 21, 1], [2, 2, 2], "rift_shard", rotation=[40, 10, 0], pivot=[-12, 22, 2])]),
+        bone("shard_3", [9, 14, -4], parent="root", cubes=[
+            box([8.5, 13, -4.5], [1, 3, 1], "rift_shard", rotation=[0, 45, 25], pivot=[9, 14, -4])]),
+        bone("shard_4", [-10, top - 10, -3], parent="root", cubes=[
+            box([-11, top - 11, -4], [2, 2, 2], "rift_shard", rotation=[15, 60, 35], pivot=[-10, top - 10, -3])]),
+    ]
+    return mirror(b)
+
+
 # ---------------------------------------------------------------- animations
 
 def lerp_track(fn, length, samples, mode="catmullrom"):
@@ -478,6 +524,49 @@ def ashen_tyrant_anims():
     }
 
 
+def gate_rift_anims():
+    L = 4.0
+    shards = {}
+    for n, (radius, height, phase) in enumerate(((12, 40, 0.0), (12, 22, 0.25), (9.8, 14, 0.5), (10.4, 50, 0.75)), 1):
+        def orbit(t, radius=radius, phase=phase):
+            a = (t / L + phase) * 2 * math.pi
+            b = phase * 2 * math.pi
+            return [radius * (math.cos(a) - math.cos(b)), 1.5 * math.sin(a * 2), radius * (math.sin(a) - math.sin(b))]
+        shards[f"shard_{n}"] = {"position": orbit,
+                                "rotation": lambda t, phase=phase: [0, 360 * t / L + phase * 360, wave(t, L, 20, phase)]}
+    open_loop = {
+        "tear": {"scale": lambda t: [1 + wave(t, L, 0.08, 0, 2), 1 + wave(t, L, 0.02, 0.25), 1]},
+        "left_edge": {"rotation": lambda t: [0, 0, wave(t, L, 3, 0, 2)]},
+        "right_edge": {"rotation": lambda t: [0, 0, -wave(t, L, 3, 0.3, 2)]},
+    }
+    open_loop.update(shards)
+    hidden = {f"shard_{n}": {"scale": keys([(0, [0, 0, 0])])} for n in range(1, 5)}
+    forming = anim(1.0, True, {
+        "tear": {"scale": lambda t: [0.18 + wave(t, 1.0, 0.05, 0, 3), 0.6 + wave(t, 1.0, 0.03), 1]},
+        "left_edge": {"position": lambda t: [-6, 0, 0]},
+        "right_edge": {"position": lambda t: [6, 0, 0]},
+    }, samples=12)
+    forming["bones"].update({k: {ch: tr() for ch, tr in v.items()} for k, v in hidden.items()})
+    return {
+        "forming": forming,
+        "opening": anim_keys(1.2, {
+            "tear": {"scale": keys([(0, [0.18, 0.6, 1]), (0.5, [0.5, 1.05, 1]), (0.9, [1.25, 1.02, 1]), (1.2, [1, 1, 1])])},
+            "left_edge": {"position": keys([(0, [-6, 0, 0]), (0.9, [0.8, 0, 0]), (1.2, [0, 0, 0])])},
+            "right_edge": {"position": keys([(0, [6, 0, 0]), (0.9, [-0.8, 0, 0]), (1.2, [0, 0, 0])])},
+            **{f"shard_{n}": {"scale": keys([(0, [0, 0, 0]), (0.8, [0, 0, 0]), (1.2, [1, 1, 1])])} for n in range(1, 5)},
+        }),
+        "open": anim(L, True, open_loop, samples=16),
+        "closing": anim_keys(1.5, {
+            "tear": {"scale": keys([(0, [1, 1, 1]), (0.4, [1.2, 1.05, 1]), (1.2, [0.05, 0.6, 1]), (1.5, [0, 0, 0])])},
+            "left_edge": {"position": keys([(0, [0, 0, 0]), (1.2, [-6, 0, 0])]),
+                          "scale": keys([(1.2, [1, 1, 1]), (1.5, [0, 0, 0])])},
+            "right_edge": {"position": keys([(0, [0, 0, 0]), (1.2, [6, 0, 0])]),
+                           "scale": keys([(1.2, [1, 1, 1]), (1.5, [0, 0, 0])])},
+            **{f"shard_{n}": {"scale": keys([(0, [1, 1, 1]), (0.6, [0, 0, 0])])} for n in range(1, 5)},
+        }),
+    }
+
+
 # ---------------------------------------------------------------- texture painting
 
 def clamp(v):
@@ -570,6 +659,17 @@ class Painter:
                 elif pattern == "mask":
                     if edge:
                         c = mul(c, 0.9)
+                elif pattern == "rift":
+                    # bright at the seam, deepening to violet at the sides, with drifting streaks
+                    centre = 1.0 - abs((i + 0.5) / w - 0.5) * 2
+                    c = mix(mul(base, 0.55), (236, 210, 255), centre ** 1.5)
+                    if r.random() < 0.08:
+                        c = mix(c, (255, 255, 255), 0.5)
+                elif pattern == "shard":
+                    if r.random() < 0.18:
+                        c = mix(c, (150, 70, 240), 0.7)
+                    if edge:
+                        c = mul(c, 1.4)
                 elif pattern == "smooth":
                     pass
                 if c is None:
@@ -731,7 +831,77 @@ CREATURES = {
     "chainback": (chainback, chainback_anims, 128, 12),
     "hollow_mimic": (hollow_mimic, hollow_mimic_anims, 64, 13),
     "ashen_tyrant": (ashen_tyrant, ashen_tyrant_anims, 128, 14),
+    # Not a creature: the tear a Gate opens. Drawn the same way.
+    "gate_rift": (gate_rift, gate_rift_anims, 64, 15),
 }
+
+
+# ---------------------------------------------------------------- Gate Lure block
+
+LURE_STONE = (36, 22, 48)
+LURE_RUNE_DARK = (20, 10, 28)
+LURE_RUNE_LIT = [(120, 60, 200), (150, 80, 235), (180, 110, 255), (215, 160, 255)]
+# Four runes down the pillar side, one lit per charge level (pixel strokes on a 16x16 face).
+LURE_RUNES = [
+    [(3, 2), (3, 3), (3, 4), (4, 3), (5, 2), (5, 4)],
+    [(10, 3), (11, 2), (12, 3), (11, 4), (11, 5)],
+    [(3, 9), (4, 10), (5, 11), (5, 9), (3, 11)],
+    [(10, 9), (11, 9), (12, 9), (11, 10), (10, 11), (12, 11)],
+]
+
+
+def lure_textures(seed=16):
+    """The Gate Lure's pillar side and top for each charge 0-4: runes and the socket light up."""
+    out = {}
+    for charge in range(5):
+        r = random.Random(seed)
+        side = Image.new("RGBA", (16, 16))
+        top = Image.new("RGBA", (16, 16))
+        for y in range(16):
+            for x in range(16):
+                c = mul(LURE_STONE, 1 + r.uniform(-0.15, 0.15))
+                if r.random() < 0.05:
+                    c = mix(c, (110, 40, 170), 0.5)
+                side.putpixel((x, y), c + (255,))
+                d = math.hypot(x - 7.5, y - 7.5)
+                t = mul(LURE_STONE, (1.1 if (x + y) % 5 else 0.8) * (1 + r.uniform(-0.1, 0.1)))
+                if d < 3.2:
+                    t = mix(LURE_RUNE_DARK, (230, 190, 255), 0.0 if charge == 0 else 0.25 + 0.18 * charge)
+                elif d < 4.2:
+                    t = mul(LURE_STONE, 0.6)
+                top.putpixel((x, y), t + (255,))
+        for n, rune in enumerate(LURE_RUNES):
+            colour = LURE_RUNE_LIT[charge - 1] if n < charge else LURE_RUNE_DARK
+            for x, y in rune:
+                side.putpixel((x, y), colour + (255,))
+        out[f"gate_lure_side_{charge}"] = side
+        out[f"gate_lure_top_{charge}"] = top
+    return out
+
+
+def lure_model(charge):
+    """A plinth: a crying-obsidian base and cap around a rune pillar; the pillar glows with its charge."""
+    glow = {"neoforge_data": {"block_light": 3 * charge + 3}} if charge else {}
+
+    def faces(side, top, bottom, light=False):
+        f = {d: {"texture": side} for d in ("north", "south", "east", "west")}
+        f["up"] = {"texture": top}
+        f["down"] = {"texture": bottom}
+        if light:
+            for face in f.values():
+                face.update(glow)
+        return f
+    return {
+        "parent": "block/block",
+        "textures": {"particle": "minecraft:block/crying_obsidian", "stone": "minecraft:block/crying_obsidian",
+                     "side": f"shadowslave:block/gate_lure_side_{charge}",
+                     "top": f"shadowslave:block/gate_lure_top_{charge}"},
+        "elements": [
+            {"from": [2, 0, 2], "to": [14, 3, 14], "faces": faces("#stone", "#stone", "#stone")},
+            {"from": [4, 3, 4], "to": [12, 12, 12], "faces": faces("#side", "#side", "#side", light=True)},
+            {"from": [3, 12, 3], "to": [13, 15, 13], "faces": faces("#stone", "#top", "#stone", light=True)},
+        ],
+    }
 
 
 def write_json(path, data):
@@ -753,6 +923,16 @@ def main():
         if painter.glow.getbbox():
             painter.glow.save(ASSETS / f"textures/entity/{name}_glowmask.png")
         print(f"{name}: {len(bones)} bones, texture {width}x{height}")
+    for name, img in lure_textures().items():
+        path = ASSETS / f"textures/block/{name}.png"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        img.save(path)
+    for charge in range(5):
+        write_json(ASSETS / f"models/block/gate_lure_{charge}.json", lure_model(charge))
+    write_json(ASSETS / "blockstates/gate_lure.json", {"variants": {
+        f"charge={charge}": {"model": f"shadowslave:block/gate_lure_{charge}"} for charge in range(5)}})
+    write_json(ASSETS / "models/item/gate_lure.json", {"parent": "shadowslave:block/gate_lure_2"})
+    print("gate_lure: 5 charge models")
 
 
 if __name__ == "__main__":

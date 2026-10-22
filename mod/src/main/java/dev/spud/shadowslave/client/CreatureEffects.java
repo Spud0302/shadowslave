@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.client;
 
+import dev.spud.shadowslave.gate.GateEvent;
 import dev.spud.shadowslave.world.entity.AshenTyrantEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -21,11 +22,14 @@ import java.awt.Color;
  * Lodestone effects for Nightmare Creatures, played on the client when the
  * server broadcasts an entity event: the Ashen Tyrant's slam (an ember ring
  * along the ground and a screen shake that fades with distance) and its
- * brood call (embers drawn up from its chest).
+ * brood call (embers drawn up from its chest). Also the ambient motes
+ * around a Gate's rift, which thicken as it opens.
  */
 public final class CreatureEffects {
     static final Color EMBER = new Color(255, 120, 40);
     static final Color ASH = new Color(70, 50, 45);
+    static final Color RIFT = new Color(170, 70, 255);
+    static final Color RIFT_EDGE = new Color(40, 10, 70);
     static final double SHAKE_RANGE = 16.0;
 
     private CreatureEffects() {
@@ -94,6 +98,34 @@ public final class CreatureEffects {
                     .addMotion(-Math.cos(angle) * radius / 28, (chest - entity.getY()) / 28, -Math.sin(angle) * radius / 28)
                     .enableNoClip()
                     .spawn(level, entity.getX() + Math.cos(angle) * radius, entity.getY() + 0.1, entity.getZ() + Math.sin(angle) * radius);
+        }
+    }
+
+    /** Motes drawn into the rift each tick: a few while it forms, a stream while open, none once it closes. */
+    public static void riftTick(Entity rift, GateEvent.Phase phase) {
+        Level level = rift.level();
+        RandomSource random = level.getRandom();
+        int count = switch (phase) {
+            case WARNING -> random.nextInt(3) == 0 ? 1 : 0;
+            case OPEN -> 2;
+            case GUARDIAN -> 4;
+            case CLOSED -> 0;
+        };
+        double centre = rift.getY() + rift.getBbHeight() * 0.5;
+        for (int i = 0; i < count; i++) {
+            double angle = random.nextDouble() * Mth.TWO_PI;
+            double radius = 2.0 + random.nextDouble() * 2.5;
+            double y = rift.getY() + random.nextDouble() * rift.getBbHeight();
+            int life = 30;
+            WorldParticleBuilder.create(LodestoneParticleTypes.WISP_PARTICLE)
+                    .setRenderType(LodestoneWorldParticleRenderType.ADDITIVE)
+                    .setColorData(ColorParticleData.create(RIFT_EDGE, RIFT).setEasing(Easing.QUAD_IN).build())
+                    .setScaleData(GenericParticleData.create(0.12F, 0.3F, 0F).build())
+                    .setTransparencyData(GenericParticleData.create(0F, 0.8F, 0F).build())
+                    .setLifetime(life)
+                    .addMotion(-Math.cos(angle) * radius / life, (centre - y) / life * 0.5, -Math.sin(angle) * radius / life)
+                    .enableNoClip()
+                    .spawn(level, rift.getX() + Math.cos(angle) * radius, y, rift.getZ() + Math.sin(angle) * radius);
         }
     }
 }
