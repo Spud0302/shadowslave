@@ -34,6 +34,7 @@ public final class AbilityHudLayer implements LayeredDraw.Layer {
     private static final int READY_FLASH_TICKS = 10;
     private static final int SHADE = 0x90000000;
     private static final int PRIMED = 0xFF79DDF2;
+    private static final int STRIKE = 0xFFF2B05E;
     private static final int READY = 0xFFFFFFFF;
     static final int ESSENCE_TOP = 0xFFB98CF0;
     static final int ESSENCE_BOTTOM = 0xFF5B3A9A;
@@ -93,7 +94,15 @@ public final class AbilityHudLayer implements LayeredDraw.Layer {
     /** A vertical bar that fills from the bottom, with a tick at the first slot's cost. */
     private static void renderEssence(GuiGraphics graphics, AbilityStatusPayload status, int x, int y,
                                       long now, float partialTick) {
-        SpellStyle.panel(graphics, x, y, x + BAR_WIDTH, y + SIZE, SpellStyle.BORDER);
+        int border = SpellStyle.BORDER;
+        if (status.strikePrimed()) {
+            // Channeled essence waiting in the next blow.
+            border = SpellStyle.withAlpha(STRIKE, 0.75F + 0.25F * Mth.sin((now + partialTick) * 0.4F));
+        }
+        SpellStyle.panel(graphics, x, y, x + BAR_WIDTH, y + SIZE, border);
+        if (status.strikePrimed()) {
+            graphics.renderOutline(x - 1, y - 1, BAR_WIDTH + 2, SIZE + 2, SpellStyle.withAlpha(border, 0.6F));
+        }
         int inner = SIZE - 2;
         int filled = Math.round(inner * ClientAbilityState.essenceFraction(now, partialTick));
         if (filled > 0) {

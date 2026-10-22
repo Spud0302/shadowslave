@@ -28,6 +28,8 @@ class PlayerKeybindControlsIntegrationTest {
         assertTrue(mappings.contains("USE_ABILITY"));
         assertTrue(mappings.contains("USE_SECOND_ABILITY"));
         assertTrue(mappings.contains("GLFW.GLFW_KEY_V"));
+        assertTrue(mappings.contains("CHANNEL_ESSENCE"));
+        assertTrue(mappings.contains("GLFW.GLFW_KEY_Z"));
         assertTrue(mappings.contains("TOGGLE_MEMORY"));
         assertTrue(mappings.contains("TOGGLE_ECHO"));
         assertTrue(mappings.contains("TOGGLE_ECHO_MODE"));
@@ -56,7 +58,7 @@ class PlayerKeybindControlsIntegrationTest {
         String dedicatedRegistration = Files.readString(PAYLOADS);
         String clientRegistration = Files.readString(CLIENT_PAYLOADS);
 
-        assertTrue(dedicatedRegistration.contains("NETWORK_VERSION = \"10\""));
+        assertTrue(dedicatedRegistration.contains("NETWORK_VERSION = \"11\""));
         for (String handler : new String[] {
                 "ServerPayloadHandler::handleOpenSoulScreen",
                 "ServerPayloadHandler::handleUseAbility",

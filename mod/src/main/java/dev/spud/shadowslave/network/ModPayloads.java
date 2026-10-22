@@ -4,6 +4,7 @@ import dev.spud.shadowslave.network.payload.AbilityCastPayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
+import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.SoulSeaPayload;
@@ -17,7 +18,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
-    public static final String NETWORK_VERSION = "10";
+    public static final String NETWORK_VERSION = "11";
 
     private ModPayloads() {
     }
@@ -67,6 +68,11 @@ public final class ModPayloads {
                 AwakenRequestPayload.TYPE,
                 AwakenRequestPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleAwaken
+        );
+        registrar.playToServer(
+                ChannelRequestPayload.TYPE,
+                ChannelRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleChannel
         );
         registrar.playToServer(
                 OpenSoulScreenRequestPayload.TYPE,

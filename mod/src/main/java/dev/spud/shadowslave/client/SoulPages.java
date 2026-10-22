@@ -155,9 +155,20 @@ public final class SoulPages {
             entries.add(Entry.of(Style.BODY, "Your Aspect has no ability to call on yet.", SpellStyle.MUTED));
             entries.add(Entry.spacer());
         }
+        if (canChannel(snapshot)) {
+            entries.add(Entry.of(Style.HEADING, "Channeling", SpellStyle.ABILITY));
+            entries.add(Entry.of(Style.BODY, "Channel Essence (Z by default) bursts you forward and up for 20 essence. "
+                    + "Sneak as you channel to load your next blow instead, for 25.", SpellStyle.MUTED));
+            return entries;
+        }
         entries.add(Entry.of(Style.HEADING, "Sealed", SpellStyle.HINT));
         entries.add(Entry.of(Style.BODY, "Another ability awakens each time your Aspect reaches a new Rank.", SpellStyle.HINT));
         return entries;
+    }
+
+    /** Channeling opens at Awakened, the first rank past Dormant. */
+    static boolean canChannel(SoulSnapshot snapshot) {
+        return !snapshot.soulRank().isEmpty() && !snapshot.soulRank().equals("dormant");
     }
 
     private static int slotOf(AbilityStatusPayload status, String id) {

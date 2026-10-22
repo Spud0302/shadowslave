@@ -6,6 +6,7 @@ import dev.spud.shadowslave.network.payload.AbilityCastPayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
+import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.SoulSeaPayload;
@@ -58,6 +59,11 @@ public final class ClientModPayloads {
                 AwakenRequestPayload.TYPE,
                 AwakenRequestPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleAwaken
+        );
+        registrar.playToServer(
+                ChannelRequestPayload.TYPE,
+                ChannelRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleChannel
         );
         registrar.playToServer(
                 OpenSoulScreenRequestPayload.TYPE,

@@ -14,16 +14,18 @@ import java.util.Objects;
  * Server-to-client state of the player's Aspect abilities for the HUD: one
  * slot per ability key, in key order, and the essence pool they share. The
  * client predicts the pool refilling between updates from {@code regenPerTick}.
- * No slots means the player has no ability yet.
+ * No slots means the player has no ability yet. {@code strikePrimed} is set
+ * while channeled essence waits in the player's next melee blow.
  */
 public record AbilityStatusPayload(
         List<Slot> slots,
         float essence,
         int capacity,
-        float regenPerTick
+        float regenPerTick,
+        boolean strikePrimed
 ) implements CustomPacketPayload {
     public static final int MAX_SLOTS = 8;
-    public static final AbilityStatusPayload NONE = new AbilityStatusPayload(List.of(), 0.0F, 0, 0.0F);
+    public static final AbilityStatusPayload NONE = new AbilityStatusPayload(List.of(), 0.0F, 0, 0.0F, false);
     public static final Type<AbilityStatusPayload> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "ability_status")
     );
@@ -50,6 +52,7 @@ public record AbilityStatusPayload(
             ByteBufCodecs.FLOAT, AbilityStatusPayload::essence,
             ByteBufCodecs.VAR_INT, AbilityStatusPayload::capacity,
             ByteBufCodecs.FLOAT, AbilityStatusPayload::regenPerTick,
+            ByteBufCodecs.BOOL, AbilityStatusPayload::strikePrimed,
             AbilityStatusPayload::new
     );
 
@@ -61,6 +64,11 @@ public record AbilityStatusPayload(
         capacity = Math.max(0, capacity);
         essence = Float.isFinite(essence) ? Math.max(0.0F, Math.min(capacity, essence)) : 0.0F;
         regenPerTick = Float.isFinite(regenPerTick) ? Math.max(0.0F, regenPerTick) : 0.0F;
+    }
+
+    /** A status with no channeled strike waiting. */
+    public AbilityStatusPayload(List<Slot> slots, float essence, int capacity, float regenPerTick) {
+        this(slots, essence, capacity, regenPerTick, false);
     }
 
     public boolean hasAbility() {

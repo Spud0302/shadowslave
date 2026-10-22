@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoRequestPayload;
@@ -30,6 +31,9 @@ public final class ClientGameEvents {
         consume(ClientKeyMappings.OPEN_SOUL, OpenSoulScreenRequestPayload.INSTANCE, minecraft);
         consume(ClientKeyMappings.USE_ABILITY, new UseAbilityRequestPayload(0), minecraft);
         consume(ClientKeyMappings.USE_SECOND_ABILITY, new UseAbilityRequestPayload(1), minecraft);
+        // Sneak while channeling to gather the essence into the next blow instead of leaping.
+        consume(ClientKeyMappings.CHANNEL_ESSENCE,
+                new ChannelRequestPayload(minecraft.player != null && minecraft.player.isShiftKeyDown()), minecraft);
         consume(ClientKeyMappings.TOGGLE_MEMORY, ToggleAshCompassRequestPayload.INSTANCE, minecraft);
         consume(ClientKeyMappings.TOGGLE_ECHO, ToggleAshBurrowerEchoRequestPayload.INSTANCE, minecraft);
         consume(ClientKeyMappings.TOGGLE_ECHO_MODE, ToggleAshBurrowerEchoModeRequestPayload.INSTANCE, minecraft);

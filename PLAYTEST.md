@@ -108,6 +108,12 @@ ability on the V key, doubles the essence pool (200) and starts a larger core
 must still be saturated; `/shadowslave core fill` helps) or test any ability with
 `/shadowslave ability grant <name>`.
 
+**Channeling (Awakened).** Press Z (Channel Essence) to burst forward and up
+for 20 essence; a channeled leap forgives about its own height of fall. Sneak
+while pressing Z to load your next melee blow instead (25 essence): it hits
+1.75 times as hard and throws the target back. The essence bar glows amber while
+a blow is loaded, and the charge fades after 6 seconds.
+
 | Nature | Ability | What it does |
 | --- | --- | --- |
 | Ember | Carry the Flame (40) | Regeneration II and fire resistance to the player or tamed pet you look at, or yourself |
