@@ -11,9 +11,19 @@ public interface AspectAbility {
 
     int cooldownTicks();
 
-    /**
-     * Performs the ability. Returns false when it could not be used right now
-     * (for example nothing to target); the cooldown only starts on true.
-     */
-    boolean activate(ServerPlayer player);
+    /** Performs the ability for one key press. */
+    Activation activate(ServerPlayer player);
+
+    /** Called every server tick for players who hold this ability, for abilities with lingering state. */
+    default void tick(ServerPlayer player) {
+    }
+
+    enum Activation {
+        /** The ability fired; its cooldown starts. */
+        USED,
+        /** The press set something up (a mark, a stance) without starting the cooldown yet. */
+        PRIMED,
+        /** Nothing happened, for example no room to move. */
+        FAILED
+    }
 }

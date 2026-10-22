@@ -9,6 +9,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -24,6 +25,7 @@ public final class AbilityService {
         NO_ASPECT,
         NO_ABILITY,
         RECOVERING,
+        PRIMED,
         FAILED
     }
 
@@ -49,13 +51,32 @@ public final class AbilityService {
             feedback(player, ability.displayName() + " recovering: " + secondsCeil(remaining) + "s", ChatFormatting.GRAY);
             return Outcome.RECOVERING;
         }
-        if (!ability.activate(player)) {
-            feedback(player, ability.displayName() + " found nothing to touch.", ChatFormatting.GRAY);
-            return Outcome.FAILED;
-        }
+        return switch (ability.activate(player)) {
+            case USED -> {
+                startCooldown(player, ability);
+                yield Outcome.USED;
+            }
+            case PRIMED -> Outcome.PRIMED;
+            case FAILED -> Outcome.FAILED;
+        };
+    }
+
+    /** Starts an ability's cooldown and confirms it on the action bar; abilities that finish on their own call this. */
+    public static void startCooldown(ServerPlayer player, AspectAbility ability) {
+        long now = player.serverLevel().getGameTime();
+        AbilityCooldownData cooldowns = player.getData(ModAttachments.ABILITY_COOLDOWNS);
         player.setData(ModAttachments.ABILITY_COOLDOWNS, cooldowns.start(ability.id(), now, ability.cooldownTicks()));
         feedback(player, ability.displayName(), ChatFormatting.LIGHT_PURPLE);
-        return Outcome.USED;
+    }
+
+    /** Lets the player's ability keep any lingering state going (marks, stances). */
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        activeAbilityId(SoulIdentityService.get(player), AbilityRegistry::isActivatable)
+                .flatMap(AbilityRegistry::get)
+                .ifPresent(ability -> ability.tick(player));
     }
 
     /**
@@ -94,7 +115,7 @@ public final class AbilityService {
         return candidateRank > currentRank;
     }
 
-    private static void feedback(ServerPlayer player, String text, ChatFormatting colour) {
+    public static void feedback(ServerPlayer player, String text, ChatFormatting colour) {
         player.displayClientMessage(Component.literal(text).withStyle(colour), true);
     }
 }

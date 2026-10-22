@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-10-22T02:49:55Z",
-  "source_commit": "6440d2a3708edb54668280c814abef5c6a841b80",
+  "generated_at": "2026-10-22T05:59:18Z",
+  "source_commit": "fa774e247e55b21b1488f6075ee66462170beaf9",
   "source_tree_dirty": true,
-  "note_count": 98,
+  "note_count": 101,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -1085,6 +1085,69 @@
       "related": [],
       "task_id": "20261022T024952Z-claude-code-ability-framework",
       "base_commit": "6440d2a3708edb54668280c814abef5c6a841b80"
+    },
+    "20261022T055916Z-claude-code-remaining-kits": {
+      "uid": "20261022T055916Z-claude-code-remaining-kits",
+      "path": "brain/ai/claims/20261022T055916Z--claude-code--remaining-kits.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Claim \u2014 Mist, Stone and Tide kits",
+      "summary": "Jack (2026-10-22) agreed the abilities rework plan. This claim is build-order step 3: Mist Passage, Holdfast, Returning Tide, the four innate rules and the four Flaws.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T055916Z-claude-code-remaining-kits",
+      "lease_until": "2026-10-22T13:59:16Z",
+      "base_commit": "fa774e247e55b21b1488f6075ee66462170beaf9"
+    },
+    "20261022T055917Z-claude-code-remaining-kits": {
+      "uid": "20261022T055917Z-claude-code-remaining-kits",
+      "path": "brain/evidence/20261022T055917Z--claude-code--remaining-kits.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Evidence \u2014 Mist, Stone and Tide kits",
+      "summary": "Each of the four kits plays as described in the plan's kit table: innate rule, ability on R, and Flaw.",
+      "tags": [
+        "evidence"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T055916Z-claude-code-remaining-kits",
+      "captured_commit": "fa774e247e55b21b1488f6075ee66462170beaf9"
+    },
+    "20261022T055918Z-claude-code-remaining-kits": {
+      "uid": "20261022T055918Z-claude-code-remaining-kits",
+      "path": "brain/ai/handoffs/20261022T055918Z--claude-code--remaining-kits.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Handoff \u2014 Mist, Stone and Tide kits",
+      "summary": "Jack (2026-10-22) agreed the abilities rework plan. This claim is build-order step 3: Mist Passage, Holdfast, Returning Tide, the four innate rules and the four Flaws.",
+      "tags": [
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T055916Z-claude-code-remaining-kits",
+      "base_commit": "fa774e247e55b21b1488f6075ee66462170beaf9"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",

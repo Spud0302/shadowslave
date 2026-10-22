@@ -12,6 +12,9 @@ public final class AbilityRegistry {
 
     static {
         register(new KindleAbility());
+        register(new MistPassageAbility());
+        register(new HoldfastAbility());
+        register(new ReturningTideAbility());
     }
 
     private AbilityRegistry() {

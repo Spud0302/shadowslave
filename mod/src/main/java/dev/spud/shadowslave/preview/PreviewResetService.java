@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.preview;
 
 import dev.spud.shadowslave.ability.AbilityCooldownData;
+import dev.spud.shadowslave.ability.FlawStateData;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.echo.EchoOwnershipData;
@@ -73,6 +74,7 @@ public final class PreviewResetService {
         @Override public void clearPreviewPower() {
             player.setData(ModAttachments.PREVIEW_POWER, PreviewPowerData.empty());
             player.setData(ModAttachments.ABILITY_COOLDOWNS, AbilityCooldownData.empty());
+            player.setData(ModAttachments.FLAW_STATE, FlawStateData.empty());
         }
         @Override public void sync(SoulData resetSoul) { SoulSyncService.sync(player, resetSoul, false); }
     }

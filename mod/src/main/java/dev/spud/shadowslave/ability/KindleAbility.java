@@ -36,7 +36,7 @@ public final class KindleAbility implements AspectAbility {
     }
 
     @Override
-    public boolean activate(ServerPlayer player) {
+    public Activation activate(ServerPlayer player) {
         player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, DURATION_TICKS, 0, false, true));
         player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, DURATION_TICKS, 0, false, true));
 
@@ -52,6 +52,6 @@ public final class KindleAbility implements AspectAbility {
         level.sendParticles(ParticleTypes.FLAME, player.getX(), player.getY() + 1.0, player.getZ(),
                 40, 0.6, 0.6, 0.6, 0.08);
         level.playSound(null, player.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.8F, 1.3F);
-        return true;
+        return Activation.USED;
     }
 }
