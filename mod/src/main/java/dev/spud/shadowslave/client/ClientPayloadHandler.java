@@ -53,6 +53,7 @@ public final class ClientPayloadHandler {
         if (minecraft.level != null && abilityId != null
                 && minecraft.level.getEntity(payload.entityId()) instanceof AbstractClientPlayer player) {
             AbilityCastAnimations.play(player, abilityId);
+            AbilityCastEffects.play(player, abilityId);
         }
     }
 }

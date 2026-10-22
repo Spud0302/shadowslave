@@ -86,6 +86,24 @@ Boundary:
 
 **First spike condition:** after the Ash Burrower receives a custom visual identity, implement one authored descriptor that vanilla goals handle poorly (prefer vibration/ambush or bounded burrowing) on an isolated branch and compare complexity/testability against vanilla AI.
 
+### APPROVED — Lodestone (ability effects)
+
+**Decision:** approved by Jack on 2026-10-22 for the abilities rework.
+
+**Official project:** https://modrinth.com/project/bN3xUWdo (Lodestar team, LGPL-3.0)
+
+Pinned at 1.8.2 (Maven `team.lodestar.lodestone:lodestone:1.21.1-1.8.2.525` from https://maven.blamejared.com). Its optional Curios integration is excluded from the build.
+
+- Lodestone owns particle rendering and screen shake only;
+- it holds no Soul, Aspect, ability or progression state;
+- first use is `client/AbilityCastEffects`: a ring and flare in the Nature's colours on every ability cast, plus a short screen shake for Stone.
+
+Its metadata declares Minecraft `[1.21,1.21.1)`, yet NeoForge 21.1 loads it on 1.21.1 and all game tests pass with it present.
+
+### REMOVED — Combat Core (in-repo)
+
+Removed on 2026-10-22 when advanced combat was dropped from the rework. Git history keeps the module for a later Advanced Combat update, which should plug in through `ability/combat/AbilityCombat`.
+
 ### DEFER — TerraBlender
 
 **Use considered:** biome/terrain composition.  

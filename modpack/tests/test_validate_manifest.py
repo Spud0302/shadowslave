@@ -60,10 +60,11 @@ class ManifestValidationTest(unittest.TestCase):
     def test_repository_manifest_is_valid(self) -> None:
         validate_manifest(self.manifest)
 
-    def test_repository_manifest_ships_combat_core(self) -> None:
-        """The P0 this schema extension exists to close."""
+    def test_repository_manifest_ships_lodestone_and_not_combat_core(self) -> None:
+        """Combat Core was dropped with advanced combat; Lodestone draws ability effects."""
         mod_ids = {c["mod_id"] for c in self.manifest["components"]}
-        self.assertIn("combat_core", mod_ids)
+        self.assertIn("lodestone", mod_ids)
+        self.assertNotIn("combat_core", mod_ids)
 
     def test_local_build_component_is_accepted(self) -> None:
         validate_manifest(self.with_local())

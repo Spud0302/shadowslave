@@ -48,3 +48,10 @@ type="required"
 versionRange="[1.1.6,)"
 ordering="NONE"
 side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="lodestone"
+type="required"
+versionRange="[${lodestone_mod_version},)"
+ordering="NONE"
+side="BOTH"
