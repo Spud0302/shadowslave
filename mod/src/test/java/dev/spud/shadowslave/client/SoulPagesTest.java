@@ -44,6 +44,7 @@ class SoulPagesTest {
         assertTrue(texts.contains("Kindle"));
         assertTrue(texts.contains("Key R  ·  Cooldown 30s  ·  Recovering 11s"), texts.toString());
         assertTrue(texts.contains("Sealed"));
+        assertEquals(KINDLE, SoulPages.abilities(ember(), recovering, 205, "R").get(0).icon());
 
         AbilityStatusPayload primed = new AbilityStatusPayload(KINDLE, "Kindle", 0, 600, true);
         assertTrue(texts(SoulPages.abilities(ember(), primed, 0, "R")).contains("Key R  ·  Cooldown 30s  ·  Primed"));
@@ -53,6 +54,7 @@ class SoulPagesTest {
     void flawTabDescribesTheFlaw() {
         List<String> texts = texts(SoulPages.flaw(ember()));
         assertEquals("Cold Ash", texts.get(0));
+        assertEquals(AspectKitCatalog.EMBER.flawEffectId().toString(), SoulPages.flaw(ember()).get(0).icon());
         assertTrue(texts.contains(AspectKitCatalog.EMBER.flawDescription()));
     }
 

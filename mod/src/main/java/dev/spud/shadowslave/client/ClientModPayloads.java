@@ -2,6 +2,7 @@ package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.network.ModPayloads;
 import dev.spud.shadowslave.network.ServerPayloadHandler;
+import dev.spud.shadowslave.network.payload.AbilityCastPayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
@@ -24,6 +25,11 @@ public final class ClientModPayloads {
                 SoulSnapshotPayload.TYPE,
                 SoulSnapshotPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleSoulSnapshot
+        );
+        registrar.playToClient(
+                AbilityCastPayload.TYPE,
+                AbilityCastPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleAbilityCast
         );
         registrar.playToClient(
                 AbilityStatusPayload.TYPE,

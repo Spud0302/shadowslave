@@ -53,7 +53,7 @@ public final class AbilityHudLayer implements LayeredDraw.Layer {
         float partialTick = delta.getGameTimeDeltaPartialTick(false);
 
         SpellStyle.panel(graphics, x, y, x + SIZE, y + SIZE, border(status, now, partialTick));
-        graphics.renderItem(AbilityIcons.forAbility(status.abilityId()), x + 3, y + 3);
+        AbilityIcons.draw(graphics, status.abilityId(), x + 3, y + 3);
 
         Font font = minecraft.font;
         graphics.pose().pushPose();

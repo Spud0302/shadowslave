@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-10-22T06:35:38Z",
-  "source_commit": "cf8bd6b5d946ce0e85cf7241d3ab92e2692cd485",
+  "generated_at": "2026-10-22T06:46:46Z",
+  "source_commit": "7548028ed9fb5c5c7989964cfeaedd2e0986b68e",
   "source_tree_dirty": true,
-  "note_count": 107,
+  "note_count": 110,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -1274,6 +1274,69 @@
       "related": [],
       "task_id": "20261022T063536Z-claude-code-hud-soul-screen",
       "base_commit": "cf8bd6b5d946ce0e85cf7241d3ab92e2692cd485"
+    },
+    "20261022T064644Z-claude-code-ability-polish": {
+      "uid": "20261022T064644Z-claude-code-ability-polish",
+      "path": "brain/ai/claims/20261022T064644Z--claude-code--ability-polish.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Claim \u2014 Ability icons, casting poses and effects",
+      "summary": "Jack (2026-10-22) agreed the abilities rework plan. This claim is build-order step 6, the last one: visual polish with particles, sounds, casting poses with PAL, and 8 icons.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T064644Z-claude-code-ability-polish",
+      "lease_until": "2026-10-22T14:46:44Z",
+      "base_commit": "7548028ed9fb5c5c7989964cfeaedd2e0986b68e"
+    },
+    "20261022T064645Z-claude-code-ability-polish": {
+      "uid": "20261022T064645Z-claude-code-ability-polish",
+      "path": "brain/evidence/20261022T064645Z--claude-code--ability-polish.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Evidence \u2014 Ability icons, casting poses and effects",
+      "summary": "Each kit ability shows its icon, plays its casting pose for the caster and onlookers, and has visible effects; the Flaw tab shows the Flaw icon.",
+      "tags": [
+        "evidence"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T064644Z-claude-code-ability-polish",
+      "captured_commit": "7548028ed9fb5c5c7989964cfeaedd2e0986b68e"
+    },
+    "20261022T064646Z-claude-code-ability-polish": {
+      "uid": "20261022T064646Z-claude-code-ability-polish",
+      "path": "brain/ai/handoffs/20261022T064646Z--claude-code--ability-polish.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Handoff \u2014 Ability icons, casting poses and effects",
+      "summary": "Jack (2026-10-22) agreed the abilities rework plan. This claim is build-order step 6, the last one: visual polish with particles, sounds, casting poses with PAL, and 8 icons.",
+      "tags": [
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T064644Z-claude-code-ability-polish",
+      "base_commit": "7548028ed9fb5c5c7989964cfeaedd2e0986b68e"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",

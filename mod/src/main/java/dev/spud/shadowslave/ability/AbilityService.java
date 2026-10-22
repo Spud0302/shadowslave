@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.ability;
 
 import dev.spud.shadowslave.attachment.ModAttachments;
+import dev.spud.shadowslave.network.payload.AbilityCastPayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.soul.identity.AspectAbilityData;
 import dev.spud.shadowslave.soul.identity.AspectAbilityKind;
@@ -19,6 +20,9 @@ import java.util.function.Predicate;
 
 /** Server-authoritative handling of the ability key: pick the ability, check the cooldown, run it. */
 public final class AbilityService {
+    /** Blocks within which other players see a casting pose. */
+    static final double CAST_VIEW_DISTANCE = 64.0;
+
     private AbilityService() {
     }
 
@@ -61,6 +65,9 @@ public final class AbilityService {
             case PRIMED -> Outcome.PRIMED;
             case FAILED -> Outcome.FAILED;
         };
+        if (outcome != Outcome.FAILED) {
+            broadcastCast(player, ability);
+        }
         syncStatus(player);
         return outcome;
     }
@@ -72,6 +79,17 @@ public final class AbilityService {
         player.setData(ModAttachments.ABILITY_COOLDOWNS, cooldowns.start(ability.id(), now, ability.cooldownTicks()));
         feedback(player, ability.displayName(), ChatFormatting.LIGHT_PURPLE);
         syncStatus(player);
+    }
+
+    /** Everyone nearby, the caster included, plays the casting pose. */
+    private static void broadcastCast(ServerPlayer caster, AspectAbility ability) {
+        AbilityCastPayload payload = new AbilityCastPayload(caster.getId(), ability.id().toString());
+        for (ServerPlayer viewer : caster.serverLevel().players()) {
+            if (viewer.distanceToSqr(caster) <= CAST_VIEW_DISTANCE * CAST_VIEW_DISTANCE
+                    && viewer.connection != null && viewer.connection.hasChannel(AbilityCastPayload.TYPE)) {
+                PacketDistributor.sendToPlayer(viewer, payload);
+            }
+        }
     }
 
     /** What the HUD slot should show right now for this player. */

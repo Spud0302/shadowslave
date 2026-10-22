@@ -52,6 +52,7 @@ public final class MistPassageAbility implements AspectAbility {
         }
 
         leaveMist(level, player, origin);
+        trail(level, origin, destination);
         player.teleportTo(destination.x, destination.y, destination.z);
         player.resetFallDistance();
         player.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, INVISIBLE_TICKS, 0, false, false, true));
@@ -86,6 +87,14 @@ public final class MistPassageAbility implements AspectAbility {
             }
         }
         return null;
+    }
+
+    private static void trail(ServerLevel level, Vec3 from, Vec3 to) {
+        int steps = Math.max(2, (int) Math.ceil(from.distanceTo(to) * 2.0));
+        for (int i = 0; i <= steps; i++) {
+            Vec3 at = from.lerp(to, (double) i / steps);
+            level.sendParticles(ParticleTypes.WHITE_ASH, at.x, at.y + 1.0, at.z, 3, 0.15, 0.4, 0.15, 0.0);
+        }
     }
 
     private static void leaveMist(ServerLevel level, ServerPlayer player, Vec3 at) {

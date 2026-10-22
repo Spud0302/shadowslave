@@ -36,18 +36,25 @@ public final class SoulPages {
         NAME, SUBTITLE, HEADING, BODY, VOICE, ROW, SPACER
     }
 
-    /** One laid-out line: {@code value} is only used by ROW entries. */
-    public record Entry(Style style, String text, String value, int colour) {
+    /**
+     * One laid-out line. {@code value} is only used by ROW entries; {@code icon}
+     * is an ability or Flaw effect id whose icon sits beside the text, or empty.
+     */
+    public record Entry(Style style, String text, String value, int colour, String icon) {
         static Entry of(Style style, String text, int colour) {
-            return new Entry(style, text, "", colour);
+            return new Entry(style, text, "", colour, "");
+        }
+
+        static Entry withIcon(Style style, String text, int colour, String icon) {
+            return new Entry(style, text, "", colour, icon);
         }
 
         static Entry row(String label, String value, int colour) {
-            return new Entry(Style.ROW, label, value, colour);
+            return new Entry(Style.ROW, label, value, colour, "");
         }
 
         static Entry spacer() {
-            return new Entry(Style.SPACER, "", "", 0);
+            return new Entry(Style.SPACER, "", "", 0, "");
         }
     }
 
@@ -119,7 +126,7 @@ public final class SoulPages {
             String description = kit.filter(value -> value.abilityId().toString().equals(id))
                     .map(AspectKit::abilityDescription)
                     .orElse("");
-            entries.add(Entry.of(Style.HEADING, ability.get().displayName(), SpellStyle.ABILITY));
+            entries.add(Entry.withIcon(Style.HEADING, ability.get().displayName(), SpellStyle.ABILITY, id));
             if (!description.isEmpty()) {
                 entries.add(Entry.of(Style.BODY, description, SpellStyle.MUTED));
             }
@@ -152,7 +159,7 @@ public final class SoulPages {
             return unnamed();
         }
         List<Entry> entries = new ArrayList<>();
-        entries.add(Entry.of(Style.NAME, snapshot.displayedFlaw(), SpellStyle.FLAW));
+        entries.add(Entry.withIcon(Style.NAME, snapshot.displayedFlaw(), SpellStyle.FLAW, snapshot.flawEffectId()));
         entries.add(Entry.spacer());
         kitFor(snapshot).ifPresentOrElse(
                 kit -> entries.add(Entry.of(Style.BODY, kit.flawDescription(), SpellStyle.TEXT)),
