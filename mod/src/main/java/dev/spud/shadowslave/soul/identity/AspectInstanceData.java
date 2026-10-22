@@ -71,6 +71,10 @@ public record AspectInstanceData(
         return new AspectInstanceData(instanceId, formalName, aspectRank, natureId, next, provenance);
     }
 
+    public AspectInstanceData withAspectRank(SoulRank next) {
+        return new AspectInstanceData(instanceId, formalName, next, natureId, abilitySet, provenance);
+    }
+
     public String displayedName() {
         return formalName.orElse("");
     }

@@ -4,6 +4,7 @@ import dev.spud.shadowslave.network.payload.AbilityCastPayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
+import dev.spud.shadowslave.network.payload.SoulSeaPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -30,6 +31,16 @@ public final class ClientPayloadHandler {
         Minecraft minecraft = Minecraft.getInstance();
         long now = minecraft.level == null ? 0 : minecraft.level.getGameTime();
         ClientAbilityState.update(payload, now);
+    }
+
+    public static void handleSoulSea(SoulSeaPayload payload, IPayloadContext context) {
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientCoreState.update(payload.core());
+        if (minecraft.screen instanceof SoulSeaScreen open) {
+            open.update(payload);
+        } else if (payload.open()) {
+            minecraft.setScreen(new SoulSeaScreen(payload));
+        }
     }
 
     public static void handleCoreStatus(CoreStatusPayload payload, IPayloadContext context) {

@@ -130,7 +130,7 @@ public final class AbilityGameTest {
         helper.succeed();
     }
 
-    static ServerPlayer playerWith(GameTestHelper helper, AspectKit kit) {
+    public static ServerPlayer playerWith(GameTestHelper helper, AspectKit kit) {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         player.setGameMode(GameType.SURVIVAL);
         player.moveTo(helper.absoluteVec(new Vec3(2.5, 1, 2.5)));

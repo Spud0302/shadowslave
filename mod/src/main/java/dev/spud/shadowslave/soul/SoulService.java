@@ -52,6 +52,10 @@ public final class SoulService {
         );
     }
 
+    public static SoulData awaken(ServerPlayer player) {
+        return replace(player, SoulTransitions.awaken(get(player)));
+    }
+
     public static SoulData reset(ServerPlayer player) {
         return replace(player, SoulTransitions.reset());
     }

@@ -14,8 +14,8 @@ import java.util.Optional;
  * pool grows with Soul Rank.
  */
 public final class EssenceService {
-    static final int DORMANT_CAPACITY = 100;
-    static final int AWAKENED_CAPACITY = 200;
+    public static final int DORMANT_CAPACITY = 100;
+    public static final int AWAKENED_CAPACITY = 200;
     /** An empty pool refills in this many ticks. */
     static final int FULL_REFILL_TICKS = 20 * 60;
     /** How often a quiet pool is resent to the client to correct drift in its prediction. */

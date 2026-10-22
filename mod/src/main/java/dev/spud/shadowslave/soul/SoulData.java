@@ -192,6 +192,24 @@ public record SoulData(
         );
     }
 
+    /**
+     * Awakening (DESIGN): the soul and its Aspect both rise to Awakened; the
+     * Aspect and Flaw stay the same.
+     */
+    public SoulData asAwakened() {
+        return new SoulData(
+                CURRENT_SCHEMA,
+                SpellState.AWAKENED,
+                awakeningPath,
+                Optional.of(SoulRank.AWAKENED),
+                aspectId,
+                Optional.of(SoulRank.AWAKENED),
+                flawId,
+                importedFromDatapack,
+                migrationVersion
+        );
+    }
+
     /** Replaces the Aspect and Flaw while keeping the reached stage; used by admin rerolls. */
     public SoulData withIdentity(ResourceLocation aspect, SoulRank revealedAspectRank, ResourceLocation flaw) {
         return new SoulData(

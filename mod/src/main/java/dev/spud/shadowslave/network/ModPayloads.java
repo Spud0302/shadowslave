@@ -3,8 +3,10 @@ package dev.spud.shadowslave.network;
 import dev.spud.shadowslave.network.payload.AbilityCastPayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
+import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
+import dev.spud.shadowslave.network.payload.SoulSeaPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoRequestPayload;
@@ -15,7 +17,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
-    public static final String NETWORK_VERSION = "9";
+    public static final String NETWORK_VERSION = "10";
 
     private ModPayloads() {
     }
@@ -54,6 +56,17 @@ public final class ModPayloads {
                 AspectRevealPayload.STREAM_CODEC,
                 (payload, context) -> {
                 }
+        );
+        registrar.playToClient(
+                SoulSeaPayload.TYPE,
+                SoulSeaPayload.STREAM_CODEC,
+                (payload, context) -> {
+                }
+        );
+        registrar.playToServer(
+                AwakenRequestPayload.TYPE,
+                AwakenRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleAwaken
         );
         registrar.playToServer(
                 OpenSoulScreenRequestPayload.TYPE,

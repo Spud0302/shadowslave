@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SoulRitualTransitionTest {
     private static final ResourceLocation ASPECT = ResourceLocation.fromNamespaceAndPath("shadowslave", "generated/aspect/a");
@@ -34,5 +35,24 @@ class SoulRitualTransitionTest {
         SoulData rerolled = SoulTransitions.awakenThroughRitual(dreamer, OTHER_ASPECT, SoulRank.DORMANT, FLAW);
         assertEquals(SpellState.DREAMER, rerolled.spellState());
         assertEquals(Optional.of(OTHER_ASPECT), rerolled.aspectId());
+    }
+
+    @Test
+    void awakeningRaisesTheSoulAndAspectButKeepsTheIdentity() {
+        SoulData dreamer = SoulTransitions.awakenThroughRitual(SoulData.uninfected(), ASPECT, SoulRank.DORMANT, FLAW);
+        SoulData awakened = SoulTransitions.awaken(dreamer);
+        assertEquals(SpellState.AWAKENED, awakened.spellState());
+        assertEquals(Optional.of(SoulRank.AWAKENED), awakened.soulRank());
+        assertEquals(Optional.of(SoulRank.AWAKENED), awakened.aspectRank());
+        assertEquals(Optional.of(ASPECT), awakened.aspectId());
+        assertEquals(Optional.of(FLAW), awakened.flawId());
+    }
+
+    @Test
+    void onlyADreamerCanAwaken() {
+        assertThrows(IllegalStateException.class, () -> SoulTransitions.awaken(SoulData.uninfected()));
+        SoulData dreamer = SoulTransitions.awakenThroughRitual(SoulData.uninfected(), ASPECT, SoulRank.DORMANT, FLAW);
+        SoulData awakened = SoulTransitions.awaken(dreamer);
+        assertThrows(IllegalStateException.class, () -> SoulTransitions.awaken(awakened));
     }
 }
