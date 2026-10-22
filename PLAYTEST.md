@@ -79,6 +79,18 @@ afford it again. Press O for the Soul screen, with tabs for your Aspect,
 Abilities, Flaw and Soul (click a tab or press 1-4). Each ability has a casting
 pose that other players see too.
 
+**Soul shards and your core.** Once your Aspect is named you have a soul core.
+Hostile mobs killed by a player sometimes drop soul shards graded by creature
+rank: most mobs drop Dormant shards (about 1 in 8), armoured mobs, illagers and
+most Nether mobs drop Awakened shards, wither skeletons, evokers and Elder
+Guardians drop Fallen shards, and the Wither, Ender Dragon and Warden always
+drop a Corrupted shard. Right-click a shard to absorb it (sneak to absorb the
+stack). The Soul tab shows the core filling; it adds up to two hearts as it
+fills, and once **saturated** it takes no more. Killing another player tears a
+quarter of their core out as a shard you can absorb; turn that off with
+`/gamerule shadowslavePvpSoulShards false`. Operators can use
+`/shadowslave core fill` or `/shadowslave core set <n>` to test.
+
 | Nature | Innate (always on) | Ability (R) | Flaw |
 | --- | --- | --- | --- |
 | Ember | Fire and lava hurt half as much | Kindle: night vision, speed, nearby hostiles catch fire (35 essence) | Cold Ash: weak in water or rain |

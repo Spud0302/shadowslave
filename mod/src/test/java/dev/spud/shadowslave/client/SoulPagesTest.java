@@ -2,6 +2,7 @@ package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
+import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshot;
 import org.junit.jupiter.api.Test;
 
@@ -54,9 +55,14 @@ class SoulPagesTest {
 
     @Test
     void soulTabShowsTheEssencePool() {
-        List<SoulPages.Entry> rows = SoulPages.soul(ember(), status(false), 64.7F);
+        List<SoulPages.Entry> rows = SoulPages.soul(ember(), status(false), 64.7F, new CoreStatusPayload("dormant", 99, 160));
         assertTrue(rows.stream().anyMatch(row -> row.text().equals("Essence") && row.value().equals("64 / 100")),
                 rows.toString());
+        SoulPages.Entry core = rows.stream().filter(row -> row.style() == SoulPages.Style.METER).findFirst().orElseThrow();
+        assertEquals("Core", core.text());
+        assertEquals("61%", core.value());
+        assertEquals(99.0F / 160.0F, core.fill(), 1.0e-6);
+        assertEquals("Saturated", SoulPages.coreLabel(new CoreStatusPayload("dormant", 160, 160)));
     }
 
     private static AbilityStatusPayload status(boolean primed) {
@@ -77,8 +83,8 @@ class SoulPagesTest {
         SoulSnapshot none = new SoulSnapshot(1, "dormant", "none", "", "", "", "", List.of(), "", "", "", false);
         for (SoulPages.Tab tab : new SoulPages.Tab[] {SoulPages.Tab.ASPECT, SoulPages.Tab.ABILITIES, SoulPages.Tab.FLAW}) {
             assertEquals("Your Aspect has not been named.",
-                    SoulPages.page(tab, none, AbilityStatusPayload.NONE, 0.0F, List.of("R")).get(0).text());
+                    SoulPages.page(tab, none, AbilityStatusPayload.NONE, 0.0F, List.of("R"), CoreStatusPayload.NONE).get(0).text());
         }
-        assertEquals("Status", SoulPages.page(SoulPages.Tab.SOUL, none, AbilityStatusPayload.NONE, 0.0F, List.of("R")).get(0).text());
+        assertEquals("Status", SoulPages.page(SoulPages.Tab.SOUL, none, AbilityStatusPayload.NONE, 0.0F, List.of("R"), CoreStatusPayload.NONE).get(0).text());
     }
 }

@@ -21,6 +21,8 @@ import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import dev.spud.shadowslave.soul.core.CoreService;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
@@ -81,9 +83,38 @@ public final class ShadowSlaveCommands {
                                 .then(Commands.argument("targets", EntityArgument.players())
                                         .executes(context -> rerollAspect(context.getSource(),
                                                 EntityArgument.getPlayers(context, "targets"))))))
+                .then(Commands.literal("core")
+                        .executes(context -> showCore(context.getSource().getPlayerOrException()))
+                        .then(Commands.literal("fill")
+                                .requires(source -> source.hasPermission(2))
+                                .executes(context -> setCore(context.getSource().getPlayerOrException(), Integer.MAX_VALUE)))
+                        .then(Commands.literal("set")
+                                .requires(source -> source.hasPermission(2))
+                                .then(Commands.argument("saturation", IntegerArgumentType.integer(0))
+                                        .executes(context -> setCore(context.getSource().getPlayerOrException(),
+                                                IntegerArgumentType.getInteger(context, "saturation"))))))
                 .then(Commands.literal("reset")
                         .requires(source -> source.hasPermission(2))
                         .executes(context -> previewReset(context.getSource().getPlayerOrException()))));
+    }
+
+    private static int showCore(ServerPlayer player) {
+        if (CoreService.limit(player) <= 0) {
+            player.sendSystemMessage(Component.literal("You have no soul core yet.").withStyle(ChatFormatting.GRAY));
+            return 0;
+        }
+        player.sendSystemMessage(Component.literal("Core: " + CoreService.saturation(player) + " / " + CoreService.limit(player)
+                + (CoreService.saturated(player) ? " (saturated)" : "")).withStyle(ChatFormatting.AQUA));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int setCore(ServerPlayer player, int saturation) {
+        if (CoreService.limit(player) <= 0) {
+            player.sendSystemMessage(Component.literal("You have no soul core yet.").withStyle(ChatFormatting.GRAY));
+            return 0;
+        }
+        CoreService.set(player, saturation);
+        return showCore(player);
     }
 
     private static int rerollAspect(CommandSourceStack source, Collection<ServerPlayer> targets) {

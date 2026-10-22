@@ -58,7 +58,8 @@ public final class SoulScreen extends Screen {
 
         long now = this.minecraft.level == null ? 0 : this.minecraft.level.getGameTime();
         List<SoulPages.Entry> entries = SoulPages.page(tab, snapshot, ClientAbilityState.status(),
-                ClientAbilityState.essence(now, partialTick), ClientKeyMappings.abilityKeyNames());
+                ClientAbilityState.essence(now, partialTick), ClientKeyMappings.abilityKeyNames(),
+                ClientCoreState.status());
         renderEntries(graphics, entries);
 
         graphics.drawCenteredString(this.font, Component.translatable("screen.shadowslave.soul.tabs_hint"),
@@ -127,6 +128,20 @@ public final class SoulScreen extends Screen {
                 case ROW -> {
                     graphics.drawString(this.font, entry.text(), labelX, y, SpellStyle.MUTED, false);
                     graphics.drawString(this.font, entry.value(), valueX, y, entry.colour(), false);
+                    y += 16;
+                }
+                case METER -> {
+                    graphics.drawString(this.font, entry.text(), labelX, y, SpellStyle.MUTED, false);
+                    int barLeft = valueX;
+                    int barRight = right - 24 - this.font.width("Saturated") - 8;
+                    graphics.fill(barLeft, y + 1, barRight, y + 8, SpellStyle.PANEL);
+                    graphics.renderOutline(barLeft, y, barRight - barLeft, 9, SpellStyle.RULE);
+                    int filled = Math.round((barRight - barLeft - 2) * entry.fill());
+                    if (filled > 0) {
+                        graphics.fillGradient(barLeft + 1, y + 1, barLeft + 1 + filled, y + 8, entry.colour(),
+                                SpellStyle.withAlpha(entry.colour(), 0.55F));
+                    }
+                    graphics.drawString(this.font, entry.value(), barRight + 8, y, entry.colour(), false);
                     y += 16;
                 }
                 case SPACER -> y += 6;

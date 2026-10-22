@@ -41,6 +41,7 @@ public final class ClientGameEvents {
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         ClientSoulState.clear();
         ClientAbilityState.clear();
+        ClientCoreState.clear();
     }
 
     private static void consume(KeyMapping mapping, CustomPacketPayload payload, Minecraft minecraft) {

@@ -3,7 +3,7 @@ uid: 20261022T015753Z-claude-code-playtest-launcher
 record_kind: claim
 authority: context
 lore_class: "N/A"
-state: active
+state: closed
 owner: claude-code
 tool: claude-code-cloud
 task_id: 20261022T015753Z-claude-code-playtest-launcher
@@ -57,3 +57,5 @@ No gameplay code, no modpack manifest changes, no Combat Core changes.
 ## Closure
 
 State whether the claim closed, expired, or blocked. Link evidence and the immutable handoff. Claim closure is not proof of success.
+
+2026-10-22: closed as expired by claude-code (thread "Rank-ups and Soul Sea build") because its lease ran out at 09:57Z while still active, which fails vault validation. The launcher work it covered shipped earlier; only the state and this note changed.

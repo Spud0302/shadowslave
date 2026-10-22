@@ -9,6 +9,7 @@ import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.nightmare.NightmareService;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
+import dev.spud.shadowslave.soul.core.CoreService;
 import dev.spud.shadowslave.soul.identity.AspectInstanceData;
 import dev.spud.shadowslave.soul.identity.FlawInstanceData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
@@ -54,6 +55,7 @@ public final class AspectRollService {
             throw exception;
         }
         EssenceService.fill(player);
+        CoreService.refresh(player);
         player.setData(ModAttachments.FLAW_STATE, FlawStateData.empty());
         AbilityService.syncStatus(player);
 

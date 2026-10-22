@@ -14,5 +14,10 @@
   "screen.shadowslave.reveal": "The Spell",
   "screen.shadowslave.reveal.skip": "Click to hear it all at once",
   "screen.shadowslave.reveal.continue": "Click to look upon your Soul",
-  "block.shadowslave.dream_candle": "Dream Candle"
+  "block.shadowslave.dream_candle": "Dream Candle",
+  "item.shadowslave.dormant_soul_shard": "Dormant Soul Shard",
+  "item.shadowslave.awakened_soul_shard": "Awakened Soul Shard",
+  "item.shadowslave.fallen_soul_shard": "Fallen Soul Shard",
+  "item.shadowslave.corrupted_soul_shard": "Corrupted Soul Shard",
+  "gamerule.shadowslavePvpSoulShards": "Players drop soul shards when killed by players"
 }

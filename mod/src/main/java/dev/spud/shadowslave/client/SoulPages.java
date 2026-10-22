@@ -5,6 +5,7 @@ import dev.spud.shadowslave.ability.AspectAbility;
 import dev.spud.shadowslave.awakening.AspectKit;
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
+import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshot;
 import net.minecraft.resources.ResourceLocation;
 
@@ -33,28 +34,33 @@ public final class SoulPages {
     }
 
     public enum Style {
-        NAME, SUBTITLE, HEADING, BODY, VOICE, ROW, SPACER
+        NAME, SUBTITLE, HEADING, BODY, VOICE, ROW, METER, SPACER
     }
 
     /**
-     * One laid-out line. {@code value} is only used by ROW entries; {@code icon}
-     * is an ability or Flaw effect id whose icon sits beside the text, or empty.
+     * One laid-out line. {@code value} is only used by ROW and METER entries;
+     * {@code icon} is an ability or Flaw effect id whose icon sits beside the
+     * text, or empty; {@code fill} is how full a METER's bar is, from 0 to 1.
      */
-    public record Entry(Style style, String text, String value, int colour, String icon) {
+    public record Entry(Style style, String text, String value, int colour, String icon, float fill) {
         static Entry of(Style style, String text, int colour) {
-            return new Entry(style, text, "", colour, "");
+            return new Entry(style, text, "", colour, "", 0.0F);
         }
 
         static Entry withIcon(Style style, String text, int colour, String icon) {
-            return new Entry(style, text, "", colour, icon);
+            return new Entry(style, text, "", colour, icon, 0.0F);
         }
 
         static Entry row(String label, String value, int colour) {
-            return new Entry(Style.ROW, label, value, colour, "");
+            return new Entry(Style.ROW, label, value, colour, "", 0.0F);
+        }
+
+        static Entry meter(String label, String value, int colour, float fill) {
+            return new Entry(Style.METER, label, value, colour, "", Math.max(0.0F, Math.min(1.0F, fill)));
         }
 
         static Entry spacer() {
-            return new Entry(Style.SPACER, "", "", 0, "");
+            return new Entry(Style.SPACER, "", "", 0, "", 0.0F);
         }
     }
 
@@ -74,12 +80,12 @@ public final class SoulPages {
      * @param keyNames the name of each ability key, in slot order
      */
     public static List<Entry> page(Tab tab, SoulSnapshot snapshot, AbilityStatusPayload status, float essence,
-                                   List<String> keyNames) {
+                                   List<String> keyNames, CoreStatusPayload core) {
         return switch (tab) {
             case ASPECT -> aspect(snapshot);
             case ABILITIES -> abilities(snapshot, status, essence, keyNames);
             case FLAW -> flaw(snapshot);
-            case SOUL -> soul(snapshot, status, essence);
+            case SOUL -> soul(snapshot, status, essence, core);
         };
     }
 
@@ -182,19 +188,26 @@ public final class SoulPages {
         return entries;
     }
 
-    static List<Entry> soul(SoulSnapshot snapshot, AbilityStatusPayload status, float essence) {
+    static List<Entry> soul(SoulSnapshot snapshot, AbilityStatusPayload status, float essence, CoreStatusPayload core) {
         List<Entry> entries = new ArrayList<>(List.of(
                 Entry.row("Status", humanize(snapshot.spellState()), SpellStyle.TEXT),
                 Entry.row("Path", humanize(snapshot.awakeningPath()), SpellStyle.TEXT),
                 Entry.row("Soul Rank", humanize(snapshot.soulRank()), SpellStyle.TEXT),
                 Entry.row("Aspect Rank", humanize(snapshot.aspectRank()), SpellStyle.ASPECT)
         ));
+        if (core.hasCore()) {
+            entries.add(Entry.meter("Core", coreLabel(core), SpellStyle.ASPECT, core.fraction()));
+        }
         if (status.capacity() > 0) {
             entries.add(Entry.row("Essence", Math.round(Math.floor(essence)) + " / " + status.capacity(), SpellStyle.ABILITY));
         }
         entries.add(Entry.row("Origin", snapshot.importedFromDatapack() ? "Imported datapack identity" : "Native Java identity",
                 SpellStyle.MUTED));
         return entries;
+    }
+
+    static String coreLabel(CoreStatusPayload core) {
+        return core.saturated() ? "Saturated" : Math.round(Math.floor(100.0 * core.fraction())) + "%";
     }
 
     static String humanize(String value) {
