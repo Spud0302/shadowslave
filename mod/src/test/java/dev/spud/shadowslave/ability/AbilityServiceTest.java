@@ -41,18 +41,18 @@ class AbilityServiceTest {
     }
 
     @Test
-    void abilityKeyPicksTheHighestRankActivatableAbilityAndSkipsInnateRules() {
+    void abilityKeysListTheLowestRankFirstAndSkipInnateRules() {
         ResourceLocation dormant = id("generation/ability/kindle");
         ResourceLocation awakened = id("generation/ability/carry_the_flame");
         SoulIdentityData identity = identityWithAbilities(
+                AspectAbilityData.rankGranted(awakened, SoulRank.AWAKENED, "test"),
                 AspectAbilityData.innate(id("kit/innate/ember_warmth"), "test"),
-                AspectAbilityData.rankGranted(dormant, SoulRank.DORMANT, "test"),
-                AspectAbilityData.rankGranted(awakened, SoulRank.AWAKENED, "test")
+                AspectAbilityData.rankGranted(dormant, SoulRank.DORMANT, "test")
         );
 
-        assertEquals(Optional.of(awakened), AbilityService.activeAbilityId(identity, id -> true));
-        assertEquals(Optional.of(dormant), AbilityService.activeAbilityId(identity, dormant::equals));
-        assertEquals(Optional.empty(), AbilityService.activeAbilityId(identity, id("kit/innate/ember_warmth")::equals));
+        assertEquals(List.of(dormant, awakened), AbilityService.abilityIds(identity, id -> true));
+        assertEquals(List.of(dormant), AbilityService.abilityIds(identity, dormant::equals));
+        assertEquals(List.of(), AbilityService.abilityIds(identity, id("kit/innate/ember_warmth")::equals));
     }
 
     @Test
@@ -60,25 +60,32 @@ class AbilityServiceTest {
         SoulIdentityData identity = identityWithAbilities(
                 AspectAbilityData.legacyUnclassified(KindleAbility.ID, "test")
         );
-        assertEquals(Optional.of(KindleAbility.ID), AbilityService.activeAbilityId(identity, AbilityRegistry::isActivatable));
+        assertEquals(List.of(KindleAbility.ID), AbilityService.abilityIds(identity, AbilityRegistry::isActivatable));
     }
 
     @Test
-    void cooldownsCountDownAndRoundUpToWholeSeconds() {
-        AbilityCooldownData cooldowns = AbilityCooldownData.empty().start(KINDLE, 1000L, 600);
-        assertEquals(600L, cooldowns.remainingTicks(KINDLE, 1000L));
-        assertEquals(1L, cooldowns.remainingTicks(KINDLE, 1599L));
-        assertEquals(0L, cooldowns.remainingTicks(KINDLE, 1600L));
-        assertEquals(0L, cooldowns.remainingTicks(id("other"), 1000L));
-        assertEquals(1L, AbilityService.secondsCeil(1L));
-        assertEquals(30L, AbilityService.secondsCeil(600L));
+    void essencePoolGrowsWithRankAndRefillsInAMinute() {
+        assertEquals(0, EssenceService.capacityFor(Optional.empty()));
+        assertEquals(EssenceService.DORMANT_CAPACITY, EssenceService.capacityFor(Optional.of(SoulRank.DORMANT)));
+        assertEquals(EssenceService.AWAKENED_CAPACITY, EssenceService.capacityFor(Optional.of(SoulRank.AWAKENED)));
+        assertEquals(100.0F, EssenceService.regenPerTickFor(100) * EssenceService.FULL_REFILL_TICKS, 1.0e-3F);
     }
 
     @Test
-    void cooldownsSurviveASaveRoundTrip() {
-        AbilityCooldownData cooldowns = AbilityCooldownData.empty().start(KINDLE, 40L, 600);
-        var encoded = AbilityCooldownData.CODEC.codec().encodeStart(JsonOps.INSTANCE, cooldowns).getOrThrow();
-        assertEquals(cooldowns, AbilityCooldownData.CODEC.codec().parse(JsonOps.INSTANCE, encoded).getOrThrow());
+    void essenceRefillsToTheCapAndNeverGoesNegative() {
+        EssenceData pool = new EssenceData(90.0F).refill(25.0F, 100);
+        assertEquals(100.0F, pool.current());
+        assertTrue(pool.covers(100));
+        assertFalse(pool.covers(101));
+        assertEquals(0.0F, pool.spend(150).current());
+        assertEquals(0.0F, new EssenceData(Float.NaN).current());
+    }
+
+    @Test
+    void essenceSurvivesASaveRoundTrip() {
+        EssenceData pool = new EssenceData(42.5F);
+        var encoded = EssenceData.CODEC.codec().encodeStart(JsonOps.INSTANCE, pool).getOrThrow();
+        assertEquals(pool, EssenceData.CODEC.codec().parse(JsonOps.INSTANCE, encoded).getOrThrow());
     }
 
     private static SoulIdentityData identityWithAbilities(AspectAbilityData... abilities) {

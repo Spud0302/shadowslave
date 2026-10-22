@@ -22,7 +22,7 @@ public final class MistPassageAbility implements AspectAbility {
     static final double MIN_DISTANCE = 1.5;
     static final double STEP_BACK = 0.25;
     static final int INVISIBLE_TICKS = 20 * 3;
-    static final int COOLDOWN_TICKS = 20 * 20;
+    static final int ESSENCE_COST = 25;
     /** Borrowed Breath: every passage costs this much hunger. */
     static final int HUNGER_COST = 2;
 
@@ -37,8 +37,8 @@ public final class MistPassageAbility implements AspectAbility {
     }
 
     @Override
-    public int cooldownTicks() {
-        return COOLDOWN_TICKS;
+    public int essenceCost() {
+        return ESSENCE_COST;
     }
 
     @Override

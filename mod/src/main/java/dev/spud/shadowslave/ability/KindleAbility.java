@@ -16,7 +16,7 @@ import net.minecraft.world.entity.monster.Enemy;
 public final class KindleAbility implements AspectAbility {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("shadowslave", "generation/ability/kindle");
     static final int DURATION_TICKS = 20 * 10;
-    static final int COOLDOWN_TICKS = 20 * 30;
+    static final int ESSENCE_COST = 35;
     static final double IGNITE_RADIUS = 4.0;
     private static final int RING_POINTS = 32;
     static final int IGNITE_SECONDS = 3;
@@ -32,8 +32,8 @@ public final class KindleAbility implements AspectAbility {
     }
 
     @Override
-    public int cooldownTicks() {
-        return COOLDOWN_TICKS;
+    public int essenceCost() {
+        return ESSENCE_COST;
     }
 
     @Override

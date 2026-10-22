@@ -70,16 +70,18 @@ You can only roll once. Operators can reroll with `/shadowslave aspect reroll`
 (optionally followed by player names), and `/shadowslave reset` clears the Soul
 entirely. The roll picks Ember, Mist, Stone or Tide, nudged slightly by how you
 played beforehand (lighting and smelting, sneaking, mining, swimming). Press R to use
-your Aspect's ability. Its slot sits left of the hotbar: the shade drains as the
-cooldown runs, the slot glows while Returning Tide's mark is set, and it flashes
-when the ability is ready again. Press O for the Soul screen, with tabs for your
-Aspect, Abilities, Flaw and Soul (click a tab or press 1-4). Each ability has a
-casting pose that other players see too, and a soft chime tells you when it is
-ready again.
+your Aspect's ability. Abilities have no cooldowns: each one spends **essence**
+from a single pool that refills in about a minute (100 essence at Dormant). The
+slot sits left of the hotbar with the essence bar beside it; the tick on the bar
+marks what the ability costs. The slot shades while the pool is short, glows
+while Returning Tide's mark is set, and flashes (with a soft chime) when you can
+afford it again. Press O for the Soul screen, with tabs for your Aspect,
+Abilities, Flaw and Soul (click a tab or press 1-4). Each ability has a casting
+pose that other players see too.
 
 | Nature | Innate (always on) | Ability (R) | Flaw |
 | --- | --- | --- | --- |
-| Ember | Fire and lava hurt half as much | Kindle: night vision, speed, nearby hostiles catch fire (30 s) | Cold Ash: weak in water or rain |
-| Mist | Sneaking sets off no sculk or wardens | Mist Passage: blink up to 8 blocks and turn invisible for 3 s (20 s) | Borrowed Breath: each blink costs hunger, air runs out faster |
-| Stone | No knockback while standing still | Holdfast: Resistance II and no knockback for 6 s, no sprinting (30 s) | Stone Sleep: slow after sleeping, you sink in water |
-| Tide | Breathe underwater | Returning Tide: press to mark, press again within 10 s (or wait) to be pulled back (25 s) | Tidal Debt: weak if a day passes without touching water or rain |
+| Ember | Fire and lava hurt half as much | Kindle: night vision, speed, nearby hostiles catch fire (35 essence) | Cold Ash: weak in water or rain |
+| Mist | Sneaking sets off no sculk or wardens | Mist Passage: blink up to 8 blocks and turn invisible for 3 s (25 essence) | Borrowed Breath: each blink costs hunger, air runs out faster |
+| Stone | No knockback while standing still | Holdfast: Resistance II and no knockback for 6 s, no sprinting (35 essence) | Stone Sleep: slow after sleeping, you sink in water |
+| Tide | Breathe underwater | Returning Tide: press to mark, press again within 10 s (or wait) to be pulled back (30 essence) | Tidal Debt: weak if a day passes without touching water or rain |

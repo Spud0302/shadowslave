@@ -202,7 +202,7 @@ public final class ShadowSlaveCommands {
     }
 
     private static int kindle(ServerPlayer player) {
-        return AbilityService.useAbility(player) == AbilityService.Outcome.USED ? Command.SINGLE_SUCCESS : 0;
+        return AbilityService.useAbility(player, 0) == AbilityService.Outcome.USED ? Command.SINGLE_SUCCESS : 0;
     }
 
     private static int migrateDatapack(ServerPlayer player) {

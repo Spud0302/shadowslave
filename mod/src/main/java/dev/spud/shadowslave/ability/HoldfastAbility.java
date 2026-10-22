@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class HoldfastAbility implements AspectAbility {
     public static final ResourceLocation ID = AspectKitCatalog.STONE.abilityId();
     static final int DURATION_TICKS = 20 * 6;
-    static final int COOLDOWN_TICKS = 20 * 30;
+    static final int ESSENCE_COST = 35;
 
     /** Game time each bracing player's Holdfast ends. Short-lived, so it is not saved. */
     private static final Map<UUID, Long> BRACED_UNTIL = new ConcurrentHashMap<>();
@@ -36,8 +36,8 @@ public final class HoldfastAbility implements AspectAbility {
     }
 
     @Override
-    public int cooldownTicks() {
-        return COOLDOWN_TICKS;
+    public int essenceCost() {
+        return ESSENCE_COST;
     }
 
     @Override

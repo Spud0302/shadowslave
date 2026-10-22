@@ -7,39 +7,64 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.List;
+import java.util.Objects;
+
 /**
- * Server-to-client state of the player's Aspect ability for the HUD slot:
- * which ability the key fires, how long until it is ready, and whether a
- * press has primed it. An empty id means the player has no ability yet.
+ * Server-to-client state of the player's Aspect abilities for the HUD: one
+ * slot per ability key, in key order, and the essence pool they share. The
+ * client predicts the pool refilling between updates from {@code regenPerTick}.
+ * No slots means the player has no ability yet.
  */
 public record AbilityStatusPayload(
-        String abilityId,
-        String abilityName,
-        int remainingTicks,
-        int cooldownTicks,
-        boolean primed
+        List<Slot> slots,
+        float essence,
+        int capacity,
+        float regenPerTick
 ) implements CustomPacketPayload {
-    public static final AbilityStatusPayload NONE = new AbilityStatusPayload("", "", 0, 0, false);
+    public static final int MAX_SLOTS = 8;
+    public static final AbilityStatusPayload NONE = new AbilityStatusPayload(List.of(), 0.0F, 0, 0.0F);
     public static final Type<AbilityStatusPayload> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "ability_status")
     );
 
+    /** One ability key: what it fires, its essence cost, and whether a press has primed it. */
+    public record Slot(String abilityId, String abilityName, int cost, boolean primed) {
+        public static final StreamCodec<ByteBuf, Slot> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.stringUtf8(256), Slot::abilityId,
+                ByteBufCodecs.stringUtf8(128), Slot::abilityName,
+                ByteBufCodecs.VAR_INT, Slot::cost,
+                ByteBufCodecs.BOOL, Slot::primed,
+                Slot::new
+        );
+
+        public Slot {
+            Objects.requireNonNull(abilityId, "abilityId");
+            Objects.requireNonNull(abilityName, "abilityName");
+            cost = Math.max(0, cost);
+        }
+    }
+
     public static final StreamCodec<ByteBuf, AbilityStatusPayload> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.stringUtf8(256), AbilityStatusPayload::abilityId,
-            ByteBufCodecs.stringUtf8(128), AbilityStatusPayload::abilityName,
-            ByteBufCodecs.VAR_INT, AbilityStatusPayload::remainingTicks,
-            ByteBufCodecs.VAR_INT, AbilityStatusPayload::cooldownTicks,
-            ByteBufCodecs.BOOL, AbilityStatusPayload::primed,
+            Slot.STREAM_CODEC.apply(ByteBufCodecs.list(MAX_SLOTS)), AbilityStatusPayload::slots,
+            ByteBufCodecs.FLOAT, AbilityStatusPayload::essence,
+            ByteBufCodecs.VAR_INT, AbilityStatusPayload::capacity,
+            ByteBufCodecs.FLOAT, AbilityStatusPayload::regenPerTick,
             AbilityStatusPayload::new
     );
 
     public AbilityStatusPayload {
-        remainingTicks = Math.max(0, remainingTicks);
-        cooldownTicks = Math.max(0, cooldownTicks);
+        slots = List.copyOf(Objects.requireNonNull(slots, "slots"));
+        if (slots.size() > MAX_SLOTS) {
+            throw new IllegalArgumentException("Too many ability slots: " + slots.size());
+        }
+        capacity = Math.max(0, capacity);
+        essence = Float.isFinite(essence) ? Math.max(0.0F, Math.min(capacity, essence)) : 0.0F;
+        regenPerTick = Float.isFinite(regenPerTick) ? Math.max(0.0F, regenPerTick) : 0.0F;
     }
 
     public boolean hasAbility() {
-        return !abilityId.isEmpty();
+        return !slots.isEmpty();
     }
 
     @Override
