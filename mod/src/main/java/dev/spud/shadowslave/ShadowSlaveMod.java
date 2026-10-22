@@ -60,6 +60,7 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(DrownedBellListenerEntityAdapter::onEntityJoinLevel);
         NeoForge.EVENT_BUS.addListener(DreamCandleRitual::onPlayerWakeUp);
         NeoForge.EVENT_BUS.addListener(AbilityService::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(AbilityService::onPlayerLoggedOut);
         NeoForge.EVENT_BUS.addListener(ShardDrops::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(CoreService::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(CoreService::onPlayerRespawn);

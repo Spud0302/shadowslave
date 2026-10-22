@@ -10,6 +10,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -128,6 +129,13 @@ public final class AbilityService {
         held.forEach(ability -> ability.tick(player));
         if (EssenceService.tick(player) && !held.isEmpty()) {
             syncStatus(player);
+        }
+    }
+
+    /** Takes down anything an ability left in the world (walls, wards) when its owner leaves. */
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            AbilityRegistry.all().forEach(ability -> ability.clear(player));
         }
     }
 

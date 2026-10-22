@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-10-22T10:57:52Z",
-  "source_commit": "c479b495894ada332867ca580bf106ac9c0c6c2b",
+  "generated_at": "2026-10-22T11:08:07Z",
+  "source_commit": "9da12bf3741ca962c76220aac3fe49716900060a",
   "source_tree_dirty": true,
-  "note_count": 116,
+  "note_count": 119,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -1463,6 +1463,69 @@
       "related": [],
       "task_id": "20261022T105721Z-claude-code-soul-shards-core",
       "base_commit": "a22f371489d4f8ddd890ce3cf1c30ad9cfa08184"
+    },
+    "20261022T110807Z-claude-code-awakened-abilities": {
+      "uid": "20261022T110807Z-claude-code-awakened-abilities",
+      "path": "brain/ai/claims/20261022T110807Z--claude-code--awakened-abilities.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Claim \u2014 Awakened ability variants and the second key",
+      "summary": "Jack (2026-10-22) approved the rank-up, essence and Soul Sea design in the \"Lore to gameplay ideas\" thread (doc https://claude.ai/artifact/6Ppkk9vv8V9LwEvBY2P1EQ). This claim is one slice of the Dormant-to-Awakened build: step 6, two Awakened ability...",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T110807Z-claude-code-awakened-abilities",
+      "lease_until": "2026-10-22T19:08:07Z",
+      "base_commit": "4e472864e6779b2e6c08e1cc93f0ee8d158b069d"
+    },
+    "20261022T110808Z-claude-code-awakened-abilities": {
+      "uid": "20261022T110808Z-claude-code-awakened-abilities",
+      "path": "brain/evidence/20261022T110808Z--claude-code--awakened-abilities.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Evidence \u2014 Awakened ability variants and the second key",
+      "summary": "Each variant fires from the second key, draws on the shared essence pool and does its one effect; granting checks the Nature and refuses duplicates.",
+      "tags": [
+        "evidence"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T110807Z-claude-code-awakened-abilities",
+      "captured_commit": "4e472864e6779b2e6c08e1cc93f0ee8d158b069d"
+    },
+    "20261022T110809Z-claude-code-awakened-abilities": {
+      "uid": "20261022T110809Z-claude-code-awakened-abilities",
+      "path": "brain/ai/handoffs/20261022T110809Z--claude-code--awakened-abilities.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Handoff \u2014 Awakened ability variants and the second key",
+      "summary": "Jack (2026-10-22) approved the rank-up, essence and Soul Sea design in the \"Lore to gameplay ideas\" thread (doc https://claude.ai/artifact/6Ppkk9vv8V9LwEvBY2P1EQ). This claim is one slice of the Dormant-to-Awakened build: step 6, two Awakened ability...",
+      "tags": [
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T110807Z-claude-code-awakened-abilities",
+      "base_commit": "4e472864e6779b2e6c08e1cc93f0ee8d158b069d"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",

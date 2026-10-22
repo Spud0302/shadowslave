@@ -26,6 +26,8 @@ class PlayerKeybindControlsIntegrationTest {
 
         assertTrue(mappings.contains("OPEN_SOUL"));
         assertTrue(mappings.contains("USE_ABILITY"));
+        assertTrue(mappings.contains("USE_SECOND_ABILITY"));
+        assertTrue(mappings.contains("GLFW.GLFW_KEY_V"));
         assertTrue(mappings.contains("TOGGLE_MEMORY"));
         assertTrue(mappings.contains("TOGGLE_ECHO"));
         assertTrue(mappings.contains("TOGGLE_ECHO_MODE"));
@@ -43,6 +45,7 @@ class PlayerKeybindControlsIntegrationTest {
         assertTrue(events.contains("PacketDistributor.sendToServer(payload)"));
         assertTrue(events.contains("minecraft.screen == null"));
         assertTrue(events.contains("new UseAbilityRequestPayload(0)"));
+        assertTrue(events.contains("new UseAbilityRequestPayload(1)"));
         assertTrue(events.contains("ToggleAshCompassRequestPayload.INSTANCE"));
         assertTrue(events.contains("ToggleAshBurrowerEchoRequestPayload.INSTANCE"));
         assertTrue(events.contains("ToggleAshBurrowerEchoModeRequestPayload.INSTANCE"));

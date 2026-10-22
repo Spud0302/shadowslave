@@ -67,6 +67,10 @@ public record AspectInstanceData(
         );
     }
 
+    public AspectInstanceData withAbilitySet(AspectAbilitySetData next) {
+        return new AspectInstanceData(instanceId, formalName, aspectRank, natureId, next, provenance);
+    }
+
     public String displayedName() {
         return formalName.orElse("");
     }

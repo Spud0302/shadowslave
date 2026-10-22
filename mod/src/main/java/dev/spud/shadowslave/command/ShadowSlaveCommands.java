@@ -1,5 +1,10 @@
 package dev.spud.shadowslave.command;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
+import dev.spud.shadowslave.awakening.AbilityGrants;
+import dev.spud.shadowslave.awakening.AbilityVariant;
+import dev.spud.shadowslave.awakening.KitLadder;
+import net.minecraft.commands.SharedSuggestionProvider;
 import com.mojang.brigadier.Command;
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.ability.AbilityService;
@@ -32,6 +37,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /** Player preview controls plus operator-facing architecture and migration commands. */
 public final class ShadowSlaveCommands {
@@ -60,7 +66,14 @@ public final class ShadowSlaveCommands {
                 .then(Commands.literal("nightmare_recover")
                         .executes(context -> recoverNightmare(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("ability")
-                        .executes(context -> kindle(context.getSource().getPlayerOrException())))
+                        .executes(context -> kindle(context.getSource().getPlayerOrException()))
+                        .then(Commands.literal("grant")
+                                .requires(source -> source.hasPermission(2))
+                                .then(Commands.argument("variant", StringArgumentType.word())
+                                        .suggests((context, builder) -> SharedSuggestionProvider.suggest(
+                                                KitLadder.all().stream().map(ShadowSlaveCommands::variantKey), builder))
+                                        .executes(context -> grantVariant(context.getSource().getPlayerOrException(),
+                                                StringArgumentType.getString(context, "variant"))))))
                 .then(Commands.literal("kindle")
                         .executes(context -> kindle(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("migrate_datapack")
@@ -96,6 +109,28 @@ public final class ShadowSlaveCommands {
                 .then(Commands.literal("reset")
                         .requires(source -> source.hasPermission(2))
                         .executes(context -> previewReset(context.getSource().getPlayerOrException()))));
+    }
+
+    private static String variantKey(AbilityVariant variant) {
+        String path = variant.abilityId().getPath();
+        return path.substring(path.lastIndexOf('/') + 1);
+    }
+
+    /** Test shortcut until rank-up choices land: adds one Awakened ability of your Nature. */
+    private static int grantVariant(ServerPlayer player, String key) {
+        Optional<AbilityVariant> variant = KitLadder.all().stream().filter(value -> variantKey(value).equals(key)).findFirst();
+        if (variant.isEmpty()) {
+            player.sendSystemMessage(Component.literal("No ability called " + key + ".").withStyle(ChatFormatting.RED));
+            return 0;
+        }
+        if (!AbilityGrants.grant(player, variant.get())) {
+            player.sendSystemMessage(Component.literal(variant.get().name()
+                    + " needs an Aspect of its Nature, and can only be granted once.").withStyle(ChatFormatting.RED));
+            return 0;
+        }
+        player.sendSystemMessage(Component.literal("Your Aspect grows: " + variant.get().name() + ".")
+                .withStyle(ChatFormatting.GOLD));
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int showCore(ServerPlayer player) {

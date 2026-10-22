@@ -20,6 +20,7 @@ public final class ClientKeyMappings {
 
     public static final KeyMapping OPEN_SOUL = key("key.shadowslave.open_soul", GLFW.GLFW_KEY_O);
     public static final KeyMapping USE_ABILITY = key("key.shadowslave.use_ability", GLFW.GLFW_KEY_R);
+    public static final KeyMapping USE_SECOND_ABILITY = key("key.shadowslave.use_second_ability", GLFW.GLFW_KEY_V);
     public static final KeyMapping TOGGLE_MEMORY = key("key.shadowslave.toggle_memory", GLFW.GLFW_KEY_G);
     public static final KeyMapping TOGGLE_ECHO = key("key.shadowslave.toggle_echo", GLFW.GLFW_KEY_H);
     public static final KeyMapping TOGGLE_ECHO_MODE = key("key.shadowslave.toggle_echo_mode", GLFW.GLFW_KEY_J);
@@ -29,7 +30,11 @@ public final class ClientKeyMappings {
 
     /** The key that fires the ability in a HUD slot, or null if that slot has no key. */
     public static KeyMapping abilityKey(int slot) {
-        return slot == 0 ? USE_ABILITY : null;
+        return switch (slot) {
+            case 0 -> USE_ABILITY;
+            case 1 -> USE_SECOND_ABILITY;
+            default -> null;
+        };
     }
 
     /** The names of the ability keys, in slot order, as the player has bound them. */
@@ -45,6 +50,7 @@ public final class ClientKeyMappings {
     public static void register(RegisterKeyMappingsEvent event) {
         event.register(OPEN_SOUL);
         event.register(USE_ABILITY);
+        event.register(USE_SECOND_ABILITY);
         event.register(TOGGLE_MEMORY);
         event.register(TOGGLE_ECHO);
         event.register(TOGGLE_ECHO_MODE);
