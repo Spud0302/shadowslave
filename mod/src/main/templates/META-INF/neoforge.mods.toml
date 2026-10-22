@@ -41,3 +41,10 @@ type="required"
 versionRange="[${smartbrainlib_version}]"
 ordering="NONE"
 side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="player_animation_library"
+type="required"
+versionRange="[1.1.6,)"
+ordering="NONE"
+side="BOTH"

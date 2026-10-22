@@ -37,6 +37,23 @@
       "removal_behavior": "shadowslave declares combat_core as a required dependency at an exact version, so NeoForge refuses to load the pack without it. Combat Core owns generic action timing, melee geometry and outcome resolution only; canonical Soul, Aspect, Flaw, Memory, Echo, Rank, Nightmare and progression state remain entirely in shadowslave-core, and Combat Core never imports dev.spud.shadowslave."
     },
     {
+      "id": "playeranimlib-1",
+      "mod_id": "player_animation_library",
+      "version": "1.1.6+mc.1.21.1",
+      "role": "presentation_provider",
+      "side": "both",
+      "required": true,
+      "owns_canonical_state": false,
+      "source": {
+        "type": "direct",
+        "project": "com.zigythebird.playeranim:PlayerAnimationLibNeo",
+        "file": "PlayerAnimationLibNeo-1.1.6+mc.1.21.1.jar",
+        "sha256": "3cab280cadd766fb0b92810bad74b0505ddac54d8d9d6c09d4dc05dc5ca8cb47"
+      },
+      "license": "MIT",
+      "removal_behavior": "shadowslave declares player_animation_library as a required dependency, so NeoForge refuses to load the pack without it. PAL owns player animation playback only; it holds no canonical state, and every Soul, Aspect, Flaw, Memory, Echo, Rank and Nightmare record remains in shadowslave-core. Removing it costs the player-facing animation for committed actions, not any saved progression."
+    },
+    {
       "id": "geckolib-4",
       "mod_id": "geckolib",
       "version": "4.9.2",

@@ -29,6 +29,14 @@ repositories {
             includeGroup('net.tslat.smartbrainlib')
         }
     }
+    maven {
+        name = 'PlayerAnimationLibrary'
+        url = 'https://repo.redlance.org/public'
+        content {
+            // PAL itself plus its mochafloats dependency.
+            includeGroupByRegex('com\\.zigythebird.*')
+        }
+    }
 }
 
 neoForge {
@@ -95,6 +103,25 @@ dependencies {
     implementation 'dev.spud.combatcore:combat-core:0.0.1-wip'
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
     implementation "net.tslat.smartbrainlib:SmartBrainLib-neoforge-${minecraft_version}:${smartbrainlib_version}"
+    // PAL's core module requests newer netty, fastutil, gson and slf4j than
+    // Minecraft's strict pins, which Gradle cannot reconcile. Minecraft and
+    // NeoForge already supply all four at runtime, so drop those transitive
+    // requests and keep PAL's own (mochafloats, javassist).
+    implementation("com.zigythebird.playeranim:PlayerAnimationLibNeo:${pal_version}") {
+        exclude group: 'io.netty'
+        exclude group: 'it.unimi.dsi'
+        exclude group: 'com.google.code.gson'
+        exclude group: 'org.slf4j'
+    }
+    // The Neo module declares Core at runtime scope only, so its animation types
+    // (IAnimation, ModifierLayer, Animation) are absent at compile time. PAL ships
+    // as a required mod, which supplies it at runtime; this is for compiling.
+    compileOnly("com.zigythebird.playeranim:PlayerAnimationLibCore:${pal_version}") {
+        exclude group: 'io.netty'
+        exclude group: 'it.unimi.dsi'
+        exclude group: 'com.google.code.gson'
+        exclude group: 'org.slf4j'
+    }
 
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'

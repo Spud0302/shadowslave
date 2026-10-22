@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-10-22T01:03:54Z",
-  "source_commit": "b4de24b6be17d244d0bf73c24fcbcec7afa75e6c",
+  "generated_at": "2026-10-22T01:10:26Z",
+  "source_commit": "8fb7244e86eacacb0c06775e39b2fcac24e7bcf1",
   "source_tree_dirty": true,
-  "note_count": 85,
+  "note_count": 91,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -850,6 +850,94 @@
       "lease_until": "2026-08-25T10:59:11Z",
       "base_commit": "d12c6b2d118dc3cc1e6cb009f4fad1bcaf7cad1d"
     },
+    "20260826T050137Z-claude-code-combat-reference-study": {
+      "uid": "20260826T050137Z-claude-code-combat-reference-study",
+      "path": "brain/ai/claims/20260826T050137Z--claude-code--combat-reference-study.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-08-26",
+      "updated": "2026-08-26",
+      "title": "Claim \u2014 Reference study: mods to learn combat feel from",
+      "summary": "Owner request, 2026-08-26: record the code-reuse/licensing discussion and research which mods are worth *reading* to inform our own combat implementation.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260826T050137Z-claude-code-combat-reference-study",
+      "lease_until": "2026-08-26T09:01:37Z",
+      "base_commit": "b4de24b6be17d244d0bf73c24fcbcec7afa75e6c"
+    },
+    "20260826T051740Z-claude-code-animation-timing-validator": {
+      "uid": "20260826T051740Z-claude-code-animation-timing-validator",
+      "path": "brain/ai/claims/20260826T051740Z--claude-code--animation-timing-validator.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-08-26",
+      "updated": "2026-08-26",
+      "title": "Claim \u2014 Animation/action timing validator",
+      "summary": "Owner request, 2026-08-26: build the animation/action timing validator proposed in `brain/inbox/combat-reference-study`.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260826T051740Z-claude-code-animation-timing-validator",
+      "lease_until": "2026-08-26T09:17:40Z",
+      "base_commit": "888a6ee2b98084fd01cbbff3bae76892def22129"
+    },
+    "20260826T052844Z-claude-code-player-action-pose-curve": {
+      "uid": "20260826T052844Z-claude-code-player-action-pose-curve",
+      "path": "brain/ai/claims/20260826T052844Z--claude-code--player-action-pose-curve.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-08-26",
+      "updated": "2026-08-26",
+      "title": "Claim \u2014 Player action pose curve (vanilla model route)",
+      "summary": "Owner chose the vanilla-model route for player animation, 2026-08-26: drive `HumanoidModel` limb rotations from combat phase rather than adding an animation framework. No new dependency, works with every skin and armour, and is the smallest addition ...",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260826T052844Z-claude-code-player-action-pose-curve",
+      "lease_until": "2026-08-26T09:28:44Z",
+      "base_commit": "b51af2dd95624cce7505a16092e33ac0f6ffddaf"
+    },
+    "20260826T063116Z-claude-code-pal-dependency": {
+      "uid": "20260826T063116Z-claude-code-pal-dependency",
+      "path": "brain/ai/claims/20260826T063116Z--claude-code--pal-dependency.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-08-26",
+      "updated": "2026-08-26",
+      "title": "Claim \u2014 Add PAL as a required dependency",
+      "summary": "Owner approved the library route and then opened the blocked hosts so the work could be compiled rather than written blind. Both happened 2026-08-26.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20260826T063116Z-claude-code-pal-dependency",
+      "lease_until": "2026-08-26T10:31:16Z",
+      "base_commit": "9e4280b16c2d8b168a63ef34e2960468acdf6bb0"
+    },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",
       "path": "brain/templates/task-claim.md",
@@ -922,6 +1010,29 @@
       ],
       "related": [],
       "task_id": "20260821T063734Z-claude-vault-multi-ai-hardening"
+    },
+    "ss-adr-20260826-player-animation-library": {
+      "uid": "ss-adr-20260826-player-animation-library",
+      "path": "brain/decisions/ADR-20260826-player-animation-library.md",
+      "record_kind": "decision",
+      "authority": "proposal",
+      "lore_class": "N/A",
+      "state": "proposed",
+      "owner": "claude-code",
+      "created": "2026-08-26",
+      "updated": "2026-08-26",
+      "title": "ADR \u2014 Player animation library: PAL, not PlayerAnimator",
+      "summary": "**Proposal.** Agents do not promote decisions; this needs Andrew's acceptance.",
+      "tags": [
+        "decision"
+      ],
+      "sources": [
+        "https://github.com/KosmX/minecraftPlayerAnimator",
+        "https://github.com/PlayerAnimationLibrary/PlayerAnimationLibrary",
+        "https://github.com/KosmX/minecraftPlayerAnimator/issues/115",
+        "https://www.curseforge.com/minecraft/mc-mods/player-animation-library"
+      ],
+      "related": []
     },
     "ss-adr-replace-compact-date-replace-slug": {
       "uid": "ss-adr-replace-compact-date-replace-slug",
@@ -1672,6 +1783,35 @@
       ],
       "task_id": "codex-extend-vault-optimization-20260821",
       "base_commit": "7223e140d6253caa0d0a69635f76b57e3f94e0ed"
+    },
+    "ss-idea-combat-reference-study": {
+      "uid": "ss-idea-combat-reference-study",
+      "path": "brain/inbox/combat-reference-study.md",
+      "record_kind": "idea",
+      "authority": "proposal",
+      "lore_class": "N/A",
+      "state": "proposed",
+      "owner": "claude-code",
+      "created": "2026-08-26",
+      "updated": "2026-08-26",
+      "title": "Mods worth studying for combat feel, and a code-provenance policy",
+      "summary": "Research note. Authorises nothing. No dependency is proposed here.",
+      "tags": [
+        "combat",
+        "idea",
+        "inbox",
+        "licensing"
+      ],
+      "sources": [
+        "https://github.com/Antikythera-Studios/epicfight",
+        "https://github.com/ZsoltMolnarrr/BetterCombat",
+        "https://github.com/ZsoltMolnarrr/CombatRoll",
+        "https://github.com/KosmX/minecraftPlayerAnimator",
+        "https://github.com/bernie-g/geckolib",
+        "https://github.com/Tslat/SmartBrainLib",
+        "https://github.com/FTBTeam/FTB-Quests"
+      ],
+      "related": []
     },
     "ss-idea-multi-ai-vault-optimization": {
       "uid": "ss-idea-multi-ai-vault-optimization",
