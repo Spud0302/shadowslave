@@ -5,6 +5,7 @@ import dev.spud.shadowslave.ability.AbilityService;
 import dev.spud.shadowslave.ability.KitPassives;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.awakening.DreamCandleRitual;
+import dev.spud.shadowslave.awakening.SoulSeaService;
 import dev.spud.shadowslave.block.ModBlocks;
 import dev.spud.shadowslave.command.ShadowSlaveCommands;
 import dev.spud.shadowslave.dreamrealm.DreamRealmCommands;
@@ -61,6 +62,8 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(DreamCandleRitual::onPlayerWakeUp);
         NeoForge.EVENT_BUS.addListener(AbilityService::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(AbilityService::onPlayerLoggedOut);
+        NeoForge.EVENT_BUS.addListener(SoulSeaService::onRightClickBlock);
+        NeoForge.EVENT_BUS.addListener(SoulSeaService::onPlayerLoggedOut);
         NeoForge.EVENT_BUS.addListener(ShardDrops::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(CoreService::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(CoreService::onPlayerRespawn);

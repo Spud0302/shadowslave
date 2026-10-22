@@ -98,10 +98,15 @@ quarter of their core out as a shard you can absorb; turn that off with
 | Stone | No knockback while standing still | Holdfast: Resistance II and no knockback for 6 s, no sprinting (35 essence) | Stone Sleep: slow after sleeping, you sink in water |
 | Tide | Breathe underwater | Returning Tide: press to mark, press again within 10 s (or wait) to be pulled back (30 essence) | Tidal Debt: weak if a day passes without touching water or rain |
 
-**Awakened abilities (second key, V).** Each Nature grows one of two abilities
-at Awakening. Until the Dream Candle rank-up lands, operators can grant one with
-`/shadowslave ability grant <name>` (tab completes; it must match your Nature).
-It goes on the V key, next to the first slot, and draws on the same essence pool.
+**Meditation and Awakening.** Sneak and use a lit Dream Candle (with anything
+in hand) to meditate: the **Soul Sea** opens, showing your Soul Rank, your core
+and what the next rank asks. For now Awakening asks for a saturated core. Pick one
+of your Nature's two Awakened abilities and press Awaken while you stay beside
+the candle. Awakening raises your Soul and Aspect to Awakened, puts the new
+ability on the V key, doubles the essence pool (200) and starts a larger core
+(600). Operators can skip the candle with `/shadowslave awaken <name>` (the core
+must still be saturated; `/shadowslave core fill` helps) or test any ability with
+`/shadowslave ability grant <name>`.
 
 | Nature | Ability | What it does |
 | --- | --- | --- |

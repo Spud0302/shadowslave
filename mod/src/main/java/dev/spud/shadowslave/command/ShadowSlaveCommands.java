@@ -1,15 +1,16 @@
 package dev.spud.shadowslave.command;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
-import dev.spud.shadowslave.awakening.AbilityGrants;
-import dev.spud.shadowslave.awakening.AbilityVariant;
-import dev.spud.shadowslave.awakening.KitLadder;
-import net.minecraft.commands.SharedSuggestionProvider;
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.ability.AbilityService;
+import dev.spud.shadowslave.awakening.AbilityGrants;
+import dev.spud.shadowslave.awakening.AbilityVariant;
 import dev.spud.shadowslave.awakening.AspectRollService;
 import dev.spud.shadowslave.awakening.AspectRoller;
+import dev.spud.shadowslave.awakening.AwakeningService;
+import dev.spud.shadowslave.awakening.KitLadder;
 import dev.spud.shadowslave.migration.DatapackMigrationOutcome;
 import dev.spud.shadowslave.migration.DatapackMigrationService;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
@@ -22,13 +23,13 @@ import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.soul.SpellState;
+import dev.spud.shadowslave.soul.core.CoreService;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
-import dev.spud.shadowslave.soul.core.CoreService;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -96,6 +97,13 @@ public final class ShadowSlaveCommands {
                                 .then(Commands.argument("targets", EntityArgument.players())
                                         .executes(context -> rerollAspect(context.getSource(),
                                                 EntityArgument.getPlayers(context, "targets"))))))
+                .then(Commands.literal("awaken")
+                        .requires(source -> source.hasPermission(2))
+                        .then(Commands.argument("variant", StringArgumentType.word())
+                                .suggests((context, builder) -> SharedSuggestionProvider.suggest(
+                                        KitLadder.all().stream().map(ShadowSlaveCommands::variantKey), builder))
+                                .executes(context -> awaken(context.getSource().getPlayerOrException(),
+                                        StringArgumentType.getString(context, "variant")))))
                 .then(Commands.literal("core")
                         .executes(context -> showCore(context.getSource().getPlayerOrException()))
                         .then(Commands.literal("fill")
@@ -130,6 +138,25 @@ public final class ShadowSlaveCommands {
         }
         player.sendSystemMessage(Component.literal("Your Aspect grows: " + variant.get().name() + ".")
                 .withStyle(ChatFormatting.GOLD));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** Test shortcut for the candle's Awakening choice; the rank's requirement still applies. */
+    private static int awaken(ServerPlayer player, String key) {
+        Optional<AbilityVariant> variant = KitLadder.all().stream().filter(value -> variantKey(value).equals(key)).findFirst();
+        AwakeningService.Result result = variant.map(value -> AwakeningService.awaken(player, value.abilityId()))
+                .orElse(AwakeningService.Result.NOT_A_CHOICE);
+        String problem = switch (result) {
+            case AWAKENED -> "";
+            case NO_ASPECT -> "You have no Aspect to Awaken.";
+            case ALREADY_AWAKENED -> "You have already Awakened.";
+            case NOT_A_CHOICE -> "That is not one of your Nature's Awakened abilities.";
+            case NOT_READY -> "Your core is not saturated yet (try /shadowslave core fill).";
+        };
+        if (!problem.isEmpty()) {
+            player.sendSystemMessage(Component.literal(problem).withStyle(ChatFormatting.RED));
+            return 0;
+        }
         return Command.SINGLE_SUCCESS;
     }
 

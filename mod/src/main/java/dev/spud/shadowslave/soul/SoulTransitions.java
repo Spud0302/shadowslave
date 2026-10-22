@@ -56,6 +56,14 @@ public final class SoulTransitions {
         return current.asDreamer(aspectId, aspectRank, flawId);
     }
 
+    /** A Dreamer with a named Aspect rises to Awakened. Whether they have earned it is checked by the caller. */
+    public static SoulData awaken(SoulData current) {
+        if (current.spellState() != SpellState.DREAMER || current.aspectId().isEmpty()) {
+            throw new IllegalStateException("Only a Dreamer with a named Aspect can Awaken");
+        }
+        return current.asAwakened();
+    }
+
     public static SoulData reset() {
         return SoulData.uninfected();
     }

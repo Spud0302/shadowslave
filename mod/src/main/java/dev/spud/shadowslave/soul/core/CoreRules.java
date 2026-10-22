@@ -9,8 +9,8 @@ import dev.spud.shadowslave.soul.SoulRank;
  * core far less, so a Dormant shard fills an Awakened core a quarter as much.
  */
 public final class CoreRules {
-    static final int DORMANT_LIMIT = 160;
-    static final int AWAKENED_LIMIT = 600;
+    public static final int DORMANT_LIMIT = 160;
+    public static final int AWAKENED_LIMIT = 600;
     /** Max health a saturated Dormant core adds; an Awakened core keeps it and adds the same again when full. */
     static final double HEALTH_PER_RANK = 4.0;
 
