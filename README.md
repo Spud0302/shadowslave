@@ -43,7 +43,7 @@ There is no public release yet. The mod version is `0.1.0-preview.2`.
 mod/                  the NeoForge mod (Gradle root; run ./mod/gradlew -p mod build)
 play.bat / play.sh    one-step build-and-play launchers
 shadowslave/          the frozen vanilla datapack (datapack-v1.0.0), kept as a reference
-testserver/           Mineflayer harnesses that test the frozen datapack
+testserver/           Mineflayer harnesses for the frozen datapack (run by hand, not in CI)
 modpack/              modpack packaging tools and manifest
 shared-test-spec/     implementation-neutral acceptance scenarios
 docs/                 lore research, design notes and historical records

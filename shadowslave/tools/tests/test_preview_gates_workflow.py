@@ -23,9 +23,9 @@ class PreviewGatesWorkflowContractTest(unittest.TestCase):
         draft_guard = "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false"
 
         self.assertEqual(
-            2,
+            1,
             text.count(draft_guard),
-            "Both Java and datapack jobs must skip draft pull requests",
+            "The Java job must skip draft pull requests",
         )
 
     def test_java_gate_restarts_the_same_dedicated_server_world(self):
