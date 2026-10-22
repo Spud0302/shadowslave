@@ -23,6 +23,7 @@ import dev.spud.shadowslave.network.SoulPlayerEvents;
 import dev.spud.shadowslave.nightmare.NightmareEvents;
 import dev.spud.shadowslave.soul.core.CoreService;
 import dev.spud.shadowslave.soul.core.ShardDrops;
+import dev.spud.shadowslave.soul.refinement.RefinementService;
 import dev.spud.shadowslave.world.entity.DrownedBellListenerEntityAdapter;
 import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
 import net.neoforged.api.distmarker.Dist;
@@ -71,6 +72,8 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(ShardDrops::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(CoreService::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(CoreService::onPlayerRespawn);
+        NeoForge.EVENT_BUS.addListener(RefinementService::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(RefinementService::onPlayerRespawn);
         NeoForge.EVENT_BUS.addListener(KitPassives::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(KitPassives::onIncomingDamage);
         NeoForge.EVENT_BUS.addListener(KitPassives::onGameEvent);

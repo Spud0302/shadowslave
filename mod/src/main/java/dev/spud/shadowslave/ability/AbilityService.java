@@ -6,6 +6,8 @@ import dev.spud.shadowslave.soul.identity.AspectAbilityData;
 import dev.spud.shadowslave.soul.identity.AspectAbilityKind;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
+import dev.spud.shadowslave.soul.refinement.RefinementRules;
+import dev.spud.shadowslave.soul.refinement.RefinementService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -86,7 +88,7 @@ public final class AbilityService {
 
     /** Essence this player pays for one use of the ability. */
     public static int costFor(ServerPlayer player, AspectAbility ability) {
-        return ability.essenceCost();
+        return RefinementRules.cost(ability.essenceCost(), RefinementService.get(player));
     }
 
     /** Everyone nearby, the caster included, plays the casting pose. */

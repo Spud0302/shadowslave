@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-10-22T11:22:40Z",
-  "source_commit": "d4c38f7461ae1720c5494e9e6c4620a1e5c56ef4",
+  "generated_at": "2026-10-22T11:28:59Z",
+  "source_commit": "16931adb3811d61122e11a9f7e6a8454d385a64e",
   "source_tree_dirty": true,
-  "note_count": 125,
+  "note_count": 128,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -1652,6 +1652,69 @@
       "related": [],
       "task_id": "20261022T112233Z-claude-code-essence-channeling",
       "base_commit": "a609b07b0880cf2d85465bd140da2f46b9121a1b"
+    },
+    "20261022T112859Z-claude-code-soul-refinement": {
+      "uid": "20261022T112859Z-claude-code-soul-refinement",
+      "path": "brain/ai/claims/20261022T112859Z--claude-code--soul-refinement.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Claim \u2014 Refinement points and respec in the Soul Sea",
+      "summary": "Jack (2026-10-22) approved the rank-up, essence and Soul Sea design in the \"Lore to gameplay ideas\" thread (doc https://claude.ai/artifact/6Ppkk9vv8V9LwEvBY2P1EQ). This claim is one slice of the Dormant-to-Awakened build: step 5, refinement points in...",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T112859Z-claude-code-soul-refinement",
+      "lease_until": "2026-10-22T19:28:59Z",
+      "base_commit": "933bd3a8ad3ec8fc57e5cb9be9fca6bfe406355d"
+    },
+    "20261022T112900Z-claude-code-soul-refinement": {
+      "uid": "20261022T112900Z-claude-code-soul-refinement",
+      "path": "brain/evidence/20261022T112900Z--claude-code--soul-refinement.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Evidence \u2014 Refinement points and respec in the Soul Sea",
+      "summary": "Points come from rank, can only be placed while meditating, change health, essence and costs as described, and a respec refunds all but one.",
+      "tags": [
+        "evidence"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T112859Z-claude-code-soul-refinement",
+      "captured_commit": "933bd3a8ad3ec8fc57e5cb9be9fca6bfe406355d"
+    },
+    "20261022T112901Z-claude-code-soul-refinement": {
+      "uid": "20261022T112901Z-claude-code-soul-refinement",
+      "path": "brain/ai/handoffs/20261022T112901Z--claude-code--soul-refinement.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Handoff \u2014 Refinement points and respec in the Soul Sea",
+      "summary": "Jack (2026-10-22) approved the rank-up, essence and Soul Sea design in the \"Lore to gameplay ideas\" thread (doc https://claude.ai/artifact/6Ppkk9vv8V9LwEvBY2P1EQ). This claim is one slice of the Dormant-to-Awakened build: step 5, refinement points in...",
+      "tags": [
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T112859Z-claude-code-soul-refinement",
+      "base_commit": "933bd3a8ad3ec8fc57e5cb9be9fca6bfe406355d"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",
