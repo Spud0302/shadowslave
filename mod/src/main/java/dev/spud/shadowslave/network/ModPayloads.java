@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.network;
 
+import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
@@ -11,7 +12,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
-    public static final String NETWORK_VERSION = "4";
+    public static final String NETWORK_VERSION = "5";
 
     private ModPayloads() {
     }
@@ -24,6 +25,12 @@ public final class ModPayloads {
         registrar.playToClient(
                 SoulSnapshotPayload.TYPE,
                 SoulSnapshotPayload.STREAM_CODEC,
+                (payload, context) -> {
+                }
+        );
+        registrar.playToClient(
+                AspectRevealPayload.TYPE,
+                AspectRevealPayload.STREAM_CODEC,
                 (payload, context) -> {
                 }
         );

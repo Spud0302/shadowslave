@@ -64,7 +64,7 @@ public final class SoulScreen extends Screen {
 
         graphics.drawCenteredString(
                 this.font,
-                Component.literal("Preview controls: /shadowslave preview_begin · /shadowslave kindle"),
+                Component.translatable("screen.shadowslave.soul.ability_hint", ClientKeyMappings.USE_ABILITY.getTranslatedKeyMessage()),
                 this.width / 2,
                 bottom - 38,
                 LABEL_COLOR

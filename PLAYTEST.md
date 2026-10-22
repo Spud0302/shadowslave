@@ -61,8 +61,10 @@ Added by claude-code, 2026-10-22.
 1. Craft a **Dream Candle**: any candle plus an amethyst shard (shapeless). It is
    also in the Functional Blocks creative tab.
 2. Place it within two blocks of your bed and light it (flint and steel).
-3. Sleep. When you wake, the Spell names your Aspect in chat and the candle burns
-   down. Without a lit Dream Candle, sleep is plain vanilla.
+3. Sleep. When you wake, the candle burns down and the Spell types out your
+   Aspect, Innate, Ability and Flaw over a dark veil. Click (or Space) once to
+   show it all, and again to open your Soul screen; it also moves on by itself.
+   Without a lit Dream Candle, sleep is plain vanilla.
 
 You can only roll once. Operators can reroll with `/shadowslave aspect reroll`
 (optionally followed by player names), and `/shadowslave reset` clears the Soul
