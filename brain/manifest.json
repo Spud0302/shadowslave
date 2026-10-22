@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-10-22T06:46:46Z",
-  "source_commit": "7548028ed9fb5c5c7989964cfeaedd2e0986b68e",
+  "generated_at": "2026-10-22T07:43:38Z",
+  "source_commit": "468b0f03f4da1a21a45452ce3c10e46293a4d4f0",
   "source_tree_dirty": true,
-  "note_count": 110,
+  "note_count": 113,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -1337,6 +1337,69 @@
       "related": [],
       "task_id": "20261022T064644Z-claude-code-ability-polish",
       "base_commit": "7548028ed9fb5c5c7989964cfeaedd2e0986b68e"
+    },
+    "20261022T074338Z-claude-code-essence-pool": {
+      "uid": "20261022T074338Z-claude-code-essence-pool",
+      "path": "brain/ai/claims/20261022T074338Z--claude-code--essence-pool.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Claim \u2014 Essence pool replaces ability cooldowns",
+      "summary": "Jack (2026-10-22) approved the rank-up, essence and Soul Sea design in the \"Lore to gameplay ideas\" thread (doc https://claude.ai/artifact/6Ppkk9vv8V9LwEvBY2P1EQ). This claim is one slice of the Dormant-to-Awakened build: step 1, the essence pool fro...",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T074338Z-claude-code-essence-pool",
+      "lease_until": "2026-10-22T15:43:38Z",
+      "base_commit": "468b0f03f4da1a21a45452ce3c10e46293a4d4f0"
+    },
+    "20261022T074339Z-claude-code-essence-pool": {
+      "uid": "20261022T074339Z-claude-code-essence-pool",
+      "path": "brain/evidence/20261022T074339Z--claude-code--essence-pool.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Evidence \u2014 Essence pool replaces ability cooldowns",
+      "summary": "Abilities spend essence from one pool and refuse when short; the pool refills over time; the HUD shows the bar and slot state; no cooldown code remains.",
+      "tags": [
+        "evidence"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T074338Z-claude-code-essence-pool",
+      "captured_commit": "468b0f03f4da1a21a45452ce3c10e46293a4d4f0"
+    },
+    "20261022T074340Z-claude-code-essence-pool": {
+      "uid": "20261022T074340Z-claude-code-essence-pool",
+      "path": "brain/ai/handoffs/20261022T074340Z--claude-code--essence-pool.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Handoff \u2014 Essence pool replaces ability cooldowns",
+      "summary": "Jack (2026-10-22) approved the rank-up, essence and Soul Sea design in the \"Lore to gameplay ideas\" thread (doc https://claude.ai/artifact/6Ppkk9vv8V9LwEvBY2P1EQ). This claim is one slice of the Dormant-to-Awakened build: step 1, the essence pool fro...",
+      "tags": [
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T074338Z-claude-code-essence-pool",
+      "base_commit": "468b0f03f4da1a21a45452ce3c10e46293a4d4f0"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",

@@ -9,7 +9,8 @@ public interface AspectAbility {
 
     String displayName();
 
-    int cooldownTicks();
+    /** Essence one use takes from the shared pool. */
+    int essenceCost();
 
     /** Performs the ability for one key press. */
     Activation activate(ServerPlayer player);
@@ -24,9 +25,9 @@ public interface AspectAbility {
     }
 
     enum Activation {
-        /** The ability fired; its cooldown starts. */
+        /** The ability fired; its essence is spent. */
         USED,
-        /** The press set something up (a mark, a stance) without starting the cooldown yet. */
+        /** The press set something up (a mark, a stance); the essence is spent when it finishes. */
         PRIMED,
         /** Nothing happened, for example no room to move. */
         FAILED

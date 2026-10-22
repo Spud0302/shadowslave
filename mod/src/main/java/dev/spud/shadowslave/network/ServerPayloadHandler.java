@@ -31,7 +31,7 @@ public final class ServerPayloadHandler {
     public static void handleUseAbility(UseAbilityRequestPayload payload, IPayloadContext context) {
         ServerPlayer player = serverPlayer(context, "Aspect ability");
         if (player != null) {
-            AbilityService.useAbility(player);
+            AbilityService.useAbility(player, payload.slot());
         }
     }
 

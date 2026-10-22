@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class ReturningTideAbility implements AspectAbility {
     public static final ResourceLocation ID = AspectKitCatalog.TIDE.abilityId();
     static final int MARK_TICKS = 20 * 10;
-    static final int COOLDOWN_TICKS = 20 * 25;
+    static final int ESSENCE_COST = 30;
 
     record Mark(ResourceKey<Level> dimension, Vec3 position, long expiresAt) {
     }
@@ -42,8 +42,8 @@ public final class ReturningTideAbility implements AspectAbility {
     }
 
     @Override
-    public int cooldownTicks() {
-        return COOLDOWN_TICKS;
+    public int essenceCost() {
+        return ESSENCE_COST;
     }
 
     @Override
@@ -71,7 +71,7 @@ public final class ReturningTideAbility implements AspectAbility {
         if (mark != null && mark.expiresAt() <= level.getGameTime()) {
             MARKS.remove(player.getUUID());
             if (pullBack(player, mark)) {
-                AbilityService.startCooldown(player, this);
+                AbilityService.finish(player, this);
             } else {
                 AbilityService.syncStatus(player);
             }

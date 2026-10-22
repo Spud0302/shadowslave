@@ -38,16 +38,30 @@ class SoulPagesTest {
     }
 
     @Test
-    void abilitiesTabShowsKeyCooldownAndLiveState() {
-        AbilityStatusPayload recovering = new AbilityStatusPayload(KINDLE, "Kindle", 0, 600, false);
-        List<String> texts = texts(SoulPages.abilities(ember(), recovering, 205, "R"));
+    void abilitiesTabShowsKeyCostAndLiveState() {
+        AbilityStatusPayload short_ = status(false);
+        List<String> texts = texts(SoulPages.abilities(ember(), short_, 20.0F, List.of("R")));
         assertTrue(texts.contains("Kindle"));
-        assertTrue(texts.contains("Key R  ·  Cooldown 30s  ·  Recovering 11s"), texts.toString());
+        assertTrue(texts.contains("Key R  ·  Costs 35 essence  ·  Gathering essence"), texts.toString());
         assertTrue(texts.contains("Sealed"));
-        assertEquals(KINDLE, SoulPages.abilities(ember(), recovering, 205, "R").get(0).icon());
+        assertEquals(KINDLE, SoulPages.abilities(ember(), short_, 20.0F, List.of("R")).get(0).icon());
 
-        AbilityStatusPayload primed = new AbilityStatusPayload(KINDLE, "Kindle", 0, 600, true);
-        assertTrue(texts(SoulPages.abilities(ember(), primed, 0, "R")).contains("Key R  ·  Cooldown 30s  ·  Primed"));
+        assertTrue(texts(SoulPages.abilities(ember(), short_, 35.0F, List.of("R")))
+                .contains("Key R  ·  Costs 35 essence  ·  Ready"));
+        assertTrue(texts(SoulPages.abilities(ember(), status(true), 0.0F, List.of("R")))
+                .contains("Key R  ·  Costs 35 essence  ·  Primed"));
+    }
+
+    @Test
+    void soulTabShowsTheEssencePool() {
+        List<SoulPages.Entry> rows = SoulPages.soul(ember(), status(false), 64.7F);
+        assertTrue(rows.stream().anyMatch(row -> row.text().equals("Essence") && row.value().equals("64 / 100")),
+                rows.toString());
+    }
+
+    private static AbilityStatusPayload status(boolean primed) {
+        return new AbilityStatusPayload(List.of(new AbilityStatusPayload.Slot(KINDLE, "Kindle", 35, primed)),
+                20.0F, 100, 0.1F);
     }
 
     @Test
@@ -63,8 +77,8 @@ class SoulPagesTest {
         SoulSnapshot none = new SoulSnapshot(1, "dormant", "none", "", "", "", "", List.of(), "", "", "", false);
         for (SoulPages.Tab tab : new SoulPages.Tab[] {SoulPages.Tab.ASPECT, SoulPages.Tab.ABILITIES, SoulPages.Tab.FLAW}) {
             assertEquals("Your Aspect has not been named.",
-                    SoulPages.page(tab, none, AbilityStatusPayload.NONE, 0, "R").get(0).text());
+                    SoulPages.page(tab, none, AbilityStatusPayload.NONE, 0.0F, List.of("R")).get(0).text());
         }
-        assertEquals("Status", SoulPages.page(SoulPages.Tab.SOUL, none, AbilityStatusPayload.NONE, 0, "R").get(0).text());
+        assertEquals("Status", SoulPages.page(SoulPages.Tab.SOUL, none, AbilityStatusPayload.NONE, 0.0F, List.of("R")).get(0).text());
     }
 }

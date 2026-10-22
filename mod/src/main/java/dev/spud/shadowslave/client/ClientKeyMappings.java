@@ -10,6 +10,9 @@ import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.bus.api.SubscribeEvent;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** Physical-client-only registration of normal Shadow Slave player controls. */
 @EventBusSubscriber(modid = ShadowSlaveMod.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public final class ClientKeyMappings {
@@ -22,6 +25,20 @@ public final class ClientKeyMappings {
     public static final KeyMapping TOGGLE_ECHO_MODE = key("key.shadowslave.toggle_echo_mode", GLFW.GLFW_KEY_J);
 
     private ClientKeyMappings() {
+    }
+
+    /** The key that fires the ability in a HUD slot, or null if that slot has no key. */
+    public static KeyMapping abilityKey(int slot) {
+        return slot == 0 ? USE_ABILITY : null;
+    }
+
+    /** The names of the ability keys, in slot order, as the player has bound them. */
+    public static List<String> abilityKeyNames() {
+        List<String> names = new ArrayList<>();
+        for (int slot = 0; abilityKey(slot) != null; slot++) {
+            names.add(abilityKey(slot).getTranslatedKeyMessage().getString());
+        }
+        return names;
     }
 
     @SubscribeEvent

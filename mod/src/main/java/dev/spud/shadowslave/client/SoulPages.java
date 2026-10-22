@@ -69,13 +69,17 @@ public final class SoulPages {
                 .findFirst();
     }
 
-    public static List<Entry> page(Tab tab, SoulSnapshot snapshot, AbilityStatusPayload status, long remainingTicks,
-                                   String keyName) {
+    /**
+     * @param essence  the pool as the client predicts it now
+     * @param keyNames the name of each ability key, in slot order
+     */
+    public static List<Entry> page(Tab tab, SoulSnapshot snapshot, AbilityStatusPayload status, float essence,
+                                   List<String> keyNames) {
         return switch (tab) {
             case ASPECT -> aspect(snapshot);
-            case ABILITIES -> abilities(snapshot, status, remainingTicks, keyName);
+            case ABILITIES -> abilities(snapshot, status, essence, keyNames);
             case FLAW -> flaw(snapshot);
-            case SOUL -> soul(snapshot);
+            case SOUL -> soul(snapshot, status, essence);
         };
     }
 
@@ -112,7 +116,8 @@ public final class SoulPages {
         return entries;
     }
 
-    static List<Entry> abilities(SoulSnapshot snapshot, AbilityStatusPayload status, long remainingTicks, String keyName) {
+    static List<Entry> abilities(SoulSnapshot snapshot, AbilityStatusPayload status, float essence,
+                                 List<String> keyNames) {
         if (!named(snapshot)) {
             return unnamed();
         }
@@ -130,9 +135,11 @@ public final class SoulPages {
             if (!description.isEmpty()) {
                 entries.add(Entry.of(Style.BODY, description, SpellStyle.MUTED));
             }
-            String state = readiness(id, status, remainingTicks);
-            entries.add(Entry.of(Style.BODY, "Key " + keyName + "  ·  Cooldown " + seconds(ability.get().cooldownTicks())
-                    + "s  ·  " + state, SpellStyle.HINT));
+            int slot = slotOf(status, id);
+            int cost = slot >= 0 ? status.slots().get(slot).cost() : ability.get().essenceCost();
+            String key = slot >= 0 && slot < keyNames.size() ? "Key " + keyNames.get(slot) + "  ·  " : "";
+            entries.add(Entry.of(Style.BODY, key + "Costs " + cost + " essence  ·  " + readiness(status, slot, cost, essence),
+                    SpellStyle.HINT));
             entries.add(Entry.spacer());
         }
         if (entries.isEmpty()) {
@@ -144,14 +151,20 @@ public final class SoulPages {
         return entries;
     }
 
-    private static String readiness(String id, AbilityStatusPayload status, long remainingTicks) {
-        if (!id.equals(status.abilityId())) {
-            return "Ready";
+    private static int slotOf(AbilityStatusPayload status, String id) {
+        for (int i = 0; i < status.slots().size(); i++) {
+            if (status.slots().get(i).abilityId().equals(id)) {
+                return i;
+            }
         }
-        if (status.primed()) {
+        return -1;
+    }
+
+    private static String readiness(AbilityStatusPayload status, int slot, int cost, float essence) {
+        if (slot >= 0 && status.slots().get(slot).primed()) {
             return "Primed";
         }
-        return remainingTicks > 0 ? "Recovering " + seconds(remainingTicks) + "s" : "Ready";
+        return essence + 1.0e-3F >= cost ? "Ready" : "Gathering essence";
     }
 
     static List<Entry> flaw(SoulSnapshot snapshot) {
@@ -169,19 +182,19 @@ public final class SoulPages {
         return entries;
     }
 
-    static List<Entry> soul(SoulSnapshot snapshot) {
-        return List.of(
+    static List<Entry> soul(SoulSnapshot snapshot, AbilityStatusPayload status, float essence) {
+        List<Entry> entries = new ArrayList<>(List.of(
                 Entry.row("Status", humanize(snapshot.spellState()), SpellStyle.TEXT),
                 Entry.row("Path", humanize(snapshot.awakeningPath()), SpellStyle.TEXT),
                 Entry.row("Soul Rank", humanize(snapshot.soulRank()), SpellStyle.TEXT),
-                Entry.row("Aspect Rank", humanize(snapshot.aspectRank()), SpellStyle.ASPECT),
-                Entry.row("Origin", snapshot.importedFromDatapack() ? "Imported datapack identity" : "Native Java identity",
-                        SpellStyle.MUTED)
-        );
-    }
-
-    static long seconds(long ticks) {
-        return (ticks + 19) / 20;
+                Entry.row("Aspect Rank", humanize(snapshot.aspectRank()), SpellStyle.ASPECT)
+        ));
+        if (status.capacity() > 0) {
+            entries.add(Entry.row("Essence", Math.round(Math.floor(essence)) + " / " + status.capacity(), SpellStyle.ABILITY));
+        }
+        entries.add(Entry.row("Origin", snapshot.importedFromDatapack() ? "Imported datapack identity" : "Native Java identity",
+                SpellStyle.MUTED));
+        return entries;
     }
 
     static String humanize(String value) {

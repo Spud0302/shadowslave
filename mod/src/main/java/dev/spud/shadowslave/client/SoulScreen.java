@@ -58,7 +58,7 @@ public final class SoulScreen extends Screen {
 
         long now = this.minecraft.level == null ? 0 : this.minecraft.level.getGameTime();
         List<SoulPages.Entry> entries = SoulPages.page(tab, snapshot, ClientAbilityState.status(),
-                ClientAbilityState.remainingTicks(now), ClientKeyMappings.USE_ABILITY.getTranslatedKeyMessage().getString());
+                ClientAbilityState.essence(now, partialTick), ClientKeyMappings.abilityKeyNames());
         renderEntries(graphics, entries);
 
         graphics.drawCenteredString(this.font, Component.translatable("screen.shadowslave.soul.tabs_hint"),

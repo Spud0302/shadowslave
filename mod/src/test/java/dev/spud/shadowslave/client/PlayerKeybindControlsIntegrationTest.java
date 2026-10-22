@@ -42,7 +42,7 @@ class PlayerKeybindControlsIntegrationTest {
 
         assertTrue(events.contains("PacketDistributor.sendToServer(payload)"));
         assertTrue(events.contains("minecraft.screen == null"));
-        assertTrue(events.contains("UseAbilityRequestPayload.INSTANCE"));
+        assertTrue(events.contains("new UseAbilityRequestPayload(0)"));
         assertTrue(events.contains("ToggleAshCompassRequestPayload.INSTANCE"));
         assertTrue(events.contains("ToggleAshBurrowerEchoRequestPayload.INSTANCE"));
         assertTrue(events.contains("ToggleAshBurrowerEchoModeRequestPayload.INSTANCE"));
@@ -53,7 +53,7 @@ class PlayerKeybindControlsIntegrationTest {
         String dedicatedRegistration = Files.readString(PAYLOADS);
         String clientRegistration = Files.readString(CLIENT_PAYLOADS);
 
-        assertTrue(dedicatedRegistration.contains("NETWORK_VERSION = \"7\""));
+        assertTrue(dedicatedRegistration.contains("NETWORK_VERSION = \"8\""));
         for (String handler : new String[] {
                 "ServerPayloadHandler::handleOpenSoulScreen",
                 "ServerPayloadHandler::handleUseAbility",
@@ -70,7 +70,7 @@ class PlayerKeybindControlsIntegrationTest {
     void serverAuthoritativelyExecutesEveryIntent() throws IOException {
         String handler = Files.readString(SERVER_HANDLER);
 
-        assertTrue(handler.contains("AbilityService.useAbility(player)"));
+        assertTrue(handler.contains("AbilityService.useAbility(player, payload.slot())"));
         assertTrue(handler.contains("MemoryManifestationService.summonAshCompass(player)"));
         assertTrue(handler.contains("MemoryManifestationService.dismissAshCompass(player)"));
         assertTrue(handler.contains("EchoManifestationService.summonAshBurrower(player)"));
