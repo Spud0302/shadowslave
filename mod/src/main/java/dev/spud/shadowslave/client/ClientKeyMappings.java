@@ -16,7 +16,7 @@ public final class ClientKeyMappings {
     private static final String CATEGORY = "key.categories.shadowslave";
 
     public static final KeyMapping OPEN_SOUL = key("key.shadowslave.open_soul", GLFW.GLFW_KEY_O);
-    public static final KeyMapping ACTIVATE_KINDLE = key("key.shadowslave.activate_kindle", GLFW.GLFW_KEY_R);
+    public static final KeyMapping USE_ABILITY = key("key.shadowslave.use_ability", GLFW.GLFW_KEY_R);
     public static final KeyMapping TOGGLE_MEMORY = key("key.shadowslave.toggle_memory", GLFW.GLFW_KEY_G);
     public static final KeyMapping TOGGLE_ECHO = key("key.shadowslave.toggle_echo", GLFW.GLFW_KEY_H);
     public static final KeyMapping TOGGLE_ECHO_MODE = key("key.shadowslave.toggle_echo_mode", GLFW.GLFW_KEY_J);
@@ -27,7 +27,7 @@ public final class ClientKeyMappings {
     @SubscribeEvent
     public static void register(RegisterKeyMappingsEvent event) {
         event.register(OPEN_SOUL);
-        event.register(ACTIVATE_KINDLE);
+        event.register(USE_ABILITY);
         event.register(TOGGLE_MEMORY);
         event.register(TOGGLE_ECHO);
         event.register(TOGGLE_ECHO_MODE);
