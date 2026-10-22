@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:coal",
+    "minecraft:charcoal",
+    "minecraft:torch",
+    "minecraft:blaze_powder",
+    "minecraft:blaze_rod",
+    "minecraft:fire_charge",
+    "minecraft:flint_and_steel",
+    "minecraft:magma_cream",
+    "minecraft:campfire",
+    "minecraft:lantern"
+  ]
+}

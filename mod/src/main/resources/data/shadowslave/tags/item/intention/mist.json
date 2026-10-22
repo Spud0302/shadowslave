@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:feather",
+    "minecraft:phantom_membrane",
+    "minecraft:ender_pearl",
+    "minecraft:string",
+    "minecraft:ink_sac",
+    "minecraft:glass_bottle",
+    "minecraft:cobweb",
+    "minecraft:white_wool"
+  ]
+}

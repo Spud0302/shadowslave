@@ -8,6 +8,7 @@ import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
+import dev.spud.shadowslave.network.payload.IntentionRequestPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.RefineRequestPayload;
 import dev.spud.shadowslave.network.payload.SoulSeaPayload;
@@ -70,6 +71,11 @@ public final class ClientModPayloads {
                 RefineRequestPayload.TYPE,
                 RefineRequestPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleRefine
+        );
+        registrar.playToServer(
+                IntentionRequestPayload.TYPE,
+                IntentionRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleIntention
         );
         registrar.playToServer(
                 OpenSoulScreenRequestPayload.TYPE,

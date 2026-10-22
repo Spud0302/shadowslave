@@ -10,6 +10,7 @@ import dev.spud.shadowslave.echo.content.EchoContentCatalog;
 import dev.spud.shadowslave.memory.MemoryManifestationService;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
+import dev.spud.shadowslave.network.payload.IntentionRequestPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.RefineRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
@@ -51,6 +52,13 @@ public final class ServerPayloadHandler {
         ServerPlayer player = serverPlayer(context, "Refinement");
         if (player != null) {
             SoulSeaService.requestRefinement(player, payload.action());
+        }
+    }
+
+    public static void handleIntention(IntentionRequestPayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "Intention offering");
+        if (player != null) {
+            SoulSeaService.requestIntention(player, payload.longing());
         }
     }
 

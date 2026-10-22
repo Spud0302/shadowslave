@@ -1,6 +1,8 @@
 package dev.spud.shadowslave.client;
 
+import dev.spud.shadowslave.awakening.Longing;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
+import dev.spud.shadowslave.network.payload.IntentionRequestPayload;
 import dev.spud.shadowslave.network.payload.RefineRequestPayload;
 import dev.spud.shadowslave.network.payload.SoulSeaPayload;
 import dev.spud.shadowslave.soul.refinement.RefinementRules;
@@ -11,6 +13,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
@@ -47,6 +50,7 @@ public final class SoulSeaScreen extends Screen {
     private SoulSeaPayload sea;
     private Page page = Page.RISE;
     private String selected = "";
+    private String longing;
     private int left;
     private int top;
     private int right;
@@ -55,6 +59,7 @@ public final class SoulSeaScreen extends Screen {
     public SoulSeaScreen(SoulSeaPayload sea) {
         super(Component.translatable("screen.shadowslave.soul_sea"));
         this.sea = sea;
+        this.longing = sea.intention().longing();
     }
 
     /** Fresh state from the server while the screen is open. */
@@ -90,9 +95,7 @@ public final class SoulSeaScreen extends Screen {
         SpellStyle.panel(graphics, left, top, right, bottom, SpellStyle.RULE);
         graphics.drawCenteredString(this.font, this.title, this.width / 2, top - 12, SpellStyle.TITLE);
         if (!sea.core().hasCore()) {
-            body(graphics, "Your soul has no Aspect yet. Sleep beside a lit Dream Candle and the Spell will name one.",
-                    top + 14, SpellStyle.MUTED);
-            hint(graphics, "screen.shadowslave.soul_sea.hint");
+            renderIntention(graphics, mouseX, mouseY);
             return;
         }
         renderTabs(graphics, mouseX, mouseY);
@@ -190,6 +193,64 @@ public final class SoulSeaScreen extends Screen {
         hint(graphics, "screen.shadowslave.soul_sea.refine");
     }
 
+    /** Before the roll: name a longing, offer what is in hand, and see how the odds lean. */
+    private void renderIntention(GuiGraphics graphics, int mouseX, int mouseY) {
+        int centre = (left + right) / 2;
+        int y = top + 12;
+        graphics.drawCenteredString(this.font, "Before the Spell names you", centre, y, SpellStyle.TITLE);
+        y += 14;
+        body(graphics, "Offer something you carry and name what you long for. The Spell listens, but it is never bound.",
+                y, SpellStyle.MUTED);
+        y += 26;
+        ItemStack held = this.minecraft.player == null ? ItemStack.EMPTY : this.minecraft.player.getMainHandItem();
+        String holding = held.isEmpty() ? "Your hands are empty; you can still name a longing."
+                : "In hand: " + held.getHoverName().getString();
+        graphics.drawCenteredString(this.font, holding, centre, y, SpellStyle.TEXT);
+
+        Longing[] longings = Longing.values();
+        int width = longingWidth();
+        for (int i = 0; i < longings.length; i++) {
+            int x0 = longingLeft(i);
+            boolean chosen = longings[i].serializedName().equals(longing);
+            boolean hovered = inside(mouseX, mouseY, x0, longingTop(), x0 + width, longingTop() + BUTTON_HEIGHT);
+            graphics.fill(x0, longingTop(), x0 + width, longingTop() + BUTTON_HEIGHT,
+                    chosen ? SpellStyle.withAlpha(SpellStyle.BORDER, 0.35F) : hovered ? SpellStyle.withAlpha(SpellStyle.BORDER, 0.2F) : SpellStyle.PANEL);
+            graphics.renderOutline(x0, longingTop(), width, BUTTON_HEIGHT, chosen ? SpellStyle.TITLE : SpellStyle.RULE);
+            graphics.drawCenteredString(this.font, longings[i].label(), x0 + width / 2, longingTop() + 5,
+                    chosen ? SpellStyle.TITLE : SpellStyle.TEXT);
+        }
+
+        List<Integer> odds = sea.intention().odds();
+        int oddsY = longingTop() + BUTTON_HEIGHT + 10;
+        for (int i = 0; i < longings.length && i < odds.size(); i++) {
+            int x0 = longingLeft(i);
+            String label = longings[i].natureName() + " " + odds.get(i) + "%";
+            graphics.drawCenteredString(this.font, label, x0 + width / 2, oddsY, SpellStyle.ASPECT);
+            graphics.fill(x0, oddsY + 11, x0 + width, oddsY + 15, SpellStyle.PANEL);
+            int filled = Math.round(width * odds.get(i) / 100.0F);
+            graphics.fill(x0, oddsY + 11, x0 + filled, oddsY + 15, SpellStyle.withAlpha(SpellStyle.ASPECT, 0.8F));
+        }
+
+        String offered = sea.intention().offering().isEmpty() ? "nothing offered" : "offered " + sea.intention().offering();
+        String named = Longing.parse(sea.intention().longing()).map(value -> "longing to " + value.label().toLowerCase(Locale.ROOT))
+                .orElse("no longing named");
+        graphics.drawCenteredString(this.font, "So far: " + offered + ", " + named + ".", centre, oddsY + 22, SpellStyle.MUTED);
+        renderButton(graphics, mouseX, mouseY, BUTTON_WIDTH, "Offer", !longing.isEmpty());
+        hint(graphics, "screen.shadowslave.soul_sea.intention");
+    }
+
+    private int longingWidth() {
+        return (right - left - 32 - 3 * 8) / 4;
+    }
+
+    private int longingLeft(int index) {
+        return left + 16 + index * (longingWidth() + 8);
+    }
+
+    private int longingTop() {
+        return top + 76;
+    }
+
     private static int placed(SoulSeaPayload.Refinement points, RefinementStat stat) {
         return switch (stat) {
             case BODY -> points.body();
@@ -247,7 +308,7 @@ public final class SoulSeaScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (!sea.core().hasCore()) {
-            return super.mouseClicked(mouseX, mouseY, button);
+            return clickIntention(mouseX, mouseY) || super.mouseClicked(mouseX, mouseY, button);
         }
         if (inside(mouseX, mouseY, left, top, right, top + TAB_HEIGHT)) {
             int index = (int) ((mouseX - left) / ((right - left) / Page.values().length));
@@ -276,6 +337,25 @@ public final class SoulSeaScreen extends Screen {
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    private boolean clickIntention(double mouseX, double mouseY) {
+        Longing[] longings = Longing.values();
+        for (int i = 0; i < longings.length; i++) {
+            int x0 = longingLeft(i);
+            if (inside(mouseX, mouseY, x0, longingTop(), x0 + longingWidth(), longingTop() + BUTTON_HEIGHT)) {
+                longing = longings[i].serializedName();
+                this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
+                return true;
+            }
+        }
+        int buttonLeft = (left + right - BUTTON_WIDTH) / 2;
+        if (!longing.isEmpty() && inside(mouseX, mouseY, buttonLeft, buttonTop(), buttonLeft + BUTTON_WIDTH, buttonTop() + BUTTON_HEIGHT)) {
+            PacketDistributor.sendToServer(new IntentionRequestPayload(longing));
+            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_CHIME, 1.0F));
+            return true;
+        }
+        return false;
     }
 
     private boolean clickRefine(double mouseX, double mouseY) {

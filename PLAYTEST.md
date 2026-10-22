@@ -98,6 +98,16 @@ quarter of their core out as a shard you can absorb; turn that off with
 | Stone | No knockback while standing still | Holdfast: Resistance II and no knockback for 6 s, no sprinting (35 essence) | Stone Sleep: slow after sleeping, you sink in water |
 | Tide | Breathe underwater | Returning Tide: press to mark, press again within 10 s (or wait) to be pulled back (30 essence) | Tidal Debt: weak if a day passes without touching water or rain |
 
+**Intention offering.** Before your first roll you can meditate at a lit Dream
+Candle (sneak and use it) to offer an intention. Name a longing (Burn, Hide,
+Endure or Return) and press Offer: one of the item in your hand is taken if the
+Spell cares for it (Ember: coal, torches, blaze powder; Mist: feathers, phantom
+membrane, ender pearls; Stone: cobblestone, iron, amethyst, diamond; Tide: kelp,
+fish, prismarine, a water bucket; the full lists are the
+`data/shadowslave/tags/item/intention/` tags). The Soul Sea shows the odds:
+offering and longing for the same Nature takes it from 25% to about 44%, never
+certain. Then sleep beside the candle; the roll uses the intention once.
+
 **Meditation and Awakening.** Sneak and use a lit Dream Candle (with anything
 in hand) to meditate: the **Soul Sea** opens, showing your Soul Rank, your core
 and what the next rank asks. For now Awakening asks for a saturated core. Pick one

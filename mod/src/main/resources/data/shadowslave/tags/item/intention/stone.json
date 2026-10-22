@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:cobblestone",
+    "minecraft:stone",
+    "minecraft:deepslate",
+    "minecraft:flint",
+    "minecraft:iron_ingot",
+    "minecraft:raw_iron",
+    "minecraft:amethyst_shard",
+    "minecraft:obsidian",
+    "minecraft:diamond"
+  ]
+}

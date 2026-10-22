@@ -4,6 +4,7 @@ import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.ability.AbilityService;
 import dev.spud.shadowslave.ability.EssenceService;
 import dev.spud.shadowslave.ability.FlawStateData;
+import dev.spud.shadowslave.appraisal.generation.GenerationEvidence;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.nightmare.NightmareService;
@@ -37,13 +38,18 @@ public final class AspectRollService {
      * Rolls and commits a new Aspect, replacing any existing one. Callers decide
      * whether the player may roll (the ritual only rolls once; admins may reroll).
      */
+    /** Playstyle evidence, leaned by any intention offered at the candle. */
+    public static GenerationEvidence evidence(ServerPlayer player) {
+        return IntentionRules.apply(PlaystyleEvidence.from(player), IntentionService.get(player));
+    }
+
     public static AspectRoller.Roll roll(ServerPlayer player) {
         Objects.requireNonNull(player, "player");
         if (NightmareService.activeFor(player).isPresent()) {
             throw new IllegalStateException("Cannot roll an Aspect while inside a Nightmare.");
         }
 
-        AspectRoller.Roll roll = AspectRoller.roll(player.getRandom().nextLong(), PlaystyleEvidence.from(player));
+        AspectRoller.Roll roll = AspectRoller.roll(player.getRandom().nextLong(), evidence(player));
         SoulIdentityData before = SoulIdentityService.get(player);
         SoulIdentityService.replace(player, roll.identity());
         try {
@@ -54,6 +60,7 @@ public final class AspectRollService {
             SoulIdentityService.replace(player, before);
             throw exception;
         }
+        IntentionService.clear(player);
         EssenceService.fill(player);
         CoreService.refresh(player);
         player.setData(ModAttachments.FLAW_STATE, FlawStateData.empty());

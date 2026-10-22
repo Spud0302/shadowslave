@@ -1,11 +1,9 @@
 package dev.spud.shadowslave.preview;
 
 import dev.spud.shadowslave.ability.EssenceData;
-import dev.spud.shadowslave.soul.core.CoreData;
-import dev.spud.shadowslave.soul.refinement.RefinementData;
-import dev.spud.shadowslave.soul.refinement.RefinementService;
 import dev.spud.shadowslave.ability.FlawStateData;
 import dev.spud.shadowslave.attachment.ModAttachments;
+import dev.spud.shadowslave.awakening.IntentionData;
 import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.echo.EchoOwnershipData;
 import dev.spud.shadowslave.echo.EchoOwnershipService;
@@ -19,10 +17,13 @@ import dev.spud.shadowslave.network.SoulSyncService;
 import dev.spud.shadowslave.nightmare.NightmareService;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulService;
+import dev.spud.shadowslave.soul.core.CoreData;
 import dev.spud.shadowslave.soul.identity.AttributeOwnershipData;
 import dev.spud.shadowslave.soul.identity.AttributeOwnershipService;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
+import dev.spud.shadowslave.soul.refinement.RefinementData;
+import dev.spud.shadowslave.soul.refinement.RefinementService;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Objects;
@@ -79,6 +80,7 @@ public final class PreviewResetService {
             player.setData(ModAttachments.ESSENCE, EssenceData.empty());
             player.setData(ModAttachments.CORE, CoreData.empty());
             player.setData(ModAttachments.REFINEMENT, RefinementData.empty());
+            player.setData(ModAttachments.INTENTION, IntentionData.empty());
             player.setData(ModAttachments.FLAW_STATE, FlawStateData.empty());
         }
         @Override public void sync(SoulData resetSoul) {

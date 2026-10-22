@@ -12,11 +12,12 @@ import java.util.List;
 /**
  * What a player sees on meditating at the Dream Candle: their core, the next
  * rank and what it needs, the abilities they can choose on rising, and their
- * refinement points. {@code open} asks the client to open the Soul Sea;
+ * refinement points; before the roll, the intention offered and the odds it
+ * gives each Nature. {@code open} asks the client to open the Soul Sea;
  * otherwise it only refreshes a Soul Sea that is already open.
  */
 public record SoulSeaPayload(CoreStatusPayload core, String nextRank, String requirement, boolean ready,
-                             List<Choice> choices, Refinement refinement, boolean open) implements CustomPacketPayload {
+                             List<Choice> choices, Refinement refinement, Intention intention, boolean open) implements CustomPacketPayload {
     public static final int MAX_CHOICES = 4;
     public static final Type<SoulSeaPayload> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "soul_sea")
@@ -49,6 +50,24 @@ public record SoulSeaPayload(CoreStatusPayload core, String nextRank, String req
         }
     }
 
+    /**
+     * Before the roll: what was offered (its name), the longing named, and the
+     * chance of each Nature in Ember, Mist, Stone, Tide order, in percent.
+     */
+    public record Intention(String offering, String longing, List<Integer> odds) {
+        public static final Intention NONE = new Intention("", "", List.of());
+        public static final StreamCodec<ByteBuf, Intention> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.stringUtf8(128), Intention::offering,
+                ByteBufCodecs.stringUtf8(16), Intention::longing,
+                ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list(8)), Intention::odds,
+                Intention::new
+        );
+
+        public Intention {
+            odds = List.copyOf(odds);
+        }
+    }
+
     private static final StreamCodec<ByteBuf, List<Choice>> CHOICES = Choice.STREAM_CODEC.apply(ByteBufCodecs.list(MAX_CHOICES));
 
     public static final StreamCodec<ByteBuf, SoulSeaPayload> STREAM_CODEC = StreamCodec.of(
@@ -59,6 +78,7 @@ public record SoulSeaPayload(CoreStatusPayload core, String nextRank, String req
                 ByteBufCodecs.BOOL.encode(buffer, value.ready());
                 CHOICES.encode(buffer, value.choices());
                 Refinement.STREAM_CODEC.encode(buffer, value.refinement());
+                Intention.STREAM_CODEC.encode(buffer, value.intention());
                 ByteBufCodecs.BOOL.encode(buffer, value.open());
             },
             buffer -> new SoulSeaPayload(
@@ -68,6 +88,7 @@ public record SoulSeaPayload(CoreStatusPayload core, String nextRank, String req
                     ByteBufCodecs.BOOL.decode(buffer),
                     CHOICES.decode(buffer),
                     Refinement.STREAM_CODEC.decode(buffer),
+                    Intention.STREAM_CODEC.decode(buffer),
                     ByteBufCodecs.BOOL.decode(buffer)
             )
     );
