@@ -3,9 +3,9 @@
 ## Package identity
 
 - Minecraft: `1.21.1`
-- NeoForge: `21.1.244`
+- NeoForge: `21.1.264`
 - Java: **JDK** `21`
-- ModDevGradle: `2.0.143`
+- ModDevGradle: `2.0.148`
 - Gradle wrapper: `9.2.1`
 - Stable main: `0.1.0-alpha.4`, Claude-verified
 - Active preview candidate: `0.1.0-preview.2` on PR #19

@@ -61,7 +61,7 @@ Future Nightmare and Seed work must begin with [`docs/NIGHTMARE-SEED-ROADMAP.md`
 ## Toolchain
 
 - Minecraft Java Edition 1.21.1;
-- NeoForge 21.1.244;
+- NeoForge 21.1.264;
 - **JDK** 21;
 - Gradle wrapper 9.2.1;
 - dedicated-server compatibility;

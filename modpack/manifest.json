@@ -7,7 +7,7 @@
     "minecraft_version": "1.21.1",
     "loader": {
       "type": "neoforge",
-      "version": "21.1.244"
+      "version": "21.1.264"
     },
     "java_major": 21
   },
@@ -39,7 +39,7 @@
     {
       "id": "geckolib-4",
       "mod_id": "geckolib",
-      "version": "4.9.2",
+      "version": "4.9.3",
       "role": "presentation_provider",
       "side": "both",
       "required": true,
@@ -47,8 +47,8 @@
       "source": {
         "type": "direct",
         "project": "software.bernie.geckolib:geckolib-neoforge-1.21.1",
-        "file": "geckolib-neoforge-1.21.1-4.9.2.jar",
-        "sha256": "5e548466af9ab6aca7a91a7c7d4dc0dc8bc385e22958aed5da0e7bebd0fa3fba"
+        "file": "geckolib-neoforge-1.21.1-4.9.3.jar",
+        "sha256": "20a1995e4074f387ff549e2c57ea79dd7d41ee83c6afb9dd6a6e840e592d1c47"
       },
       "license": "MIT",
       "removal_behavior": "This build cannot render its GeckoLib-backed presentation without GeckoLib; canonical Soul, progression, Nightmare, creature, reward and ownership state remain entirely in shadowslave-core."

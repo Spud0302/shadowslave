@@ -2,7 +2,7 @@
 
 **Build line:** `0.1.0-preview.2`  
 **Minecraft:** Java Edition 1.21.1  
-**Loader:** NeoForge 21.1.244  
+**Loader:** NeoForge 21.1.264  
 **Status:** corrected development preview, Java automated gate green, Claude/player review pending, not a public release
 
 This build exists so Andrew can install the Java mod in an ordinary local game and feel the current systems. It is a coherent vertical slice, not a complete Shadow Slave game.
@@ -10,7 +10,7 @@ This build exists so Andrew can install the Java mod in an ordinary local game a
 ## Install
 
 1. Install Minecraft Java Edition **1.21.1**.
-2. Install NeoForge **21.1.244** for that instance.
+2. Install NeoForge **21.1.264** for that instance.
 3. Copy `shadowslave-0.1.0-preview.2.jar` into the instance's `mods` folder.
 4. Remove the older `preview.1` JAR if present; do not load both.
 5. Do not install the vanilla Shadow Slave datapack for a fresh preview world. The JAR includes its own Java systems and Nightmare dimension.
