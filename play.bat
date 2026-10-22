@@ -13,9 +13,21 @@ set "WORLD="
 
 :parse
 if "%~1"=="" goto parsed
-if /i "%~1"=="--branch" (set "BRANCH=%~2" & shift & shift & goto parse)
+if /i "%~1"=="--branch" (
+    if "%~2"=="" (echo --branch needs a name& goto usage_fail)
+    set "BRANCH=%~2"
+    shift
+    shift
+    goto parse
+)
 if /i "%~1"=="--pull" (set "PULL=1" & shift & goto parse)
-if /i "%~1"=="--world" (set "WORLD=%~2" & shift & shift & goto parse)
+if /i "%~1"=="--world" (
+    if "%~2"=="" (echo --world needs a name& goto usage_fail)
+    set "WORLD=%~2"
+    shift
+    shift
+    goto parse
+)
 if /i "%~1"=="--help" goto usage
 if /i "%~1"=="-h" goto usage
 echo Unknown option: %~1

@@ -21,7 +21,7 @@ minutes. Later launches only rebuild what changed.
 
 | OS | How |
 | --- | --- |
-| Windows | Double-click `play.bat`, or run `play.bat` in a terminal |
+| Windows | Double-click `play.bat`, or run `.\play.bat` in PowerShell |
 | macOS | Double-click `play.command`, or run `./play.sh` |
 | Linux | `./play.sh` |
 
