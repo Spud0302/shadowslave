@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-10-22T01:10:26Z",
-  "source_commit": "8fb7244e86eacacb0c06775e39b2fcac24e7bcf1",
-  "source_tree_dirty": true,
-  "note_count": 91,
+  "generated_at": "2026-10-22T02:02:38Z",
+  "source_commit": "d89136369d175d62b7bbcfc55fc949c6691f9d65",
+  "source_tree_dirty": false,
+  "note_count": 92,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -937,6 +937,28 @@
       "task_id": "20260826T063116Z-claude-code-pal-dependency",
       "lease_until": "2026-08-26T10:31:16Z",
       "base_commit": "9e4280b16c2d8b168a63ef34e2960468acdf6bb0"
+    },
+    "20261022T015753Z-claude-code-playtest-launcher": {
+      "uid": "20261022T015753Z-claude-code-playtest-launcher",
+      "path": "brain/ai/claims/20261022T015753Z--claude-code--playtest-launcher.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "active",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Claim \u2014 One-step playtest launcher",
+      "summary": "Jack (2026-10-22): a quick way to boot Minecraft with the right version of the mod loaded, to look at visuals.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T015753Z-claude-code-playtest-launcher",
+      "lease_until": "2026-10-22T09:57:53Z",
+      "base_commit": "c1a7ae2b9d4f18af61e45213ff16f70fb4831c2a"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",

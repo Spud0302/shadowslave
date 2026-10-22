@@ -34,6 +34,8 @@ Implemented in the preview line:
 
 Install and play using [`mod/PREVIEW-PLAY-GUIDE.md`](mod/PREVIEW-PLAY-GUIDE.md).
 
+To build the current branch and open Minecraft with it in one step, run `play.bat` (Windows) or `./play.sh` (macOS/Linux). See [PLAYTEST.md](PLAYTEST.md).
+
 Quick start in a disposable world:
 
 ```text
