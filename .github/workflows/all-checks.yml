@@ -38,9 +38,13 @@ jobs:
           sleep 30
           while true; do
             # Latest run per check name, so a re-run that passed replaces the failure.
+            # A run skipped while the PR was a draft can be newer than the real run
+            # that starts when it is marked ready, so skipped runs only count when
+            # a check has nothing else.
             runs="$(gh api "repos/$REPO/commits/$SHA/check-runs?per_page=100" \
               --jq '[.check_runs[] | select(.name != "all-checks")]
-                    | group_by(.name) | map(max_by(.id))')"
+                    | group_by(.name)
+                    | map((map(select(.conclusion != "skipped")) | max_by(.id)) // max_by(.id))')"
             failed="$(jq -r '.[] | select(.status == "completed"
               and (.conclusion | IN("success", "skipped", "neutral") | not))
               | "\(.name): \(.conclusion)"' <<<"$runs")"
