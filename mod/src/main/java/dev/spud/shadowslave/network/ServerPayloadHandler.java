@@ -1,16 +1,16 @@
 package dev.spud.shadowslave.network;
 
+import dev.spud.shadowslave.ability.AbilityService;
 import dev.spud.shadowslave.echo.EchoInstanceData;
 import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.echo.EchoOwnershipService;
 import dev.spud.shadowslave.echo.content.EchoContentCatalog;
 import dev.spud.shadowslave.memory.MemoryManifestationService;
-import dev.spud.shadowslave.network.payload.ActivateKindleRequestPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshCompassRequestPayload;
-import dev.spud.shadowslave.preview.PreviewPowerService;
+import dev.spud.shadowslave.network.payload.UseAbilityRequestPayload;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,10 +28,10 @@ public final class ServerPayloadHandler {
         }
     }
 
-    public static void handleActivateKindle(ActivateKindleRequestPayload payload, IPayloadContext context) {
-        ServerPlayer player = serverPlayer(context, "Kindle");
+    public static void handleUseAbility(UseAbilityRequestPayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "Aspect ability");
         if (player != null) {
-            PreviewPowerService.activateKindle(player);
+            AbilityService.useAbility(player);
         }
     }
 

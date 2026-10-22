@@ -40,6 +40,18 @@ public final class SoulService {
         );
     }
 
+    public static SoulData awakenThroughRitual(
+            ServerPlayer player,
+            ResourceLocation aspectId,
+            SoulRank aspectRank,
+            ResourceLocation flawId
+    ) {
+        return replace(
+                player,
+                SoulTransitions.awakenThroughRitual(get(player), aspectId, aspectRank, flawId)
+        );
+    }
+
     public static SoulData reset(ServerPlayer player) {
         return replace(player, SoulTransitions.reset());
     }

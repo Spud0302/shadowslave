@@ -2,6 +2,9 @@ package dev.spud.shadowslave.command;
 
 import com.mojang.brigadier.Command;
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.ability.AbilityService;
+import dev.spud.shadowslave.awakening.AspectRollService;
+import dev.spud.shadowslave.awakening.AspectRoller;
 import dev.spud.shadowslave.migration.DatapackMigrationOutcome;
 import dev.spud.shadowslave.migration.DatapackMigrationService;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
@@ -9,7 +12,6 @@ import dev.spud.shadowslave.migration.ImportedIdentityService;
 import dev.spud.shadowslave.network.SoulSyncService;
 import dev.spud.shadowslave.nightmare.NightmareInstance;
 import dev.spud.shadowslave.nightmare.NightmareService;
-import dev.spud.shadowslave.preview.PreviewPowerService;
 import dev.spud.shadowslave.preview.PreviewResetService;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.SoulRank;
@@ -18,11 +20,16 @@ import dev.spud.shadowslave.soul.SpellState;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+
+import java.util.Collection;
+import java.util.List;
 
 /** Player preview controls plus operator-facing architecture and migration commands. */
 public final class ShadowSlaveCommands {
@@ -50,6 +57,8 @@ public final class ShadowSlaveCommands {
                         .executes(context -> nightmareStatus(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("nightmare_recover")
                         .executes(context -> recoverNightmare(context.getSource().getPlayerOrException())))
+                .then(Commands.literal("ability")
+                        .executes(context -> kindle(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("kindle")
                         .executes(context -> kindle(context.getSource().getPlayerOrException())))
                 .then(Commands.literal("migrate_datapack")
@@ -64,9 +73,33 @@ public final class ShadowSlaveCommands {
                 .then(Commands.literal("complete_first_nightmare_test")
                         .requires(source -> source.hasPermission(2))
                         .executes(context -> completeFirstNightmare(context.getSource().getPlayerOrException())))
+                .then(Commands.literal("aspect")
+                        .requires(source -> source.hasPermission(2))
+                        .then(Commands.literal("reroll")
+                                .executes(context -> rerollAspect(context.getSource(),
+                                        List.of(context.getSource().getPlayerOrException())))
+                                .then(Commands.argument("targets", EntityArgument.players())
+                                        .executes(context -> rerollAspect(context.getSource(),
+                                                EntityArgument.getPlayers(context, "targets"))))))
                 .then(Commands.literal("reset")
                         .requires(source -> source.hasPermission(2))
                         .executes(context -> previewReset(context.getSource().getPlayerOrException()))));
+    }
+
+    private static int rerollAspect(CommandSourceStack source, Collection<ServerPlayer> targets) {
+        int rolled = 0;
+        for (ServerPlayer target : targets) {
+            try {
+                AspectRoller.Roll roll = AspectRollService.roll(target);
+                AspectRollService.reveal(target, roll);
+                source.sendSuccess(() -> Component.literal("Rerolled " + target.getScoreboardName() + ": "
+                        + roll.aspectName() + " (" + roll.kit().natureName() + ")"), true);
+                rolled++;
+            } catch (RuntimeException exception) {
+                source.sendFailure(Component.literal(target.getScoreboardName() + ": " + exception.getMessage()));
+            }
+        }
+        return rolled;
     }
 
     private static int showSoul(ServerPlayer player) {
@@ -169,7 +202,7 @@ public final class ShadowSlaveCommands {
     }
 
     private static int kindle(ServerPlayer player) {
-        return PreviewPowerService.activateKindle(player) ? Command.SINGLE_SUCCESS : 0;
+        return AbilityService.useAbility(player) == AbilityService.Outcome.USED ? Command.SINGLE_SUCCESS : 0;
     }
 
     private static int migrateDatapack(ServerPlayer player) {
