@@ -1,125 +1,78 @@
 # Shadow Slave for Minecraft
 
-An unofficial fan project inspired by _Shadow Slave_ by Guiltythree.
+An unofficial fan mod inspired by _Shadow Slave_ by Guiltythree, for Minecraft Java Edition 1.21.1
+on NeoForge.
 
-## Current products
+## What you can do today
 
-| Product | State |
-| --- | --- |
-| Vanilla datapack | completed and frozen as `datapack-v1.0.0` |
-| Standalone/shared NeoForge core | corrected `0.1.0-preview.2` candidate on PR #19 |
-| Nightmare Spell modpack | design only; no manifest or dependency package yet |
+The mod currently covers a player's first steps as an Awakened: rolling an Aspect, using its
+abilities, and growing the soul core to the first rank-up.
 
-The Java preview is **not a public release and not yet bulk-verified by Claude**. The earlier `0.1.0-preview.1` artifact passed compilation, unit tests, physical-client startup, dedicated-server startup, packaging, and artifact upload. `0.1.0-preview.2` contains the correction batch for issues #20–#26 and requires a fresh workflow and play review before it replaces that artifact.
+- **Dream Candle ritual.** Light a Dream Candle beside your bed and sleep. The Spell names your
+  Aspect, Innate rule, Ability and Flaw over a dark veil. There are four Natures (Ember, Mist,
+  Stone and Tide), each with a hand-made kit, and the roll leans slightly towards how you played
+  before it.
+- **Intention offering.** Before the roll, meditate at the candle and offer an item and a longing to
+  tilt the odds towards one Nature. It never makes the result certain.
+- **Abilities and essence.** Press R for your ability. Abilities have no cooldowns; they spend
+  essence from one shared pool, shown beside the ability slot left of the hotbar. Each ability has a
+  casting pose that other players see.
+- **Soul shards and the core.** Mobs (and players, by default) drop graded soul shards. Absorbing
+  them fills your soul core, which adds health as it fills.
+- **The Soul Sea and Awakening.** Meditating at a lit Dream Candle opens the Soul Sea. With a
+  saturated core you can Awaken, choose one of your Nature's two Awakened abilities (bound to V),
+  and double your essence pool.
+- **Refinement and channeling.** Spend refinement points on Body, Soul or Aspect, respec at a loss,
+  and (once Awakened) channel essence with Z into a leap or a loaded melee blow.
+- **Soul screen.** Press O for tabs covering your Aspect, Abilities, Flaw and Soul.
 
-See [PROJECT-STATUS.md](PROJECT-STATUS.md) for the canonical current state and [docs/CURRENT-PREVIEW-SUMMARY.md](docs/CURRENT-PREVIEW-SUMMARY.md) for a compact preview summary.
+The full player guide, with every ability and its essence cost, is [PLAYTEST.md](PLAYTEST.md).
 
-## Playable Java preview
+## Play the current build
 
-The Java project lives under [`mod/`](mod/). The current preview targets Minecraft Java Edition 1.21.1, NeoForge 21.1.244, and JDK 21.
+Install JDK 21 and Git, clone this repository, then run `play.bat` (Windows), `play.command`
+(macOS) or `./play.sh` (Linux). It builds the mod from the checked-out branch and opens Minecraft
+with it loaded. NeoForge and the libraries are fetched for you. See [PLAYTEST.md](PLAYTEST.md) for
+the options.
 
-Implemented in the preview line:
-
-- persistent lore-aligned Uninfected, Carrier, Aspirant, and Dreamer/Sleeper states;
-- separate Soul Rank and Aspect Rank;
-- server-authoritative Soul and identity attachments;
-- expanded read-only O-key Soul screen;
-- transactional live datapack migration with exact read-back and rollback;
-- persistent per-player First Nightmare registry and separate play-space slots;
-- bundled Nightmare dimension;
-- the handcrafted DESIGN scenario **The Last Signal** and role **last watchkeeper**;
-- one central-conflict resolution path where combat is optional;
-- fixed DESIGN appraisal: Aspect **Last Light**, ability **Kindle**, and Flaw **Cold Ash**;
-- technical recovery, inspection, reset, and migration commands.
-
-Install and play using [`mod/PREVIEW-PLAY-GUIDE.md`](mod/PREVIEW-PLAY-GUIDE.md).
-
-To build the current branch and open Minecraft with it in one step, run `play.bat` (Windows) or `./play.sh` (macOS/Linux). See [PLAYTEST.md](PLAYTEST.md).
-
-Quick start in a disposable world:
-
-```text
-Press O
-/shadowslave preview_begin
-```
-
-Useful commands:
-
-```text
-/shadowslave soul
-/shadowslave soul_screen
-/shadowslave preview_begin
-/shadowslave nightmare_status
-/shadowslave nightmare_recover
-/shadowslave kindle
-/shadowslave preview_reset
-```
-
-`/shadowslave migrate_datapack` is operator-only and should be tested on a backup legacy world.
-
-## Evidence and limitations
-
-Automated build provenance and checksums are recorded in [`docs/PLAYABLE-PREVIEW-PROVENANCE.md`](docs/PLAYABLE-PREVIEW-PROVENANCE.md). The complete review and play criteria are in [`docs/PLAYABLE-PREVIEW-TEST-MATRIX.md`](docs/PLAYABLE-PREVIEW-TEST-MATRIX.md).
-
-Still outside this preview:
-
-- natural infection and exhaustion progression;
-- complete historical body/inventory handling;
-- custom Nightmare Creature AI and corpse Gates;
-- procedural or canon-claimed appraisal;
-- full mechanics for every imported identity;
-- later Seeds, Dream Realm progression, Memories, Echoes, and later ranks;
-- the modpack implementation and standalone/modpack comparison.
-
-## Nightmare and Seed direction
-
-Future Nightmare completion must follow [`docs/NIGHTMARE-SEED-ROADMAP.md`](docs/NIGHTMARE-SEED-ROADMAP.md): a Nightmare ends when its central conflict reaches a named terminal resolution, while each challenger's survival/outcome and appraisal are evaluated separately. Boss deaths, timers, and objective interactions are events—not universal victory conditions. Exact later-Seed behaviour requires another primary-novel check before implementation.
-
-## Datapack v1.0.0
-
-The frozen vanilla datapack installs at:
-
-```text
-<world>/datapacks/shadowslave-v1.0.0.zip
-```
-
-A multiplayer server installs it once; joining players use ordinary vanilla 1.21.1 clients. **Only one player may be inside a First Nightmare at a time.** The pack owns one global Nightmare dimension, bossbar, and creature slot, so a second entrant is now refused until the active trial finishes. This prevents the former failure where concurrent creatures blocked victory and trapped a player. The Java preview does not share this ceiling because it owns separate per-player Nightmare instances.
-
-The datapack remains a behavioural and import-compatibility reference. Its first-sleep infection, safe ejection, serialized global ownership, finite identity tables, and timer/boss structure are prototype behaviour rather than permanent Java architecture or universal canon.
-
-## Lore and design authority
-
-- novel mechanics and terminology are primary authority;
-- official adaptation material may guide compatible visual staging;
-- translations/scanlations are access aids, not final terminology authority;
-- project mechanics are labelled **DESIGN** where canon gives no deterministic rule;
-- the datapack is compatibility evidence, not a Java-format constraint.
-
-Start with [`docs/JAVA-LORE-ALIGNMENT.md`](docs/JAVA-LORE-ALIGNMENT.md), [`docs/PREVIEW-LORE-DECISIONS.md`](docs/PREVIEW-LORE-DECISIONS.md), and [`docs/JAVA-HANDOFF.md`](docs/JAVA-HANDOFF.md).
+There is no public release yet. The mod version is `0.1.0-preview.2`.
 
 ## Repository map
 
 ```text
-shadowslave/          frozen datapack source
-testserver/           datapack deployment and Mineflayer harnesses
-mod/                  shared/standalone NeoForge Java core
-modpack/              dependency-led prototype plan
+mod/                  the NeoForge mod (Gradle root; run ./mod/gradlew -p mod build)
+play.bat / play.sh    one-step build-and-play launchers
+shadowslave/          the frozen vanilla datapack (datapack-v1.0.0), kept as a reference
+testserver/           Mineflayer harnesses that test the frozen datapack
+modpack/              modpack packaging tools and manifest
 shared-test-spec/     implementation-neutral acceptance scenarios
-docs/                 lore, architecture, workflow, provenance, and historical records
+docs/                 lore research, design notes and historical records
 ```
 
-## Administrative authority
+## Status and planning
 
 | Need | Read |
 | --- | --- |
-| exact current state | [PROJECT-STATUS.md](PROJECT-STATUS.md) |
-| current preview summary | [docs/CURRENT-PREVIEW-SUMMARY.md](docs/CURRENT-PREVIEW-SUMMARY.md) |
-| install and play | [mod/PREVIEW-PLAY-GUIDE.md](mod/PREVIEW-PLAY-GUIDE.md) |
-| evidence and checksums | [docs/PLAYABLE-PREVIEW-PROVENANCE.md](docs/PLAYABLE-PREVIEW-PROVENANCE.md) |
-| bulk testing | [docs/PLAYABLE-PREVIEW-TEST-MATRIX.md](docs/PLAYABLE-PREVIEW-TEST-MATRIX.md) |
-| future Nightmare/Seed work | [docs/NIGHTMARE-SEED-ROADMAP.md](docs/NIGHTMARE-SEED-ROADMAP.md) |
-| GPT session checkpoint | [GPT_HANDOFF.md](GPT_HANDOFF.md) |
+| current state and what's next | [PROJECT-STATUS.md](PROJECT-STATUS.md) |
+| known issues | [ISSUES.md](ISSUES.md) |
+| playing and testing | [PLAYTEST.md](PLAYTEST.md) |
+| rules for AI agents working here | [AGENTS.md](AGENTS.md) |
+| lore source rules | [docs/LORE-SOURCE-POLICY.md](docs/LORE-SOURCE-POLICY.md) |
+| older status documents | [docs/history/](docs/history/README.md) |
+
+## Datapack v1.0.0
+
+The original vanilla datapack is finished and frozen under `shadowslave/`. It still runs on
+ordinary 1.21.1 servers, but only one player can be inside its First Nightmare at a time. It is a
+reference for behaviour and data import, not the design target for the mod.
+
+## Lore
+
+Novel text is the primary authority for mechanics and terminology; the wiki and official
+adaptations guide anything the novel leaves open. Mechanics the novel doesn't define are labelled
+**DESIGN**. See [docs/LORE-SOURCE-POLICY.md](docs/LORE-SOURCE-POLICY.md).
 
 ## Credit
 
-_Shadow Slave_ is by Guiltythree. This project is unofficial and is not affiliated with the author or publisher. It does not copy novel prose or official artwork.
+_Shadow Slave_ is by Guiltythree. This project is unofficial and is not affiliated with the author
+or publisher. It does not copy novel prose or official artwork.
