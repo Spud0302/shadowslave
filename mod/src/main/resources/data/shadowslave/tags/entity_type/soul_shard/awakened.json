@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:pillager",
+    "minecraft:vindicator",
+    "minecraft:ravager",
+    "minecraft:witch",
+    "minecraft:vex",
+    "minecraft:blaze",
+    "minecraft:ghast",
+    "minecraft:hoglin",
+    "minecraft:zoglin",
+    "minecraft:piglin",
+    "minecraft:piglin_brute",
+    "minecraft:zombified_piglin",
+    "minecraft:magma_cube",
+    "minecraft:guardian",
+    "minecraft:enderman",
+    "minecraft:breeze"
+  ]
+}

@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.preview;
 
 import dev.spud.shadowslave.ability.EssenceData;
+import dev.spud.shadowslave.soul.core.CoreData;
 import dev.spud.shadowslave.ability.FlawStateData;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.echo.EchoManifestationService;
@@ -74,8 +75,12 @@ public final class PreviewResetService {
         @Override public void clearPreviewPower() {
             player.setData(ModAttachments.PREVIEW_POWER, PreviewPowerData.empty());
             player.setData(ModAttachments.ESSENCE, EssenceData.empty());
+            player.setData(ModAttachments.CORE, CoreData.empty());
             player.setData(ModAttachments.FLAW_STATE, FlawStateData.empty());
         }
-        @Override public void sync(SoulData resetSoul) { SoulSyncService.sync(player, resetSoul, false); }
+        @Override public void sync(SoulData resetSoul) {
+            SoulSyncService.sync(player, resetSoul, false);
+            dev.spud.shadowslave.soul.core.CoreService.refresh(player);
+        }
     }
 }

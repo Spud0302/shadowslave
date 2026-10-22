@@ -5,6 +5,7 @@ import dev.spud.shadowslave.network.ServerPayloadHandler;
 import dev.spud.shadowslave.network.payload.AbilityCastPayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
+import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
@@ -35,6 +36,11 @@ public final class ClientModPayloads {
                 AbilityStatusPayload.TYPE,
                 AbilityStatusPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleAbilityStatus
+        );
+        registrar.playToClient(
+                CoreStatusPayload.TYPE,
+                CoreStatusPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleCoreStatus
         );
         registrar.playToClient(
                 AspectRevealPayload.TYPE,

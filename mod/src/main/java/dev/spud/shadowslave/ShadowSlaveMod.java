@@ -13,7 +13,10 @@ import dev.spud.shadowslave.dreamrealm.DreamRealmStoryNpcRuntime;
 import dev.spud.shadowslave.echo.EchoCommands;
 import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.item.GlassRoadMemoryItem;
+import dev.spud.shadowslave.item.ModDataComponents;
 import dev.spud.shadowslave.item.ModItems;
+import dev.spud.shadowslave.soul.core.CoreService;
+import dev.spud.shadowslave.soul.core.ShardDrops;
 import dev.spud.shadowslave.memory.MemoryCommands;
 import dev.spud.shadowslave.network.ModPayloads;
 import dev.spud.shadowslave.network.SoulPlayerEvents;
@@ -34,7 +37,9 @@ public final class ShadowSlaveMod {
     public ShadowSlaveMod(IEventBus modEventBus, Dist physicalSide) {
         ModAttachments.register(modEventBus);
         ModBlocks.register(modEventBus);
+        ModDataComponents.register(modEventBus);
         ModItems.register(modEventBus);
+        ShardDrops.bootstrap();
         NightmareCreatureEntities.register(modEventBus);
 
         if (physicalSide == Dist.DEDICATED_SERVER) {
@@ -55,6 +60,9 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(DrownedBellListenerEntityAdapter::onEntityJoinLevel);
         NeoForge.EVENT_BUS.addListener(DreamCandleRitual::onPlayerWakeUp);
         NeoForge.EVENT_BUS.addListener(AbilityService::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(ShardDrops::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(CoreService::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(CoreService::onPlayerRespawn);
         NeoForge.EVENT_BUS.addListener(KitPassives::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(KitPassives::onIncomingDamage);
         NeoForge.EVENT_BUS.addListener(KitPassives::onGameEvent);

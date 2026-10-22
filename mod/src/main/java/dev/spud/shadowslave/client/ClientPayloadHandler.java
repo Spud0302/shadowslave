@@ -3,6 +3,7 @@ package dev.spud.shadowslave.client;
 import dev.spud.shadowslave.network.payload.AbilityCastPayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
+import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -29,6 +30,10 @@ public final class ClientPayloadHandler {
         Minecraft minecraft = Minecraft.getInstance();
         long now = minecraft.level == null ? 0 : minecraft.level.getGameTime();
         ClientAbilityState.update(payload, now);
+    }
+
+    public static void handleCoreStatus(CoreStatusPayload payload, IPayloadContext context) {
+        ClientCoreState.update(payload);
     }
 
     public static void handleAbilityCast(AbilityCastPayload payload, IPayloadContext context) {
