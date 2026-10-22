@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:water_bucket",
+    "minecraft:kelp",
+    "minecraft:cod",
+    "minecraft:salmon",
+    "minecraft:prismarine_shard",
+    "minecraft:prismarine_crystals",
+    "minecraft:nautilus_shell",
+    "minecraft:heart_of_the_sea",
+    "minecraft:turtle_scute",
+    "minecraft:sea_pickle"
+  ]
+}

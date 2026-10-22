@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-10-22T11:29:09Z",
-  "source_commit": "212975808b514d3e02581fa8cb285bc484127055",
-  "source_tree_dirty": false,
-  "note_count": 128,
+  "generated_at": "2026-10-22T11:34:14Z",
+  "source_commit": "8eaa25367bf29971d0ae0fc611f7267353545938",
+  "source_tree_dirty": true,
+  "note_count": 131,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -1715,6 +1715,69 @@
       "related": [],
       "task_id": "20261022T112859Z-claude-code-soul-refinement",
       "base_commit": "933bd3a8ad3ec8fc57e5cb9be9fca6bfe406355d"
+    },
+    "20261022T113414Z-claude-code-intention-offering": {
+      "uid": "20261022T113414Z-claude-code-intention-offering",
+      "path": "brain/ai/claims/20261022T113414Z--claude-code--intention-offering.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Claim \u2014 Intention offering before the Aspect roll",
+      "summary": "Jack (2026-10-22) approved the rank-up, essence and Soul Sea design in the \"Lore to gameplay ideas\" thread (doc https://claude.ai/artifact/6Ppkk9vv8V9LwEvBY2P1EQ). This claim is one slice of the Dormant-to-Awakened build: step 7, an intention offerin...",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T113414Z-claude-code-intention-offering",
+      "lease_until": "2026-10-22T19:34:14Z",
+      "base_commit": "6f989927e27db3d77862d20895770d64489bb0a0"
+    },
+    "20261022T113415Z-claude-code-intention-offering": {
+      "uid": "20261022T113415Z-claude-code-intention-offering",
+      "path": "brain/evidence/20261022T113415Z--claude-code--intention-offering.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Evidence \u2014 Intention offering before the Aspect roll",
+      "summary": "Offering and longing for one Nature take its odds from 25% to about 44%, never certain; the item is consumed only if tagged; the roll uses the intention once.",
+      "tags": [
+        "evidence"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T113414Z-claude-code-intention-offering",
+      "captured_commit": "6f989927e27db3d77862d20895770d64489bb0a0"
+    },
+    "20261022T113416Z-claude-code-intention-offering": {
+      "uid": "20261022T113416Z-claude-code-intention-offering",
+      "path": "brain/ai/handoffs/20261022T113416Z--claude-code--intention-offering.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Handoff \u2014 Intention offering before the Aspect roll",
+      "summary": "Jack (2026-10-22) approved the rank-up, essence and Soul Sea design in the \"Lore to gameplay ideas\" thread (doc https://claude.ai/artifact/6Ppkk9vv8V9LwEvBY2P1EQ). This claim is one slice of the Dormant-to-Awakened build: step 7, an intention offerin...",
+      "tags": [
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T113414Z-claude-code-intention-offering",
+      "base_commit": "6f989927e27db3d77862d20895770d64489bb0a0"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",

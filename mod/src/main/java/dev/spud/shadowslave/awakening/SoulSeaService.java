@@ -29,6 +29,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -124,6 +125,19 @@ public final class SoulSeaService {
         return changed;
     }
 
+    /** Before the roll: names a longing and offers what is in hand. */
+    public static IntentionService.Result requestIntention(ServerPlayer player, String longing) {
+        Optional<Longing> parsed = Longing.parse(longing);
+        if (!meditating(player) || parsed.isEmpty()) {
+            player.sendSystemMessage(Component.literal("The Soul Sea closes. Meditate beside a lit Dream Candle to offer your intention.")
+                    .withStyle(ChatFormatting.GRAY));
+            return IntentionService.Result.ALREADY_NAMED;
+        }
+        IntentionService.Result result = IntentionService.offer(player, parsed.get());
+        send(player, false);
+        return result;
+    }
+
     public static SoulSeaPayload status(ServerPlayer player, boolean open) {
         String nextRank = AwakeningService.nextRank(player).map(SoulRank::serializedName).orElse("");
         String requirement = AwakeningService.nextRank(player)
@@ -137,8 +151,14 @@ public final class SoulSeaService {
         RefinementData refinement = RefinementService.get(player);
         SoulSeaPayload.Refinement points = new SoulSeaPayload.Refinement(RefinementService.unspent(player),
                 refinement.body(), refinement.soul(), refinement.aspect(), RefinementService.canRespec(player));
+        SoulSeaPayload.Intention intention = SoulSeaPayload.Intention.NONE;
+        if (!AspectRollService.hasAspect(player)) {
+            IntentionData offered = IntentionService.get(player);
+            intention = new SoulSeaPayload.Intention(offered.offeringName(), offered.longing(),
+                    IntentionRules.odds(AspectRollService.evidence(player)));
+        }
         return new SoulSeaPayload(CoreService.status(player), nextRank, requirement, AwakeningService.ready(player),
-                choices, points, open);
+                choices, points, intention, open);
     }
 
     private static void send(ServerPlayer player, boolean open) {
