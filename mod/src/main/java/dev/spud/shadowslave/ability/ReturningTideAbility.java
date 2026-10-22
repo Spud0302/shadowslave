@@ -67,6 +67,8 @@ public final class ReturningTideAbility implements AspectAbility {
             MARKS.remove(player.getUUID());
             if (pullBack(player, mark)) {
                 AbilityService.startCooldown(player, this);
+            } else {
+                AbilityService.syncStatus(player);
             }
         }
     }
@@ -85,6 +87,11 @@ public final class ReturningTideAbility implements AspectAbility {
                 40, 0.4, 0.4, 0.4, 0.2);
         level.playSound(null, player.blockPosition(), SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.PLAYERS, 0.6F, 1.0F);
         return true;
+    }
+
+    @Override
+    public boolean primed(ServerPlayer player) {
+        return hasMark(player);
     }
 
     static boolean hasMark(ServerPlayer player) {

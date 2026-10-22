@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.ability;
 
 import dev.spud.shadowslave.attachment.ModAttachments;
+import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.soul.identity.AspectAbilityData;
 import dev.spud.shadowslave.soul.identity.AspectAbilityKind;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
@@ -10,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -51,7 +53,7 @@ public final class AbilityService {
             feedback(player, ability.displayName() + " recovering: " + secondsCeil(remaining) + "s", ChatFormatting.GRAY);
             return Outcome.RECOVERING;
         }
-        return switch (ability.activate(player)) {
+        Outcome outcome = switch (ability.activate(player)) {
             case USED -> {
                 startCooldown(player, ability);
                 yield Outcome.USED;
@@ -59,6 +61,8 @@ public final class AbilityService {
             case PRIMED -> Outcome.PRIMED;
             case FAILED -> Outcome.FAILED;
         };
+        syncStatus(player);
+        return outcome;
     }
 
     /** Starts an ability's cooldown and confirms it on the action bar; abilities that finish on their own call this. */
@@ -67,6 +71,28 @@ public final class AbilityService {
         AbilityCooldownData cooldowns = player.getData(ModAttachments.ABILITY_COOLDOWNS);
         player.setData(ModAttachments.ABILITY_COOLDOWNS, cooldowns.start(ability.id(), now, ability.cooldownTicks()));
         feedback(player, ability.displayName(), ChatFormatting.LIGHT_PURPLE);
+        syncStatus(player);
+    }
+
+    /** What the HUD slot should show right now for this player. */
+    public static AbilityStatusPayload status(ServerPlayer player) {
+        Optional<AspectAbility> selected = activeAbilityId(SoulIdentityService.get(player), AbilityRegistry::isActivatable)
+                .flatMap(AbilityRegistry::get);
+        if (selected.isEmpty()) {
+            return AbilityStatusPayload.NONE;
+        }
+        AspectAbility ability = selected.get();
+        long remaining = player.getData(ModAttachments.ABILITY_COOLDOWNS)
+                .remainingTicks(ability.id(), player.serverLevel().getGameTime());
+        return new AbilityStatusPayload(ability.id().toString(), ability.displayName(),
+                (int) Math.min(Integer.MAX_VALUE, remaining), ability.cooldownTicks(), ability.primed(player));
+    }
+
+    /** Sends the HUD slot state to the owning client, if it has the mod's channel. */
+    public static void syncStatus(ServerPlayer player) {
+        if (player.connection != null && player.connection.hasChannel(AbilityStatusPayload.TYPE)) {
+            PacketDistributor.sendToPlayer(player, status(player));
+        }
     }
 
     /** Lets the player's ability keep any lingering state going (marks, stances). */

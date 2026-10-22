@@ -5,6 +5,7 @@ import dev.spud.shadowslave.awakening.AspectKit;
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.awakening.AspectRoller;
 import dev.spud.shadowslave.awakening.PlaystyleEvidence;
+import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityService;
 import net.minecraft.core.BlockPos;
@@ -81,10 +82,14 @@ public final class AbilityGameTest {
         ServerPlayer player = playerWith(helper, AspectKitCatalog.TIDE);
         Vec3 mark = player.position();
         helper.assertTrue(AbilityService.useAbility(player) == AbilityService.Outcome.PRIMED, "first press marks");
+        helper.assertTrue(AbilityService.status(player).primed(), "HUD shows the mark");
         player.teleportTo(mark.x + 2.0, mark.y, mark.z + 2.0);
         helper.assertTrue(AbilityService.useAbility(player) == AbilityService.Outcome.USED, "second press returns");
         helper.assertTrue(player.position().distanceTo(mark) < 0.01, "back at the mark");
         helper.assertTrue(AbilityService.useAbility(player) == AbilityService.Outcome.RECOVERING, "then recovers");
+        AbilityStatusPayload status = AbilityService.status(player);
+        helper.assertTrue(!status.primed() && status.remainingTicks() == ReturningTideAbility.COOLDOWN_TICKS
+                && status.abilityName().equals("Returning Tide"), "HUD shows the cooldown: " + status);
         helper.succeed();
     }
 

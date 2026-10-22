@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-10-22T05:59:18Z",
-  "source_commit": "fa774e247e55b21b1488f6075ee66462170beaf9",
+  "generated_at": "2026-10-22T06:35:38Z",
+  "source_commit": "cf8bd6b5d946ce0e85cf7241d3ab92e2692cd485",
   "source_tree_dirty": true,
-  "note_count": 101,
+  "note_count": 107,
   "notes": {
     "20260821T062438Z-codex-vault-bootstrap-handoff": {
       "uid": "20260821T062438Z-codex-vault-bootstrap-handoff",
@@ -1148,6 +1148,132 @@
       "related": [],
       "task_id": "20261022T055916Z-claude-code-remaining-kits",
       "base_commit": "fa774e247e55b21b1488f6075ee66462170beaf9"
+    },
+    "20261022T062741Z-claude-code-roll-reveal-overlay": {
+      "uid": "20261022T062741Z-claude-code-roll-reveal-overlay",
+      "path": "brain/ai/claims/20261022T062741Z--claude-code--roll-reveal-overlay.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Claim \u2014 Spell roll reveal overlay",
+      "summary": "Jack (2026-10-22) agreed the abilities rework plan. This claim is build-order step 4: a Spell-style overlay that types out the rolled Aspect, then opens the Soul screen.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T062741Z-claude-code-roll-reveal-overlay",
+      "lease_until": "2026-10-22T14:27:41Z",
+      "base_commit": "0941599e0905287205f1bb21e2c78f7c657baffd"
+    },
+    "20261022T062742Z-claude-code-roll-reveal-overlay": {
+      "uid": "20261022T062742Z-claude-code-roll-reveal-overlay",
+      "path": "brain/evidence/20261022T062742Z--claude-code--roll-reveal-overlay.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Evidence \u2014 Spell roll reveal overlay",
+      "summary": "After a Dream Candle roll a modded client sees the reveal type out, and continuing opens the Soul screen.",
+      "tags": [
+        "evidence"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T062741Z-claude-code-roll-reveal-overlay",
+      "captured_commit": "0941599e0905287205f1bb21e2c78f7c657baffd"
+    },
+    "20261022T062743Z-claude-code-roll-reveal-overlay": {
+      "uid": "20261022T062743Z-claude-code-roll-reveal-overlay",
+      "path": "brain/ai/handoffs/20261022T062743Z--claude-code--roll-reveal-overlay.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Handoff \u2014 Spell roll reveal overlay",
+      "summary": "Jack (2026-10-22) agreed the abilities rework plan. This claim is build-order step 4: a Spell-style overlay that types out the rolled Aspect, then opens the Soul screen.",
+      "tags": [
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T062741Z-claude-code-roll-reveal-overlay",
+      "base_commit": "0941599e0905287205f1bb21e2c78f7c657baffd"
+    },
+    "20261022T063536Z-claude-code-hud-soul-screen": {
+      "uid": "20261022T063536Z-claude-code-hud-soul-screen",
+      "path": "brain/ai/claims/20261022T063536Z--claude-code--hud-soul-screen.md",
+      "record_kind": "claim",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Claim \u2014 Ability HUD slot and tabbed Soul screen",
+      "summary": "Jack (2026-10-22) agreed the abilities rework plan. This claim is build-order step 5: the ability slot left of the hotbar with a cooldown sweep, and a tabbed Soul screen in the Spell look on a translucent background.",
+      "tags": [
+        "claim",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T063536Z-claude-code-hud-soul-screen",
+      "lease_until": "2026-10-22T14:35:36Z",
+      "base_commit": "cf8bd6b5d946ce0e85cf7241d3ab92e2692cd485"
+    },
+    "20261022T063537Z-claude-code-hud-soul-screen": {
+      "uid": "20261022T063537Z-claude-code-hud-soul-screen",
+      "path": "brain/evidence/20261022T063537Z--claude-code--hud-soul-screen.md",
+      "record_kind": "evidence",
+      "authority": "evidence",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Evidence \u2014 Ability HUD slot and tabbed Soul screen",
+      "summary": "With an Aspect, the HUD slot shows the ability, drains while recovering, glows when primed and flashes when ready; the Soul screen shows the kit on four tabs over a translucent veil.",
+      "tags": [
+        "evidence"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T063536Z-claude-code-hud-soul-screen",
+      "captured_commit": "cf8bd6b5d946ce0e85cf7241d3ab92e2692cd485"
+    },
+    "20261022T063538Z-claude-code-hud-soul-screen": {
+      "uid": "20261022T063538Z-claude-code-hud-soul-screen",
+      "path": "brain/ai/handoffs/20261022T063538Z--claude-code--hud-soul-screen.md",
+      "record_kind": "handoff",
+      "authority": "context",
+      "lore_class": "N/A",
+      "state": "closed",
+      "owner": "claude-code",
+      "created": "2026-10-22",
+      "updated": "2026-10-22",
+      "title": "Handoff \u2014 Ability HUD slot and tabbed Soul screen",
+      "summary": "Jack (2026-10-22) agreed the abilities rework plan. This claim is build-order step 5: the ability slot left of the hotbar with a cooldown sweep, and a tabbed Soul screen in the Spell look on a translucent background.",
+      "tags": [
+        "handoff",
+        "multi-ai"
+      ],
+      "sources": [],
+      "related": [],
+      "task_id": "20261022T063536Z-claude-code-hud-soul-screen",
+      "base_commit": "cf8bd6b5d946ce0e85cf7241d3ab92e2692cd485"
     },
     "replace-stamp-replace-agent-replace-slug": {
       "uid": "replace-stamp-replace-agent-replace-slug",
