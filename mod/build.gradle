@@ -30,6 +30,13 @@ repositories {
         }
     }
     maven {
+        name = 'Lodestone'
+        url = 'https://maven.blamejared.com'
+        content {
+            includeGroup('team.lodestar.lodestone')
+        }
+    }
+    maven {
         name = 'PlayerAnimationLibrary'
         url = 'https://repo.redlance.org/public'
         content {
@@ -104,7 +111,6 @@ neoForge {
 }
 
 dependencies {
-    implementation 'dev.spud.combatcore:combat-core:0.0.1-wip'
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
     implementation "net.tslat.smartbrainlib:SmartBrainLib-neoforge-${minecraft_version}:${smartbrainlib_version}"
     // PAL's core module requests newer netty, fastutil, gson and slf4j than
@@ -126,6 +132,11 @@ dependencies {
         exclude group: 'com.google.code.gson'
         exclude group: 'org.slf4j'
     }
+    // Lodestone's POM asks for the Curios API, which it only uses when Curios is
+    // installed. Shadow Slave never touches Curios, so leave it out.
+    implementation("team.lodestar.lodestone:lodestone:${lodestone_version}") {
+        exclude group: 'top.theillusivec4.curios'
+    }
 
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -144,6 +155,7 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             loader_version_range   : loader_version_range,
             geckolib_version       : geckolib_version,
             smartbrainlib_version  : smartbrainlib_version,
+            lodestone_mod_version  : lodestone_mod_version,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,

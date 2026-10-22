@@ -31,9 +31,7 @@ dist-*.zip
 shadowslave-*.zip
 .idea/
 
-# Gradle and NeoForge local state, for every Gradle build in the repo (mod/,
-# combat-core/). combat-core/ has no ignore file of its own, so its .gradle/ and
-# build/ directories (including decompiled NeoForge jars) were once committed.
+# Gradle and NeoForge local state.
 .gradle/
 build/
 run/

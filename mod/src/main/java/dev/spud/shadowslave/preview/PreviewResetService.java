@@ -7,7 +7,6 @@ import dev.spud.shadowslave.awakening.IntentionData;
 import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.echo.EchoOwnershipData;
 import dev.spud.shadowslave.echo.EchoOwnershipService;
-import dev.spud.shadowslave.item.GlassRoadCombatData;
 import dev.spud.shadowslave.memory.MemoryManifestationService;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.memory.MemoryOwnershipService;
@@ -67,7 +66,6 @@ public final class PreviewResetService {
         @Override public void clearMemories() {
             MemoryManifestationService.clearAshCompassManifestations(player);
             MemoryManifestationService.clearGlassRoadManifestations(player);
-            player.setData(ModAttachments.GLASS_ROAD_COMBAT, GlassRoadCombatData.empty());
             MemoryOwnershipService.replace(player, MemoryOwnershipData.empty());
         }
         @Override public void clearEchoes() {

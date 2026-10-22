@@ -20,23 +20,6 @@
   },
   "components": [
     {
-      "id": "combat-core-0",
-      "mod_id": "combat_core",
-      "version": "0.0.4-wip",
-      "role": "execution_provider",
-      "side": "both",
-      "required": true,
-      "owns_canonical_state": false,
-      "source": {
-        "type": "local_gradle_build",
-        "project": "dev.spud.combatcore:combat-core",
-        "artifact_glob": "combat-core/build/libs/*.jar",
-        "package_path": "mods/combat-core.jar"
-      },
-      "license": "Project-owned",
-      "removal_behavior": "shadowslave declares combat_core as a required dependency at an exact version, so NeoForge refuses to load the pack without it. Combat Core owns generic action timing, melee geometry and outcome resolution only; canonical Soul, Aspect, Flaw, Memory, Echo, Rank, Nightmare and progression state remain entirely in shadowslave-core, and Combat Core never imports dev.spud.shadowslave."
-    },
-    {
       "id": "playeranimlib-1",
       "mod_id": "player_animation_library",
       "version": "1.1.6+mc.1.21.1",
@@ -86,6 +69,23 @@
       },
       "license": "MPL-2.0",
       "removal_behavior": "This build cannot execute SmartBrainLib-backed creature brains without SmartBrainLib; Java-owned Nightmare Creature identity, sensing rules, progression, rewards, ownership and persistence remain loadable project state and do not migrate into the library."
+    },
+    {
+      "id": "lodestone-1",
+      "mod_id": "lodestone",
+      "version": "1.8.2",
+      "role": "presentation_provider",
+      "side": "both",
+      "required": true,
+      "owns_canonical_state": false,
+      "source": {
+        "type": "direct",
+        "project": "team.lodestar.lodestone:lodestone",
+        "file": "lodestone-1.21.1-1.8.2.525.jar",
+        "sha256": "0319cd8d798b6e8ddef12fe26febdebd71ad3254bc92ec322223585d2dc00797"
+      },
+      "license": "LGPL-3.0-only",
+      "removal_behavior": "shadowslave declares lodestone as a required dependency, so NeoForge refuses to load the pack without it. Lodestone owns particle and screen-shake presentation for ability casts only; it holds no canonical state, and every Soul, Aspect, Flaw, Memory, Echo, Rank and Nightmare record remains in shadowslave-core."
     }
   ],
   "packaging": {

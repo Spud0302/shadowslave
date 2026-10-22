@@ -5,7 +5,6 @@ import dev.spud.shadowslave.ability.EssenceData;
 import dev.spud.shadowslave.ability.FlawStateData;
 import dev.spud.shadowslave.awakening.IntentionData;
 import dev.spud.shadowslave.echo.EchoOwnershipData;
-import dev.spud.shadowslave.item.GlassRoadCombatData;
 import dev.spud.shadowslave.memory.MemoryOwnershipData;
 import dev.spud.shadowslave.migration.ImportedIdentityData;
 import dev.spud.shadowslave.preview.PreviewPowerData;
@@ -37,7 +36,6 @@ public final class ModAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<IntentionData>> INTENTION = ATTACHMENTS.register("intention", () -> AttachmentType.builder(IntentionData::empty).serialize(IntentionData.CODEC.codec()).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<CoreData>> CORE = ATTACHMENTS.register("core", () -> AttachmentType.builder(CoreData::empty).serialize(CoreData.CODEC.codec()).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<FlawStateData>> FLAW_STATE = ATTACHMENTS.register("flaw_state", () -> AttachmentType.builder(FlawStateData::empty).serialize(FlawStateData.CODEC.codec()).copyOnDeath().build());
-    public static final DeferredHolder<AttachmentType<?>, AttachmentType<GlassRoadCombatData>> GLASS_ROAD_COMBAT = ATTACHMENTS.register("glass_road_combat", () -> AttachmentType.builder(GlassRoadCombatData::empty).build());
 
     private ModAttachments() {}
     public static void register(IEventBus modEventBus) { ATTACHMENTS.register(modEventBus); }
