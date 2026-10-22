@@ -10,6 +10,7 @@ import dev.spud.shadowslave.migration.ImportedIdentityData;
 import dev.spud.shadowslave.preview.PreviewPowerData;
 import dev.spud.shadowslave.soul.SoulData;
 import dev.spud.shadowslave.soul.core.CoreData;
+import dev.spud.shadowslave.soul.refinement.RefinementData;
 import dev.spud.shadowslave.soul.identity.AttributeOwnershipData;
 import dev.spud.shadowslave.soul.identity.SoulIdentityData;
 import net.neoforged.bus.api.IEventBus;
@@ -31,6 +32,7 @@ public final class ModAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<ImportedIdentityData>> IMPORTED_IDENTITY = ATTACHMENTS.register("imported_identity", () -> AttachmentType.builder(ImportedIdentityData::empty).serialize(ImportedIdentityData.CODEC.codec()).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<PreviewPowerData>> PREVIEW_POWER = ATTACHMENTS.register("preview_power", () -> AttachmentType.builder(PreviewPowerData::empty).serialize(PreviewPowerData.CODEC.codec()).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<EssenceData>> ESSENCE = ATTACHMENTS.register("essence", () -> AttachmentType.builder(EssenceData::empty).serialize(EssenceData.CODEC.codec()).copyOnDeath().build());
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<RefinementData>> REFINEMENT = ATTACHMENTS.register("refinement", () -> AttachmentType.builder(RefinementData::empty).serialize(RefinementData.CODEC.codec()).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<CoreData>> CORE = ATTACHMENTS.register("core", () -> AttachmentType.builder(CoreData::empty).serialize(CoreData.CODEC.codec()).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<FlawStateData>> FLAW_STATE = ATTACHMENTS.register("flaw_state", () -> AttachmentType.builder(FlawStateData::empty).serialize(FlawStateData.CODEC.codec()).copyOnDeath().build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<GlassRoadCombatData>> GLASS_ROAD_COMBAT = ATTACHMENTS.register("glass_road_combat", () -> AttachmentType.builder(GlassRoadCombatData::empty).build());

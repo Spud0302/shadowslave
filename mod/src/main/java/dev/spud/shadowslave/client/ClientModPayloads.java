@@ -9,6 +9,7 @@ import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
+import dev.spud.shadowslave.network.payload.RefineRequestPayload;
 import dev.spud.shadowslave.network.payload.SoulSeaPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
@@ -64,6 +65,11 @@ public final class ClientModPayloads {
                 ChannelRequestPayload.TYPE,
                 ChannelRequestPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleChannel
+        );
+        registrar.playToServer(
+                RefineRequestPayload.TYPE,
+                RefineRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleRefine
         );
         registrar.playToServer(
                 OpenSoulScreenRequestPayload.TYPE,

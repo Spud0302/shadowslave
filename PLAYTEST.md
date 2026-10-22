@@ -108,6 +108,13 @@ ability on the V key, doubles the essence pool (200) and starts a larger core
 must still be saturated; `/shadowslave core fill` helps) or test any ability with
 `/shadowslave ability grant <name>`.
 
+**Refinement.** The Soul Sea has a second page, Refine (press 2 or click the
+tab). You get one refinement point when the Spell names your Aspect and three
+more at Awakening. Place them while meditating: **Body** gives a heart, 3% speed
+and half a point of melee damage each; **Soul** gives 15 essence and a 10%
+faster refill each; **Aspect** makes every ability 6% cheaper each (up to 30%).
+**Respec** takes every point back but loses one for good.
+
 **Channeling (Awakened).** Press Z (Channel Essence) to burst forward and up
 for 20 essence; a channeled leap forgives about its own height of fall. Sneak
 while pressing Z to load your next melee blow instead (25 essence): it hits

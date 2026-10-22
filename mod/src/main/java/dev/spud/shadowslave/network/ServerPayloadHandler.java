@@ -11,6 +11,7 @@ import dev.spud.shadowslave.memory.MemoryManifestationService;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
+import dev.spud.shadowslave.network.payload.RefineRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshCompassRequestPayload;
@@ -43,6 +44,13 @@ public final class ServerPayloadHandler {
         ServerPlayer player = serverPlayer(context, "Essence channeling");
         if (player != null) {
             ChannelService.channel(player, payload.strike());
+        }
+    }
+
+    public static void handleRefine(RefineRequestPayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "Refinement");
+        if (player != null) {
+            SoulSeaService.requestRefinement(player, payload.action());
         }
     }
 

@@ -1,9 +1,13 @@
 package dev.spud.shadowslave.awakening;
 
 import dev.spud.shadowslave.block.ModBlocks;
+import dev.spud.shadowslave.network.payload.RefineRequestPayload;
 import dev.spud.shadowslave.network.payload.SoulSeaPayload;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.core.CoreService;
+import dev.spud.shadowslave.soul.refinement.RefinementData;
+import dev.spud.shadowslave.soul.refinement.RefinementService;
+import dev.spud.shadowslave.soul.refinement.RefinementStat;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -22,6 +26,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -94,6 +99,31 @@ public final class SoulSeaService {
         return result;
     }
 
+    /** A refinement choice from the Soul Sea: a stat name to place a point, or "respec". */
+    public static boolean requestRefinement(ServerPlayer player, String action) {
+        if (!meditating(player)) {
+            player.sendSystemMessage(Component.literal("The Soul Sea closes. Meditate beside a lit Dream Candle to refine.")
+                    .withStyle(ChatFormatting.GRAY));
+            return false;
+        }
+        boolean changed;
+        if (RefineRequestPayload.RESPEC.equals(action)) {
+            changed = RefinementService.respec(player);
+        } else {
+            changed = Arrays.stream(RefinementStat.values())
+                    .filter(stat -> stat.serializedName().equals(action))
+                    .findFirst()
+                    .map(stat -> RefinementService.allocate(player, stat))
+                    .orElse(false);
+        }
+        if (changed) {
+            player.serverLevel().playSound(null, player.blockPosition(), SoundEvents.AMETHYST_CLUSTER_PLACE,
+                    SoundSource.PLAYERS, 0.8F, 1.2F);
+        }
+        send(player, false);
+        return changed;
+    }
+
     public static SoulSeaPayload status(ServerPlayer player, boolean open) {
         String nextRank = AwakeningService.nextRank(player).map(SoulRank::serializedName).orElse("");
         String requirement = AwakeningService.nextRank(player)
@@ -104,8 +134,11 @@ public final class SoulSeaService {
                 .map(variant -> new SoulSeaPayload.Choice(variant.abilityId().toString(), variant.name(), variant.role(),
                         variant.description()))
                 .toList();
+        RefinementData refinement = RefinementService.get(player);
+        SoulSeaPayload.Refinement points = new SoulSeaPayload.Refinement(RefinementService.unspent(player),
+                refinement.body(), refinement.soul(), refinement.aspect(), RefinementService.canRespec(player));
         return new SoulSeaPayload(CoreService.status(player), nextRank, requirement, AwakeningService.ready(player),
-                choices, open);
+                choices, points, open);
     }
 
     private static void send(ServerPlayer player, boolean open) {

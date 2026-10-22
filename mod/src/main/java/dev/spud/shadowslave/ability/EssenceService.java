@@ -3,6 +3,8 @@ package dev.spud.shadowslave.ability;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
+import dev.spud.shadowslave.soul.refinement.RefinementRules;
+import dev.spud.shadowslave.soul.refinement.RefinementService;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Optional;
@@ -26,7 +28,8 @@ public final class EssenceService {
 
     /** Essence the player's core holds when full; 0 before the Spell names an Aspect. */
     public static int capacity(ServerPlayer player) {
-        return capacityFor(SoulService.get(player).soulRank());
+        int base = capacityFor(SoulService.get(player).soulRank());
+        return base <= 0 ? 0 : base + RefinementRules.capacityBonus(RefinementService.get(player));
     }
 
     static int capacityFor(Optional<SoulRank> rank) {
@@ -44,7 +47,7 @@ public final class EssenceService {
 
     /** Essence regained per tick. */
     public static float regenPerTick(ServerPlayer player) {
-        return regenPerTickFor(capacity(player));
+        return (float) (regenPerTickFor(capacity(player)) * RefinementRules.regenMultiplier(RefinementService.get(player)));
     }
 
     static float regenPerTickFor(int capacity) {
@@ -77,7 +80,7 @@ public final class EssenceService {
         }
         EssenceData before = player.getData(ModAttachments.ESSENCE);
         if (before.current() < capacity) {
-            player.setData(ModAttachments.ESSENCE, before.refill(regenPerTickFor(capacity), capacity));
+            player.setData(ModAttachments.ESSENCE, before.refill(regenPerTick(player), capacity));
             return player.tickCount % RESYNC_TICKS == 0;
         }
         if (before.current() > capacity) {
