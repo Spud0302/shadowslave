@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "generator_version": "1.0.0",
-  "generated_at": "2026-08-25T07:06:28Z",
-  "source_commit": "72bfc6d2c5f34ef3fd9197d3f6553068ad95356f",
+  "generated_at": "2026-10-22T01:03:54Z",
+  "source_commit": "b4de24b6be17d244d0bf73c24fcbcec7afa75e6c",
   "source_tree_dirty": true,
   "note_count": 85,
   "notes": {
@@ -812,10 +812,10 @@
       "record_kind": "claim",
       "authority": "context",
       "lore_class": "N/A",
-      "state": "active",
+      "state": "closed",
       "owner": "claude-code",
       "created": "2026-08-25",
-      "updated": "2026-08-25",
+      "updated": "2026-10-22",
       "title": "Claim \u2014 CI modpack shell: supply combat-core fixture JAR",
       "summary": "Unblock the failing `validate` check on PR #3 (`packaging/combat-core-closure`) so the branch can be reviewed and merged on its own merits rather than on a CI gap the branch itself introduced.",
       "tags": [

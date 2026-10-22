@@ -3,12 +3,12 @@ uid: 20260825T065217Z-claude-code-ci-modpack-combat-core-fixture
 record_kind: claim
 authority: context
 lore_class: "N/A"
-state: active
+state: closed
 owner: claude-code
 tool: claude-code
 task_id: 20260825T065217Z-claude-code-ci-modpack-combat-core-fixture
 created: 2026-08-25
-updated: 2026-08-25
+updated: 2026-10-22
 branch: packaging/combat-core-closure
 worktree: primary
 base_commit: edf48a7b5db15f277b052060d0565951d259954a
@@ -91,3 +91,7 @@ unchanged by this claim and is exercised by CI.
 
 Closed 2026-08-25 by claude-code: fixture JAR added to the workflow build step
 and verified locally; CI outcome recorded on PR #3.
+
+State flipped from `active` to `closed` on 2026-10-22: PR #3 merged on
+2026-08-25, but the front matter was left `active`, so the expired lease made
+`validate_vault.py` fail.
