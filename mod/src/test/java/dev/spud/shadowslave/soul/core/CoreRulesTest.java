@@ -45,4 +45,13 @@ class CoreRulesTest {
         assertEquals(40, CoreRules.pvpLoss(160));
         assertEquals(26, CoreRules.pvpLoss(101));
     }
+
+    @Test
+    void faintShardsCarryAQuarterAndStopHelpingAtAscended() {
+        assertEquals(1, CoreRules.faintUnits(ShardRank.DORMANT));
+        assertEquals(5, CoreRules.faintUnits(ShardRank.AWAKENED));
+        assertEquals(true, CoreRules.faintShardsHelp(SoulRank.DORMANT));
+        assertEquals(true, CoreRules.faintShardsHelp(SoulRank.AWAKENED));
+        assertEquals(false, CoreRules.faintShardsHelp(SoulRank.ASCENDED));
+    }
 }

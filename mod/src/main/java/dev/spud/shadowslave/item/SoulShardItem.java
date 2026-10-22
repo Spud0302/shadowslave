@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.item;
 
+import dev.spud.shadowslave.soul.core.CoreRules;
 import dev.spud.shadowslave.soul.core.CoreService;
 import dev.spud.shadowslave.soul.core.ShardRank;
 import net.minecraft.ChatFormatting;
@@ -34,7 +35,21 @@ public class SoulShardItem extends Item {
     /** Saturation units one shard of this stack carries before the core's rank is taken into account. */
     public static int units(ItemStack stack, ShardRank rank) {
         ShardContents contents = stack.get(ModDataComponents.SHARD_CONTENTS.get());
-        return contents != null ? contents.units() : rank.value();
+        if (contents != null) {
+            return contents.units();
+        }
+        return isFaint(stack) ? CoreRules.faintUnits(rank) : rank.value();
+    }
+
+    /** A shard from an ordinary mob rather than a Nightmare Creature. */
+    public static boolean isFaint(ItemStack stack) {
+        return stack.has(ModDataComponents.FAINT_SHARD.get());
+    }
+
+    @Override
+    public Component getName(ItemStack stack) {
+        Component name = super.getName(stack);
+        return isFaint(stack) ? Component.translatable("item.shadowslave.faint_shard", name) : name;
     }
 
     @Override
@@ -52,6 +67,11 @@ public class SoulShardItem extends Item {
         ShardContents contents = stack.get(ModDataComponents.SHARD_CONTENTS.get());
         if (contents != null) {
             tooltip.add(Component.literal("Torn from " + contents.origin()).withStyle(ChatFormatting.DARK_RED));
+        }
+        if (isFaint(stack)) {
+            tooltip.add(Component.literal("From an ordinary creature: a quarter of a true shard,")
+                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("and nothing to an Ascended core or higher").withStyle(ChatFormatting.GRAY));
         }
         tooltip.add(Component.literal("Use to absorb · sneak to absorb all").withStyle(ChatFormatting.DARK_GRAY));
     }

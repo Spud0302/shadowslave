@@ -9,6 +9,7 @@ import dev.spud.shadowslave.awakening.DreamCandleRitual;
 import dev.spud.shadowslave.awakening.SoulSeaService;
 import dev.spud.shadowslave.block.ModBlocks;
 import dev.spud.shadowslave.command.ShadowSlaveCommands;
+import dev.spud.shadowslave.creature.NightmareRules;
 import dev.spud.shadowslave.dreamrealm.DreamRealmCommands;
 import dev.spud.shadowslave.dreamrealm.DreamRealmResourceInteractionRuntime;
 import dev.spud.shadowslave.dreamrealm.DreamRealmStoryNpcRuntime;
@@ -42,6 +43,7 @@ public final class ShadowSlaveMod {
         ModDataComponents.register(modEventBus);
         ModItems.register(modEventBus);
         ShardDrops.bootstrap();
+        NightmareRules.bootstrap();
         NightmareCreatureEntities.register(modEventBus);
 
         if (physicalSide == Dist.DEDICATED_SERVER) {

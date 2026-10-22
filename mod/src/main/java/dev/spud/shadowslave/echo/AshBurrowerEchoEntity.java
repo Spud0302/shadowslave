@@ -6,7 +6,8 @@ import net.minecraft.world.level.Level;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.constant.DefaultAnimations;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
@@ -25,7 +26,8 @@ public final class AshBurrowerEchoEntity extends Armadillo implements GeoEntity 
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(DefaultAnimations.genericWalkIdleController(this));
+        controllers.add(new AnimationController<>(this, "body", 4, state -> state.setAndContinue(state.isMoving()
+                ? RawAnimation.begin().thenLoop("walk") : RawAnimation.begin().thenLoop("idle"))));
     }
 
     @Override

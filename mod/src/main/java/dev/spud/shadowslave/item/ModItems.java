@@ -9,6 +9,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
+import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -34,6 +36,15 @@ public final class ModItems {
     public static final DeferredItem<SoulShardItem> AWAKENED_SOUL_SHARD = shard("awakened_soul_shard", ShardRank.AWAKENED, Rarity.UNCOMMON);
     public static final DeferredItem<SoulShardItem> FALLEN_SOUL_SHARD = shard("fallen_soul_shard", ShardRank.FALLEN, Rarity.RARE);
     public static final DeferredItem<SoulShardItem> CORRUPTED_SOUL_SHARD = shard("corrupted_soul_shard", ShardRank.CORRUPTED, Rarity.EPIC);
+
+    public static final DeferredItem<DeferredSpawnEggItem> ASH_BURROWER_SPAWN_EGG = ITEMS.registerItem("ash_burrower_spawn_egg",
+            properties -> new DeferredSpawnEggItem(NightmareCreatureEntities.ASH_BURROWER, 0x3a302b, 0xd8662a, properties));
+    public static final DeferredItem<DeferredSpawnEggItem> CHAINBACK_SPAWN_EGG = ITEMS.registerItem("chainback_spawn_egg",
+            properties -> new DeferredSpawnEggItem(NightmareCreatureEntities.CHAINBACK, 0x2f3236, 0x8a4a22, properties));
+    public static final DeferredItem<DeferredSpawnEggItem> HOLLOW_MIMIC_SPAWN_EGG = ITEMS.registerItem("hollow_mimic_spawn_egg",
+            properties -> new DeferredSpawnEggItem(NightmareCreatureEntities.HOLLOW_MIMIC, 0xd9d2c3, 0x141218, properties));
+    public static final DeferredItem<DeferredSpawnEggItem> ASHEN_TYRANT_SPAWN_EGG = ITEMS.registerItem("ashen_tyrant_spawn_egg",
+            properties -> new DeferredSpawnEggItem(NightmareCreatureEntities.ASHEN_TYRANT, 0x26201e, 0xff7a2a, properties));
 
     private ModItems() {
     }
@@ -66,6 +77,12 @@ public final class ModItems {
             event.accept(AWAKENED_SOUL_SHARD);
             event.accept(FALLEN_SOUL_SHARD);
             event.accept(CORRUPTED_SOUL_SHARD);
+        }
+        if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
+            event.accept(ASH_BURROWER_SPAWN_EGG);
+            event.accept(CHAINBACK_SPAWN_EGG);
+            event.accept(HOLLOW_MIMIC_SPAWN_EGG);
+            event.accept(ASHEN_TYRANT_SPAWN_EGG);
         }
     }
 }

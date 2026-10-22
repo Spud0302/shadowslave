@@ -1,14 +1,14 @@
 package dev.spud.shadowslave.world.entity;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.creature.NightmareCreature;
 import dev.spud.shadowslave.echo.AshBurrowerEchoEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.animal.armadillo.Armadillo;
 import net.minecraft.world.entity.monster.Drowned;
-import net.minecraft.world.entity.monster.Silverfish;
-import net.minecraft.world.entity.monster.Spider;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -23,7 +23,7 @@ public final class NightmareCreatureEntities {
     public static final Supplier<EntityType<AshBurrowerEntity>> ASH_BURROWER = ENTITY_TYPES.register(
             AshBurrowerExecutionBinding.CONTENT_ID,
             registryName -> EntityType.Builder.of(AshBurrowerEntity::new, MobCategory.MONSTER)
-                    .sized(0.4F, 0.3F)
+                    .sized(0.8F, 0.55F)
                     .clientTrackingRange(8)
                     .build(registryName.toString())
     );
@@ -40,8 +40,27 @@ public final class NightmareCreatureEntities {
     public static final Supplier<EntityType<ChainbackEntity>> CHAINBACK = ENTITY_TYPES.register(
             ChainbackExecutionBinding.CONTENT_ID,
             registryName -> EntityType.Builder.of(ChainbackEntity::new, MobCategory.MONSTER)
-                    .sized(1.4F, 0.9F)
+                    .sized(1.5F, 1.1F)
                     .clientTrackingRange(8)
+                    .build(registryName.toString())
+    );
+
+    public static final Supplier<EntityType<HollowMimicEntity>> HOLLOW_MIMIC = ENTITY_TYPES.register(
+            "hollow_mimic",
+            registryName -> EntityType.Builder.of(HollowMimicEntity::new, MobCategory.MONSTER)
+                    .sized(0.7F, 2.4F)
+                    .eyeHeight(2.15F)
+                    .clientTrackingRange(10)
+                    .build(registryName.toString())
+    );
+
+    public static final Supplier<EntityType<AshenTyrantEntity>> ASHEN_TYRANT = ENTITY_TYPES.register(
+            "ashen_tyrant",
+            registryName -> EntityType.Builder.of(AshenTyrantEntity::new, MobCategory.MONSTER)
+                    .sized(1.8F, 3.4F)
+                    .eyeHeight(2.9F)
+                    .fireImmune()
+                    .clientTrackingRange(12)
                     .build(registryName.toString())
     );
 
@@ -62,9 +81,15 @@ public final class NightmareCreatureEntities {
     }
 
     public static void createDefaultAttributes(EntityAttributeCreationEvent event) {
-        event.put(ASH_BURROWER.get(), Silverfish.createAttributes().build());
+        event.put(ASH_BURROWER.get(), NightmareCreature.attributes(AshBurrowerEntity.STATS).build());
         event.put(ASH_BURROWER_ECHO.get(), Armadillo.createAttributes().build());
-        event.put(CHAINBACK.get(), Spider.createAttributes().build());
+        event.put(CHAINBACK.get(), NightmareCreature.attributes(ChainbackEntity.STATS)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.6).build());
+        event.put(HOLLOW_MIMIC.get(), NightmareCreature.attributes(HollowMimicEntity.STATS)
+                .add(Attributes.FOLLOW_RANGE, 40.0).build());
+        event.put(ASHEN_TYRANT.get(), NightmareCreature.attributes(AshenTyrantEntity.STATS)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.9)
+                .add(Attributes.STEP_HEIGHT, 1.1).build());
         event.put(DROWNED_LISTENER.get(), Drowned.createAttributes().build());
     }
 }
