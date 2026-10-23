@@ -1,0 +1,24 @@
+{
+  "branch": "shadowslave:forging",
+  "memory": "shadowslave:memory/linked_cleaver",
+  "result": "shadowslave:linked_cleaver",
+  "materials": [
+    {
+      "item": "shadowslave:chainback_link",
+      "count": 2
+    },
+    {
+      "item": "minecraft:iron_ingot",
+      "count": 1
+    },
+    {
+      "item": "shadowslave:awakened_soul_shard",
+      "count": 1
+    }
+  ],
+  "xp": 25,
+  "unlock": {
+    "type": "discover"
+  },
+  "hint": "A heavy head hung on links, and an awakened soul to swing it."
+}

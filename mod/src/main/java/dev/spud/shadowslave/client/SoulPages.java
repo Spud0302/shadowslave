@@ -9,12 +9,14 @@ import dev.spud.shadowslave.awakening.KitLadder;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshot;
+import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * What each tab of the Soul screen says, built from the client's read-only
@@ -26,7 +28,8 @@ public final class SoulPages {
         ASPECT("Aspect"),
         ABILITIES("Abilities"),
         FLAW("Flaw"),
-        SOUL("Soul");
+        SOUL("Soul"),
+        WEAVING("Weaving");
 
         public final String label;
 
@@ -83,11 +86,22 @@ public final class SoulPages {
      */
     public static List<Entry> page(Tab tab, SoulSnapshot snapshot, AbilityStatusPayload status, float essence,
                                    List<String> keyNames, CoreStatusPayload core) {
+        return page(tab, snapshot, status, essence, keyNames, core, WeavingStatusPayload.NONE, Function.identity());
+    }
+
+    /**
+     * @param weaving  the latest Weaving reading
+     * @param itemName turns an item id into its display name
+     */
+    public static List<Entry> page(Tab tab, SoulSnapshot snapshot, AbilityStatusPayload status, float essence,
+                                   List<String> keyNames, CoreStatusPayload core, WeavingStatusPayload weaving,
+                                   Function<String, String> itemName) {
         return switch (tab) {
             case ASPECT -> aspect(snapshot);
             case ABILITIES -> abilities(snapshot, status, essence, keyNames);
             case FLAW -> flaw(snapshot);
             case SOUL -> soul(snapshot, status, essence, core);
+            case WEAVING -> weaving(weaving, itemName);
         };
     }
 
@@ -218,6 +232,53 @@ public final class SoulPages {
         entries.add(Entry.row("Origin", snapshot.importedFromDatapack() ? "Imported datapack identity" : "Native Java identity",
                 SpellStyle.MUTED));
         return entries;
+    }
+
+    /**
+     * Weaving progress and the hints failed weaves have left. Open to every
+     * player, named or not, since anyone can use a Weaving Table.
+     */
+    static List<Entry> weaving(WeavingStatusPayload weaving, Function<String, String> itemName) {
+        List<Entry> entries = new ArrayList<>();
+        if (weaving.branches().isEmpty()) {
+            entries.add(Entry.of(Style.BODY, "Weave Memories at a Weaving Table. Your progress will show here.", SpellStyle.MUTED));
+            return entries;
+        }
+        entries.add(Entry.row("Points", weaving.points() + " unspent  ·  " + weaving.xpTowardPoint() + "/"
+                + weaving.xpPerPoint() + " XP to the next", SpellStyle.ABILITY));
+        for (WeavingStatusPayload.Branch branch : weaving.branches()) {
+            entries.add(Entry.row(branch.name(), "Level " + branch.level() + " of " + branch.maxLevel() + "  ·  "
+                    + branch.xp() + " XP", SpellStyle.TEXT));
+            entries.add(Entry.of(Style.BODY, branch.next(), SpellStyle.HINT));
+        }
+        entries.add(Entry.spacer());
+        entries.add(Entry.of(Style.HEADING, "Patterns you know: " + weaving.patterns().size(), SpellStyle.ASPECT));
+        List<String> names = weaving.patterns().stream().map(pattern -> pattern.name() + " " + tier(pattern.tier())).toList();
+        entries.add(Entry.of(Style.BODY, String.join("  ·  ", names), SpellStyle.MUTED));
+        entries.add(Entry.spacer());
+        if (weaving.hints().isEmpty()) {
+            entries.add(Entry.of(Style.BODY, "A failed weave that comes close leaves a hint here.", SpellStyle.HINT));
+            return entries;
+        }
+        entries.add(Entry.of(Style.HEADING, "Unfinished patterns", SpellStyle.ABILITY));
+        for (WeavingStatusPayload.Hint hint : weaving.hints()) {
+            List<String> parts = new ArrayList<>();
+            hint.revealed().forEach(item -> parts.add(itemName.apply(item)));
+            for (int i = hint.revealed().size(); i < hint.total(); i++) {
+                parts.add("?");
+            }
+            entries.add(Entry.of(Style.BODY, hint.branch() + ", Tier " + tier(hint.tier()) + ": " + String.join(", ", parts),
+                    SpellStyle.TEXT));
+            if (!hint.hint().isEmpty()) {
+                entries.add(Entry.of(Style.BODY, hint.hint(), SpellStyle.VOICE));
+            }
+        }
+        return entries;
+    }
+
+    static String tier(int tier) {
+        String[] numerals = {"I", "II", "III", "IV", "V", "VI", "VII"};
+        return tier >= 1 && tier <= numerals.length ? numerals[tier - 1] : Integer.toString(tier);
     }
 
     static String coreLabel(CoreStatusPayload core) {

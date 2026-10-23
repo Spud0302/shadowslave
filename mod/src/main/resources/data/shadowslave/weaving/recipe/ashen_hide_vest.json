@@ -1,0 +1,20 @@
+{
+  "branch": "shadowslave:forging",
+  "memory": "shadowslave:memory/ashen_hide_vest",
+  "result": "shadowslave:ashen_hide_vest",
+  "materials": [
+    {
+      "item": "shadowslave:ashen_hide",
+      "count": 3
+    },
+    {
+      "item": "shadowslave:dormant_soul_shard",
+      "count": 1
+    }
+  ],
+  "xp": 15,
+  "unlock": {
+    "type": "discover"
+  },
+  "hint": "Hide that swam through ash wants a dormant soul to hold its shape."
+}

@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "shadowslave:block/weaving_table_side",
+    "down": "shadowslave:block/weaving_table_bottom",
+    "up": "shadowslave:block/weaving_table_top",
+    "north": "shadowslave:block/weaving_table_side",
+    "south": "shadowslave:block/weaving_table_side",
+    "east": "shadowslave:block/weaving_table_side",
+    "west": "shadowslave:block/weaving_table_side"
+  }
+}

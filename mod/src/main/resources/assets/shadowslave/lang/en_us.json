@@ -12,7 +12,7 @@
   "key.shadowslave.toggle_echo_mode": "Toggle Echo Follow / Hold",
   "key.shadowslave.toggle_memory": "Summon / Dismiss Ash Compass",
   "screen.shadowslave.soul": "Soul Interface",
-  "screen.shadowslave.soul.tabs_hint": "Click a tab or press 1-4  ·  Esc to close",
+  "screen.shadowslave.soul.tabs_hint": "Click a tab or press 1-5  ·  Esc to close",
   "screen.shadowslave.soul_sea": "Soul Sea",
   "screen.shadowslave.soul_sea.hint": "Stay beside the candle  ·  Esc to close",
   "screen.shadowslave.soul_sea.refine": "Points come with each rank  ·  1-2 to switch pages  ·  Esc to close",
@@ -36,5 +36,18 @@
   "item.shadowslave.ashen_tyrant_spawn_egg": "Ashen Tyrant Spawn Egg",
   "gamerule.shadowslaveNightmareBlockDamage": "Nightmare Gates and creatures break blocks",
   "block.shadowslave.gate_lure": "Gate Lure",
-  "entity.shadowslave.gate_rift": "Nightmare Gate"
+  "entity.shadowslave.gate_rift": "Nightmare Gate",
+  "block.shadowslave.weaving_table": "Weaving Table",
+  "container.shadowslave.weaving_table": "Weaving Table",
+  "item.shadowslave.ashen_hide": "Ashen Hide",
+  "item.shadowslave.chainback_link": "Chainback Link",
+  "item.shadowslave.mimic_husk": "Mimic Husk",
+  "item.shadowslave.shard_knife": "Shard Knife",
+  "item.shadowslave.sleepers_hood": "Sleeper's Hood",
+  "item.shadowslave.wanderers_boots": "Wanderer's Boots",
+  "item.shadowslave.ashen_hide_vest": "Ashen Hide Vest",
+  "item.shadowslave.linked_cleaver": "Linked Cleaver",
+  "item.shadowslave.chainback_mail": "Chainback Mail",
+  "item.shadowslave.hollow_visage": "Hollow Visage",
+  "item.shadowslave.hollow_edge": "Hollow Edge"
 }

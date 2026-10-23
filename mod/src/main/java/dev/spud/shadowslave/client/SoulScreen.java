@@ -59,11 +59,20 @@ public final class SoulScreen extends Screen {
         long now = this.minecraft.level == null ? 0 : this.minecraft.level.getGameTime();
         List<SoulPages.Entry> entries = SoulPages.page(tab, snapshot, ClientAbilityState.status(),
                 ClientAbilityState.essence(now, partialTick), ClientKeyMappings.abilityKeyNames(),
-                ClientCoreState.status());
+                ClientCoreState.status(), ClientWeavingState.status(), SoulScreen::itemName);
         renderEntries(graphics, entries);
 
         graphics.drawCenteredString(this.font, Component.translatable("screen.shadowslave.soul.tabs_hint"),
                 this.width / 2, bottom + 6, SpellStyle.HINT);
+    }
+
+    /** "minecraft:iron_ingot" to "Iron Ingot", in the player's language. */
+    static String itemName(String id) {
+        net.minecraft.resources.ResourceLocation location = net.minecraft.resources.ResourceLocation.tryParse(id);
+        if (location == null || !net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(location)) {
+            return id;
+        }
+        return net.minecraft.core.registries.BuiltInRegistries.ITEM.get(location).getDescription().getString();
     }
 
     private void renderTabs(GuiGraphics graphics, int mouseX, int mouseY) {

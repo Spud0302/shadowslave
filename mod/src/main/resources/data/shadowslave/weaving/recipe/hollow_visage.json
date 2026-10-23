@@ -1,0 +1,24 @@
+{
+  "branch": "shadowslave:forging",
+  "memory": "shadowslave:memory/hollow_visage",
+  "result": "shadowslave:hollow_visage",
+  "materials": [
+    {
+      "item": "shadowslave:mimic_husk",
+      "count": 2
+    },
+    {
+      "item": "minecraft:amethyst_shard",
+      "count": 1
+    },
+    {
+      "item": "shadowslave:awakened_soul_shard",
+      "count": 1
+    }
+  ],
+  "xp": 40,
+  "unlock": {
+    "type": "discover"
+  },
+  "hint": "A face that is not a face, set with something that listens."
+}
