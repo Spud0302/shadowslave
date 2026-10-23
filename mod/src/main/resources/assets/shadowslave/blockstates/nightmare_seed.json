@@ -1,0 +1,16 @@
+{
+ "variants": {
+  "stage=0": {
+   "model": "shadowslave:block/nightmare_seed_stage_0"
+  },
+  "stage=1": {
+   "model": "shadowslave:block/nightmare_seed_stage_1"
+  },
+  "stage=2": {
+   "model": "shadowslave:block/nightmare_seed_stage_2"
+  },
+  "stage=3": {
+   "model": "shadowslave:block/nightmare_seed_stage_3"
+  }
+ }
+}

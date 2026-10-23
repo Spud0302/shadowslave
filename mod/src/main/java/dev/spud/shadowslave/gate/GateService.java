@@ -62,6 +62,13 @@ public final class GateService {
             "hollow_mimic", NightmareCreatureEntities.HOLLOW_MIMIC::get);
 
     private static final Map<UUID, ServerBossEvent> BARS = new HashMap<>();
+    private static final List<CloseListener> CLOSE_LISTENERS = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    /** Told when any Gate closes, e.g. so a cleansed Nightmare Seed can pay out. */
+    @FunctionalInterface
+    public interface CloseListener {
+        void closed(ServerLevel level, GateEvent gate, boolean guardianSlain);
+    }
 
     private GateService() {
     }
@@ -71,11 +78,18 @@ public final class GateService {
      * empty if another Gate is already open within {@link #MIN_SPACING}.
      */
     public static Optional<GateEvent> open(ServerLevel level, BlockPos center, GateTrigger trigger, GateForecast forecast) {
+        return open(level, center, trigger, forecast, null);
+    }
+
+    /** As {@link #open(ServerLevel, BlockPos, GateTrigger, GateForecast)}, remembering what the Gate grew from. */
+    public static Optional<GateEvent> open(ServerLevel level, BlockPos center, GateTrigger trigger, GateForecast forecast,
+                                           @org.jetbrains.annotations.Nullable UUID source) {
         if (!canOpen(level, center)) {
             return Optional.empty();
         }
         GateData data = GateData.get(level);
         GateEvent gate = new GateEvent(UUID.randomUUID(), center, trigger, forecast);
+        gate.source = source;
         data.gates.add(gate);
         data.setDirty();
         ensureRift(level, gate);
@@ -91,10 +105,10 @@ public final class GateService {
         return Optional.of(gate);
     }
 
-    /** Whether a Gate may open here: no other Gate within {@link #MIN_SPACING}. */
+    /** Whether a Gate may open here: no other Gate still open within {@link #MIN_SPACING}. */
     public static boolean canOpen(ServerLevel level, BlockPos center) {
         return GateData.get(level).gates.stream()
-                .noneMatch(other -> other.center.distSqr(center) < MIN_SPACING * MIN_SPACING);
+                .noneMatch(other -> other.phase != GateEvent.Phase.CLOSED && other.center.distSqr(center) < MIN_SPACING * MIN_SPACING);
     }
 
     /** Closes a Gate at once, as if its Guardian fell; for operators. */
@@ -106,6 +120,10 @@ public final class GateService {
             }
         }
         return false;
+    }
+
+    public static void addCloseListener(CloseListener listener) {
+        CLOSE_LISTENERS.add(listener);
     }
 
     public static Optional<GateEvent> nearest(ServerLevel level, BlockPos pos) {
@@ -369,6 +387,9 @@ public final class GateService {
                     : "The Nightmare Gate closes.").withStyle(ChatFormatting.DARK_PURPLE));
         }
         GateData.get(level).setDirty();
+        for (CloseListener listener : CLOSE_LISTENERS) {
+            listener.closed(level, gate, guardianSlain);
+        }
     }
 
     /** Creatures left behind when a Gate closes turn to ash and leave nothing. */

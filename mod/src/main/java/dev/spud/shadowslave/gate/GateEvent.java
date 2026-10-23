@@ -54,6 +54,8 @@ public final class GateEvent {
     boolean foreseen;
     UUID rift;
     UUID guardian;
+    /** What the Gate grew from, such as a Nightmare Seed's id; null for a Lure or a command. */
+    UUID source;
     final List<UUID> spawned = new ArrayList<>();
 
     GateEvent(UUID id, BlockPos center, GateTrigger trigger, GateForecast forecast) {
@@ -101,6 +103,10 @@ public final class GateEvent {
         return phaseTicks;
     }
 
+    public java.util.Optional<UUID> source() {
+        return java.util.Optional.ofNullable(source);
+    }
+
     CompoundTag save() {
         CompoundTag tag = new CompoundTag();
         tag.putUUID("id", id);
@@ -120,6 +126,9 @@ public final class GateEvent {
         }
         if (guardian != null) {
             tag.putUUID("guardian", guardian);
+        }
+        if (source != null) {
+            tag.putUUID("source", source);
         }
         ListTag list = new ListTag();
         spawned.forEach(uuid -> list.add(NbtUtils.createUUID(uuid)));
@@ -144,6 +153,7 @@ public final class GateEvent {
         event.foreseen = tag.getBoolean("foreseen");
         event.rift = tag.hasUUID("rift") ? tag.getUUID("rift") : null;
         event.guardian = tag.hasUUID("guardian") ? tag.getUUID("guardian") : null;
+        event.source = tag.hasUUID("source") ? tag.getUUID("source") : null;
         for (Tag uuid : tag.getList("spawned", Tag.TAG_INT_ARRAY)) {
             event.spawned.add(NbtUtils.loadUUID(uuid));
         }

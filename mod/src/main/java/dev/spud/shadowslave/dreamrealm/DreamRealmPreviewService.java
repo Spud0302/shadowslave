@@ -22,8 +22,7 @@ import java.util.Set;
 
 /** Development-only physical execution adapter for one Java-owned Dream Realm region. */
 public final class DreamRealmPreviewService {
-    public static final ResourceKey<Level> DREAM_REALM_LEVEL = ResourceKey.create(
-            Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "dream_realm"));
+    public static final ResourceKey<Level> DREAM_REALM_LEVEL = DreamRealm.LEVEL;
     private static final BlockPos ORIGIN = new BlockPos(0, 160, 0);
     private static final int RADIUS = 24;
 

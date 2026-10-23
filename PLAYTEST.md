@@ -279,6 +279,51 @@ breaks the ground around the rift. Operators can use `/shadowslave gate open
 <1-5>` (a certain Category where you stand, no Lure needed), `/shadowslave gate
 status` and `/shadowslave gate close`.
 
+## The Dream Realm and natural Seeds
+
+Added by claude-code, 2026-10-23. First slice: one region, the Ashen Expanse.
+Quick start: `/shadowslave aspect set ember`, `/shadowslave core fill`,
+`/shadowslave awaken <name>`, then sleep at night in a bed with a lit Dream
+Candle beside it.
+
+1. **Crossing.** Once you have Awakened, sleeping beside a lit Dream Candle
+   takes you to the Dream Realm after about three seconds instead of skipping
+   the night. Dormant players still sleep normally. The first time, you
+   arrive over your bed at 1:8 scale and a lit Dream Candle appears beside
+   you: that is your **Dream Anchor**, and every later crossing arrives there.
+   Light another Dream Candle in the Dream Realm to move it.
+2. **Waking.** Use a lit Dream Candle in the Dream Realm with an empty hand
+   (sneaking still meditates). You wake in your bed. Dying there also ends the
+   dream; you respawn as usual. Logging out wakes you on the next login.
+3. **Your sleeping body.** Your body stays asleep in the bed (Awakened only;
+   Masters cross whole later). Hostile mobs nearby walk over to it. If it is
+   hurt you are pulled back awake with its wounds; if it dies, you die where
+   you stand in the Dream Realm. Its chunk stays loaded while you dream.
+4. **Nightmare Seeds.** While an Awakened player walks the Dream Realm, Seeds
+   take root 24 to 64 blocks away now and then (the action bar says so). Use
+   one to read it: region, Category forecast, growth stage (1 to 4) and time
+   to bloom (3 in-game days at normal speed).
+5. **Cleansing.** Sneak-use a Seed to challenge it: a Gate opens at the Seed
+   in the Dream Realm. Kill its Guardian and the Seed is cleansed and drops
+   its region's loot, rolled 3 times at stage 1, 2 times at stages 2 and 3,
+   once at stage 4.
+6. **Blooming.** A Seed left alone blooms into a Gate in the Overworld at the
+   matching spot (Seed position x 8). A lit Dream Candle within 48 blocks of
+   that spot (at any height) wards it: the Seed withers instead.
+
+Server options (game rules): `shadowslaveDreamSeeds` (on; off stops new Seeds and freezes the rest), `shadowslaveDreamSeedsOptIn`
+(off; when on, players choose with `/shadowslave dream seeds on|off`),
+`shadowslaveDreamSeedGrowth` (100 percent; 0 freezes Seeds),
+`shadowslaveDreamBlockDamage` (on), `shadowslaveSleepingBody` (on) and
+`shadowslaveDreamRatio` (8). Anyone can run `/shadowslave dream status`.
+Operators: `/shadowslave dream enter|wake [player]`, `/shadowslave dream seed
+plant` (in front of you), `/shadowslave dream seed grow <days>` and
+`/shadowslave dream seed bloom` (the nearest Seed).
+
+Regions and Seed tuning are data: `data/shadowslave/dream_realm/region/*.json`
+and `data/shadowslave/dream_realm/seeds.json`; cleanse loot is a normal loot
+table.
+
 ## Weaving (Memory crafting)
 
 Anyone can weave Memories, Awakened or not. This first slice has the

@@ -49,5 +49,16 @@
   "item.shadowslave.linked_cleaver": "Linked Cleaver",
   "item.shadowslave.chainback_mail": "Chainback Mail",
   "item.shadowslave.hollow_visage": "Hollow Visage",
-  "item.shadowslave.hollow_edge": "Hollow Edge"
+  "item.shadowslave.hollow_edge": "Hollow Edge",
+  "block.shadowslave.nightmare_seed": "Nightmare Seed",
+  "entity.shadowslave.sleeping_body": "Sleeping Body",
+  "entity.shadowslave.sleeping_body.of": "%s (dreaming)",
+  "death.attack.shadowslave.severed_dream": "%1$s died in their sleep while dreaming",
+  "death.attack.shadowslave.severed_dream.player": "%1$s died in their sleep at the hands of %2$s",
+  "gamerule.shadowslaveDreamSeeds": "Nightmare Seeds grow in the Dream Realm",
+  "gamerule.shadowslaveDreamSeedsOptIn": "Nightmare Seeds only grow near players who opt in",
+  "gamerule.shadowslaveDreamSeedGrowth": "Nightmare Seed growth speed (percent)",
+  "gamerule.shadowslaveDreamBlockDamage": "Gates and creatures break blocks in the Dream Realm",
+  "gamerule.shadowslaveSleepingBody": "Dreamers leave a sleeping body behind",
+  "gamerule.shadowslaveDreamRatio": "Overworld blocks per Dream Realm block"
 }

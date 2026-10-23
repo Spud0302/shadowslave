@@ -1,0 +1,211 @@
+{
+ "parent": "block/block",
+ "render_type": "minecraft:cutout",
+ "ambientocclusion": false,
+ "textures": {
+  "particle": "shadowslave:block/nightmare_seed_husk_2",
+  "side": "shadowslave:block/nightmare_seed_husk_2",
+  "top": "shadowslave:block/nightmare_seed_top_2",
+  "thorns": "shadowslave:block/nightmare_seed_thorns_2"
+ },
+ "elements": [
+  {
+   "from": [
+    3,
+    0,
+    3
+   ],
+   "to": [
+    13,
+    11,
+    13
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 10
+     }
+    },
+    "south": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 10
+     }
+    },
+    "east": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 10
+     }
+    },
+    "west": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 10
+     }
+    },
+    "down": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 10
+     }
+    },
+    "up": {
+     "texture": "#top",
+     "neoforge_data": {
+      "block_light": 10
+     }
+    }
+   }
+  },
+  {
+   "from": [
+    5,
+    11,
+    5
+   ],
+   "to": [
+    11,
+    13,
+    11
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 10
+     }
+    },
+    "south": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 10
+     }
+    },
+    "east": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 10
+     }
+    },
+    "west": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 10
+     }
+    },
+    "down": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 10
+     }
+    },
+    "up": {
+     "texture": "#top",
+     "neoforge_data": {
+      "block_light": 10
+     }
+    }
+   }
+  },
+  {
+   "from": [
+    0.8,
+    0,
+    8
+   ],
+   "to": [
+    15.2,
+    16,
+    8
+   ],
+   "shade": false,
+   "rotation": {
+    "origin": [
+     8,
+     8,
+     8
+    ],
+    "axis": "y",
+    "angle": 45,
+    "rescale": true
+   },
+   "faces": {
+    "north": {
+     "texture": "#thorns",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "neoforge_data": {
+      "block_light": 13
+     }
+    },
+    "south": {
+     "texture": "#thorns",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "neoforge_data": {
+      "block_light": 13
+     }
+    }
+   }
+  },
+  {
+   "from": [
+    8,
+    0,
+    0.8
+   ],
+   "to": [
+    8,
+    16,
+    15.2
+   ],
+   "shade": false,
+   "rotation": {
+    "origin": [
+     8,
+     8,
+     8
+    ],
+    "axis": "y",
+    "angle": -45,
+    "rescale": true
+   },
+   "faces": {
+    "east": {
+     "texture": "#thorns",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "neoforge_data": {
+      "block_light": 13
+     }
+    },
+    "west": {
+     "texture": "#thorns",
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "neoforge_data": {
+      "block_light": 13
+     }
+    }
+   }
+  }
+ ]
+}
