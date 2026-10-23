@@ -1,0 +1,29 @@
+{
+  "entity": "shadowslave:hollow_mimic",
+  "name": "Hollow Mimic",
+  "summary": "A gaunt thing with a hollow face that hunts in the dark by sounding like people you know.",
+  "sections": [
+    {
+      "title": "Rank and Class",
+      "text": "Usually an Awakened Demon: three soul cores, three shards. Demons fight with real tactics and go for whoever is weakest.",
+      "sightings": 1
+    },
+    {
+      "title": "Habits",
+      "text": "While it stands in darkness and nobody looks at it, it speaks in chat with the name of a player it has heard, from where it waits. Its words never pause: its lines have no punctuation at all.",
+      "sightings": 3,
+      "kills": 1
+    },
+    {
+      "title": "Weakness",
+      "text": "Bright light weakens and silences it. It will not close in on someone with a companion nearby unless struck. Agree a phrase with friends to tell them from it.",
+      "sightings": 6,
+      "kills": 2
+    },
+    {
+      "title": "Drops",
+      "text": "Mimic Husk (one or two) for the Hollow Visage and Hollow Edge, and its soul shards.",
+      "kills": 3
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "entity": "shadowslave:ashen_tyrant",
+  "name": "Ashen Tyrant",
+  "summary": "A hunched giant of cooled ash with five embers in its chest. It guards Gates.",
+  "sections": [
+    {
+      "title": "Rank and Class",
+      "text": "A Tyrant: five soul cores, five shards. Its Rank rises with the Gate's Category, from Dormant at Category 1 to Corrupted at Category 5.",
+      "sightings": 1
+    },
+    {
+      "title": "Habits",
+      "text": "Ends a Gate as its Guardian. It spawns small copies of itself and drives the creatures around it, and slams the ground to throw back everyone close.",
+      "sightings": 2,
+      "kills": 1
+    },
+    {
+      "title": "Weakness",
+      "text": "The slam is telegraphed by a raised fist and a held breath: step out of its ring or jump. Kill the lesser copies early to keep the swarm down.",
+      "sightings": 4,
+      "kills": 1
+    },
+    {
+      "title": "Drops",
+      "text": "Five soul shards of its Rank, and the Gate closes behind it.",
+      "kills": 2
+    }
+  ]
+}

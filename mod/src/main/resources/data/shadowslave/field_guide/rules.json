@@ -1,0 +1,13 @@
+{
+  "give_on_first_join": true,
+  "explore_radius": 2,
+  "max_chunks": 16384,
+  "sighting_range": 64,
+  "sighting_hold_ticks": 16,
+  "sighting_cooldown_ticks": 600,
+  "seer_bonus": 1,
+  "place_range": 48,
+  "seed_range": 24,
+  "danger_cell": 64,
+  "death_step": 1
+}

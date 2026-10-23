@@ -404,6 +404,14 @@ public final class SeedService {
         return true;
     }
 
+    /** Withers a Seed on the spot without opening its Gate, as a ward would. */
+    public static void witherNow(ServerLevel realm, SeedData.Seed seed) {
+        SeedData data = SeedData.get(realm);
+        wither(realm, seed);
+        data.seeds.remove(seed);
+        data.setDirty();
+    }
+
     private static double horizontalSq(BlockPos a, BlockPos b) {
         return sq(a.getX() - b.getX()) + sq(a.getZ() - b.getZ());
     }

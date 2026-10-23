@@ -5,6 +5,8 @@ import dev.spud.shadowslave.network.payload.ForewarningPayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
+import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
+import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
 import dev.spud.shadowslave.network.payload.SoulSeaPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
 import dev.spud.shadowslave.network.payload.WaymarkPayload;
@@ -62,6 +64,18 @@ public final class ClientPayloadHandler {
 
     public static void handleWeavingStatus(WeavingStatusPayload payload, IPayloadContext context) {
         ClientWeavingState.update(payload);
+    }
+
+    public static void handleFieldGuideStatus(FieldGuideStatusPayload payload, IPayloadContext context) {
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientFieldGuideState.update(payload);
+        if (payload.open() && !(minecraft.screen instanceof FieldGuideScreen)) {
+            minecraft.setScreen(new FieldGuideScreen());
+        }
+    }
+
+    public static void handleFieldGuideMap(FieldGuideMapPayload payload, IPayloadContext context) {
+        ClientFieldGuideState.applyMap(payload);
     }
 
     public static void handleCoreStatus(CoreStatusPayload payload, IPayloadContext context) {

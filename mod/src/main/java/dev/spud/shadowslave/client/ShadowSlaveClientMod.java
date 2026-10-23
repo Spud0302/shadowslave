@@ -33,5 +33,6 @@ public final class ShadowSlaveClientMod {
         event.registerAbove(VanillaGuiLayers.HOTBAR, AbilityHudLayer.ID, new AbilityHudLayer());
         event.registerAbove(VanillaGuiLayers.CROSSHAIR, WardenSightLayer.ID, new WardenSightLayer());
         event.registerBelow(VanillaGuiLayers.HOTBAR, ForewarningLayer.ID, new ForewarningLayer());
+        event.registerAbove(VanillaGuiLayers.HOTBAR, FieldGuideMinimapLayer.ID, new FieldGuideMinimapLayer());
     }
 }

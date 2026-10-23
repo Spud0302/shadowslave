@@ -8,6 +8,9 @@ import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
+import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
+import dev.spud.shadowslave.network.payload.FieldGuidePinRequestPayload;
+import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
 import dev.spud.shadowslave.network.payload.ForewarningPayload;
 import dev.spud.shadowslave.network.payload.IntentionRequestPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
@@ -74,6 +77,21 @@ public final class ClientModPayloads {
                 WeavingStatusPayload.TYPE,
                 WeavingStatusPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleWeavingStatus
+        );
+        registrar.playToClient(
+                FieldGuideStatusPayload.TYPE,
+                FieldGuideStatusPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleFieldGuideStatus
+        );
+        registrar.playToClient(
+                FieldGuideMapPayload.TYPE,
+                FieldGuideMapPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleFieldGuideMap
+        );
+        registrar.playToServer(
+                FieldGuidePinRequestPayload.TYPE,
+                FieldGuidePinRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleFieldGuidePin
         );
         registrar.playToServer(
                 AwakenRequestPayload.TYPE,

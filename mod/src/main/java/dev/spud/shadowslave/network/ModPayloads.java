@@ -6,6 +6,9 @@ import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
+import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
+import dev.spud.shadowslave.network.payload.FieldGuidePinRequestPayload;
+import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
 import dev.spud.shadowslave.network.payload.ForewarningPayload;
 import dev.spud.shadowslave.network.payload.IntentionRequestPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
@@ -23,7 +26,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
-    public static final String NETWORK_VERSION = "15";
+    public static final String NETWORK_VERSION = "16";
 
     private ModPayloads() {
     }
@@ -86,6 +89,23 @@ public final class ModPayloads {
                 WeavingStatusPayload.STREAM_CODEC,
                 (payload, context) -> {
                 }
+        );
+        registrar.playToClient(
+                FieldGuideStatusPayload.TYPE,
+                FieldGuideStatusPayload.STREAM_CODEC,
+                (payload, context) -> {
+                }
+        );
+        registrar.playToClient(
+                FieldGuideMapPayload.TYPE,
+                FieldGuideMapPayload.STREAM_CODEC,
+                (payload, context) -> {
+                }
+        );
+        registrar.playToServer(
+                FieldGuidePinRequestPayload.TYPE,
+                FieldGuidePinRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleFieldGuidePin
         );
         registrar.playToServer(
                 AwakenRequestPayload.TYPE,
