@@ -37,6 +37,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -350,20 +351,9 @@ public final class SeedService {
 
     /** The region's cleanse loot, rolled more times the younger the Seed was when it was challenged. */
     static void reward(ServerLevel realm, SeedData.Seed seed) {
-        DreamSeedSettings settings = DreamRealmContent.get().seeds();
-        int rolls = settings.cleanseRolls(seed.cleansingStage);
         Vec3 at = Vec3.atCenterOf(seed.pos);
-        Optional<ResourceLocation> lootId = DreamRealmContent.get().region(seed.region).map(DreamRegion::cleanseLoot);
-        if (lootId.isPresent()) {
-            LootTable table = realm.getServer().reloadableRegistries()
-                    .getLootTable(ResourceKey.create(Registries.LOOT_TABLE, lootId.get()));
-            for (int i = 0; i < rolls; i++) {
-                LootParams params = new LootParams.Builder(realm).withParameter(LootContextParams.ORIGIN, at)
-                        .create(LootContextParamSets.CHEST);
-                for (ItemStack stack : table.getRandomItems(params)) {
-                    Containers.dropItemStack(realm, at.x, at.y, at.z, stack);
-                }
-            }
+        for (ItemStack stack : rollReward(realm, seed)) {
+            Containers.dropItemStack(realm, at.x, at.y, at.z, stack);
         }
         realm.playSound(null, seed.pos, SoundEvents.BEACON_POWER_SELECT, SoundSource.PLAYERS, 1.5F, 0.7F);
         realm.sendParticles(ParticleTypes.END_ROD, at.x, at.y, at.z, 40, 0.4, 0.6, 0.4, 0.06);
@@ -373,6 +363,22 @@ public final class SeedService {
                         .withStyle(ChatFormatting.LIGHT_PURPLE));
             }
         }
+    }
+
+    static List<ItemStack> rollReward(ServerLevel realm, SeedData.Seed seed) {
+        int rolls = DreamRealmContent.get().seeds().cleanseRolls(seed.cleansingStage);
+        Optional<ResourceLocation> lootId = DreamRealmContent.get().region(seed.region).map(DreamRegion::cleanseLoot);
+        List<ItemStack> items = new ArrayList<>();
+        if (lootId.isPresent()) {
+            LootTable table = realm.getServer().reloadableRegistries()
+                    .getLootTable(ResourceKey.create(Registries.LOOT_TABLE, lootId.get()));
+            for (int i = 0; i < rolls; i++) {
+                LootParams params = new LootParams.Builder(realm).withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(seed.pos))
+                        .create(LootContextParamSets.CHEST);
+                items.addAll(table.getRandomItems(params));
+            }
+        }
+        return items;
     }
 
     /** The Seed nearest a spot in the Dream Realm. */

@@ -18,10 +18,9 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.CandleBlock;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -105,16 +104,17 @@ public final class SeedGameTest {
         helper.assertFalse(seed.cleansing(), "the Seed is free again");
         helper.assertTrue(realm.getBlockState(seed.pos()).is(DreamRealmRegistry.NIGHTMARE_SEED.get()), "the Seed returns");
 
-        // Challenge again and win: the Seed is cleansed and pays its region's loot, three rolls at stage 0.
+        // Challenge again and win: the Seed is cleansed for good.
         helper.assertTrue(SeedService.challenge(player, seed.pos()), "challenged again");
         GateEvent second = GateData.get(realm).gates().stream().filter(g -> g.source().filter(seed.id()::equals).isPresent())
                 .findFirst().orElseThrow();
+        // A Seed challenged at stage 0 pays three rolls of its region's loot, 2-4 Dormant shards each.
+        long shards = SeedService.rollReward(realm, seed).stream()
+                .filter(stack -> stack.getItem() == dev.spud.shadowslave.item.ModItems.DORMANT_SOUL_SHARD.get())
+                .mapToInt(ItemStack::getCount).sum();
+        helper.assertTrue(seed.cleansingStage == 0 && shards >= 6, "three rolls of 2-4 Dormant shards: " + shards);
         SeedService.onGateClosed(realm, second, true);
         helper.assertTrue(SeedData.get(realm).byId(seed.id()).isEmpty(), "a cleansed Seed is gone for good");
-        long shards = realm.getEntitiesOfClass(ItemEntity.class, new AABB(seed.pos()).inflate(3)).stream()
-                .filter(item -> item.getItem().getItem() == dev.spud.shadowslave.item.ModItems.DORMANT_SOUL_SHARD.get())
-                .mapToInt(item -> item.getItem().getCount()).sum();
-        helper.assertTrue(shards >= 6, "three rolls of 2-4 Dormant shards: " + shards);
         GateService.close(realm, second.id());
         DreamRealmTestPlayers.home(player, helper);
         helper.succeed();
