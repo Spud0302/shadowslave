@@ -1,0 +1,28 @@
+{
+  "branch": "shadowslave:forging",
+  "memory": "shadowslave:memory/hollow_edge",
+  "result": "shadowslave:hollow_edge",
+  "materials": [
+    {
+      "item": "shadowslave:mimic_husk",
+      "count": 1
+    },
+    {
+      "item": "shadowslave:chainback_link",
+      "count": 1
+    },
+    {
+      "item": "minecraft:iron_ingot",
+      "count": 2
+    },
+    {
+      "item": "shadowslave:awakened_soul_shard",
+      "count": 1
+    }
+  ],
+  "xp": 40,
+  "unlock": {
+    "type": "discover"
+  },
+  "hint": "An edge cut from an empty voice, bound with what bound the Chainback."
+}

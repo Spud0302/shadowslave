@@ -88,6 +88,48 @@ public record MemoryContentCatalog(List<MemoryProfile> memories) {
         ));
     }
 
+    /**
+     * Forging Memories woven at the Weaving table, Tiers I to III (DESIGN).
+     * Their Tier follows the Class of the creature whose remains they are
+     * woven from: Beast I, Monster II, Demon III (ch. 74). Their enchantments
+     * stay sealed until the Enchanting branch exists.
+     */
+    public static MemoryContentCatalog forging() {
+        return new MemoryContentCatalog(List.of(
+                woven("shard_knife", "Shard Knife", SoulRank.DORMANT, 1, MemoryType.WEAPON,
+                        Set.of("precision", "survival"),
+                        enchant("splinter_edge", EnchantmentRole.OFFENSE, "a sliver of soul keeps the edge keen through hard use")),
+                woven("sleepers_hood", "Sleeper's Hood", SoulRank.DORMANT, 1, MemoryType.ARMOR,
+                        Set.of("rest", "concealment"),
+                        enchant("quiet_dreams", EnchantmentRole.STEALTH, "muffles the wearer's breathing while they lie still")),
+                woven("wanderers_boots", "Wanderer's Boots", SoulRank.DORMANT, 1, MemoryType.ARMOR,
+                        Set.of("travel", "endurance"),
+                        enchant("long_road", EnchantmentRole.MOBILITY, "eases the weariness of long marches over rough ground")),
+                woven("ashen_hide_vest", "Ashen Hide Vest", SoulRank.DORMANT, 1, MemoryType.ARMOR,
+                        Set.of("ash", "endurance"),
+                        enchant("cinder_skin", EnchantmentRole.DEFENSE, "hide that once swam through ash shrugs off embers and heat")),
+                woven("linked_cleaver", "Linked Cleaver", SoulRank.AWAKENED, 2, MemoryType.WEAPON,
+                        Set.of("weight", "reach"),
+                        enchant("dragging_links", EnchantmentRole.CONTROL, "the chained head drags struck foes a step toward the wielder")),
+                woven("chainback_mail", "Chainback Mail", SoulRank.AWAKENED, 2, MemoryType.ARMOR,
+                        Set.of("guard", "weight"),
+                        enchant("rattling_guard", EnchantmentRole.DEFENSE, "the links lock together against a heavy blow and loosen after")),
+                woven("hollow_visage", "Hollow Visage", SoulRank.AWAKENED, 3, MemoryType.ARMOR,
+                        Set.of("voice", "deception"),
+                        enchant("borrowed_face", EnchantmentRole.STEALTH, "lesser creatures hesitate, unsure whose face they are seeing")),
+                woven("hollow_edge", "Hollow Edge", SoulRank.AWAKENED, 3, MemoryType.WEAPON,
+                        Set.of("deception", "precision"),
+                        enchant("echoing_cut", EnchantmentRole.OFFENSE, "a strike repeats faintly a moment later, like a voice from an empty room"))
+        ));
+    }
+
+    /** Every authored Memory: wave one and the woven Forging Memories. */
+    public static MemoryContentCatalog all() {
+        ArrayList<MemoryProfile> all = new ArrayList<>(waveOne().memories());
+        all.addAll(forging().memories());
+        return new MemoryContentCatalog(all);
+    }
+
     public enum MemoryType { WEAPON, ARMOR, TOOL, CHARM }
 
     public enum EnchantmentRole {
@@ -164,6 +206,19 @@ public record MemoryContentCatalog(List<MemoryProfile> memories) {
                 List.of(enchantments),
                 "design/memory-wave1/" + path
         );
+    }
+
+    private static MemoryProfile woven(
+            String path,
+            String name,
+            SoulRank rank,
+            int tier,
+            MemoryType type,
+            Set<String> tags,
+            EnchantmentProfile... enchantments
+    ) {
+        return new MemoryProfile(id("memory/" + path), name, rank, tier, type, tags, List.of(enchantments),
+                "design/weaving-forging/" + path);
     }
 
     private static EnchantmentProfile enchant(String path, EnchantmentRole role, String hook) {

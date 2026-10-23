@@ -47,6 +47,7 @@ public final class ClientGameEvents {
         ClientSoulState.clear();
         ClientAbilityState.clear();
         ClientCoreState.clear();
+        ClientWeavingState.clear();
     }
 
     private static void consume(KeyMapping mapping, CustomPacketPayload payload, Minecraft minecraft) {

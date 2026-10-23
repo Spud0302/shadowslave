@@ -27,6 +27,10 @@ import dev.spud.shadowslave.nightmare.NightmareEvents;
 import dev.spud.shadowslave.soul.core.CoreService;
 import dev.spud.shadowslave.soul.core.ShardDrops;
 import dev.spud.shadowslave.soul.refinement.RefinementService;
+import dev.spud.shadowslave.weaving.WeavingCommands;
+import dev.spud.shadowslave.weaving.WeavingContentLoader;
+import dev.spud.shadowslave.weaving.WeavingRegistry;
+import dev.spud.shadowslave.weaving.WeavingService;
 import dev.spud.shadowslave.world.entity.DrownedBellListenerEntityAdapter;
 import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
 import net.neoforged.api.distmarker.Dist;
@@ -49,6 +53,7 @@ public final class ShadowSlaveMod {
         NightmareRules.bootstrap();
         NightmareCreatureEntities.register(modEventBus);
         GateRegistry.register(modEventBus);
+        WeavingRegistry.register(modEventBus);
 
         if (physicalSide == Dist.DEDICATED_SERVER) {
             modEventBus.addListener(ModPayloads::registerDedicatedServer);
@@ -89,6 +94,11 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(GateCommands::register);
         NeoForge.EVENT_BUS.addListener(GateService::onServerTick);
         NeoForge.EVENT_BUS.addListener(GateService::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(WeavingContentLoader::onAddReloadListeners);
+        NeoForge.EVENT_BUS.addListener(WeavingCommands::register);
+        NeoForge.EVENT_BUS.addListener(WeavingService::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(WeavingService::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(WeavingService::onPlayerLoggedOut);
         LOGGER.info("Shadow Slave Java core is loading");
     }
 }

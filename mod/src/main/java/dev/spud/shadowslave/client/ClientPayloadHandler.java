@@ -6,6 +6,7 @@ import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.SoulSeaPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
+import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.resources.ResourceLocation;
@@ -41,6 +42,10 @@ public final class ClientPayloadHandler {
         } else if (payload.open()) {
             minecraft.setScreen(new SoulSeaScreen(payload));
         }
+    }
+
+    public static void handleWeavingStatus(WeavingStatusPayload payload, IPayloadContext context) {
+        ClientWeavingState.update(payload);
     }
 
     public static void handleCoreStatus(CoreStatusPayload payload, IPayloadContext context) {

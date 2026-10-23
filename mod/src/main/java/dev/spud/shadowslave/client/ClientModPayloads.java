@@ -17,6 +17,7 @@ import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayl
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshCompassRequestPayload;
 import dev.spud.shadowslave.network.payload.UseAbilityRequestPayload;
+import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -56,6 +57,11 @@ public final class ClientModPayloads {
                 SoulSeaPayload.TYPE,
                 SoulSeaPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleSoulSea
+        );
+        registrar.playToClient(
+                WeavingStatusPayload.TYPE,
+                WeavingStatusPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleWeavingStatus
         );
         registrar.playToServer(
                 AwakenRequestPayload.TYPE,

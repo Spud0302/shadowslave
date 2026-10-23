@@ -1,0 +1,23 @@
+{
+  "branch": "shadowslave:forging",
+  "memory": "shadowslave:memory/wanderers_boots",
+  "result": "shadowslave:wanderers_boots",
+  "materials": [
+    {
+      "item": "minecraft:leather",
+      "count": 2
+    },
+    {
+      "item": "minecraft:string",
+      "count": 1
+    },
+    {
+      "item": "shadowslave:dormant_soul_shard",
+      "count": 1
+    }
+  ],
+  "xp": 10,
+  "unlock": {
+    "type": "starter"
+  }
+}

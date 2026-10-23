@@ -1,0 +1,19 @@
+{
+  "branch": "shadowslave:forging",
+  "memory": "shadowslave:memory/sleepers_hood",
+  "result": "shadowslave:sleepers_hood",
+  "materials": [
+    {
+      "item": "minecraft:leather",
+      "count": 3
+    },
+    {
+      "item": "shadowslave:dormant_soul_shard",
+      "count": 1
+    }
+  ],
+  "xp": 10,
+  "unlock": {
+    "type": "starter"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "branch": "shadowslave:forging",
+  "memory": "shadowslave:memory/chainback_mail",
+  "result": "shadowslave:chainback_mail",
+  "materials": [
+    {
+      "item": "shadowslave:chainback_link",
+      "count": 3
+    },
+    {
+      "item": "minecraft:leather",
+      "count": 1
+    },
+    {
+      "item": "shadowslave:awakened_soul_shard",
+      "count": 1
+    }
+  ],
+  "xp": 25,
+  "unlock": {
+    "type": "first_kill",
+    "entity": "shadowslave:chainback"
+  }
+}
