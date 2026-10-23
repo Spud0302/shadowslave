@@ -197,3 +197,40 @@ open within 64 blocks of each other. With block damage on, the opening blast
 breaks the ground around the rift. Operators can use `/shadowslave gate open
 <1-5>` (a certain Category where you stand, no Lure needed), `/shadowslave gate
 status` and `/shadowslave gate close`.
+
+## Weaving (Memory crafting)
+
+Anyone can weave Memories, Awakened or not. This first slice has the
+**Forging** branch (weapons and armour) up to level 3.
+
+1. Craft a **Weaving Table**: string, a Dormant soul shard and string on top,
+   three planks in the middle, and two planks as legs (left and right) along
+   the bottom. It is also in the Functional Blocks creative tab. Right-click
+   it to open it.
+2. Everyone starts knowing three patterns (hover one in the list on the right
+   to see its materials). Lay the materials in the four slots, in any order,
+   and press **Weave**. Faint shards from ordinary mobs count as shards.
+   - Shard Knife: 2 iron ingots, a stick, a Dormant soul shard
+   - Sleeper's Hood: 3 leather, a Dormant soul shard
+   - Wanderer's Boots: 2 leather, a string, a Dormant soul shard
+3. The woven Memory appears in the right-hand slot, stamped "Woven by" you.
+   Weaving gives Forging XP, and the first weave of each pattern gives five
+   times as much. Every 100 XP is a Weaving point.
+4. **Level 2** costs 1 point (press Raise). It lets you weave Tier II
+   Memories. **Level 3** is a deed: weave five Tier II Memories. A respec
+   gives back every point, but a deed you earned stays earned.
+5. Nightmare Creatures drop materials when you kill them: Ash Burrowers drop
+   Ashen Hide, Chainbacks drop Chainback Links, and Hollow Mimics drop Mimic
+   Husks. Patterns with those materials have to be found by trial and error.
+   A combination that matches nothing costs nothing. If it comes close, the
+   Soul screen's **Weaving** tab (key 5 on the Soul screen) shows the
+   materials you got right, with a hint. There are four patterns to find.
+6. The first time you kill a Chainback, the Spell shows you the **Chainback
+   Mail** pattern. It can't be found by trial.
+7. Tier II and III Memories also need an Awakened soul. The tooltip and the
+   red line on a pattern say what is missing.
+
+Branches, levels, deeds, patterns and the XP numbers are data files under
+`data/shadowslave/weaving/`, so a data pack can change them. Operators can
+use `/shadowslave_weaving xp shadowslave:forging <amount>`,
+`/shadowslave_weaving learn <pattern>` and `/shadowslave_weaving reset`.
