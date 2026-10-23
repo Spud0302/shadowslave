@@ -16,7 +16,11 @@ public enum Longing {
     HUNT("Hunt", "hunt", "Warden"),
     FORESEE("Foresee", "foresight", "Seer"),
     DEVOUR("Devour", "hunger", "Reaper"),
-    GIVE("Give", "giving", "Wellspring");
+    GIVE("Give", "giving", "Wellspring"),
+    SHAPE("Shape", "forge", "Forge"),
+    DIG("Dig", "delve", "Delve"),
+    BUILD("Build", "mason", "Mason"),
+    GROW("Grow", "verdant", "Verdant");
 
     private final String label;
     private final String evidenceTag;

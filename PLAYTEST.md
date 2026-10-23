@@ -68,8 +68,8 @@ Added by claude-code, 2026-10-22.
 
 You can only roll once. Operators can reroll with `/shadowslave aspect reroll`
 (optionally followed by player names), and `/shadowslave reset` clears the Soul
-entirely. The roll picks one of eight Natures (Ember, Mist, Stone, Tide, Warden,
-Seer, Reaper, Wellspring), nudged slightly by how you played beforehand (lighting
+entirely. The roll picks one of twelve Natures (Ember, Mist, Stone, Tide, Warden,
+Seer, Reaper, Wellspring, Forge, Delve, Mason, Verdant), nudged slightly by how you played beforehand (lighting
 and smelting, sneaking, mining, swimming nudge the first four). Operators can
 pick a Nature outright with `/shadowslave aspect set <nature>`. Press R to use
 your Aspect's ability. Abilities have no cooldowns: each one spends **essence**
@@ -102,16 +102,19 @@ quarter of their core out as a shard you can absorb; turn that off with
 
 **Intention offering.** Before your first roll you can meditate at a lit Dream
 Candle (sneak and use it) to offer an intention. Name a longing (Burn, Hide,
-Endure, Return, Hunt, Foresee, Devour or Give) and press Offer: one of the item in your hand is taken if the
+Endure, Return, Hunt, Foresee, Devour, Give, Shape, Dig, Build or Grow) and press Offer: one of the item in your hand is taken if the
 Spell cares for it (Ember: coal, torches, blaze powder; Mist: feathers, phantom
 membrane, ender pearls; Stone: cobblestone, iron, amethyst, diamond; Tide: kelp,
 fish, prismarine, a water bucket; Warden: bows, arrows, a lead, a rabbit's foot;
 Seer: a spyglass, an ender eye, a compass, a map; Reaper: rotten flesh, spider
 eyes, soul sand, an echo shard; Wellspring: golden apples, honey, glistering
-melon, bread; the
+melon, bread; Forge: gold or copper ingots, an anvil, a furnace; Delve: a
+pickaxe, raw copper, redstone, lapis; Mason: bricks, stone bricks, planks,
+scaffolding, a stonecutter; Verdant: seeds, wheat, bone meal, saplings, carrots,
+potatoes, moss; the
 full lists are the `data/shadowslave/tags/item/intention/` tags). The Soul Sea
 shows the odds under each longing: offering and longing for the same Nature
-takes it from 12.5% to 25%, never certain. Then sleep beside the candle; the roll uses the intention once.
+takes it from about 8% to 17.5%, never certain. Then sleep beside the candle; the roll uses the intention once.
 
 **Meditation and Awakening.** Sneak and use a lit Dream Candle (with anything
 in hand) to meditate: the **Soul Sea** opens, showing your Soul Rank, your core
@@ -154,6 +157,14 @@ a blow is loaded, and the charge fades after 6 seconds.
 | Reaper | Reaping Arc (30) | A 120 degree sweep for 6 damage; anything left at 30% health or less (100 max health or less) is reaped outright for 10 essence |
 | Wellspring | Soul Ward (35) | Absorption II for 30 s on the ally you look at, or yourself |
 | Wellspring | Overflow (50) | A pool of 8 blocks for 20 s: Regeneration and 3 essence a second to everyone in it |
+| Forge | Masterwork (60) | For 60 s your next successful weave may reach one Tier above your branch level |
+| Forge | Molten Edge (35) | For 15 s each melee hit deals 3 more damage and sets the target alight |
+| Delve | Vein Pull (40) | Mines the whole vein (up to 32 blocks) of the ore you look at, with the right tool, into your pack |
+| Delve | Stonewalk (30) | Step through up to 8 blocks of wall ahead to the first open space |
+| Mason | Blueprint (50) | First press learns the 5x5x5 shape ahead (free); press within 60 s to build it where you look from your pack |
+| Mason | Scaffold (25) | For 10 s, planks appear under you when you step over a drop; they fall away after 8 s |
+| Verdant | Living Wall (35) | A 5x2 flowering hedge for 15 s; hostiles touching it take 2 damage and Slowness II |
+| Verdant | Wild Call (30) | Tames the animal you look at (12 blocks); your pets within 16 get Regeneration II and Strength for 20 s |
 
 ### The newer Natures: Warden, Seer, Reaper, Wellspring
 
@@ -181,6 +192,36 @@ Things to try:
    with kills and Soul Siphon. Reaping Arc a group of weakened mobs.
 4. Wellspring: sneak still to see the bar refill faster; take a big hit and
    watch essence spill. With a second player, gift essence and ward them.
+
+### The utility Natures: Forge, Delve, Mason, Verdant
+
+Added by claude-code, 2026-10-23. These four are for crafting, mining, building
+and farming rather than fighting. Quick start: `/shadowslave aspect set forge`
+(or delve, mason, verdant), then `/shadowslave core fill` and
+`/shadowslave awaken <name>` for the Awakened abilities above.
+
+| Nature | Innate (always on) | Ability (R) | Flaw |
+| --- | --- | --- | --- |
+| Forge | Thrifty Hands: 20% of smelted items come out doubled; Forging at the Weaving Table earns 1.5x XP | Quench: smelt up to 8 of the held stack in your hands; with nothing smeltable, a heat burst throws back and ignites hostiles within 4 (25 essence) | Cold Hearth: slow and weak in powder snow or anywhere cold enough to snow |
+| Delve | Ore Sense: sneak to see ores within 8 blocks outlined through stone, coloured by ore | Tunnel Strike: break a 3x3 tunnel 3 deep in the direction you face (up or down when you look steeply) (20 essence) | Open Sky: weak under the open sky, and essence refills at half speed there |
+| Mason | Long Reach: place and break blocks 2 blocks further away | Raise Wall: a 3x3 wall two blocks ahead from the block in your hand, one per block placed (20 essence) | Far From Home: abilities cost 50% more when you are over 32 blocks from anything you have placed |
+| Verdant | Green Thumb: crops and saplings within 6 blocks grow faster | Bloom: crops and saplings within 4 blocks grow two stages, animals within 6 heal 4 (25 essence) | Rootbound: essence only refills while you stand on grass, dirt, farmland, moss or leaves |
+
+Things to try:
+
+1. Forge: hold raw iron and press R, then press R empty-handed next to a few
+   zombies. Smelt a stack in a furnace and count the extras. Awaken with
+   Masterwork, then weave at a Weaving Table one Tier above your level. Stand in
+   a snowy biome and watch the Flaw kick in.
+2. Delve: dig into a hillside, sneak, and look for the coloured outlines. Use
+   Tunnel Strike looking ahead, then looking straight down. Step outside and
+   check the essence bar slows. Vein Pull an iron vein; Stonewalk through a wall.
+3. Mason: place blocks from further away than usual. Hold bricks and Raise Wall.
+   Build something, walk 40 blocks away and compare ability costs. Blueprint a
+   small arch, look elsewhere and press again; Scaffold off a cliff.
+4. Verdant: stand in a wheat field and watch it grow; Bloom it. Stand on stone
+   and see the essence bar stop. Living Wall in front of a zombie; Wild Call a
+   wolf or horse, then fight beside it.
 
 ## Nightmare Creatures
 

@@ -26,7 +26,7 @@ class BackfillKitRulesTest {
             assertTrue(kits.flaws().stream().anyMatch(flaw -> flaw.id().equals(kit.flawId())), kit.flawName());
         }
         assertEquals(12, ExpandedIdentityContentCatalog.waveOne().natures().size());
-        assertEquals(16, kits.natures().size());
+        assertEquals(20, kits.natures().size());
     }
 
     @Test

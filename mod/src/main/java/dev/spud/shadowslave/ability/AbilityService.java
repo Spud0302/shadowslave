@@ -88,7 +88,7 @@ public final class AbilityService {
 
     /** Essence this player pays for one use of the ability. */
     public static int costFor(ServerPlayer player, AspectAbility ability) {
-        return RefinementRules.cost(ability.essenceCost(), RefinementService.get(player));
+        return MasonWorks.costFor(player, RefinementRules.cost(ability.essenceCost(), RefinementService.get(player)));
     }
 
     /** Everyone nearby, the caster included, plays the casting pose. */

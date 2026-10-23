@@ -37,6 +37,18 @@ public final class AbilityRegistry {
         register(new EssenceGiftAbility());
         register(new SoulWardAbility());
         register(new OverflowAbility());
+        register(new QuenchAbility());
+        register(new MasterworkAbility());
+        register(new MoltenEdgeAbility());
+        register(new TunnelStrikeAbility());
+        register(new VeinPullAbility());
+        register(new StonewalkAbility());
+        register(new RaiseWallAbility());
+        register(new BlueprintAbility());
+        register(new ScaffoldAbility());
+        register(new BloomAbility());
+        register(new LivingWallAbility());
+        register(new WildCallAbility());
     }
 
     private AbilityRegistry() {

@@ -220,7 +220,8 @@ public final class ExpandedIdentityContentCatalog {
 
     /**
      * The first wave plus the backfill Natures built for the Gates and rank-up
-     * passes (Warden, Seer, Reaper, Wellspring), their Dormant abilities and
+     * passes (Warden, Seer, Reaper, Wellspring) and the utility Natures of
+     * the Weaving pass (Forge, Delve, Mason, Verdant), their Dormant abilities and
      * Flaws. The Dream Candle roll draws on this; the older appraisal flows
      * keep {@link #waveOne()} so their generated identities stay stable.
      */
@@ -231,14 +232,22 @@ public final class ExpandedIdentityContentCatalog {
                         nature("warden", "Warden", Set.of("hunt", "pursuit", "warning"), 3),
                         nature("seer", "Seer", Set.of("foresight", "perception", "fate"), 3),
                         nature("reaper", "Reaper", Set.of("hunger", "soul", "harvest"), 3),
-                        nature("wellspring", "Wellspring", Set.of("giving", "essence", "renewal"), 3)
+                        nature("wellspring", "Wellspring", Set.of("giving", "essence", "renewal"), 3),
+                        nature("forge", "Forge", Set.of("forge", "craft", "heat"), 3),
+                        nature("delve", "Delve", Set.of("delve", "depth", "ore"), 3),
+                        nature("mason", "Mason", Set.of("mason", "building", "order"), 3),
+                        nature("verdant", "Verdant", Set.of("verdant", "harvest_field", "tending"), 3)
                 )),
                 wave.archetypes(),
                 concat(wave.abilities(), List.of(
                         ability("mark_prey", "Mark Prey", Set.of("hunt"), Set.of("duty", "warning"), 5),
                         ability("foresight", "Foresight", Set.of("foresight"), Set.of("perception", "witness"), 5),
                         ability("soul_siphon", "Soul Siphon", Set.of("hunger"), Set.of("resolve", "sacrifice"), 5),
-                        ability("essence_gift", "Essence Gift", Set.of("giving"), Set.of("duty", "connection"), 5)
+                        ability("essence_gift", "Essence Gift", Set.of("giving"), Set.of("duty", "connection"), 5),
+                        ability("quench", "Quench", Set.of("forge"), Set.of("precision", "craft"), 5),
+                        ability("tunnel_strike", "Tunnel Strike", Set.of("delve"), Set.of("resolve", "force"), 5),
+                        ability("raise_wall", "Raise Wall", Set.of("mason"), Set.of("stability", "duty"), 5),
+                        ability("bloom", "Bloom", Set.of("verdant"), Set.of("growth", "connection"), 5)
                 )),
                 concat(wave.flaws(), List.of(
                         flaw("quarry_lock", "Quarry Lock", Set.of("hunt", "pursuit"),
@@ -248,7 +257,15 @@ public final class ExpandedIdentityContentCatalog {
                         flaw("hunger", "Hunger", Set.of("hunger", "soul"),
                                 Set.of("resource", "compulsion"), Set.of(), 3),
                         flaw("brimming_vessel", "Brimming Vessel", Set.of("giving", "essence"),
-                                Set.of("resource", "physical"), Set.of(), 3)
+                                Set.of("resource", "physical"), Set.of(), 3),
+                        flaw("cold_hearth", "Cold Hearth", Set.of("forge", "heat"),
+                                Set.of("physical", "conditional"), Set.of(), 3),
+                        flaw("open_sky", "Open Sky", Set.of("delve", "depth"),
+                                Set.of("physical", "conditional"), Set.of(), 3),
+                        flaw("far_from_home", "Far From Home", Set.of("mason", "building"),
+                                Set.of("resource", "conditional"), Set.of(), 3),
+                        flaw("rootbound", "Rootbound", Set.of("verdant", "tending"),
+                                Set.of("resource", "conditional"), Set.of(), 3)
                 ))
         );
     }

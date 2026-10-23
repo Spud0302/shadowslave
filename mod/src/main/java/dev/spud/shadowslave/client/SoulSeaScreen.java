@@ -225,13 +225,13 @@ public final class SoulSeaScreen extends Screen {
                 String label = longings[i].natureName() + " " + odds.get(i) + "%";
                 graphics.drawCenteredString(this.font, label, x0 + width / 2, oddsY, SpellStyle.ASPECT);
                 graphics.fill(x0, oddsY + 11, x0 + width, oddsY + 15, SpellStyle.PANEL);
-                // A full bar is 25%, the most intention and playstyle can lift one Nature to, so a lean shows.
-                int filled = Math.min(width, Math.round(width * odds.get(i) / 25.0F));
+                // A full bar is 20%, a little above what an offering and a longing lift one Nature to, so a lean shows.
+                int filled = Math.min(width, Math.round(width * odds.get(i) / 20.0F));
                 graphics.fill(x0, oddsY + 11, x0 + filled, oddsY + 15, SpellStyle.withAlpha(SpellStyle.ASPECT, 0.8F));
             }
         }
 
-        int summaryY = longingTop(longings.length - 1) + BUTTON_HEIGHT + 30;
+        int summaryY = longingTop(longings.length - 1) + BUTTON_HEIGHT + 24;
         String offered = sea.intention().offering().isEmpty() ? "nothing offered" : "offered " + sea.intention().offering();
         String named = Longing.parse(sea.intention().longing()).map(value -> "longing to " + value.label().toLowerCase(Locale.ROOT))
                 .orElse("no longing named");
@@ -242,7 +242,7 @@ public final class SoulSeaScreen extends Screen {
 
     /** Longings sit in rows of four, one per Nature. */
     private static final int LONGINGS_PER_ROW = 4;
-    private static final int LONGING_ROW = BUTTON_HEIGHT + 26;
+    private static final int LONGING_ROW = BUTTON_HEIGHT + 22;
 
     private int longingWidth() {
         return (right - left - 32 - (LONGINGS_PER_ROW - 1) * 8) / LONGINGS_PER_ROW;

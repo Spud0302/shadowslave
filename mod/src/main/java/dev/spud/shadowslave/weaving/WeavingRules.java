@@ -125,8 +125,14 @@ public final class WeavingRules {
     /** Why a pattern can't be woven yet, or empty if it can. */
     public static Optional<String> lock(WeavingContent content, WeavingData data, WeavingRecipe recipe,
                                         Optional<SoulRank> soulRank) {
+        return lock(content, data, recipe, soulRank, Boons.NONE);
+    }
+
+    /** As {@link #lock(WeavingContent, WeavingData, WeavingRecipe, Optional)}, with a Masterwork's extra Tier counted. */
+    public static Optional<String> lock(WeavingContent content, WeavingData data, WeavingRecipe recipe,
+                                        Optional<SoulRank> soulRank, Boons boons) {
         MemoryContentCatalog.MemoryProfile profile = content.profile(recipe);
-        int held = heldLevel(content, data, recipe.branch());
+        int held = heldLevel(content, data, recipe.branch()) + boons.tierBonus();
         if (profile.tier() > held) {
             return Optional.of("Needs " + content.branchName(recipe.branch()) + " level " + profile.tier());
         }
@@ -177,8 +183,26 @@ public final class WeavingRules {
         }
     }
 
+    /**
+     * What a player's Aspect adds at the table: a Forge's Masterwork lets one
+     * weave reach {@code tierBonus} Tiers above the branch level, and Thrifty
+     * Hands earns {@code xpPercent} of the usual XP in {@code quickBranch}.
+     */
+    public record Boons(int tierBonus, Optional<ResourceLocation> quickBranch, int xpPercent) {
+        public static final Boons NONE = new Boons(0, Optional.empty(), 100);
+
+        int xp(ResourceLocation branch, int xp) {
+            return quickBranch.filter(branch::equals).isPresent() ? xp * xpPercent / 100 : xp;
+        }
+    }
+
     public static Attempt attempt(WeavingContent content, WeavingData data, Map<ResourceLocation, Integer> materials,
                                   Optional<SoulRank> soulRank) {
+        return attempt(content, data, materials, soulRank, Boons.NONE);
+    }
+
+    public static Attempt attempt(WeavingContent content, WeavingData data, Map<ResourceLocation, Integer> materials,
+                                  Optional<SoulRank> soulRank, Boons boons) {
         if (materials.isEmpty()) {
             return new Attempt(Outcome.EMPTY, Optional.empty(), data, 0, Optional.empty(), List.of());
         }
@@ -193,11 +217,11 @@ public final class WeavingRules {
             return new Attempt(Outcome.UNSHOWN, matched, data, 0, Optional.empty(), List.of());
         }
         WeavingData next = known ? data : data.withLearned(id);
-        Optional<String> lock = lock(content, next, recipe, soulRank);
+        Optional<String> lock = lock(content, next, recipe, soulRank, boons);
         if (lock.isPresent()) {
             return new Attempt(known ? Outcome.LOCKED : Outcome.DISCOVERED_LOCKED, matched, next, 0, lock, List.of());
         }
-        int xp = recipe.xp() * (next.woven(id) == 0 ? content.settings().firstWeaveMultiplier() : 1);
+        int xp = boons.xp(recipe.branch(), recipe.xp() * (next.woven(id) == 0 ? content.settings().firstWeaveMultiplier() : 1));
         next = next.withWoven(id).withXp(recipe.branch(), xp);
         List<String> deeds = new ArrayList<>();
         next = advanceDeeds(content, next, recipe, deeds);

@@ -1,5 +1,9 @@
 package dev.spud.shadowslave.weaving;
 
+import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.ability.KitRules;
+import dev.spud.shadowslave.ability.MasterworkAbility;
+import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.content.memory.MemoryContentCatalog;
 import dev.spud.shadowslave.memory.MemoryInstanceData;
 import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
@@ -32,6 +36,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /** Server side of Weaving: the table's buttons, Spell-granted patterns, and keeping the client's view current. */
 public final class WeavingService {
+    static final ResourceLocation FORGING = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "forging");
+    /** Thrifty Hands (Forge): Forging XP earned, as a percentage of the usual. */
+    static final int FORGE_XP_PERCENT = 150;
     /** What each player's last press of Weave did, for the table screen. Not saved. */
     private static final Map<UUID, String> LAST_RESULT = new ConcurrentHashMap<>();
 
@@ -77,7 +84,8 @@ public final class WeavingService {
             report(player, "Take what you have woven first.");
             return new WeavingRules.Attempt(WeavingRules.Outcome.EMPTY, Optional.empty(), before, 0, Optional.empty(), List.of());
         }
-        WeavingRules.Attempt attempt = WeavingRules.attempt(content, before, menu.materialAmounts(), soulRank(player));
+        WeavingRules.Boons boons = boons(player);
+        WeavingRules.Attempt attempt = WeavingRules.attempt(content, before, menu.materialAmounts(), soulRank(player), boons);
         set(player, attempt.data());
         StringBuilder message = new StringBuilder();
         Optional<WeavingRecipe> recipe = attempt.recipe().map(content.recipes()::get);
@@ -93,6 +101,10 @@ public final class WeavingService {
                     message.append("You weave the ").append(name).append(". ");
                 }
                 message.append("+").append(attempt.xp()).append(' ').append(content.branchName(recipe.get().branch())).append(" XP");
+                if (boons.tierBonus() > 0) {
+                    MasterworkAbility.spend(player);
+                    message.append(" · Masterwork spent");
+                }
                 player.level().playSound(null, player.blockPosition(), SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 0.8F, 1.2F);
             }
             case DISCOVERED_LOCKED -> message.append("A new pattern takes shape: ").append(name).append(". ")
@@ -118,6 +130,13 @@ public final class WeavingService {
         }
         report(player, message.toString());
         return attempt;
+    }
+
+    /** Forge's gifts at the table: Masterwork's extra Tier while it lasts, and Thrifty Hands' quicker Forging. */
+    static WeavingRules.Boons boons(ServerPlayer player) {
+        boolean forge = KitRules.hasInnate(player, AspectKitCatalog.FORGE.innateId());
+        return new WeavingRules.Boons(MasterworkAbility.active(player) ? MasterworkAbility.TIER_BONUS : 0,
+                forge ? Optional.of(FORGING) : Optional.empty(), forge ? FORGE_XP_PERCENT : 100);
     }
 
     private static ItemStack woven(ServerPlayer player, WeavingRecipe recipe) {

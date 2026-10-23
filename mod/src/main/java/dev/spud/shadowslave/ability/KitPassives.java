@@ -5,12 +5,21 @@ import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.creature.NightmareCreature;
 import dev.spud.shadowslave.gate.GateEvent;
 import dev.spud.shadowslave.gate.GateService;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -22,6 +31,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
@@ -49,6 +59,17 @@ public final class KitPassives {
     /** Brimming Vessel: a hit of at least this much (after armour) spills this share of held essence. */
     static final float BRIMMING_HIT = 6.0F;
     static final float BRIMMING_SPILL = 0.25F;
+    /** Thrifty Hands (Forge): the chance each smelted item comes out doubled. */
+    static final float THRIFTY_CHANCE = 0.2F;
+    /** Open Sky (Delve): essence refills at this share of its speed under the open sky. */
+    static final float OPEN_SKY_REGEN = 0.5F;
+    /** Long Reach (Mason): extra block reach, as an attribute modifier kept while the kit holds it. */
+    static final double LONG_REACH = 2.0;
+    static final ResourceLocation LONG_REACH_ID = ResourceLocation.fromNamespaceAndPath("shadowslave", "mason_long_reach");
+    /** Green Thumb (Verdant): how far, how often, and how likely each growing block gets an extra growth tick. */
+    static final int GREEN_THUMB_RADIUS = 6;
+    static final int GREEN_THUMB_TICKS = 40;
+    static final float GREEN_THUMB_CHANCE = 0.35F;
 
     private KitPassives() {
     }
@@ -75,6 +96,37 @@ public final class KitPassives {
                 event.setAmount(event.getAmount() * QUARRY_LOCK_FACTOR);
             }
         }
+        if (event.getSource().getEntity() instanceof ServerPlayer smith && event.getSource().getDirectEntity() == smith
+                && target != smith && MoltenEdgeAbility.active(smith)) {
+            event.setAmount(event.getAmount() + MoltenEdgeAbility.EXTRA_DAMAGE);
+            MoltenEdgeAbility.sear(smith, target);
+        }
+    }
+
+    /** Thrifty Hands (Forge): taking smelted goods from a furnace, each item may come out doubled. */
+    public static void onItemSmelted(PlayerEvent.ItemSmeltedEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        ItemStack taken = event.getSmelting();
+        int extra = thriftyExtra(player, taken.getCount());
+        if (extra > 0) {
+            QuenchAbility.give(player, taken, extra);
+        }
+    }
+
+    /** How many extra items Thrifty Hands adds to {@code count} smelted ones; 0 for anyone but a Forge. */
+    static int thriftyExtra(ServerPlayer player, int count) {
+        if (!KitRules.hasInnate(player, AspectKitCatalog.FORGE.innateId())) {
+            return 0;
+        }
+        int extra = 0;
+        for (int i = 0; i < count; i++) {
+            if (player.getRandom().nextFloat() < THRIFTY_CHANCE) {
+                extra++;
+            }
+        }
+        return extra;
     }
 
     /** Soul Feast (Reaper): every hostile kill restores essence, more for stronger Nightmare Creatures. */
@@ -161,7 +213,11 @@ public final class KitPassives {
         }
     }
 
-    /** Once a second: Cold Ash (weak in water or rain) and Tidal Debt (weak if a day passes without water). */
+    /**
+     * Once a second: Cold Ash (weak in water or rain), Tidal Debt (weak if a
+     * day passes without water), Cold Hearth, Open Sky, Long Reach, and every
+     * other second Gate Sense and Green Thumb.
+     */
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (!(event.getEntity() instanceof ServerPlayer player) || player.tickCount % 20 != 0) {
             return;
@@ -174,6 +230,67 @@ public final class KitPassives {
         }
         if (player.tickCount % GATE_SENSE_TICKS == 0 && KitRules.hasInnate(player, AspectKitCatalog.WARDEN.innateId())) {
             senseGate(player);
+        }
+        if (KitRules.hasFlaw(player, AspectKitCatalog.FORGE.flawEffectId()) && cold(player)) {
+            weaken(player);
+            player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, WEAKNESS_REFRESH_TICKS, 0, false, true));
+        }
+        if (KitRules.hasFlaw(player, AspectKitCatalog.DELVE.flawEffectId()) && underOpenSky(player)) {
+            weaken(player);
+        }
+        keepLongReach(player, KitRules.hasInnate(player, AspectKitCatalog.MASON.innateId()));
+        if (player.tickCount % GREEN_THUMB_TICKS == 0 && KitRules.hasInnate(player, AspectKitCatalog.VERDANT.innateId())) {
+            greenThumb(player);
+        }
+    }
+
+    /** Cold Hearth (Forge): anywhere cold enough to snow, or caught in powder snow. */
+    static boolean cold(ServerPlayer player) {
+        BlockPos pos = player.blockPosition();
+        return player.isInPowderSnow || player.wasInPowderSnow
+                || player.level().getBiome(pos).value().coldEnoughToSnow(pos);
+    }
+
+    /** Open Sky (Delve): nothing but sky above your head, in a world that has one. */
+    public static boolean underOpenSky(ServerPlayer player) {
+        return player.level().dimensionType().hasSkyLight() && player.level().canSeeSky(BlockPos.containing(player.getEyePosition()));
+    }
+
+    /** Rootbound (Verdant): standing on grass, dirt, moss, farmland or leaves. */
+    public static boolean onLivingGround(ServerPlayer player) {
+        BlockState ground = player.level().getBlockState(player.getOnPos());
+        return livingGround(ground);
+    }
+
+    static boolean livingGround(BlockState ground) {
+        return ground.is(BlockTags.DIRT) || ground.is(BlockTags.LEAVES) || ground.is(Blocks.FARMLAND)
+                || ground.is(Blocks.MOSS_CARPET) || ground.is(Blocks.DIRT_PATH);
+    }
+
+    /** Long Reach (Mason): adds or removes the reach modifier to match the kit. */
+    static void keepLongReach(ServerPlayer player, boolean mason) {
+        AttributeInstance reach = player.getAttribute(Attributes.BLOCK_INTERACTION_RANGE);
+        if (reach == null) {
+            return;
+        }
+        boolean has = reach.hasModifier(LONG_REACH_ID);
+        if (mason && !has) {
+            reach.addTransientModifier(new AttributeModifier(LONG_REACH_ID, LONG_REACH, AttributeModifier.Operation.ADD_VALUE));
+        } else if (!mason && has) {
+            reach.removeModifier(LONG_REACH_ID);
+        }
+    }
+
+    /** Green Thumb (Verdant): crops and saplings around you get extra growth ticks. */
+    private static void greenThumb(ServerPlayer player) {
+        ServerLevel level = player.serverLevel();
+        BlockPos center = player.blockPosition();
+        for (BlockPos pos : BlockPos.betweenClosed(center.offset(-GREEN_THUMB_RADIUS, -2, -GREEN_THUMB_RADIUS),
+                center.offset(GREEN_THUMB_RADIUS, 2, GREEN_THUMB_RADIUS))) {
+            BlockState state = level.getBlockState(pos);
+            if (BloomAbility.growing(state) && state.isRandomlyTicking() && level.random.nextFloat() < GREEN_THUMB_CHANCE) {
+                state.randomTick(level, pos.immutable(), level.random);
+            }
         }
     }
 
