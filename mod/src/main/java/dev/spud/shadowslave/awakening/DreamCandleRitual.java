@@ -59,7 +59,7 @@ public final class DreamCandleRitual {
         AspectRollService.reveal(player, roll);
     }
 
-    static Optional<BlockPos> findLitCandle(ServerLevel level, BlockPos bed) {
+    public static Optional<BlockPos> findLitCandle(ServerLevel level, BlockPos bed) {
         for (BlockPos pos : BlockPos.betweenClosed(
                 bed.offset(-HORIZONTAL_REACH, -VERTICAL_REACH, -HORIZONTAL_REACH),
                 bed.offset(HORIZONTAL_REACH, VERTICAL_REACH, HORIZONTAL_REACH))) {

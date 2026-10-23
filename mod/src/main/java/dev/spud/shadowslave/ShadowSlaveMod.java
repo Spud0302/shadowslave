@@ -11,7 +11,13 @@ import dev.spud.shadowslave.awakening.SoulSeaService;
 import dev.spud.shadowslave.block.ModBlocks;
 import dev.spud.shadowslave.command.ShadowSlaveCommands;
 import dev.spud.shadowslave.creature.NightmareRules;
+import dev.spud.shadowslave.dreamrealm.DreamCommands;
+import dev.spud.shadowslave.dreamrealm.DreamCrossing;
 import dev.spud.shadowslave.dreamrealm.DreamRealmCommands;
+import dev.spud.shadowslave.dreamrealm.DreamRealmContentLoader;
+import dev.spud.shadowslave.dreamrealm.DreamRealmRegistry;
+import dev.spud.shadowslave.dreamrealm.DreamRealmRules;
+import dev.spud.shadowslave.dreamrealm.seed.SeedService;
 import dev.spud.shadowslave.dreamrealm.DreamRealmResourceInteractionRuntime;
 import dev.spud.shadowslave.dreamrealm.DreamRealmStoryNpcRuntime;
 import dev.spud.shadowslave.echo.EchoCommands;
@@ -55,6 +61,9 @@ public final class ShadowSlaveMod {
         NightmareCreatureEntities.register(modEventBus);
         GateRegistry.register(modEventBus);
         WeavingRegistry.register(modEventBus);
+        DreamRealmRegistry.register(modEventBus);
+        DreamRealmRules.bootstrap();
+        SeedService.bootstrap();
 
         if (physicalSide == Dist.DEDICATED_SERVER) {
             modEventBus.addListener(ModPayloads::registerDedicatedServer);
@@ -105,6 +114,15 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(WeavingService::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(WeavingService::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(WeavingService::onPlayerLoggedOut);
+        NeoForge.EVENT_BUS.addListener(DreamRealmContentLoader::onAddReloadListeners);
+        NeoForge.EVENT_BUS.addListener(DreamCommands::register);
+        NeoForge.EVENT_BUS.addListener(DreamCrossing::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(DreamCrossing::onRightClickBlock);
+        NeoForge.EVENT_BUS.addListener(DreamCrossing::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(DreamCrossing::onPlayerLoggedOut);
+        NeoForge.EVENT_BUS.addListener(DreamCrossing::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(DreamCrossing::onChangedDimension);
+        NeoForge.EVENT_BUS.addListener(SeedService::onServerTick);
         LOGGER.info("Shadow Slave Java core is loading");
     }
 }

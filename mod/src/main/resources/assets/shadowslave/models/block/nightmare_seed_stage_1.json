@@ -1,0 +1,112 @@
+{
+ "parent": "block/block",
+ "render_type": "minecraft:cutout",
+ "ambientocclusion": false,
+ "textures": {
+  "particle": "shadowslave:block/nightmare_seed_husk_1",
+  "side": "shadowslave:block/nightmare_seed_husk_1",
+  "top": "shadowslave:block/nightmare_seed_top_1"
+ },
+ "elements": [
+  {
+   "from": [
+    4,
+    0,
+    4
+   ],
+   "to": [
+    12,
+    9,
+    12
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 7
+     }
+    },
+    "south": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 7
+     }
+    },
+    "east": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 7
+     }
+    },
+    "west": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 7
+     }
+    },
+    "down": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 7
+     }
+    },
+    "up": {
+     "texture": "#top",
+     "neoforge_data": {
+      "block_light": 7
+     }
+    }
+   }
+  },
+  {
+   "from": [
+    6,
+    9,
+    6
+   ],
+   "to": [
+    10,
+    10,
+    10
+   ],
+   "faces": {
+    "north": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 7
+     }
+    },
+    "south": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 7
+     }
+    },
+    "east": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 7
+     }
+    },
+    "west": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 7
+     }
+    },
+    "down": {
+     "texture": "#side",
+     "neoforge_data": {
+      "block_light": 7
+     }
+    },
+    "up": {
+     "texture": "#top",
+     "neoforge_data": {
+      "block_light": 7
+     }
+    }
+   }
+  }
+ ]
+}

@@ -13,7 +13,11 @@ public enum GateTrigger implements StringRepresentable {
     /** An operator command. */
     COMMAND("command"),
     /** Reserved for natural Gates opening as world events. Nothing uses it yet. */
-    WORLD_EVENT("world_event");
+    WORLD_EVENT("world_event"),
+    /** A Nightmare Seed in the Dream Realm bloomed; the Gate opens at the matching Overworld spot. */
+    SEED_BLOOM("seed_bloom"),
+    /** A player challenged a Nightmare Seed before it bloomed; the Gate opens at the Seed. */
+    SEED_CLEANSE("seed_cleanse");
 
     private final String serializedName;
 

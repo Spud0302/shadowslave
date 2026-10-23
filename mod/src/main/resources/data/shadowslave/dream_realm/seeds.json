@@ -1,0 +1,12 @@
+{
+  "spawn_interval": 1200,
+  "spawn_chance": 0.35,
+  "min_distance": 24,
+  "max_distance": 64,
+  "spacing": 64,
+  "max_near": 2,
+  "near_range": 160,
+  "growth_days": 3.0,
+  "ward_radius": 48,
+  "cleanse_rolls": [3, 2, 2, 1]
+}

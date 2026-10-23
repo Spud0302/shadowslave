@@ -23,7 +23,11 @@ public final class NightmareRules {
     public static void bootstrap() {
     }
 
+    /** Inside the Dream Realm its own option, {@code shadowslaveDreamBlockDamage}, decides instead. */
     public static boolean blockDamage(Level level) {
+        if (dev.spud.shadowslave.dreamrealm.DreamRealm.is(level)) {
+            return dev.spud.shadowslave.dreamrealm.DreamRealmRules.blockDamage(level);
+        }
         return level.getGameRules().getBoolean(BLOCK_DAMAGE);
     }
 }

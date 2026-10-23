@@ -1,0 +1,10 @@
+{
+  "display_name": "The Ashen Expanse",
+  "min_distance": 0,
+  "seed_forecast": {
+    "1": 35,
+    "2": 65
+  },
+  "cleanse_loot": "shadowslave:dream_realm/seed_cleanse/ashen_expanse",
+  "arrival": "Fine grey dust swallows every footstep beneath a lightless horizon."
+}

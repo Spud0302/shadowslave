@@ -2,7 +2,7 @@
   "type": "shadowslave:dream_realm",
   "generator": {
     "type": "minecraft:noise",
-    "settings": "minecraft:overworld",
+    "settings": "shadowslave:dream_realm",
     "biome_source": {
       "type": "minecraft:fixed",
       "biome": "shadowslave:ashen_expanse"
