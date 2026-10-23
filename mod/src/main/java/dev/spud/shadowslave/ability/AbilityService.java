@@ -144,6 +144,8 @@ public final class AbilityService {
             DreamKitPassives.forget(player.getUUID());
             SignatureKitPassives.forget(player.getUUID());
             FuryRage.forget(player.getUUID());
+            AnchorWeight.forget(player.getUUID());
+            Stasis.forget(player.getUUID());
         }
     }
 

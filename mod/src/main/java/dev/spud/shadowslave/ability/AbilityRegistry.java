@@ -64,6 +64,15 @@ public final class AbilityRegistry {
         register(new ProvokeAbility());
         register(new GroundSlamAbility());
         register(new SecondWindAbility());
+        register(new PocketAbility());
+        register(new DoorwayAbility());
+        register(new BanishAbility());
+        register(new ShiftWeightAbility());
+        register(new CrushAbility());
+        register(new GravityWellAbility());
+        register(new StasisAbility());
+        register(new RewindAbility());
+        register(new StillMomentAbility());
     }
 
     private AbilityRegistry() {

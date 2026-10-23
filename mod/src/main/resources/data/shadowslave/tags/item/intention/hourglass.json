@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:sand",
+    "minecraft:red_sand",
+    "minecraft:glass",
+    "minecraft:repeater",
+    "minecraft:comparator",
+    "minecraft:daylight_detector"
+  ]
+}

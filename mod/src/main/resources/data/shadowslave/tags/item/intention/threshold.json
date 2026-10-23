@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:chest",
+    "minecraft:barrel",
+    "minecraft:ender_chest",
+    "minecraft:shulker_shell",
+    "minecraft:bundle",
+    "minecraft:oak_door",
+    "minecraft:iron_door"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:lodestone",
+    "minecraft:chain",
+    "minecraft:heavy_core",
+    "minecraft:iron_bars",
+    "minecraft:pointed_dripstone",
+    "minecraft:slime_ball"
+  ]
+}
