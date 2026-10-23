@@ -22,7 +22,10 @@ public enum Longing {
     BUILD("Build", "mason", "Mason"),
     GROW("Grow", "verdant", "Verdant"),
     WANDER("Wander", "wayfarer", "Wayfarer"),
-    REST("Rest", "lull", "Lull");
+    REST("Rest", "lull", "Lull"),
+    DARKEN("Darken", "gloam", "Gloam"),
+    CHILL("Chill", "rime", "Rime"),
+    RAGE("Rage", "fury", "Fury");
 
     private final String label;
     private final String evidenceTag;

@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:black_dye",
+    "minecraft:black_wool",
+    "minecraft:black_candle",
+    "minecraft:tinted_glass",
+    "minecraft:blackstone",
+    "minecraft:black_concrete",
+    "minecraft:wither_skeleton_skull"
+  ]
+}

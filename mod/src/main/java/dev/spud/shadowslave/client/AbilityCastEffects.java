@@ -44,7 +44,10 @@ public final class AbilityCastEffects {
         MASON(new Color(225, 205, 175), new Color(140, 90, 60)),
         VERDANT(new Color(160, 240, 120), new Color(30, 110, 40)),
         WAYFARER(new Color(255, 225, 140), new Color(120, 170, 230)),
-        LULL(new Color(220, 200, 255), new Color(60, 50, 140));
+        LULL(new Color(220, 200, 255), new Color(60, 50, 140)),
+        GLOAM(new Color(90, 80, 120), new Color(10, 5, 20)),
+        RIME(new Color(220, 245, 255), new Color(90, 160, 220)),
+        FURY(new Color(255, 90, 50), new Color(120, 10, 10));
 
         final Color start;
         final Color end;

@@ -73,6 +73,19 @@ public final class KitLadder {
     public static final AbilityVariant SLEEPWALKER = variant("sleepwalker", "Sleepwalker",
             "Steer a sleeping creature you look at: for ten seconds it walks, still dreaming, wherever you look.", "Control");
 
+    public static final AbilityVariant SHADE_STEP = variant("shade_step", "Shade Step",
+            "Step through the shadows to a dark spot you look at, up to twenty-four blocks away.", "Movement");
+    public static final AbilityVariant SNUFF = variant("snuff", "Snuff",
+            "Put out every torch, lantern, candle and fire around you for thirty seconds; hostiles in the dark lose sight of you.", "Control");
+    public static final AbilityVariant ENCASE = variant("encase", "Encase",
+            "Freeze the creature you look at inside a shell of real ice for a few seconds, if its rank is no higher than yours.", "Control");
+    public static final AbilityVariant RIMEPATH = variant("rimepath", "Rimepath",
+            "For twenty seconds water freezes under your feet and you run faster on ice.", "Movement");
+    public static final AbilityVariant GROUND_SLAM = variant("ground_slam", "Ground Slam",
+            "Slam the ground: hostiles around you are hurt and thrown up, harder the more rage you hold; it spends half of it.", "Force");
+    public static final AbilityVariant SECOND_WIND = variant("second_wind", "Second Wind",
+            "Burn all your rage to heal and run: the more rage, the more you heal.", "Escape");
+
     private static final Map<ResourceLocation, List<AbilityVariant>> AWAKENED = Map.ofEntries(
             Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(CARRY_THE_FLAME, EMBER_WARD)),
             Map.entry(AspectKitCatalog.MIST.natureId(), List.of(THROUGH_THE_HAZE, VEIL)),
@@ -87,7 +100,10 @@ public final class KitLadder {
             Map.entry(AspectKitCatalog.MASON.natureId(), List.of(BLUEPRINT, SCAFFOLD)),
             Map.entry(AspectKitCatalog.VERDANT.natureId(), List.of(LIVING_WALL, WILD_CALL)),
             Map.entry(AspectKitCatalog.WAYFARER.natureId(), List.of(ANCHOR_RECALL, TRAILBLAZE)),
-            Map.entry(AspectKitCatalog.LULL.natureId(), List.of(DREAMFALL, SLEEPWALKER))
+            Map.entry(AspectKitCatalog.LULL.natureId(), List.of(DREAMFALL, SLEEPWALKER)),
+            Map.entry(AspectKitCatalog.GLOAM.natureId(), List.of(SHADE_STEP, SNUFF)),
+            Map.entry(AspectKitCatalog.RIME.natureId(), List.of(ENCASE, RIMEPATH)),
+            Map.entry(AspectKitCatalog.FURY.natureId(), List.of(GROUND_SLAM, SECOND_WIND))
     );
 
     private KitLadder() {

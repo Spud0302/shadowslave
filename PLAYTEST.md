@@ -68,8 +68,9 @@ Added by claude-code, 2026-10-22.
 
 You can only roll once. Operators can reroll with `/shadowslave aspect reroll`
 (optionally followed by player names), and `/shadowslave reset` clears the Soul
-entirely. The roll picks one of fourteen Natures (Ember, Mist, Stone, Tide, Warden,
-Seer, Reaper, Wellspring, Forge, Delve, Mason, Verdant, Wayfarer, Lull), nudged slightly by how you played beforehand (lighting
+entirely. The roll picks one of seventeen Natures (Ember, Mist, Stone, Tide, Warden,
+Seer, Reaper, Wellspring, Forge, Delve, Mason, Verdant, Wayfarer, Lull, Gloam,
+Rime, Fury), nudged slightly by how you played beforehand (lighting
 and smelting, sneaking, mining, swimming nudge the first four). Operators can
 pick a Nature outright with `/shadowslave aspect set <nature>`. Press R to use
 your Aspect's ability. Abilities have no cooldowns: each one spends **essence**
@@ -102,7 +103,7 @@ quarter of their core out as a shard you can absorb; turn that off with
 
 **Intention offering.** Before your first roll you can meditate at a lit Dream
 Candle (sneak and use it) to offer an intention. Name a longing (Burn, Hide,
-Endure, Return, Hunt, Foresee, Devour, Give, Shape, Dig, Build, Grow, Wander or Rest) and press Offer: one of the item in your hand is taken if the
+Endure, Return, Hunt, Foresee, Devour, Give, Shape, Dig, Build, Grow, Wander, Rest, Darken, Chill or Rage) and press Offer: one of the item in your hand is taken if the
 Spell cares for it (Ember: coal, torches, blaze powder; Mist: feathers, phantom
 membrane, ender pearls; Stone: cobblestone, iron, amethyst, diamond; Tide: kelp,
 fish, prismarine, a water bucket; Warden: bows, arrows, a lead, a rabbit's foot;
@@ -113,10 +114,13 @@ pickaxe, raw copper, redstone, lapis; Mason: bricks, stone bricks, planks,
 scaffolding, a stonecutter; Verdant: seeds, wheat, bone meal, saplings, carrots,
 potatoes, moss; Wayfarer: leather boots, a saddle, a boat, a cartography
 table, rails, a minecart; Lull: a bed, blue wool, dandelions, a milk bucket, a
-note block, a jukebox, a bell; the
+note block, a jukebox, a bell; Gloam: black dye, black wool, a black candle,
+tinted glass, blackstone; Rime: snowballs, snow, ice, packed or blue ice, a
+powder snow bucket; Fury: an iron sword or axe, a stone axe, a goat horn, TNT,
+gunpowder, red dye; the
 full lists are the `data/shadowslave/tags/item/intention/` tags). The Soul Sea
 shows the odds under each longing: offering and longing for the same Nature
-takes it from about 7% to 15%, never certain. Then sleep beside the candle; the roll uses the intention once.
+takes it from about 6% to 13%, never certain. Then sleep beside the candle; the roll uses the intention once.
 
 **Meditation and Awakening.** Sneak and use a lit Dream Candle (with anything
 in hand) to meditate: the **Soul Sea** opens, showing your Soul Rank, your core
@@ -171,6 +175,12 @@ a blow is loaded, and the charge fades after 6 seconds.
 | Wayfarer | Trailblaze (30) | For 15 s you run faster and your sprint lays a glowing trail; allies who step on it get Speed II |
 | Lull | Dreamfall (45) | Every hostile within 6 blocks no higher in rank than you sleeps for 4 s |
 | Lull | Sleepwalker (30) | The sleeping creature you look at walks where you look for 10 s, still asleep |
+| Gloam | Shade Step (20) | Step to the spot you look at (24 blocks), if it is dim or dark there (light 7 or less) |
+| Gloam | Snuff (35) | Torches and lanterns within 10 blocks go out and candles, campfires and furnaces dim for 30 s; hostiles nearby lose you and are blinded for 4 s |
+| Rime | Encase (40) | The creature you look at (16 blocks, no higher in rank) is frozen in a shell of real ice for 4 s |
+| Rime | Rimepath (25) | For 20 s still water freezes under your feet, and you get Speed II on ice |
+| Fury | Ground Slam (35) | Hostiles within 5 take 4 damage plus up to 6 more with rage and are thrown up; spends half your rage |
+| Fury | Second Wind (30) | Burn all your rage (20 at least): heal a point per 10 rage and Speed II for 5 s |
 
 ### The newer Natures: Warden, Seer, Reaper, Wellspring
 
@@ -252,6 +262,34 @@ Things to try:
    a wither skeleton while Dormant (it should fail). Let a few zombies hit you
    and count the blows that fizzle. Dreamfall a crowd, then Sleepwalker one
    into lava. Try sleeping without a Dream Candle.
+
+### The Awakening-inspired Natures: Gloam, Rime, Fury
+
+Added by claude-code, 2026-10-23. Each one is built on one signature rule that
+changes how you play. Quick start: `/shadowslave aspect set gloam` (or rime,
+fury), then `/shadowslave core fill` and `/shadowslave awaken <name>` for the
+Awakened abilities above.
+
+| Nature | Innate (always on) | Ability (R) | Flaw |
+| --- | --- | --- | --- |
+| Gloam | Deepening Dark: in the dark (light 4 or less, night counts) your melee hits deal 2 more and essence refills 1.5x as fast | Gloam Edge: for 20 s melee hits deal 2 more in bright light, 4 in the dim, 6 in the dark (30 essence) | Sunstruck: no essence refill at all in open daylight (sky above you, daytime, no rain) |
+| Rime | Frost Mark: each melee hit leaves a mark (up to 5); every mark slows the creature and bites for half a point a second, and one melts off every 3 s | Ice Lance: the creature you look at (24 blocks) takes 5 damage and 2 Frost Marks (25 essence) | Thin Blood: within about 6 blocks of fire, lava, magma or a lit campfire or furnace your essence stops and your marks melt twice as fast; within 2 blocks you take light burn damage |
+| Fury | Rage: a meter (red bar beside the essence bar) fills when you are hit and a little when you hit; it makes you up to a quarter bigger, with 1.5 more reach and 3 more melee damage, and cools 5 s after the fight | Provoke: every hostile within 12 turns on you, you get Resistance I for 6 s and 20 rage (20 essence) | Red Haze: at full rage you cannot eat or open your inventory or any chest until the rage cools to 60 |
+
+Things to try:
+
+1. Gloam: play a night, then a day. Compare essence refill in the open at noon
+   (none), under a roof (normal) and in a dark cave (faster). Gloam Edge a
+   zombie in a lit room, then in the dark. Shade Step into a dark corner, then
+   try a torch-lit spot. Snuff a torch-lit room.
+2. Rime: hit a zombie a few times and watch the frost and slowness build;
+   Ice Lance something across a field. Stand next to a furnace or campfire and
+   watch the essence bar stop and the burn tick in. Encase a skeleton, then
+   Rimepath across a lake.
+3. Fury: let a few zombies hit you and watch the red bar fill and your
+   character grow; Provoke a crowd. Fill it to the top and try to eat or open a
+   chest. Ground Slam with a full bar and with an empty one; Second Wind when
+   low on health.
 
 ## Nightmare Creatures
 

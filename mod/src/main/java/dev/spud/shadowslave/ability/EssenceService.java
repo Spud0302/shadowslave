@@ -56,7 +56,10 @@ public final class EssenceService {
         };
     }
 
-    /** Essence regained per tick, after refinement and the kit's own rules (Hunger, Deep Well, Rootbound, Open Sky). */
+    /**
+     * Essence regained per tick, after refinement and the kit's own rules (Hunger, Deep Well, Rootbound,
+     * Open Sky, Wanderlust, Deepening Dark, Sunstruck, Thin Blood).
+     */
     public static float regenPerTick(ServerPlayer player) {
         float base = (float) (regenPerTickFor(capacity(player)) * RefinementRules.regenMultiplier(RefinementService.get(player)));
         float factor = kitRegenFactor(KitRules.hasFlaw(player, AspectKitCatalog.REAPER.flawEffectId()),
@@ -69,6 +72,7 @@ public final class EssenceService {
             factor *= KitPassives.OPEN_SKY_REGEN;
         }
         factor *= DreamKitPassives.wanderlust(player);
+        factor *= SignatureKitPassives.regenFactor(player);
         return base * factor;
     }
 

@@ -222,7 +222,8 @@ public final class ExpandedIdentityContentCatalog {
      * The first wave plus the backfill Natures built for the Gates and rank-up
      * passes (Warden, Seer, Reaper, Wellspring) and the utility Natures of
      * the Weaving pass (Forge, Delve, Mason, Verdant) and the Dream Realm
-     * Natures (Wayfarer, Lull), their Dormant abilities and
+     * Natures (Wayfarer, Lull) and the first Awakening-inspired Natures (Gloam,
+     * Rime, Fury), their Dormant abilities and
      * Flaws. The Dream Candle roll draws on this; the older appraisal flows
      * keep {@link #waveOne()} so their generated identities stay stable.
      */
@@ -239,7 +240,10 @@ public final class ExpandedIdentityContentCatalog {
                         nature("mason", "Mason", Set.of("mason", "building", "order"), 3),
                         nature("verdant", "Verdant", Set.of("verdant", "harvest_field", "tending"), 3),
                         nature("wayfarer", "Wayfarer", Set.of("wayfarer", "journey", "path"), 3),
-                        nature("lull", "Lull", Set.of("lull", "slumber", "dream"), 3)
+                        nature("lull", "Lull", Set.of("lull", "slumber", "dream"), 3),
+                        nature("gloam", "Gloam", Set.of("gloam", "darkness", "shade"), 3),
+                        nature("rime", "Rime", Set.of("rime", "frost", "chill"), 3),
+                        nature("fury", "Fury", Set.of("fury", "rage", "wrath"), 3)
                 )),
                 wave.archetypes(),
                 concat(wave.abilities(), List.of(
@@ -251,7 +255,10 @@ public final class ExpandedIdentityContentCatalog {
                         ability("tunnel_strike", "Tunnel Strike", Set.of("delve"), Set.of("resolve", "force"), 5),
                         ability("raise_wall", "Raise Wall", Set.of("mason"), Set.of("stability", "duty"), 5),
                         ability("bloom", "Bloom", Set.of("verdant"), Set.of("growth", "connection"), 5),
-                        ability("lullaby", "Lullaby", Set.of("lull"), Set.of("mercy", "control"), 5)
+                        ability("lullaby", "Lullaby", Set.of("lull"), Set.of("mercy", "control"), 5),
+                        ability("gloam_edge", "Gloam Edge", Set.of("gloam"), Set.of("concealment", "force"), 5),
+                        ability("ice_lance", "Ice Lance", Set.of("rime"), Set.of("precision", "control"), 5),
+                        ability("provoke", "Provoke", Set.of("fury"), Set.of("resolve", "sacrifice"), 5)
                 )),
                 concat(wave.flaws(), List.of(
                         flaw("quarry_lock", "Quarry Lock", Set.of("hunt", "pursuit"),
@@ -273,6 +280,12 @@ public final class ExpandedIdentityContentCatalog {
                         flaw("wanderlust", "Wanderlust", Set.of("wayfarer", "journey"),
                                 Set.of("resource", "conditional"), Set.of(), 3),
                         flaw("insomnia", "Insomnia", Set.of("lull", "slumber"),
+                                Set.of("physical", "compulsion"), Set.of(), 3),
+                        flaw("sunstruck", "Sunstruck", Set.of("gloam", "darkness"),
+                                Set.of("resource", "conditional"), Set.of(), 3),
+                        flaw("thin_blood", "Thin Blood", Set.of("rime", "frost"),
+                                Set.of("physical", "conditional"), Set.of(), 3),
+                        flaw("red_haze", "Red Haze", Set.of("fury", "rage"),
                                 Set.of("physical", "compulsion"), Set.of(), 3)
                 ))
         );

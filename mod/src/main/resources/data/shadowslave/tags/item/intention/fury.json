@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:iron_sword",
+    "minecraft:iron_axe",
+    "minecraft:stone_axe",
+    "minecraft:goat_horn",
+    "minecraft:tnt",
+    "minecraft:gunpowder",
+    "minecraft:red_dye"
+  ]
+}
