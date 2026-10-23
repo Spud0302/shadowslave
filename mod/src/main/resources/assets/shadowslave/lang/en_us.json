@@ -60,5 +60,8 @@
   "gamerule.shadowslaveDreamSeedGrowth": "Nightmare Seed growth speed (percent)",
   "gamerule.shadowslaveDreamBlockDamage": "Gates and creatures break blocks in the Dream Realm",
   "gamerule.shadowslaveSleepingBody": "Dreamers leave a sleeping body behind",
-  "gamerule.shadowslaveDreamRatio": "Overworld blocks per Dream Realm block"
+  "gamerule.shadowslaveDreamRatio": "Overworld blocks per Dream Realm block",
+  "item.shadowslave.field_guide": "Field Guide",
+  "item.shadowslave.field_guide.tooltip": "Use to read your creature pages and maps",
+  "item.shadowslave.field_guide.tooltip_offhand": "Hold in your off hand for a corner map"
 }

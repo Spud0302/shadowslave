@@ -1,0 +1,29 @@
+{
+  "entity": "shadowslave:chainback",
+  "name": "Chainback",
+  "summary": "A heavy, shelled pursuer with rusted chains grown into its back.",
+  "sections": [
+    {
+      "title": "Rank and Class",
+      "text": "Usually an Awakened Monster: two soul cores, two shards. Monsters use the ground they fight on and come back after retreating.",
+      "sightings": 1
+    },
+    {
+      "title": "Habits",
+      "text": "Climbs cliffs and walls to follow you. Its chain pull winds up with a rattle and a line of rust in the air, then yanks its target toward it, often off a ledge.",
+      "sightings": 3,
+      "kills": 1
+    },
+    {
+      "title": "Weakness",
+      "text": "Break line of sight during the wind-up and the chain falls short. It is too wide for one-block gaps, so a narrow passage beats it.",
+      "sightings": 6,
+      "kills": 2
+    },
+    {
+      "title": "Drops",
+      "text": "Chainback Links (one to three) for Chainback Mail and the Linked Cleaver, and its soul shards.",
+      "kills": 3
+    }
+  ]
+}

@@ -7,7 +7,9 @@ import dev.spud.shadowslave.echo.EchoInstanceData;
 import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.echo.EchoOwnershipService;
 import dev.spud.shadowslave.echo.content.EchoContentCatalog;
+import dev.spud.shadowslave.fieldguide.FieldGuideService;
 import dev.spud.shadowslave.memory.MemoryManifestationService;
+import dev.spud.shadowslave.network.payload.FieldGuidePinRequestPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.IntentionRequestPayload;
@@ -52,6 +54,13 @@ public final class ServerPayloadHandler {
         ServerPlayer player = serverPlayer(context, "Refinement");
         if (player != null) {
             SoulSeaService.requestRefinement(player, payload.action());
+        }
+    }
+
+    public static void handleFieldGuidePin(FieldGuidePinRequestPayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "Field Guide pin");
+        if (player != null) {
+            FieldGuideService.requestPin(player, payload);
         }
     }
 

@@ -24,6 +24,9 @@ import dev.spud.shadowslave.dreamrealm.DreamRealmResourceInteractionRuntime;
 import dev.spud.shadowslave.dreamrealm.DreamRealmStoryNpcRuntime;
 import dev.spud.shadowslave.echo.EchoCommands;
 import dev.spud.shadowslave.echo.EchoManifestationService;
+import dev.spud.shadowslave.fieldguide.FieldGuideContentLoader;
+import dev.spud.shadowslave.fieldguide.FieldGuideRegistry;
+import dev.spud.shadowslave.fieldguide.FieldGuideService;
 import dev.spud.shadowslave.gate.GateCommands;
 import dev.spud.shadowslave.gate.GateRegistry;
 import dev.spud.shadowslave.gate.GateService;
@@ -64,6 +67,7 @@ public final class ShadowSlaveMod {
         GateRegistry.register(modEventBus);
         WeavingRegistry.register(modEventBus);
         DreamRealmRegistry.register(modEventBus);
+        FieldGuideRegistry.register(modEventBus);
         DreamRealmRules.bootstrap();
         SeedService.bootstrap();
 
@@ -130,6 +134,11 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onChangedDimension);
         NeoForge.EVENT_BUS.addListener(SeedService::onServerTick);
+        NeoForge.EVENT_BUS.addListener(FieldGuideContentLoader::onAddReloadListeners);
+        NeoForge.EVENT_BUS.addListener(FieldGuideService::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(FieldGuideService::onPlayerLoggedOut);
+        NeoForge.EVENT_BUS.addListener(FieldGuideService::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(FieldGuideService::onLivingDeath);
         LOGGER.info("Shadow Slave Java core is loading");
     }
 }

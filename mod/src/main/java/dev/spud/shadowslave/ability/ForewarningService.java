@@ -63,7 +63,7 @@ public final class ForewarningService {
         }
     }
 
-    static boolean isSeer(ServerPlayer player) {
+    public static boolean isSeer(ServerPlayer player) {
         return KitRules.hasInnate(player, AspectKitCatalog.SEER.innateId());
     }
 

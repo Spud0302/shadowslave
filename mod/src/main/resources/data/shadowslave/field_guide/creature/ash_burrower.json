@@ -1,0 +1,29 @@
+{
+  "entity": "shadowslave:ash_burrower",
+  "name": "Ash Burrower",
+  "summary": "A pale, eyeless digger that swims under soft ground and bursts up beneath its prey.",
+  "sections": [
+    {
+      "title": "Rank and Class",
+      "text": "Usually a Dormant Beast: one soul core, one shard. Beasts hunt in packs, so where one surfaces, more are close.",
+      "sightings": 1
+    },
+    {
+      "title": "Habits",
+      "text": "Sinks into dirt, sand, gravel and ash and moves as a furrow of dust. It hunts by vibration: footsteps within a few blocks give you away.",
+      "sightings": 3,
+      "kills": 1
+    },
+    {
+      "title": "Weakness",
+      "text": "Stone stops it. It cannot burrow through stone, and a furrow that runs onto stone throws it out dazed. Sneak to hide your steps; a melee hit forces it up, arrows cannot reach it underground.",
+      "sightings": 6,
+      "kills": 2
+    },
+    {
+      "title": "Drops",
+      "text": "Ashen Hide (one or two), used at the Weaving table for hide armour, and its soul shard.",
+      "kills": 3
+    }
+  ]
+}

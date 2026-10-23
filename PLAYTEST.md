@@ -390,3 +390,42 @@ Branches, levels, deeds, patterns and the XP numbers are data files under
 `data/shadowslave/weaving/`, so a data pack can change them. Operators can
 use `/shadowslave_weaving xp shadowslave:forging <amount>`,
 `/shadowslave_weaving learn <pattern>` and `/shadowslave_weaving reset`.
+
+## Field Guide and map
+
+Added by claude-code, 2026-10-23. First slice: creature pages, the map, places,
+danger ratings and the Dream Realm map. Paths and Field Notes trading come
+later.
+
+1. **Getting one.** Every player gets a Field Guide the first time they join.
+   A lost guide can be crafted again from a book and a compass. What the
+   guide knows belongs to you, not the book, so a new copy reads the same.
+2. **Creature pages.** Hold a spyglass on a Nightmare Creature for about a
+   second to log a sighting (one per kind every 30 seconds). The first
+   sighting starts its page with its Rank and Class; more sightings and kills
+   reveal its habits, weakness and drops. The page says how to open the next
+   entry. Kills count too, and a Seer gets two sightings per look.
+3. **Map.** Use the guide and open the **Map** tab. It shows only the ground
+   you have walked near (two chunks around you); the rest is fog. Drag to pan,
+   scroll or press +/- to zoom, and o to recentre. Toggle layers along the
+   bottom: Pins, Gates & Seeds, Danger, Creatures (where you last met each
+   one) and Seed threats.
+4. **Places and pins.** Coming within 48 blocks of a Gate logs it on the map;
+   it greys out once closed. Right-click the map to pin a spot with a name
+   (Pin) or a red warning (Warn); right-click your own pin to remove it.
+5. **Danger ratings.** Areas 64 blocks across are rated on the creature ranks
+   (Dormant to Unholy) from the strongest creature you have seen or slain
+   there; a death to a creature raises it one step. Hover the map to read it.
+   In the Dream Realm every area starts at its region's rank.
+6. **Dream Realm page.** The **Dream Realm** tab maps the Dream Realm the same
+   way. Coming within 24 blocks of a Seed logs it, and its pin says where its
+   Gate would open in the waking world (the 1:8 match). Those spots also show
+   on the waking-world map as dashed red **Seed threats**, so you can see
+   which Seeds threaten your base. Bloomed or cleansed Seeds drop off.
+7. **Hold to peek.** With the guide in your off hand, a small corner map shows
+   the ground around you with your pins.
+
+Tuning is data: `data/shadowslave/field_guide/rules.json` (ranges, cooldowns,
+explore radius, danger cell size, starting item on/off) and one page per
+creature in `data/shadowslave/field_guide/creature/*.json`. A Dream Realm
+region's baseline danger is its `danger` field.
