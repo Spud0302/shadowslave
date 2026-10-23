@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import dev.spud.shadowslave.ability.AbilityService;
 import dev.spud.shadowslave.ability.ChannelService;
 import dev.spud.shadowslave.ability.KitPassives;
+import dev.spud.shadowslave.ability.MasonWorks;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.awakening.DreamCandleRitual;
 import dev.spud.shadowslave.awakening.SoulSeaService;
@@ -86,6 +87,8 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(RefinementService::onPlayerRespawn);
         NeoForge.EVENT_BUS.addListener(KitPassives::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(KitPassives::onIncomingDamage);
+        NeoForge.EVENT_BUS.addListener(KitPassives::onItemSmelted);
+        NeoForge.EVENT_BUS.addListener(MasonWorks::onBlockPlaced);
         NeoForge.EVENT_BUS.addListener(KitPassives::onGameEvent);
         NeoForge.EVENT_BUS.addListener(KitPassives::onKnockBack);
         NeoForge.EVENT_BUS.addListener(KitPassives::onBreathe);

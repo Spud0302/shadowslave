@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:gold_ingot",
+    "minecraft:copper_ingot",
+    "minecraft:anvil",
+    "minecraft:smithing_table",
+    "minecraft:blast_furnace",
+    "minecraft:furnace",
+    "minecraft:iron_block",
+    "minecraft:netherite_scrap"
+  ]
+}

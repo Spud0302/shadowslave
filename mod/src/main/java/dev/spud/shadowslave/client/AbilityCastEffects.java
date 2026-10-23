@@ -38,7 +38,11 @@ public final class AbilityCastEffects {
         WARDEN(new Color(170, 230, 120), new Color(40, 100, 40)),
         SEER(new Color(215, 170, 255), new Color(90, 50, 170)),
         REAPER(new Color(235, 60, 80), new Color(70, 0, 25)),
-        WELLSPRING(new Color(255, 232, 150), new Color(215, 140, 40));
+        WELLSPRING(new Color(255, 232, 150), new Color(215, 140, 40)),
+        FORGE(new Color(255, 200, 90), new Color(150, 60, 20)),
+        DELVE(new Color(190, 200, 215), new Color(60, 70, 90)),
+        MASON(new Color(225, 205, 175), new Color(140, 90, 60)),
+        VERDANT(new Color(160, 240, 120), new Color(30, 110, 40));
 
         final Color start;
         final Color end;

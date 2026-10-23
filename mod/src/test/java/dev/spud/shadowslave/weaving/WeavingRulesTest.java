@@ -133,6 +133,21 @@ class WeavingRulesTest {
     }
 
     @Test
+    void aMasterworkReachesOneTierHigherAndThriftyHandsLearnsFaster() throws IOException {
+        WeavingContent content = content();
+        Map<ResourceLocation, Integer> cleaver = content.recipes().get(id("linked_cleaver")).amounts();
+        WeavingRules.Boons masterwork = new WeavingRules.Boons(1, Optional.empty(), 100);
+        WeavingRules.Attempt found = WeavingRules.attempt(content, WeavingData.empty(), cleaver, AWAKENED, masterwork);
+        assertEquals(WeavingRules.Outcome.DISCOVERED, found.outcome(), "a Tier II pattern at Forging level 1");
+
+        WeavingRules.Boons thrifty = new WeavingRules.Boons(0, Optional.of(FORGING), 150);
+        Map<ResourceLocation, Integer> knife = content.recipes().get(id("shard_knife")).amounts();
+        WeavingRules.Attempt plain = WeavingRules.attempt(content, WeavingData.empty(), knife, DORMANT);
+        WeavingRules.Attempt quick = WeavingRules.attempt(content, WeavingData.empty(), knife, DORMANT, thrifty);
+        assertEquals(plain.xp() * 3 / 2, quick.xp());
+    }
+
+    @Test
     void theLevelThreeDeedSurvivesARespecButThePointDoesNot() throws IOException {
         WeavingContent content = content();
         WeavingData data = WeavingData.empty().withXp(FORGING, 100).withLearned(id("linked_cleaver"));

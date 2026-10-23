@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:wheat_seeds",
+    "minecraft:wheat",
+    "minecraft:bone_meal",
+    "minecraft:oak_sapling",
+    "minecraft:carrot",
+    "minecraft:potato",
+    "minecraft:hay_block",
+    "minecraft:moss_block"
+  ]
+}

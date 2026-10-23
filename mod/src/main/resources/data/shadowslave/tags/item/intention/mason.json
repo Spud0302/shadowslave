@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:bricks",
+    "minecraft:stone_bricks",
+    "minecraft:brick",
+    "minecraft:chiseled_stone_bricks",
+    "minecraft:stonecutter",
+    "minecraft:oak_planks",
+    "minecraft:scaffolding",
+    "minecraft:smooth_stone"
+  ]
+}

@@ -94,8 +94,45 @@ public final class AspectKitCatalog {
             id("generation/flaw/brimming_vessel"), id("generation/flaw_effect/brimming_vessel"), "Brimming Vessel",
             "A heavy hit spills a quarter of the essence you hold."
     );
+    public static final AspectKit FORGE = new AspectKit(
+            id("generation/nature/forge"), "Forge",
+            id("kit/innate/forge_thrifty_hands"), "Thrifty Hands",
+            "Smelted goods sometimes come out doubled, and Forging at the Weaving table teaches you half again as fast.",
+            id("generation/ability/quench"), "Quench",
+            "Smelt up to eight of whatever you hold, in your bare hands.",
+            id("generation/flaw/cold_hearth"), id("generation/flaw_effect/cold_hearth"), "Cold Hearth",
+            "Snow and frost sicken you: slow and weak wherever it is cold enough to snow."
+    );
+    public static final AspectKit DELVE = new AspectKit(
+            id("generation/nature/delve"), "Delve",
+            id("kit/innate/delve_ore_sense"), "Ore Sense",
+            "Sneak to feel the ores around you; they shine through the stone.",
+            id("generation/ability/tunnel_strike"), "Tunnel Strike",
+            "Break a tunnel three blocks wide, high and deep in one blow.",
+            id("generation/flaw/open_sky"), id("generation/flaw_effect/open_sky"), "Open Sky",
+            "Under the open sky you are weak, and essence comes back at half speed."
+    );
+    public static final AspectKit MASON = new AspectKit(
+            id("generation/nature/mason"), "Mason",
+            id("kit/innate/mason_long_reach"), "Long Reach",
+            "You place and break blocks two blocks further away.",
+            id("generation/ability/raise_wall"), "Raise Wall",
+            "Raise a three by three wall ahead of you from the blocks in your hand.",
+            id("generation/flaw/far_from_home"), id("generation/flaw_effect/far_from_home"), "Far From Home",
+            "Abilities cost half again as much far from anything you have built."
+    );
+    public static final AspectKit VERDANT = new AspectKit(
+            id("generation/nature/verdant"), "Verdant",
+            id("kit/innate/verdant_green_thumb"), "Green Thumb",
+            "Crops and saplings around you grow faster.",
+            id("generation/ability/bloom"), "Bloom",
+            "Everything growing around you surges, and nearby animals are mended.",
+            id("generation/flaw/rootbound"), id("generation/flaw_effect/rootbound"), "Rootbound",
+            "Essence only comes back while you stand on living ground: grass, dirt, moss or leaves."
+    );
 
-    private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE, WARDEN, SEER, REAPER, WELLSPRING);
+    private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE, WARDEN, SEER, REAPER, WELLSPRING,
+            FORGE, DELVE, MASON, VERDANT);
 
     private AspectKitCatalog() {
     }

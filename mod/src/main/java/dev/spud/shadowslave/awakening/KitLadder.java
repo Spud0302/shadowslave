@@ -47,6 +47,22 @@ public final class KitLadder {
             "An essence shield on the ally you look at, or on yourself.", "Shelter");
     public static final AbilityVariant OVERFLOW = variant("overflow", "Overflow",
             "An aura for 20 seconds: you and allies near you regenerate health and essence.", "Support");
+    public static final AbilityVariant MASTERWORK = variant("masterwork", "Masterwork",
+            "For a minute, your next weave may reach one Tier above your branch level.", "Craft");
+    public static final AbilityVariant MOLTEN_EDGE = variant("molten_edge", "Molten Edge",
+            "Your blows burn for 15 seconds: each hit sets the target alight and sears it.", "Force");
+    public static final AbilityVariant VEIN_PULL = variant("vein_pull", "Vein Pull",
+            "Tear out the whole vein of the ore you look at and pull it into your pack.", "Craft");
+    public static final AbilityVariant STONEWALK = variant("stonewalk", "Stonewalk",
+            "Step straight through up to eight blocks of stone to the open air beyond.", "Escape");
+    public static final AbilityVariant BLUEPRINT = variant("blueprint", "Blueprint",
+            "Press to learn the five by five shape in front of you; press again to build it where you look, from your pack.", "Craft");
+    public static final AbilityVariant SCAFFOLD = variant("scaffold", "Scaffold",
+            "For ten seconds, footing appears under you wherever you step over air.", "Movement");
+    public static final AbilityVariant LIVING_WALL = variant("living_wall", "Living Wall",
+            "Raise a thorny hedge ahead of you that cuts and slows hostile creatures.", "Shelter");
+    public static final AbilityVariant WILD_CALL = variant("wild_call", "Wild Call",
+            "Tame the animal you look at, and rouse your pets nearby to fight harder.", "Support");
 
     private static final Map<ResourceLocation, List<AbilityVariant>> AWAKENED = Map.ofEntries(
             Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(CARRY_THE_FLAME, EMBER_WARD)),
@@ -56,7 +72,11 @@ public final class KitLadder {
             Map.entry(AspectKitCatalog.WARDEN.natureId(), List.of(SNARE_SIGIL, RELENTLESS_HUNT)),
             Map.entry(AspectKitCatalog.SEER.natureId(), List.of(FATE_THREAD, SHARED_SIGHT)),
             Map.entry(AspectKitCatalog.REAPER.natureId(), List.of(HARVEST, REAPING_ARC)),
-            Map.entry(AspectKitCatalog.WELLSPRING.natureId(), List.of(SOUL_WARD, OVERFLOW))
+            Map.entry(AspectKitCatalog.WELLSPRING.natureId(), List.of(SOUL_WARD, OVERFLOW)),
+            Map.entry(AspectKitCatalog.FORGE.natureId(), List.of(MASTERWORK, MOLTEN_EDGE)),
+            Map.entry(AspectKitCatalog.DELVE.natureId(), List.of(VEIN_PULL, STONEWALK)),
+            Map.entry(AspectKitCatalog.MASON.natureId(), List.of(BLUEPRINT, SCAFFOLD)),
+            Map.entry(AspectKitCatalog.VERDANT.natureId(), List.of(LIVING_WALL, WILD_CALL))
     );
 
     private KitLadder() {
