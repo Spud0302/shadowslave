@@ -3,7 +3,6 @@ package dev.spud.shadowslave.ability;
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -12,9 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageTypes;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
@@ -103,24 +99,9 @@ public final class FuryRage {
 
     /** Rage makes you bigger, reach further and hit harder. */
     static void grow(ServerPlayer player, float share) {
-        keep(player, Attributes.SCALE, SCALE_ID, FULL_SCALE * share);
-        keep(player, Attributes.ENTITY_INTERACTION_RANGE, REACH_ID, FULL_REACH * share);
-        keep(player, Attributes.ATTACK_DAMAGE, DAMAGE_ID, FULL_DAMAGE * share);
-    }
-
-    private static void keep(ServerPlayer player, Holder<Attribute> attribute, ResourceLocation id, double amount) {
-        AttributeInstance instance = player.getAttribute(attribute);
-        if (instance == null) {
-            return;
-        }
-        AttributeModifier current = instance.getModifier(id);
-        if (amount <= 0.0) {
-            if (current != null) {
-                instance.removeModifier(id);
-            }
-        } else if (current == null || Math.abs(current.amount() - amount) > 1.0e-3) {
-            instance.addOrUpdateTransientModifier(new AttributeModifier(id, amount, AttributeModifier.Operation.ADD_VALUE));
-        }
+        KitModifiers.keep(player, Attributes.SCALE, SCALE_ID, FULL_SCALE * share);
+        KitModifiers.keep(player, Attributes.ENTITY_INTERACTION_RANGE, REACH_ID, FULL_REACH * share);
+        KitModifiers.keep(player, Attributes.ATTACK_DAMAGE, DAMAGE_ID, FULL_DAMAGE * share);
     }
 
     /** Hits taken fill the meter fast; blows a Fury lands fill it a little. */

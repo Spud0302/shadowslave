@@ -25,7 +25,10 @@ public enum Longing {
     REST("Rest", "lull", "Lull"),
     DARKEN("Darken", "gloam", "Gloam"),
     CHILL("Chill", "rime", "Rime"),
-    RAGE("Rage", "fury", "Fury");
+    RAGE("Rage", "fury", "Fury"),
+    KEEP("Keep", "threshold", "Threshold"),
+    WEIGH("Weigh", "anchor", "Anchor"),
+    LINGER("Linger", "hourglass", "Hourglass");
 
     private final String label;
     private final String evidenceTag;

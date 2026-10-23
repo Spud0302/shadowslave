@@ -177,8 +177,36 @@ public final class AspectKitCatalog {
             "At full rage you cannot eat or open your inventory or any chest until you cool down."
     );
 
+    public static final AspectKit THRESHOLD = new AspectKit(
+            id("generation/nature/threshold"), "Threshold",
+            id("kit/innate/threshold_hollow_pocket"), "Hollow Pocket",
+            "You carry a small pocket of space, nine slots only you can reach; what you keep there stays with you through death.",
+            id("generation/ability/pocket"), "Pocket",
+            "Open your pocket of space wherever you stand.",
+            id("generation/flaw/unmoored"), id("generation/flaw_effect/unmoored"), "Unmoored",
+            "Every door you open into elsewhere costs you a sliver of your health until you next sleep."
+    );
+    public static final AspectKit ANCHOR = new AspectKit(
+            id("generation/nature/anchor"), "Anchor",
+            id("kit/innate/anchor_heft"), "Heft",
+            "You choose your weight. Light: long jumps and soft landings. Heavy: no knockback, you sink, and you dig as fast underwater as on land.",
+            id("generation/ability/shift_weight"), "Shift Weight",
+            "Change your weight: Normal, then Heavy, then Light, then back.",
+            id("generation/flaw/leaden"), id("generation/flaw_effect/leaden"), "Leaden",
+            "Boats, horses and ladders refuse you, whatever weight you carry."
+    );
+    public static final AspectKit HOURGLASS = new AspectKit(
+            id("generation/nature/hourglass"), "Hourglass",
+            id("kit/innate/hourglass_banked_blows"), "Banked Blows",
+            "Blows struck at a creature held out of time are held back, and land all at once and a quarter harder when time catches up.",
+            id("generation/ability/stasis"), "Stasis",
+            "Hold the creature you look at out of time for four seconds, if its rank is no higher than yours. It can still be struck.",
+            id("generation/flaw/borrowed_time"), id("generation/flaw_effect/borrowed_time"), "Borrowed Time",
+            "Every second you hold out of time is paid back after: your essence will not refill for as long."
+    );
+
     private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE, WARDEN, SEER, REAPER, WELLSPRING,
-            FORGE, DELVE, MASON, VERDANT, WAYFARER, LULL, GLOAM, RIME, FURY);
+            FORGE, DELVE, MASON, VERDANT, WAYFARER, LULL, GLOAM, RIME, FURY, THRESHOLD, ANCHOR, HOURGLASS);
 
     private AspectKitCatalog() {
     }

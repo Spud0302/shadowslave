@@ -68,9 +68,9 @@ Added by claude-code, 2026-10-22.
 
 You can only roll once. Operators can reroll with `/shadowslave aspect reroll`
 (optionally followed by player names), and `/shadowslave reset` clears the Soul
-entirely. The roll picks one of seventeen Natures (Ember, Mist, Stone, Tide, Warden,
+entirely. The roll picks one of twenty Natures (Ember, Mist, Stone, Tide, Warden,
 Seer, Reaper, Wellspring, Forge, Delve, Mason, Verdant, Wayfarer, Lull, Gloam,
-Rime, Fury), nudged slightly by how you played beforehand (lighting
+Rime, Fury, Threshold, Anchor, Hourglass), nudged slightly by how you played beforehand (lighting
 and smelting, sneaking, mining, swimming nudge the first four). Operators can
 pick a Nature outright with `/shadowslave aspect set <nature>`. Press R to use
 your Aspect's ability. Abilities have no cooldowns: each one spends **essence**
@@ -103,7 +103,7 @@ quarter of their core out as a shard you can absorb; turn that off with
 
 **Intention offering.** Before your first roll you can meditate at a lit Dream
 Candle (sneak and use it) to offer an intention. Name a longing (Burn, Hide,
-Endure, Return, Hunt, Foresee, Devour, Give, Shape, Dig, Build, Grow, Wander, Rest, Darken, Chill or Rage) and press Offer: one of the item in your hand is taken if the
+Endure, Return, Hunt, Foresee, Devour, Give, Shape, Dig, Build, Grow, Wander, Rest, Darken, Chill, Rage, Keep, Weigh or Linger) and press Offer: one of the item in your hand is taken if the
 Spell cares for it (Ember: coal, torches, blaze powder; Mist: feathers, phantom
 membrane, ender pearls; Stone: cobblestone, iron, amethyst, diamond; Tide: kelp,
 fish, prismarine, a water bucket; Warden: bows, arrows, a lead, a rabbit's foot;
@@ -117,10 +117,13 @@ table, rails, a minecart; Lull: a bed, blue wool, dandelions, a milk bucket, a
 note block, a jukebox, a bell; Gloam: black dye, black wool, a black candle,
 tinted glass, blackstone; Rime: snowballs, snow, ice, packed or blue ice, a
 powder snow bucket; Fury: an iron sword or axe, a stone axe, a goat horn, TNT,
-gunpowder, red dye; the
+gunpowder, red dye; Threshold: a chest, barrel, ender chest, shulker shell,
+bundle, an oak or iron door; Anchor: a lodestone, chain, heavy core, iron bars,
+pointed dripstone, slime balls; Hourglass: sand, red sand, glass, a repeater,
+comparator, daylight detector; the
 full lists are the `data/shadowslave/tags/item/intention/` tags). The Soul Sea
 shows the odds under each longing: offering and longing for the same Nature
-takes it from about 6% to 13%, never certain. Then sleep beside the candle; the roll uses the intention once.
+takes it from about 5% to 11%, never certain. Then sleep beside the candle; the roll uses the intention once.
 
 **Meditation and Awakening.** Sneak and use a lit Dream Candle (with anything
 in hand) to meditate: the **Soul Sea** opens, showing your Soul Rank, your core
@@ -181,6 +184,12 @@ a blow is loaded, and the charge fades after 6 seconds.
 | Rime | Rimepath (25) | For 20 s still water freezes under your feet, and you get Speed II on ice |
 | Fury | Ground Slam (35) | Hostiles within 5 take 4 damage plus up to 6 more with rage and are thrown up; spends half your rage |
 | Fury | Second Wind (30) | Burn all your rage (20 at least): heal a point per 10 rage and Speed II for 5 s |
+| Threshold | Doorway (40) | First press opens a door where you stand (free); press again within 60 s, at least 3 blocks away, to open its twin. For 30 s you and your allies walk into one door and out of the other |
+| Threshold | Banish (45) | The creature you look at (16 blocks, no higher in rank) drops out of the world for 5 s, then comes back where it was |
+| Anchor | Crush (35) | For 10 s, landing from 3 blocks or more sends out a shockwave that grows with the fall (half again while Heavy, 14 max) and the fall cannot hurt you |
+| Anchor | Gravity Well (40) | A well opens where you look (24 blocks): for 4 s hostiles within 8 blocks of it are dragged in and pinned |
+| Hourglass | Rewind (35) | Snap back to where you stood 3 s ago, with the health you had then if it was more |
+| Hourglass | Still Moment (60) | Every hostile within 8 blocks, no higher in rank, is held out of time for 2 s |
 
 ### The newer Natures: Warden, Seer, Reaper, Wellspring
 
@@ -290,6 +299,36 @@ Things to try:
    character grow; Provoke a crowd. Fill it to the top and try to eat or open a
    chest. Ground Slam with a full bar and with an empty one; Second Wind when
    low on health.
+
+### Pocket, weight and time: Threshold, Anchor, Hourglass
+
+Added by claude-code, 2026-10-23. The second batch of Awakening-inspired
+Natures. Quick start: `/shadowslave aspect set threshold` (or anchor,
+hourglass), then `/shadowslave core fill` and `/shadowslave awaken <name>` for
+the Awakened abilities above.
+
+| Nature | Innate (always on) | Ability (R) | Flaw |
+| --- | --- | --- | --- |
+| Threshold | Hollow Pocket: nine slots of space only you can reach; what you keep there stays with you through death | Pocket: open the Hollow Pocket anywhere (5 essence) | Unmoored: every door into elsewhere (each Pocket, each Doorway) takes half a heart of max health, up to three hearts, until you next sleep the night through |
+| Anchor | Heft: you choose your weight. Light: higher, floatier jumps and soft landings, a little faster. Heavy: no knockback, you sink in water and walk the bottom, and you mine underwater as fast as on land, but you are slower | Shift Weight: step Normal, Heavy, Light and round again (10 essence) | Leaden: at every weight, boats and horses will not carry you and ladders will not hold you |
+| Hourglass | Banked Blows: hits on a creature you hold out of time do nothing yet; when time catches up they all land at once, a quarter harder | Stasis: the creature you look at (16 blocks, no higher in rank) is held out of time for 4 s; it cannot move or strike (30 essence) | Borrowed Time: every second you hold something out of time is paid back after; your essence will not refill for as long |
+
+Things to try:
+
+1. Threshold: put something in your Pocket, die, and check it is still there.
+   Open the Pocket a few times and watch your max health drop half a heart
+   each time; sleep the night and it comes back. Open a Doorway, walk 20
+   blocks, open its twin and walk through both ways (bring a friend or a pet).
+   Banish a zombie and watch it come back five seconds later.
+2. Anchor: Shift Weight to Heavy and jump in a lake: you should sink and walk
+   the bottom, and mine there at full speed. Get hit by a skeleton (no
+   knockback). Shift to Light and sprint-jump; jump off a 10 block drop. At
+   any weight try a boat, a horse and a ladder. Awakened: Crush from a tower
+   into a crowd (Heavy hits harder); Gravity Well a group of zombies.
+3. Hourglass: Stasis a zombie and hit it four or five times; nothing happens
+   until the hold ends, then it all lands together. Watch the essence bar stay
+   still afterwards (Borrowed Time). Rewind after walking into lava or a bad
+   fall; Still Moment a crowd.
 
 ## Nightmare Creatures
 

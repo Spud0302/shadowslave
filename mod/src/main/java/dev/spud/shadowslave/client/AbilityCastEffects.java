@@ -47,7 +47,10 @@ public final class AbilityCastEffects {
         LULL(new Color(220, 200, 255), new Color(60, 50, 140)),
         GLOAM(new Color(90, 80, 120), new Color(10, 5, 20)),
         RIME(new Color(220, 245, 255), new Color(90, 160, 220)),
-        FURY(new Color(255, 90, 50), new Color(120, 10, 10));
+        FURY(new Color(255, 90, 50), new Color(120, 10, 10)),
+        THRESHOLD(new Color(200, 140, 255), new Color(40, 20, 80)),
+        ANCHOR(new Color(170, 175, 190), new Color(50, 55, 70)),
+        HOURGLASS(new Color(250, 225, 160), new Color(150, 110, 50));
 
         final Color start;
         final Color end;

@@ -86,6 +86,19 @@ public final class KitLadder {
     public static final AbilityVariant SECOND_WIND = variant("second_wind", "Second Wind",
             "Burn all your rage to heal and run: the more rage, the more you heal.", "Escape");
 
+    public static final AbilityVariant DOORWAY = variant("doorway", "Doorway",
+            "Open a door where you stand, then its twin somewhere else; for thirty seconds you and your allies step from one to the other.", "Movement");
+    public static final AbilityVariant BANISH = variant("banish", "Banish",
+            "Drop the creature you look at out of the world for five seconds; it comes back where it was.", "Control");
+    public static final AbilityVariant CRUSH = variant("crush", "Crush",
+            "For ten seconds, landing from a height sends out a shockwave that grows with the fall, and the fall cannot hurt you.", "Force");
+    public static final AbilityVariant GRAVITY_WELL = variant("gravity_well", "Gravity Well",
+            "Drag the hostiles around the spot you look at into it and pin them there, heavy, for four seconds.", "Control");
+    public static final AbilityVariant REWIND = variant("rewind", "Rewind",
+            "Snap back to where you stood three seconds ago, with the health you had then if it was more.", "Escape");
+    public static final AbilityVariant STILL_MOMENT = variant("still_moment", "Still Moment",
+            "Hold every hostile around you out of time for two seconds.", "Control");
+
     private static final Map<ResourceLocation, List<AbilityVariant>> AWAKENED = Map.ofEntries(
             Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(CARRY_THE_FLAME, EMBER_WARD)),
             Map.entry(AspectKitCatalog.MIST.natureId(), List.of(THROUGH_THE_HAZE, VEIL)),
@@ -103,7 +116,10 @@ public final class KitLadder {
             Map.entry(AspectKitCatalog.LULL.natureId(), List.of(DREAMFALL, SLEEPWALKER)),
             Map.entry(AspectKitCatalog.GLOAM.natureId(), List.of(SHADE_STEP, SNUFF)),
             Map.entry(AspectKitCatalog.RIME.natureId(), List.of(ENCASE, RIMEPATH)),
-            Map.entry(AspectKitCatalog.FURY.natureId(), List.of(GROUND_SLAM, SECOND_WIND))
+            Map.entry(AspectKitCatalog.FURY.natureId(), List.of(GROUND_SLAM, SECOND_WIND)),
+            Map.entry(AspectKitCatalog.THRESHOLD.natureId(), List.of(DOORWAY, BANISH)),
+            Map.entry(AspectKitCatalog.ANCHOR.natureId(), List.of(CRUSH, GRAVITY_WELL)),
+            Map.entry(AspectKitCatalog.HOURGLASS.natureId(), List.of(REWIND, STILL_MOMENT))
     );
 
     private KitLadder() {

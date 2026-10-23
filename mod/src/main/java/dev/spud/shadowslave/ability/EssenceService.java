@@ -58,7 +58,7 @@ public final class EssenceService {
 
     /**
      * Essence regained per tick, after refinement and the kit's own rules (Hunger, Deep Well, Rootbound,
-     * Open Sky, Wanderlust, Deepening Dark, Sunstruck, Thin Blood).
+     * Open Sky, Wanderlust, Deepening Dark, Sunstruck, Thin Blood, Borrowed Time).
      */
     public static float regenPerTick(ServerPlayer player) {
         float base = (float) (regenPerTickFor(capacity(player)) * RefinementRules.regenMultiplier(RefinementService.get(player)));
@@ -73,6 +73,7 @@ public final class EssenceService {
         }
         factor *= DreamKitPassives.wanderlust(player);
         factor *= SignatureKitPassives.regenFactor(player);
+        factor *= Stasis.regenFactor(player);
         return base * factor;
     }
 
