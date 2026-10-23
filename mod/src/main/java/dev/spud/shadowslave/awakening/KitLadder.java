@@ -64,6 +64,15 @@ public final class KitLadder {
     public static final AbilityVariant WILD_CALL = variant("wild_call", "Wild Call",
             "Tame the animal you look at, and rouse your pets nearby to fight harder.", "Support");
 
+    public static final AbilityVariant ANCHOR_RECALL = variant("anchor_recall", "Anchor Recall",
+            "Channel for three seconds to return to your Dream Anchor, or your bed in the waking world; a hit breaks it.", "Escape");
+    public static final AbilityVariant TRAILBLAZE = variant("trailblaze", "Trailblaze",
+            "For fifteen seconds your sprint leaves a trail that hastens you and every ally who runs it.", "Movement");
+    public static final AbilityVariant DREAMFALL = variant("dreamfall", "Dreamfall",
+            "Every creature around you of your rank or lower falls asleep for a few seconds.", "Control");
+    public static final AbilityVariant SLEEPWALKER = variant("sleepwalker", "Sleepwalker",
+            "Steer a sleeping creature you look at: for ten seconds it walks, still dreaming, wherever you look.", "Control");
+
     private static final Map<ResourceLocation, List<AbilityVariant>> AWAKENED = Map.ofEntries(
             Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(CARRY_THE_FLAME, EMBER_WARD)),
             Map.entry(AspectKitCatalog.MIST.natureId(), List.of(THROUGH_THE_HAZE, VEIL)),
@@ -76,7 +85,9 @@ public final class KitLadder {
             Map.entry(AspectKitCatalog.FORGE.natureId(), List.of(MASTERWORK, MOLTEN_EDGE)),
             Map.entry(AspectKitCatalog.DELVE.natureId(), List.of(VEIN_PULL, STONEWALK)),
             Map.entry(AspectKitCatalog.MASON.natureId(), List.of(BLUEPRINT, SCAFFOLD)),
-            Map.entry(AspectKitCatalog.VERDANT.natureId(), List.of(LIVING_WALL, WILD_CALL))
+            Map.entry(AspectKitCatalog.VERDANT.natureId(), List.of(LIVING_WALL, WILD_CALL)),
+            Map.entry(AspectKitCatalog.WAYFARER.natureId(), List.of(ANCHOR_RECALL, TRAILBLAZE)),
+            Map.entry(AspectKitCatalog.LULL.natureId(), List.of(DREAMFALL, SLEEPWALKER))
     );
 
     private KitLadder() {

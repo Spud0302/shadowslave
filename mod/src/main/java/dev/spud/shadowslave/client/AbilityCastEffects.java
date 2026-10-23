@@ -42,7 +42,9 @@ public final class AbilityCastEffects {
         FORGE(new Color(255, 200, 90), new Color(150, 60, 20)),
         DELVE(new Color(190, 200, 215), new Color(60, 70, 90)),
         MASON(new Color(225, 205, 175), new Color(140, 90, 60)),
-        VERDANT(new Color(160, 240, 120), new Color(30, 110, 40));
+        VERDANT(new Color(160, 240, 120), new Color(30, 110, 40)),
+        WAYFARER(new Color(255, 225, 140), new Color(120, 170, 230)),
+        LULL(new Color(220, 200, 255), new Color(60, 50, 140));
 
         final Color start;
         final Color end;

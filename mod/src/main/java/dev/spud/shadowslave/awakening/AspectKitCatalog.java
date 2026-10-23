@@ -130,9 +130,27 @@ public final class AspectKitCatalog {
             id("generation/flaw/rootbound"), id("generation/flaw_effect/rootbound"), "Rootbound",
             "Essence only comes back while you stand on living ground: grass, dirt, moss or leaves."
     );
+    public static final AspectKit WAYFARER = new AspectKit(
+            id("generation/nature/wayfarer"), "Wayfarer",
+            id("kit/innate/wayfarer_pathfinder"), "Pathfinder",
+            "A faint pull draws you toward the nearest Seed and your Dream Anchor; in the waking world, toward your bed.",
+            id("generation/ability/waymark"), "Waymark",
+            "Set a marker where you stand (three at most) that you and those near you see through walls; sneak and press to snap back to your newest marker.",
+            id("generation/flaw/wanderlust"), id("generation/flaw_effect/wanderlust"), "Wanderlust",
+            "Essence comes back slower the longer you linger in one place; keep moving."
+    );
+    public static final AspectKit LULL = new AspectKit(
+            id("generation/nature/lull"), "Lull",
+            id("kit/innate/lull_drowsy_aura"), "Drowsy Aura",
+            "Hostile creatures near you nod off between blows and attack a little slower.",
+            id("generation/ability/lullaby"), "Lullaby",
+            "The creature you look at sleeps for a few seconds, if its rank is no higher than yours; damage wakes it.",
+            id("generation/flaw/insomnia"), id("generation/flaw_effect/insomnia"), "Insomnia",
+            "Beds cannot carry you through the night, only a Dream Candle can, so the phantoms come for you."
+    );
 
     private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE, WARDEN, SEER, REAPER, WELLSPRING,
-            FORGE, DELVE, MASON, VERDANT);
+            FORGE, DELVE, MASON, VERDANT, WAYFARER, LULL);
 
     private AspectKitCatalog() {
     }

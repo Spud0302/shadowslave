@@ -49,6 +49,12 @@ public final class AbilityRegistry {
         register(new BloomAbility());
         register(new LivingWallAbility());
         register(new WildCallAbility());
+        register(new WaymarkAbility());
+        register(new AnchorRecallAbility());
+        register(new TrailblazeAbility());
+        register(new LullabyAbility());
+        register(new DreamfallAbility());
+        register(new SleepwalkerAbility());
     }
 
     private AbilityRegistry() {

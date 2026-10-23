@@ -68,8 +68,8 @@ Added by claude-code, 2026-10-22.
 
 You can only roll once. Operators can reroll with `/shadowslave aspect reroll`
 (optionally followed by player names), and `/shadowslave reset` clears the Soul
-entirely. The roll picks one of twelve Natures (Ember, Mist, Stone, Tide, Warden,
-Seer, Reaper, Wellspring, Forge, Delve, Mason, Verdant), nudged slightly by how you played beforehand (lighting
+entirely. The roll picks one of fourteen Natures (Ember, Mist, Stone, Tide, Warden,
+Seer, Reaper, Wellspring, Forge, Delve, Mason, Verdant, Wayfarer, Lull), nudged slightly by how you played beforehand (lighting
 and smelting, sneaking, mining, swimming nudge the first four). Operators can
 pick a Nature outright with `/shadowslave aspect set <nature>`. Press R to use
 your Aspect's ability. Abilities have no cooldowns: each one spends **essence**
@@ -102,7 +102,7 @@ quarter of their core out as a shard you can absorb; turn that off with
 
 **Intention offering.** Before your first roll you can meditate at a lit Dream
 Candle (sneak and use it) to offer an intention. Name a longing (Burn, Hide,
-Endure, Return, Hunt, Foresee, Devour, Give, Shape, Dig, Build or Grow) and press Offer: one of the item in your hand is taken if the
+Endure, Return, Hunt, Foresee, Devour, Give, Shape, Dig, Build, Grow, Wander or Rest) and press Offer: one of the item in your hand is taken if the
 Spell cares for it (Ember: coal, torches, blaze powder; Mist: feathers, phantom
 membrane, ender pearls; Stone: cobblestone, iron, amethyst, diamond; Tide: kelp,
 fish, prismarine, a water bucket; Warden: bows, arrows, a lead, a rabbit's foot;
@@ -111,10 +111,12 @@ eyes, soul sand, an echo shard; Wellspring: golden apples, honey, glistering
 melon, bread; Forge: gold or copper ingots, an anvil, a furnace; Delve: a
 pickaxe, raw copper, redstone, lapis; Mason: bricks, stone bricks, planks,
 scaffolding, a stonecutter; Verdant: seeds, wheat, bone meal, saplings, carrots,
-potatoes, moss; the
+potatoes, moss; Wayfarer: leather boots, a saddle, a boat, a cartography
+table, rails, a minecart; Lull: a bed, blue wool, dandelions, a milk bucket, a
+note block, a jukebox, a bell; the
 full lists are the `data/shadowslave/tags/item/intention/` tags). The Soul Sea
 shows the odds under each longing: offering and longing for the same Nature
-takes it from about 8% to 17.5%, never certain. Then sleep beside the candle; the roll uses the intention once.
+takes it from about 7% to 15%, never certain. Then sleep beside the candle; the roll uses the intention once.
 
 **Meditation and Awakening.** Sneak and use a lit Dream Candle (with anything
 in hand) to meditate: the **Soul Sea** opens, showing your Soul Rank, your core
@@ -165,6 +167,10 @@ a blow is loaded, and the charge fades after 6 seconds.
 | Mason | Scaffold (25) | For 10 s, planks appear under you when you step over a drop; they fall away after 8 s |
 | Verdant | Living Wall (35) | A 5x2 flowering hedge for 15 s; hostiles touching it take 2 damage and Slowness II |
 | Verdant | Wild Call (30) | Tames the animal you look at (12 blocks); your pets within 16 get Regeneration II and Strength for 20 s |
+| Wayfarer | Anchor Recall (40) | A 3 s channel home: your Dream Anchor in the Dream Realm, your bed elsewhere (same world). A hit breaks it, and a broken channel costs nothing |
+| Wayfarer | Trailblaze (30) | For 15 s you run faster and your sprint lays a glowing trail; allies who step on it get Speed II |
+| Lull | Dreamfall (45) | Every hostile within 6 blocks no higher in rank than you sleeps for 4 s |
+| Lull | Sleepwalker (30) | The sleeping creature you look at walks where you look for 10 s, still asleep |
 
 ### The newer Natures: Warden, Seer, Reaper, Wellspring
 
@@ -222,6 +228,30 @@ Things to try:
 4. Verdant: stand in a wheat field and watch it grow; Bloom it. Stand on stone
    and see the essence bar stop. Living Wall in front of a zombie; Wild Call a
    wolf or horse, then fight beside it.
+
+### The Dream Realm Natures: Wayfarer, Lull
+
+Added by claude-code, 2026-10-23. These two lean on the Dream Realm (see below).
+Quick start: `/shadowslave aspect set wayfarer` (or lull), then
+`/shadowslave core fill` and `/shadowslave awaken <name>` for the Awakened
+abilities above.
+
+| Nature | Innate (always on) | Ability (R) | Flaw |
+| --- | --- | --- | --- |
+| Wayfarer | Pathfinder: every couple of seconds a faint gold pull (only you see it) points home, and in the Dream Realm a red one points to the nearest Seed within 512 blocks | Waymark: press to set a mark at your feet (up to 3, seen through walls; yours gold, other Wayfarers' blue); sneak and press to snap back to the newest within 64 blocks (20 essence) | Wanderlust: stay within 24 blocks for over 2 minutes and essence refills slower, down to a quarter after 7 minutes; moving on resets it |
+| Lull | Drowsy Aura: every fourth blow a hostile aims at you fizzles as it nods off | Lullaby: the creature you look at (16 blocks) sleeps for 5 s: it stands still, drops its target and cannot hurt anyone; any damage wakes it. Creatures above your rank shrug it off (25 essence) | Insomnia: you cannot sleep in a bed unless a lit Dream Candle burns beside it |
+
+Things to try:
+
+1. Wayfarer: set three Waymarks while walking, go behind a wall and look for
+   the pillars. Sneak and press to snap back. Set your bed, walk away and
+   follow the gold pull. Stand still for a few minutes and watch the essence
+   bar slow. Awaken with Anchor Recall and let a zombie hit you mid-channel;
+   Trailblaze and sprint, with a second player running behind you.
+2. Lull: Lullaby a zombie and stand next to it; hit it and it wakes. Try it on
+   a wither skeleton while Dormant (it should fail). Let a few zombies hit you
+   and count the blows that fizzle. Dreamfall a crowd, then Sleepwalker one
+   into lava. Try sleeping without a Dream Candle.
 
 ## Nightmare Creatures
 

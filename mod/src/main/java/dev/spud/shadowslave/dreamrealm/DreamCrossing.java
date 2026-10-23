@@ -198,7 +198,7 @@ public final class DreamCrossing {
     }
 
     /** A spot to stand next to a block: two blocks of room over solid ground, nearest first. */
-    static Vec3 standBeside(ServerLevel level, BlockPos pos) {
+    public static Vec3 standBeside(ServerLevel level, BlockPos pos) {
         for (int radius = 1; radius <= 2; radius++) {
             for (int dy = 0; dy >= -1; dy--) {
                 for (BlockPos spot : BlockPos.betweenClosed(pos.offset(-radius, dy, -radius), pos.offset(radius, dy, radius))) {

@@ -21,10 +21,11 @@ final class AbilityIcons {
                     "harvest", "reaping_arc", "soul_ward", "overflow",
                     "quench", "tunnel_strike", "raise_wall", "bloom",
                     "masterwork", "molten_edge", "vein_pull", "stonewalk",
-                    "blueprint", "scaffold", "living_wall", "wild_call"),
+                    "blueprint", "scaffold", "living_wall", "wild_call",
+                    "waymark", "lullaby", "anchor_recall", "trailblaze", "dreamfall", "sleepwalker"),
             List.of("cold_ash", "borrowed_breath", "stone_sleep", "tidal_debt",
                     "quarry_lock", "clouded_eyes", "hunger", "brimming_vessel",
-                    "cold_hearth", "open_sky", "far_from_home", "rootbound"));
+                    "cold_hearth", "open_sky", "far_from_home", "rootbound", "wanderlust", "insomnia"));
 
     private AbilityIcons() {
     }

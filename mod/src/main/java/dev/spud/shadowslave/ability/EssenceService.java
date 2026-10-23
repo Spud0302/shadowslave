@@ -68,6 +68,7 @@ public final class EssenceService {
         if (KitRules.hasFlaw(player, AspectKitCatalog.DELVE.flawEffectId()) && KitPassives.underOpenSky(player)) {
             factor *= KitPassives.OPEN_SKY_REGEN;
         }
+        factor *= DreamKitPassives.wanderlust(player);
         return base * factor;
     }
 

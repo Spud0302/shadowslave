@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:white_bed",
+    "minecraft:red_bed",
+    "minecraft:blue_wool",
+    "minecraft:dandelion",
+    "minecraft:milk_bucket",
+    "minecraft:note_block",
+    "minecraft:jukebox",
+    "minecraft:bell"
+  ]
+}
