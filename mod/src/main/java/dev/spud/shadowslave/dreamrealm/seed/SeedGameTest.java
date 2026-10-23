@@ -106,8 +106,8 @@ public final class SeedGameTest {
 
         // Challenge again and win: the Seed is cleansed for good.
         helper.assertTrue(SeedService.challenge(player, seed.pos()), "challenged again");
-        GateEvent second = GateData.get(realm).gates().stream().filter(g -> g.source().filter(seed.id()::equals).isPresent())
-                .findFirst().orElseThrow();
+        GateEvent second = GateData.get(realm).gates().stream().filter(g -> g.phase() != GateEvent.Phase.CLOSED)
+                .filter(g -> g.source().filter(seed.id()::equals).isPresent()).findFirst().orElseThrow();
         // A Seed challenged at stage 0 pays three rolls of its region's loot, 2-4 Dormant shards each.
         long shards = SeedService.rollReward(realm, seed).stream()
                 .filter(stack -> stack.getItem() == dev.spud.shadowslave.item.ModItems.DORMANT_SOUL_SHARD.get())
