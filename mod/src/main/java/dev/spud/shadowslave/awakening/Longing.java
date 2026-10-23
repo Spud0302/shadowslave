@@ -20,7 +20,9 @@ public enum Longing {
     SHAPE("Shape", "forge", "Forge"),
     DIG("Dig", "delve", "Delve"),
     BUILD("Build", "mason", "Mason"),
-    GROW("Grow", "verdant", "Verdant");
+    GROW("Grow", "verdant", "Verdant"),
+    WANDER("Wander", "wayfarer", "Wayfarer"),
+    REST("Rest", "lull", "Lull");
 
     private final String label;
     private final String evidenceTag;

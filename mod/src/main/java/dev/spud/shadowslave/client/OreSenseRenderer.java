@@ -1,35 +1,23 @@
 package dev.spud.shadowslave.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.Tags;
 
-import org.joml.Matrix4fStack;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalDouble;
 
 /**
  * Delve's Ore Sense: while a Delve sneaks, the ores within {@link #RANGE}
@@ -71,32 +59,14 @@ public final class OreSenseRenderer {
         if (seen.isEmpty()) {
             return;
         }
-        // Draw in our own frame (camera turn, then offset) so the stage's model-view state doesn't matter.
-        Matrix4fStack modelView = RenderSystem.getModelViewStack();
-        modelView.pushMatrix();
-        modelView.identity();
-        RenderSystem.applyModelViewMatrix();
-        PoseStack pose = new PoseStack();
-        pose.mulPose(event.getModelViewMatrix());
-        Vec3 camera = event.getCamera().getPosition();
-        pose.translate(-camera.x, -camera.y, -camera.z);
-        // A buffer of our own: the shared one may hold another batch that must not be flushed under our matrices.
-        BufferBuilder lines = Tesselator.getInstance().begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR_NORMAL);
-        for (Seen ore : seen) {
-            float r = (ore.rgb() >> 16 & 0xFF) / 255.0F;
-            float g = (ore.rgb() >> 8 & 0xFF) / 255.0F;
-            float b = (ore.rgb() & 0xFF) / 255.0F;
-            LevelRenderer.renderLineBox(pose, lines, new AABB(ore.pos()).deflate(0.02), r, g, b, 0.9F);
-        }
-        // The "always" depth state leaves the test as it found it, so switch it off here.
-        MeshData mesh = lines.build();
-        if (mesh != null) {
-            RenderSystem.disableDepthTest();
-            OreLines.TYPE.draw(mesh);
-            RenderSystem.enableDepthTest();
-        }
-        modelView.popMatrix();
-        RenderSystem.applyModelViewMatrix();
+        XrayLines.draw(event, (pose, lines) -> {
+            for (Seen ore : seen) {
+                float r = (ore.rgb() >> 16 & 0xFF) / 255.0F;
+                float g = (ore.rgb() >> 8 & 0xFF) / 255.0F;
+                float b = (ore.rgb() & 0xFF) / 255.0F;
+                LevelRenderer.renderLineBox(pose, lines, new AABB(ore.pos()).deflate(0.02), r, g, b, 0.9F);
+            }
+        });
     }
 
     static boolean hasOreSense() {
@@ -138,26 +108,5 @@ public final class OreSenseRenderer {
             return 0x9A5A3C;
         }
         return 0xFFFFFF;
-    }
-
-    /** Lines drawn on top of everything, so ores show through the stone. */
-    private static final class OreLines extends RenderType {
-        static final RenderType TYPE = create("shadowslave_ore_sense", DefaultVertexFormat.POSITION_COLOR_NORMAL,
-                VertexFormat.Mode.LINES, 1536, false, false,
-                CompositeState.builder()
-                        .setShaderState(RENDERTYPE_LINES_SHADER)
-                        .setLineState(new LineStateShard(OptionalDouble.of(2.0)))
-                        .setLayeringState(VIEW_OFFSET_Z_LAYERING)
-                        .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                        .setOutputState(ITEM_ENTITY_TARGET)
-                        .setWriteMaskState(COLOR_WRITE)
-                        .setCullState(NO_CULL)
-                        .setDepthTestState(NO_DEPTH_TEST)
-                        .createCompositeState(false));
-
-        private OreLines(String name, VertexFormat format, VertexFormat.Mode mode, int size, boolean affectsCrumbling,
-                         boolean sortOnUpload, Runnable setup, Runnable clear) {
-            super(name, format, mode, size, affectsCrumbling, sortOnUpload, setup, clear);
-        }
     }
 }

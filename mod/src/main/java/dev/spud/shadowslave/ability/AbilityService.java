@@ -141,6 +141,7 @@ public final class AbilityService {
             AbilityRegistry.all().forEach(ability -> ability.clear(player));
             EssenceService.forget(player.getUUID());
             ForewarningService.forget(player.getUUID());
+            DreamKitPassives.forget(player.getUUID());
         }
     }
 

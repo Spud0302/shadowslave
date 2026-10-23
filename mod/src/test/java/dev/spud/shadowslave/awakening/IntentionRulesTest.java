@@ -15,20 +15,20 @@ class IntentionRulesTest {
 
     @Test
     void noIntentionLeavesEvenOdds() {
-        assertEquals(List.of(8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8), IntentionRules.odds(IntentionRules.apply(NO_EVIDENCE, IntentionData.empty())));
+        assertEquals(List.of(7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7), IntentionRules.odds(IntentionRules.apply(NO_EVIDENCE, IntentionData.empty())));
     }
 
     @Test
     void offeringAndLongingForOneNatureDoubleItsChance() {
         GenerationEvidence leaned = IntentionRules.apply(NO_EVIDENCE, EMBER_BOTH);
         assertEquals(4, leaned.weightFor("ember"));
-        assertEquals(List.of(18, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8), IntentionRules.odds(leaned));
+        assertEquals(List.of(15, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7), IntentionRules.odds(leaned));
     }
 
     @Test
     void splitIntentionsLeanTwoWays() {
         GenerationEvidence leaned = IntentionRules.apply(NO_EVIDENCE, new IntentionData("stone", "Iron Ingot", "return"));
-        assertEquals(List.of(8, 8, 13, 13, 8, 8, 8, 8, 8, 8, 8, 8), IntentionRules.odds(leaned));
+        assertEquals(List.of(7, 7, 11, 11, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7), IntentionRules.odds(leaned));
     }
 
     @Test
@@ -50,7 +50,7 @@ class IntentionRulesTest {
             }
         }
         double share = (double) ember / rolls;
-        assertTrue(share > 0.14 && share < 0.22, "Ember came up " + share);
+        assertTrue(share > 0.11 && share < 0.19, "Ember came up " + share);
     }
 
     @Test

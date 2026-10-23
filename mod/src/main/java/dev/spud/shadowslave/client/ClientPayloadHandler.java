@@ -7,6 +7,7 @@ import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.SoulSeaPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
+import dev.spud.shadowslave.network.payload.WaymarkPayload;
 import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -39,6 +40,13 @@ public final class ClientPayloadHandler {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level != null) {
             ForewarningLayer.warn(payload, minecraft.level.getGameTime());
+        }
+    }
+
+    public static void handleWaymarks(WaymarkPayload payload, IPayloadContext context) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level != null) {
+            WaymarkRenderer.show(payload, minecraft.level.getGameTime());
         }
     }
 

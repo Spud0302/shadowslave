@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:leather_boots",
+    "minecraft:saddle",
+    "minecraft:oak_boat",
+    "minecraft:cartography_table",
+    "minecraft:rail",
+    "minecraft:minecart",
+    "minecraft:chainmail_boots",
+    "minecraft:dried_kelp"
+  ]
+}
