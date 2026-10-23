@@ -31,12 +31,32 @@ public final class KitLadder {
             "Surge forward on a wave that shoves mobs aside.", "Movement");
     public static final AbilityVariant UNDERTOW = variant("undertow", "Undertow",
             "Drag nearby mobs toward the spot you look at and slow them.", "Control");
+    public static final AbilityVariant SNARE_SIGIL = variant("snare_sigil", "Snare Sigil",
+            "Draw a rune trap where you look; the first hostiles to cross it are rooted in place.", "Control");
+    public static final AbilityVariant RELENTLESS_HUNT = variant("relentless_hunt", "Relentless Hunt",
+            "Dash straight to your marked prey and strike faster for a few seconds.", "Movement");
+    public static final AbilityVariant FATE_THREAD = variant("fate_thread", "Fate Thread",
+            "Snap back to where you stood three seconds ago.", "Escape");
+    public static final AbilityVariant SHARED_SIGHT = variant("shared_sight", "Shared Sight",
+            "For a minute, players near you see your warnings too, and nearby hostiles glow.", "Support");
+    public static final AbilityVariant HARVEST = variant("harvest", "Harvest",
+            "Drain every hostile creature around you at once.", "Area");
+    public static final AbilityVariant REAPING_ARC = variant("reaping_arc", "Reaping Arc",
+            "A wide scythe sweep in front of you that finishes off badly wounded creatures.", "Force");
+    public static final AbilityVariant SOUL_WARD = variant("soul_ward", "Soul Ward",
+            "An essence shield on the ally you look at, or on yourself.", "Shelter");
+    public static final AbilityVariant OVERFLOW = variant("overflow", "Overflow",
+            "An aura for 20 seconds: you and allies near you regenerate health and essence.", "Support");
 
-    private static final Map<ResourceLocation, List<AbilityVariant>> AWAKENED = Map.of(
-            AspectKitCatalog.EMBER.natureId(), List.of(CARRY_THE_FLAME, EMBER_WARD),
-            AspectKitCatalog.MIST.natureId(), List.of(THROUGH_THE_HAZE, VEIL),
-            AspectKitCatalog.STONE.natureId(), List.of(ROOT_IN_STONE, QUAKE),
-            AspectKitCatalog.TIDE.natureId(), List.of(LOW_TIDE, UNDERTOW)
+    private static final Map<ResourceLocation, List<AbilityVariant>> AWAKENED = Map.ofEntries(
+            Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(CARRY_THE_FLAME, EMBER_WARD)),
+            Map.entry(AspectKitCatalog.MIST.natureId(), List.of(THROUGH_THE_HAZE, VEIL)),
+            Map.entry(AspectKitCatalog.STONE.natureId(), List.of(ROOT_IN_STONE, QUAKE)),
+            Map.entry(AspectKitCatalog.TIDE.natureId(), List.of(LOW_TIDE, UNDERTOW)),
+            Map.entry(AspectKitCatalog.WARDEN.natureId(), List.of(SNARE_SIGIL, RELENTLESS_HUNT)),
+            Map.entry(AspectKitCatalog.SEER.natureId(), List.of(FATE_THREAD, SHARED_SIGHT)),
+            Map.entry(AspectKitCatalog.REAPER.natureId(), List.of(HARVEST, REAPING_ARC)),
+            Map.entry(AspectKitCatalog.WELLSPRING.natureId(), List.of(SOUL_WARD, OVERFLOW))
     );
 
     private KitLadder() {

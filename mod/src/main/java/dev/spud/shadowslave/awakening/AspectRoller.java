@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * Rolls an Aspect from the four hand-made kits.
+ * Rolls an Aspect from the hand-made kits.
  *
  * <p>The existing generator picks the Nature (weighted lightly by playstyle
  * evidence) and the Archetype that names the Aspect. The Nature then fixes the
@@ -29,8 +29,9 @@ import java.util.function.Function;
 public final class AspectRoller {
     /**
      * Every kit Nature starts from the same weight. The generator adds 8 per
-     * evidence point and evidence tops out at 2 per tag, so playstyle moves a
-     * Nature from 25% to at most about 36%: it tips the odds but never decides.
+     * evidence point and evidence tops out at 2 per tag, so with eight Natures
+     * playstyle moves one from 12.5% to at most about 19%: it tips the odds
+     * but never decides.
      */
     static final int NATURE_BASE_WEIGHT = 24;
     public static final SoulRank STARTING_RANK = SoulRank.DORMANT;
@@ -53,15 +54,21 @@ public final class AspectRoller {
 
     public static Roll roll(long seed, GenerationEvidence evidence) {
         Objects.requireNonNull(evidence, "evidence");
-        IdentityPrimitiveCatalog wave = ExpandedIdentityContentCatalog.waveOne();
+        IdentityPrimitiveCatalog wave = ExpandedIdentityContentCatalog.kitWave();
 
         IdentityPrimitiveCatalog allKits = catalogFor(wave, AspectKitCatalog.all());
         ResourceLocation natureId = new DeterministicIdentityGenerator(allKits)
                 .generate(seed, evidence, STARTING_RANK).aspect().natureId();
         AspectKit kit = AspectKitCatalog.byNature(natureId)
                 .orElseThrow(() -> new IllegalStateException("Rolled a Nature without a kit: " + natureId));
+        return rollKit(seed, evidence, kit);
+    }
 
-        GeneratedIdentityCandidate candidate = new DeterministicIdentityGenerator(catalogFor(wave, List.of(kit)))
+    /** Rolls an Aspect of one given kit; only the Archetype that names it is left to chance. For operators and tests. */
+    public static Roll rollKit(long seed, GenerationEvidence evidence, AspectKit kit) {
+        Objects.requireNonNull(kit, "kit");
+        GeneratedIdentityCandidate candidate = new DeterministicIdentityGenerator(
+                catalogFor(ExpandedIdentityContentCatalog.kitWave(), List.of(kit)))
                 .generate(seed, evidence, STARTING_RANK);
         return new Roll(kit, candidate, identityFor(kit, candidate));
     }

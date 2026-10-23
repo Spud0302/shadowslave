@@ -90,6 +90,9 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(KitPassives::onKnockBack);
         NeoForge.EVENT_BUS.addListener(KitPassives::onBreathe);
         NeoForge.EVENT_BUS.addListener(KitPassives::onWakeUp);
+        NeoForge.EVENT_BUS.addListener(KitPassives::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(KitPassives::onDamaged);
+        NeoForge.EVENT_BUS.addListener(KitPassives::onSeerTick);
         NeoForge.EVENT_BUS.addListener(EchoManifestationService::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(GateCommands::register);
         NeoForge.EVENT_BUS.addListener(GateService::onServerTick);

@@ -50,6 +50,8 @@ public final class GateEvent {
     int phaseTicks;
     int wave;
     int nextWaveIn;
+    /** A Seer's Foresight rolled the Category ahead of time; the opening keeps it. */
+    boolean foreseen;
     UUID rift;
     UUID guardian;
     final List<UUID> spawned = new ArrayList<>();
@@ -77,6 +79,10 @@ public final class GateEvent {
     /** The forecast's likeliest Category during the warning, the rolled one after. */
     public int category() {
         return category;
+    }
+
+    public boolean foreseen() {
+        return foreseen;
     }
 
     public GateForecast forecast() {
@@ -108,6 +114,7 @@ public final class GateEvent {
         tag.putInt("phase_ticks", phaseTicks);
         tag.putInt("wave", wave);
         tag.putInt("next_wave_in", nextWaveIn);
+        tag.putBoolean("foreseen", foreseen);
         if (rift != null) {
             tag.putUUID("rift", rift);
         }
@@ -134,6 +141,7 @@ public final class GateEvent {
         event.phaseTicks = tag.getInt("phase_ticks");
         event.wave = tag.getInt("wave");
         event.nextWaveIn = tag.getInt("next_wave_in");
+        event.foreseen = tag.getBoolean("foreseen");
         event.rift = tag.hasUUID("rift") ? tag.getUUID("rift") : null;
         event.guardian = tag.hasUUID("guardian") ? tag.getUUID("guardian") : null;
         for (Tag uuid : tag.getList("spawned", Tag.TAG_INT_ARRAY)) {

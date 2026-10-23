@@ -139,6 +139,8 @@ public final class AbilityService {
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             AbilityRegistry.all().forEach(ability -> ability.clear(player));
+            EssenceService.forget(player.getUUID());
+            ForewarningService.forget(player.getUUID());
         }
     }
 

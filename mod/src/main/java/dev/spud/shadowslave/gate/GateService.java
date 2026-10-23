@@ -113,6 +113,54 @@ public final class GateService {
                 .min((a, b) -> Double.compare(a.center.distSqr(pos), b.center.distSqr(pos)));
     }
 
+    /**
+     * A Seer's Foresight on the nearest Gate within {@code range}: a Gate
+     * still in its warning has its Category rolled now, so what the Seer sees
+     * is what opens. Returns the Gate, if one was in reach.
+     */
+    public static Optional<GateEvent> foresee(ServerLevel level, BlockPos from, double range) {
+        Optional<GateEvent> gate = nearest(level, from)
+                .filter(found -> found.center.distSqr(from) <= range * range && found.phase != GateEvent.Phase.CLOSED);
+        gate.ifPresent(found -> {
+            if (found.phase == GateEvent.Phase.WARNING && !found.foreseen) {
+                found.category = found.forecast.roll(level.getRandom()::nextInt);
+                found.foreseen = true;
+                GateData.get(level).setDirty();
+            }
+        });
+        return gate;
+    }
+
+    /** The creatures still to come out of a Gate, wave by wave, then its Guardian, as lines of text. */
+    public static List<String> roster(GateEvent gate) {
+        List<List<GateCategory.Spawn>> waves = GateCategory.waves(gate.category);
+        List<String> lines = new java.util.ArrayList<>();
+        int first = gate.phase == GateEvent.Phase.WARNING ? 0 : Math.min(gate.wave, waves.size());
+        for (int i = first; i < waves.size(); i++) {
+            String wave = waves.get(i).stream()
+                    .map(spawn -> spawn.count() + " " + creatureName(spawn.creature()) + " (" + spawn.rank().displayName()
+                            + " " + spawn.creatureClass().displayName() + ")")
+                    .collect(java.util.stream.Collectors.joining(", "));
+            lines.add("Wave " + (i + 1) + ": " + wave);
+        }
+        if (gate.phase != GateEvent.Phase.GUARDIAN) {
+            lines.add("Guardian: Ashen Tyrant (" + GateCategory.guardianRank(gate.category).displayName() + " Tyrant)");
+        }
+        return lines;
+    }
+
+    private static String creatureName(String key) {
+        String[] words = key.split("_");
+        StringBuilder name = new StringBuilder();
+        for (String word : words) {
+            if (!name.isEmpty()) {
+                name.append(' ');
+            }
+            name.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return name.toString();
+    }
+
     public static void onServerTick(ServerTickEvent.Post event) {
         MinecraftServer server = event.getServer();
         for (ServerLevel level : server.getAllLevels()) {
@@ -174,7 +222,7 @@ public final class GateService {
         int seconds = (left + 19) / 20;
         bar.setColor(BossEvent.BossBarColor.PURPLE);
         bar.setProgress(left / (float) GateEvent.WARNING_TICKS);
-        bar.setName(Component.literal("Nightmare Gate · opens in " + seconds + "s · " + gate.forecast.describeLikeliest()));
+        bar.setName(Component.literal("Nightmare Gate · opens in " + seconds + "s · " + (gate.foreseen ? "Category " + gate.category + " (foreseen)" : gate.forecast.describeLikeliest())));
         if (left % 20 == 0 && (seconds == 20 || seconds == 10 || seconds <= 5) && seconds > 0) {
             for (ServerPlayer player : near) {
                 player.displayClientMessage(Component.literal("The Gate opens in " + seconds + "...")
@@ -185,7 +233,9 @@ public final class GateService {
         if (left > 0) {
             return;
         }
-        gate.category = gate.forecast.roll(level.getRandom()::nextInt);
+        if (!gate.foreseen) {
+            gate.category = gate.forecast.roll(level.getRandom()::nextInt);
+        }
         gate.phase = GateEvent.Phase.OPEN;
         gate.phaseTicks = 0;
         gate.wave = 0;

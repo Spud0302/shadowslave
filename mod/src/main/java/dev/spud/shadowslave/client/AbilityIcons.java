@@ -15,8 +15,12 @@ final class AbilityIcons {
     private static final Map<String, ResourceLocation> ICONS = icons(
             List.of("kindle", "mist_passage", "holdfast", "returning_tide",
                     "carry_the_flame", "ember_ward", "through_the_haze", "veil",
-                    "root_in_stone", "quake", "low_tide", "undertow"),
-            List.of("cold_ash", "borrowed_breath", "stone_sleep", "tidal_debt"));
+                    "root_in_stone", "quake", "low_tide", "undertow",
+                    "mark_prey", "foresight", "soul_siphon", "essence_gift",
+                    "snare_sigil", "relentless_hunt", "fate_thread", "shared_sight",
+                    "harvest", "reaping_arc", "soul_ward", "overflow"),
+            List.of("cold_ash", "borrowed_breath", "stone_sleep", "tidal_debt",
+                    "quarry_lock", "clouded_eyes", "hunger", "brimming_vessel"));
 
     private AbilityIcons() {
     }

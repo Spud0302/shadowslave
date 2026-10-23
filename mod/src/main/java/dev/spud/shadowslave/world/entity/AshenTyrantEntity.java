@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.world.entity;
 
+import dev.spud.shadowslave.ability.ForewarningService;
 import dev.spud.shadowslave.creature.CreatureClass;
 import dev.spud.shadowslave.creature.CreatureRank;
 import dev.spud.shadowslave.creature.CreatureStats;
@@ -207,6 +208,7 @@ public final class AshenTyrantEntity extends NightmareCreature {
             tyrant.getNavigation().stop();
             tyrant.triggerAnim("action", "slam");
             tyrant.playSound(SoundEvents.WARDEN_ROAR, 1.6F, 0.8F);
+            ForewarningService.bigAttack(tyrant, WINDUP_TICKS);
         }
 
         @Override

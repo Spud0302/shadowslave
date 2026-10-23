@@ -31,6 +31,10 @@ class AbilityCastEffectsTest {
         for (var variant : KitLadder.all()) {
             assertEquals(true, AbilityCastEffects.glowFor(variant.abilityId()).isPresent(), variant.name());
         }
+        for (var kit : AspectKitCatalog.all()) {
+            assertEquals(Optional.of(AbilityCastEffects.NatureGlow.valueOf(kit.natureName().toUpperCase(java.util.Locale.ROOT))),
+                    AbilityCastEffects.glowFor(kit.abilityId()), kit.natureName());
+        }
     }
 
     @Test

@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:bow",
+    "minecraft:crossbow",
+    "minecraft:arrow",
+    "minecraft:spectral_arrow",
+    "minecraft:lead",
+    "minecraft:bone",
+    "minecraft:leather",
+    "minecraft:rabbit_foot"
+  ]
+}

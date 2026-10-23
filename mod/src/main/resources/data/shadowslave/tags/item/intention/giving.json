@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:golden_apple",
+    "minecraft:honey_bottle",
+    "minecraft:glistering_melon_slice",
+    "minecraft:bread",
+    "minecraft:cake",
+    "minecraft:poppy",
+    "minecraft:ghast_tear",
+    "minecraft:sweet_berries"
+  ]
+}

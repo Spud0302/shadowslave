@@ -12,7 +12,11 @@ public enum Longing {
     BURN("Burn", "ember", "Ember"),
     HIDE("Hide", "mist", "Mist"),
     ENDURE("Endure", "stone", "Stone"),
-    RETURN("Return", "water", "Tide");
+    RETURN("Return", "water", "Tide"),
+    HUNT("Hunt", "hunt", "Warden"),
+    FORESEE("Foresee", "foresight", "Seer"),
+    DEVOUR("Devour", "hunger", "Reaper"),
+    GIVE("Give", "giving", "Wellspring");
 
     private final String label;
     private final String evidenceTag;

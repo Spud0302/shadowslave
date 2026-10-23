@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.network.payload.AbilityCastPayload;
+import dev.spud.shadowslave.network.payload.ForewarningPayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
@@ -32,6 +33,13 @@ public final class ClientPayloadHandler {
         Minecraft minecraft = Minecraft.getInstance();
         long now = minecraft.level == null ? 0 : minecraft.level.getGameTime();
         ClientAbilityState.update(payload, now);
+    }
+
+    public static void handleForewarning(ForewarningPayload payload, IPayloadContext context) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level != null) {
+            ForewarningLayer.warn(payload, minecraft.level.getGameTime());
+        }
     }
 
     public static void handleSoulSea(SoulSeaPayload payload, IPayloadContext context) {

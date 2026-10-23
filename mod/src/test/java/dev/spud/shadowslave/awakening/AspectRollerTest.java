@@ -47,20 +47,31 @@ class AspectRollerTest {
     }
 
     @Test
-    void allFourNaturesAreReachableWithoutEvidence() {
-        Map<AspectKit, Integer> counts = distribution(NO_EVIDENCE, 2000);
-        assertEquals(4, counts.size());
+    void allEightNaturesAreReachableWithoutEvidence() {
+        Map<AspectKit, Integer> counts = distribution(NO_EVIDENCE, 4000);
+        assertEquals(8, counts.size());
         counts.values().forEach(count -> assertTrue(count > 350 && count < 650, counts.toString()));
+    }
+
+    @Test
+    void anOperatorCanRollAChosenKit() {
+        for (AspectKit kit : AspectKitCatalog.all()) {
+            AspectRoller.Roll roll = AspectRoller.rollKit(7L, NO_EVIDENCE, kit);
+            assertEquals(kit, roll.kit());
+            assertEquals(kit.natureId(), roll.identity().aspect().orElseThrow().natureId());
+            assertEquals(kit.flawEffectId(), roll.identity().flaw().orElseThrow().effectId());
+        }
     }
 
     @Test
     void playstyleTipsTheOddsButNeverDecides() {
         GenerationEvidence swimmer = PlaystyleEvidence.fromTotals(
                 new PlaystyleEvidence.Totals(0, 0, 0, PlaystyleEvidence.TIDE_HIGH_CM));
-        Map<AspectKit, Integer> counts = distribution(swimmer, 2000);
+        Map<AspectKit, Integer> counts = distribution(swimmer, 4000);
         int tide = counts.getOrDefault(AspectKitCatalog.TIDE, 0);
-        assertTrue(tide > 600 && tide < 850, counts.toString());
-        assertEquals(4, counts.size());
+        // 40 of 208 weight: about 19%, against 12.5% for each of the other seven.
+        assertTrue(tide > 650 && tide < 900, counts.toString());
+        assertEquals(8, counts.size());
     }
 
     private static Map<AspectKit, Integer> distribution(GenerationEvidence evidence, int rolls) {

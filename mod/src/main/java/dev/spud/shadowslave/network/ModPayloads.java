@@ -6,6 +6,7 @@ import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
+import dev.spud.shadowslave.network.payload.ForewarningPayload;
 import dev.spud.shadowslave.network.payload.IntentionRequestPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.RefineRequestPayload;
@@ -58,6 +59,12 @@ public final class ModPayloads {
         registrar.playToClient(
                 AspectRevealPayload.TYPE,
                 AspectRevealPayload.STREAM_CODEC,
+                (payload, context) -> {
+                }
+        );
+        registrar.playToClient(
+                ForewarningPayload.TYPE,
+                ForewarningPayload.STREAM_CODEC,
                 (payload, context) -> {
                 }
         );

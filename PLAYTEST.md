@@ -68,8 +68,10 @@ Added by claude-code, 2026-10-22.
 
 You can only roll once. Operators can reroll with `/shadowslave aspect reroll`
 (optionally followed by player names), and `/shadowslave reset` clears the Soul
-entirely. The roll picks Ember, Mist, Stone or Tide, nudged slightly by how you
-played beforehand (lighting and smelting, sneaking, mining, swimming). Press R to use
+entirely. The roll picks one of eight Natures (Ember, Mist, Stone, Tide, Warden,
+Seer, Reaper, Wellspring), nudged slightly by how you played beforehand (lighting
+and smelting, sneaking, mining, swimming nudge the first four). Operators can
+pick a Nature outright with `/shadowslave aspect set <nature>`. Press R to use
 your Aspect's ability. Abilities have no cooldowns: each one spends **essence**
 from a single pool that refills in about a minute (100 essence at Dormant). The
 slot sits left of the hotbar with the essence bar beside it; the tick on the bar
@@ -100,13 +102,16 @@ quarter of their core out as a shard you can absorb; turn that off with
 
 **Intention offering.** Before your first roll you can meditate at a lit Dream
 Candle (sneak and use it) to offer an intention. Name a longing (Burn, Hide,
-Endure or Return) and press Offer: one of the item in your hand is taken if the
+Endure, Return, Hunt, Foresee, Devour or Give) and press Offer: one of the item in your hand is taken if the
 Spell cares for it (Ember: coal, torches, blaze powder; Mist: feathers, phantom
 membrane, ender pearls; Stone: cobblestone, iron, amethyst, diamond; Tide: kelp,
-fish, prismarine, a water bucket; the full lists are the
-`data/shadowslave/tags/item/intention/` tags). The Soul Sea shows the odds:
-offering and longing for the same Nature takes it from 25% to about 44%, never
-certain. Then sleep beside the candle; the roll uses the intention once.
+fish, prismarine, a water bucket; Warden: bows, arrows, a lead, a rabbit's foot;
+Seer: a spyglass, an ender eye, a compass, a map; Reaper: rotten flesh, spider
+eyes, soul sand, an echo shard; Wellspring: golden apples, honey, glistering
+melon, bread; the
+full lists are the `data/shadowslave/tags/item/intention/` tags). The Soul Sea
+shows the odds under each longing: offering and longing for the same Nature
+takes it from 12.5% to 25%, never certain. Then sleep beside the candle; the roll uses the intention once.
 
 **Meditation and Awakening.** Sneak and use a lit Dream Candle (with anything
 in hand) to meditate: the **Soul Sea** opens, showing your Soul Rank, your core
@@ -141,6 +146,41 @@ a blow is loaded, and the charge fades after 6 seconds.
 | Stone | Quake (45) | Stomp: hostile mobs within 5 blocks take damage, are thrown up and slowed |
 | Tide | Low Tide (30) | Surge forward on a wave that shoves mobs aside |
 | Tide | Undertow (40) | Drags mobs within 8 blocks of where you look toward that spot and slows them |
+| Warden | Snare Sigil (35) | A sigil on the ground where you look; the first hostile to step on it is rooted for 4 s |
+| Warden | Relentless Hunt (30) | Leap to your marked prey (within 32 blocks) and gain Haste II and Speed |
+| Seer | Fate Thread (35) | Snap back to where you stood 3 s ago |
+| Seer | Shared Sight (40) | For 60 s, players within 32 blocks get your Forewarnings and hostiles you see glow |
+| Reaper | Harvest (40) | Up to 8 hostiles within 8 blocks take 4 damage; 6 essence back for each |
+| Reaper | Reaping Arc (30) | A 120 degree sweep for 6 damage; anything left at 30% health or less (100 max health or less) is reaped outright for 10 essence |
+| Wellspring | Soul Ward (35) | Absorption II for 30 s on the ally you look at, or yourself |
+| Wellspring | Overflow (50) | A pool of 8 blocks for 20 s: Regeneration and 3 essence a second to everyone in it |
+
+### The newer Natures: Warden, Seer, Reaper, Wellspring
+
+Added by claude-code, 2026-10-23. Quick start: `/shadowslave aspect set warden`
+(or seer, reaper, wellspring), then `/shadowslave core fill` and
+`/shadowslave awaken <name>` for the Awakened abilities above. Gates and
+creatures (see below) make the best targets.
+
+| Nature | Innate (always on) | Ability (R) | Flaw |
+| --- | --- | --- | --- |
+| Warden | Gate Sense: a faint trail of light (only you see it) points to the nearest open Gate; looking at a Nightmare Creature shows its rank, class and health under the crosshair | Mark Prey: the creature you look at (32 blocks) glows for 30 s and takes 50% more damage from everyone (20 essence) | Quarry Lock: while a mark is up, you deal half damage to anything else |
+| Seer | Forewarning: a violet edge and a marker pointing at the attacker, with a bell, just before a big attack (Ashen Tyrant slam, Chainback chain pull, a Tyrant calling its brood, a creeper hissing) | Foresight: for 30 s hostiles within 24 glow; a Gate within 128 blocks that is still warning settles its Category now and its waves are read out in chat (30 essence) | Clouded Eyes: thick fog beyond about 36 blocks, lifted while Foresight is up |
+| Reaper | Soul Feast: kills restore essence (8 for vanilla hostiles, more for higher ranked creatures, up to 60) | Soul Siphon: drain the creature you look at for 3 s, 2 damage and 6 essence every half second (15 essence) | Hunger: essence only refills while meditating at a Dream Candle; kills are your main source |
+| Wellspring | Deep Well: essence refills 3x as fast while meditating, 2x while sneaking and standing still | Essence Gift: give 40 essence to the player you look at, or heal 6 if there is none (heals you when you are alone) (30 essence) | Brimming Vessel: a hit of 3 hearts or more spills a quarter of your essence |
+
+Things to try:
+
+1. Warden: open a Gate (`/shadowslave gate open 2` or a Gate Lure), walk away and
+   follow the trail back. Mark a creature, then compare your damage on it and on
+   something else.
+2. Seer: stand near an Ashen Tyrant or Chainback and watch for the violet edge
+   before the slam or chain. Use Foresight while a Gate is still counting down;
+   the Category it shows is the one that opens. Note the fog until you cast.
+3. Reaper: watch the essence bar stay still while you walk around, then fill it
+   with kills and Soul Siphon. Reaping Arc a group of weakened mobs.
+4. Wellspring: sneak still to see the bar refill faster; take a big hit and
+   watch essence spill. With a second player, gift essence and ward them.
 
 ## Nightmare Creatures
 

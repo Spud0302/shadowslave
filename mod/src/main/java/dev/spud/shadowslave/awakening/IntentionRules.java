@@ -10,8 +10,8 @@ import java.util.Map;
 /**
  * How an intention nudges the roll (DESIGN): the offering and the longing each
  * add evidence to one Nature's tag, so offering and longing for the same Nature
- * takes it from 25% to about 44%. Per-tag evidence is capped so playstyle plus
- * intention never makes a Nature certain.
+ * doubles its chance, from 12.5% to 25% of the eight. Per-tag evidence is
+ * capped so playstyle plus intention never makes a Nature certain.
  */
 public final class IntentionRules {
     static final int OFFERING_WEIGHT = 2;
@@ -33,7 +33,7 @@ public final class IntentionRules {
         return new GenerationEvidence(base.scenarioId(), base.historicalRoleId(), base.resolutionId(), weights);
     }
 
-    /** Chance of each Nature, in Longing order (Ember, Mist, Stone, Tide), as whole percentages. */
+    /** Chance of each Nature, in Longing order (one Longing per Nature), as whole percentages. */
     public static List<Integer> odds(GenerationEvidence evidence) {
         int[] weights = new int[Longing.values().length];
         int total = 0;

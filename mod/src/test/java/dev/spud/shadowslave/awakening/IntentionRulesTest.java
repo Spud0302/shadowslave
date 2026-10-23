@@ -15,20 +15,20 @@ class IntentionRulesTest {
 
     @Test
     void noIntentionLeavesEvenOdds() {
-        assertEquals(List.of(25, 25, 25, 25), IntentionRules.odds(IntentionRules.apply(NO_EVIDENCE, IntentionData.empty())));
+        assertEquals(List.of(13, 13, 13, 13, 13, 13, 13, 13), IntentionRules.odds(IntentionRules.apply(NO_EVIDENCE, IntentionData.empty())));
     }
 
     @Test
-    void offeringAndLongingForOneNatureTakeItToAboutFortyFourPercent() {
+    void offeringAndLongingForOneNatureDoubleItsChance() {
         GenerationEvidence leaned = IntentionRules.apply(NO_EVIDENCE, EMBER_BOTH);
         assertEquals(4, leaned.weightFor("ember"));
-        assertEquals(List.of(44, 19, 19, 19), IntentionRules.odds(leaned));
+        assertEquals(List.of(25, 11, 11, 11, 11, 11, 11, 11), IntentionRules.odds(leaned));
     }
 
     @Test
     void splitIntentionsLeanTwoWays() {
         GenerationEvidence leaned = IntentionRules.apply(NO_EVIDENCE, new IntentionData("stone", "Iron Ingot", "return"));
-        assertEquals(List.of(19, 19, 31, 31), IntentionRules.odds(leaned));
+        assertEquals(List.of(11, 11, 18, 18, 11, 11, 11, 11), IntentionRules.odds(leaned));
     }
 
     @Test
@@ -50,6 +50,14 @@ class IntentionRulesTest {
             }
         }
         double share = (double) ember / rolls;
-        assertTrue(share > 0.38 && share < 0.50, "Ember came up " + share);
+        assertTrue(share > 0.20 && share < 0.30, "Ember came up " + share);
+    }
+
+    @Test
+    void everyNatureHasALonging() {
+        for (AspectKit kit : AspectKitCatalog.all()) {
+            assertTrue(java.util.Arrays.stream(Longing.values()).anyMatch(longing -> longing.natureName().equals(kit.natureName())),
+                    kit.natureName());
+        }
     }
 }

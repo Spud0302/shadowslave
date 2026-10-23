@@ -18,13 +18,13 @@ class KitLadderTest {
 
     @Test
     void everyNatureOffersTwoAwakenedVariantsAndNothingElseYet() {
-        for (AspectKit kit : List.of(AspectKitCatalog.EMBER, AspectKitCatalog.MIST, AspectKitCatalog.STONE, AspectKitCatalog.TIDE)) {
+        for (AspectKit kit : AspectKitCatalog.all()) {
             assertEquals(2, KitLadder.variants(kit.natureId(), SoulRank.AWAKENED).size(), kit.natureName());
             assertTrue(KitLadder.variants(kit.natureId(), SoulRank.ASCENDED).isEmpty(), kit.natureName());
         }
         Set<Object> ids = new HashSet<>();
         KitLadder.all().forEach(variant -> assertTrue(ids.add(variant.abilityId()), "duplicate " + variant.abilityId()));
-        assertEquals(8, ids.size());
+        assertEquals(16, ids.size());
     }
 
     @Test

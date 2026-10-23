@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:spyglass",
+    "minecraft:ender_eye",
+    "minecraft:compass",
+    "minecraft:recovery_compass",
+    "minecraft:clock",
+    "minecraft:map",
+    "minecraft:glow_ink_sac",
+    "minecraft:glowstone_dust"
+  ]
+}
