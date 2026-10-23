@@ -25,6 +25,18 @@ public final class AbilityRegistry {
         register(new QuakeAbility());
         register(new LowTideAbility());
         register(new UndertowAbility());
+        register(new MarkPreyAbility());
+        register(new SnareSigilAbility());
+        register(new RelentlessHuntAbility());
+        register(new ForesightAbility());
+        register(new FateThreadAbility());
+        register(new SharedSightAbility());
+        register(new SoulSiphonAbility());
+        register(new HarvestAbility());
+        register(new ReapingArcAbility());
+        register(new EssenceGiftAbility());
+        register(new SoulWardAbility());
+        register(new OverflowAbility());
     }
 
     private AbilityRegistry() {

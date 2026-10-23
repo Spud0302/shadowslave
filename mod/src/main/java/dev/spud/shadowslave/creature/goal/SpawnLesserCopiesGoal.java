@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.creature.goal;
 
+import dev.spud.shadowslave.ability.ForewarningService;
 import dev.spud.shadowslave.creature.CreatureClass;
 import dev.spud.shadowslave.creature.NightmareCreature;
 import net.minecraft.core.BlockPos;
@@ -60,6 +61,7 @@ public final class SpawnLesserCopiesGoal extends Goal {
         windup = 30;
         creature.getNavigation().stop();
         creature.onSpawnLesserWindup();
+        ForewarningService.bigAttack(creature, 30);
     }
 
     @Override

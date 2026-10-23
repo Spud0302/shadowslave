@@ -10,6 +10,8 @@ import dev.spud.shadowslave.awakening.AbilityVariant;
 import dev.spud.shadowslave.awakening.AspectRollService;
 import dev.spud.shadowslave.awakening.AspectRoller;
 import dev.spud.shadowslave.awakening.AwakeningService;
+import dev.spud.shadowslave.awakening.AspectKit;
+import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.awakening.KitLadder;
 import dev.spud.shadowslave.migration.DatapackMigrationOutcome;
 import dev.spud.shadowslave.migration.DatapackMigrationService;
@@ -96,7 +98,14 @@ public final class ShadowSlaveCommands {
                                         List.of(context.getSource().getPlayerOrException())))
                                 .then(Commands.argument("targets", EntityArgument.players())
                                         .executes(context -> rerollAspect(context.getSource(),
-                                                EntityArgument.getPlayers(context, "targets"))))))
+                                                EntityArgument.getPlayers(context, "targets")))))
+                        .then(Commands.literal("set")
+                                .then(Commands.argument("nature", StringArgumentType.word())
+                                        .suggests((context, builder) -> SharedSuggestionProvider.suggest(
+                                                AspectKitCatalog.all().stream().map(kit -> kit.natureName().toLowerCase(java.util.Locale.ROOT)),
+                                                builder))
+                                        .executes(context -> setAspect(context.getSource(),
+                                                StringArgumentType.getString(context, "nature"))))))
                 .then(Commands.literal("awaken")
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.argument("variant", StringArgumentType.word())
@@ -177,6 +186,28 @@ public final class ShadowSlaveCommands {
         }
         CoreService.set(player, saturation);
         return showCore(player);
+    }
+
+    /** Gives the player an Aspect of the named Nature, as a fresh Dormant roll. For testing a kit. */
+    private static int setAspect(CommandSourceStack source, String nature) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        Optional<AspectKit> kit = AspectKitCatalog.all().stream()
+                .filter(value -> value.natureName().equalsIgnoreCase(nature))
+                .findFirst();
+        if (kit.isEmpty()) {
+            source.sendFailure(Component.literal("No Nature called " + nature + "."));
+            return 0;
+        }
+        try {
+            AspectRoller.Roll roll = AspectRollService.roll(player, kit);
+            AspectRollService.reveal(player, roll);
+            source.sendSuccess(() -> Component.literal("Set " + player.getScoreboardName() + ": "
+                    + roll.aspectName() + " (" + roll.kit().natureName() + ")"), true);
+            return Command.SINGLE_SUCCESS;
+        } catch (RuntimeException exception) {
+            source.sendFailure(Component.literal(exception.getMessage()));
+            return 0;
+        }
     }
 
     private static int rerollAspect(CommandSourceStack source, Collection<ServerPlayer> targets) {

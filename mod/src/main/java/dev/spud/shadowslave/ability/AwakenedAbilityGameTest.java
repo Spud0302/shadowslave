@@ -43,7 +43,7 @@ public final class AwakenedAbilityGameTest {
 
     @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room")
     public static void everyNatureHasTwoRegisteredVariants(GameTestHelper helper) {
-        for (AspectKit kit : List.of(AspectKitCatalog.EMBER, AspectKitCatalog.MIST, AspectKitCatalog.STONE, AspectKitCatalog.TIDE)) {
+        for (AspectKit kit : AspectKitCatalog.all()) {
             List<AbilityVariant> variants = KitLadder.variants(kit.natureId(), SoulRank.AWAKENED);
             helper.assertTrue(variants.size() == 2, kit.natureName() + " has " + variants.size());
             for (AbilityVariant variant : variants) {
@@ -145,7 +145,7 @@ public final class AwakenedAbilityGameTest {
         helper.succeed();
     }
 
-    private static ServerPlayer awakened(GameTestHelper helper, AspectKit kit, AbilityVariant variant) {
+    static ServerPlayer awakened(GameTestHelper helper, AspectKit kit, AbilityVariant variant) {
         ServerPlayer player = AbilityGameTest.playerWith(helper, kit);
         if (!AbilityGrants.grant(player, variant)) {
             throw new IllegalStateException("Could not grant " + variant.name());

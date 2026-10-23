@@ -209,46 +209,51 @@ public final class SoulSeaScreen extends Screen {
 
         Longing[] longings = Longing.values();
         int width = longingWidth();
+        List<Integer> odds = sea.intention().odds();
         for (int i = 0; i < longings.length; i++) {
             int x0 = longingLeft(i);
+            int y0 = longingTop(i);
             boolean chosen = longings[i].serializedName().equals(longing);
-            boolean hovered = inside(mouseX, mouseY, x0, longingTop(), x0 + width, longingTop() + BUTTON_HEIGHT);
-            graphics.fill(x0, longingTop(), x0 + width, longingTop() + BUTTON_HEIGHT,
+            boolean hovered = inside(mouseX, mouseY, x0, y0, x0 + width, y0 + BUTTON_HEIGHT);
+            graphics.fill(x0, y0, x0 + width, y0 + BUTTON_HEIGHT,
                     chosen ? SpellStyle.withAlpha(SpellStyle.BORDER, 0.35F) : hovered ? SpellStyle.withAlpha(SpellStyle.BORDER, 0.2F) : SpellStyle.PANEL);
-            graphics.renderOutline(x0, longingTop(), width, BUTTON_HEIGHT, chosen ? SpellStyle.TITLE : SpellStyle.RULE);
-            graphics.drawCenteredString(this.font, longings[i].label(), x0 + width / 2, longingTop() + 5,
+            graphics.renderOutline(x0, y0, width, BUTTON_HEIGHT, chosen ? SpellStyle.TITLE : SpellStyle.RULE);
+            graphics.drawCenteredString(this.font, longings[i].label(), x0 + width / 2, y0 + 5,
                     chosen ? SpellStyle.TITLE : SpellStyle.TEXT);
+            if (i < odds.size()) {
+                int oddsY = y0 + BUTTON_HEIGHT + 6;
+                String label = longings[i].natureName() + " " + odds.get(i) + "%";
+                graphics.drawCenteredString(this.font, label, x0 + width / 2, oddsY, SpellStyle.ASPECT);
+                graphics.fill(x0, oddsY + 11, x0 + width, oddsY + 15, SpellStyle.PANEL);
+                // A full bar is 25%, the most intention and playstyle can lift one Nature to, so a lean shows.
+                int filled = Math.min(width, Math.round(width * odds.get(i) / 25.0F));
+                graphics.fill(x0, oddsY + 11, x0 + filled, oddsY + 15, SpellStyle.withAlpha(SpellStyle.ASPECT, 0.8F));
+            }
         }
 
-        List<Integer> odds = sea.intention().odds();
-        int oddsY = longingTop() + BUTTON_HEIGHT + 10;
-        for (int i = 0; i < longings.length && i < odds.size(); i++) {
-            int x0 = longingLeft(i);
-            String label = longings[i].natureName() + " " + odds.get(i) + "%";
-            graphics.drawCenteredString(this.font, label, x0 + width / 2, oddsY, SpellStyle.ASPECT);
-            graphics.fill(x0, oddsY + 11, x0 + width, oddsY + 15, SpellStyle.PANEL);
-            int filled = Math.round(width * odds.get(i) / 100.0F);
-            graphics.fill(x0, oddsY + 11, x0 + filled, oddsY + 15, SpellStyle.withAlpha(SpellStyle.ASPECT, 0.8F));
-        }
-
+        int summaryY = longingTop(longings.length - 1) + BUTTON_HEIGHT + 30;
         String offered = sea.intention().offering().isEmpty() ? "nothing offered" : "offered " + sea.intention().offering();
         String named = Longing.parse(sea.intention().longing()).map(value -> "longing to " + value.label().toLowerCase(Locale.ROOT))
                 .orElse("no longing named");
-        graphics.drawCenteredString(this.font, "So far: " + offered + ", " + named + ".", centre, oddsY + 22, SpellStyle.MUTED);
+        graphics.drawCenteredString(this.font, "So far: " + offered + ", " + named + ".", centre, summaryY, SpellStyle.MUTED);
         renderButton(graphics, mouseX, mouseY, BUTTON_WIDTH, "Offer", !longing.isEmpty());
         hint(graphics, "screen.shadowslave.soul_sea.intention");
     }
 
+    /** Longings sit in rows of four, one per Nature. */
+    private static final int LONGINGS_PER_ROW = 4;
+    private static final int LONGING_ROW = BUTTON_HEIGHT + 26;
+
     private int longingWidth() {
-        return (right - left - 32 - 3 * 8) / 4;
+        return (right - left - 32 - (LONGINGS_PER_ROW - 1) * 8) / LONGINGS_PER_ROW;
     }
 
     private int longingLeft(int index) {
-        return left + 16 + index * (longingWidth() + 8);
+        return left + 16 + (index % LONGINGS_PER_ROW) * (longingWidth() + 8);
     }
 
-    private int longingTop() {
-        return top + 76;
+    private int longingTop(int index) {
+        return top + 70 + (index / LONGINGS_PER_ROW) * LONGING_ROW;
     }
 
     private static int placed(SoulSeaPayload.Refinement points, RefinementStat stat) {
@@ -343,7 +348,7 @@ public final class SoulSeaScreen extends Screen {
         Longing[] longings = Longing.values();
         for (int i = 0; i < longings.length; i++) {
             int x0 = longingLeft(i);
-            if (inside(mouseX, mouseY, x0, longingTop(), x0 + longingWidth(), longingTop() + BUTTON_HEIGHT)) {
+            if (inside(mouseX, mouseY, x0, longingTop(i), x0 + longingWidth(), longingTop(i) + BUTTON_HEIGHT)) {
                 longing = longings[i].serializedName();
                 this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
                 return true;

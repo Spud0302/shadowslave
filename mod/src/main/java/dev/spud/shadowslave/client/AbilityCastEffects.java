@@ -34,7 +34,11 @@ public final class AbilityCastEffects {
         EMBER(new Color(255, 170, 60), new Color(200, 40, 20)),
         MIST(new Color(235, 240, 255), new Color(140, 150, 175)),
         STONE(new Color(215, 190, 150), new Color(110, 100, 90)),
-        TIDE(new Color(90, 220, 255), new Color(20, 70, 200));
+        TIDE(new Color(90, 220, 255), new Color(20, 70, 200)),
+        WARDEN(new Color(170, 230, 120), new Color(40, 100, 40)),
+        SEER(new Color(215, 170, 255), new Color(90, 50, 170)),
+        REAPER(new Color(235, 60, 80), new Color(70, 0, 25)),
+        WELLSPRING(new Color(255, 232, 150), new Color(215, 140, 40));
 
         final Color start;
         final Color end;

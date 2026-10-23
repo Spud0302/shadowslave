@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.world.entity;
 
+import dev.spud.shadowslave.ability.ForewarningService;
 import dev.spud.shadowslave.creature.CreatureClass;
 import dev.spud.shadowslave.creature.CreatureRank;
 import dev.spud.shadowslave.creature.CreatureStats;
@@ -188,6 +189,7 @@ public final class ChainbackEntity extends NightmareCreature {
             chainback.getNavigation().stop();
             chainback.playSound(SoundEvents.CHAIN_PLACE, 1.2F, 0.5F);
             chainback.triggerAnim("action", "chain_throw");
+            ForewarningService.bigAttack(chainback, WINDUP_TICKS);
         }
 
         @Override

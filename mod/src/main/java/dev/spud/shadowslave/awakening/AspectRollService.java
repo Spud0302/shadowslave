@@ -44,12 +44,19 @@ public final class AspectRollService {
     }
 
     public static AspectRoller.Roll roll(ServerPlayer player) {
+        return roll(player, java.util.Optional.empty());
+    }
+
+    /** Rolls and commits a new Aspect; an operator may name the kit, leaving only its name to chance. */
+    public static AspectRoller.Roll roll(ServerPlayer player, java.util.Optional<AspectKit> kit) {
         Objects.requireNonNull(player, "player");
         if (NightmareService.activeFor(player).isPresent()) {
             throw new IllegalStateException("Cannot roll an Aspect while inside a Nightmare.");
         }
 
-        AspectRoller.Roll roll = AspectRoller.roll(player.getRandom().nextLong(), evidence(player));
+        long seed = player.getRandom().nextLong();
+        AspectRoller.Roll roll = kit.map(chosen -> AspectRoller.rollKit(seed, evidence(player), chosen))
+                .orElseGet(() -> AspectRoller.roll(seed, evidence(player)));
         SoulIdentityData before = SoulIdentityService.get(player);
         SoulIdentityService.replace(player, roll.identity());
         try {

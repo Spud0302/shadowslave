@@ -218,6 +218,47 @@ public final class ExpandedIdentityContentCatalog {
         );
     }
 
+    /**
+     * The first wave plus the backfill Natures built for the Gates and rank-up
+     * passes (Warden, Seer, Reaper, Wellspring), their Dormant abilities and
+     * Flaws. The Dream Candle roll draws on this; the older appraisal flows
+     * keep {@link #waveOne()} so their generated identities stay stable.
+     */
+    public static IdentityPrimitiveCatalog kitWave() {
+        IdentityPrimitiveCatalog wave = waveOne();
+        return new IdentityPrimitiveCatalog(
+                concat(wave.natures(), List.of(
+                        nature("warden", "Warden", Set.of("hunt", "pursuit", "warning"), 3),
+                        nature("seer", "Seer", Set.of("foresight", "perception", "fate"), 3),
+                        nature("reaper", "Reaper", Set.of("hunger", "soul", "harvest"), 3),
+                        nature("wellspring", "Wellspring", Set.of("giving", "essence", "renewal"), 3)
+                )),
+                wave.archetypes(),
+                concat(wave.abilities(), List.of(
+                        ability("mark_prey", "Mark Prey", Set.of("hunt"), Set.of("duty", "warning"), 5),
+                        ability("foresight", "Foresight", Set.of("foresight"), Set.of("perception", "witness"), 5),
+                        ability("soul_siphon", "Soul Siphon", Set.of("hunger"), Set.of("resolve", "sacrifice"), 5),
+                        ability("essence_gift", "Essence Gift", Set.of("giving"), Set.of("duty", "connection"), 5)
+                )),
+                concat(wave.flaws(), List.of(
+                        flaw("quarry_lock", "Quarry Lock", Set.of("hunt", "pursuit"),
+                                Set.of("compulsion", "conditional"), Set.of(), 3),
+                        flaw("clouded_eyes", "Clouded Eyes", Set.of("foresight", "perception"),
+                                Set.of("sensory", "conditional"), Set.of(), 3),
+                        flaw("hunger", "Hunger", Set.of("hunger", "soul"),
+                                Set.of("resource", "compulsion"), Set.of(), 3),
+                        flaw("brimming_vessel", "Brimming Vessel", Set.of("giving", "essence"),
+                                Set.of("resource", "physical"), Set.of(), 3)
+                ))
+        );
+    }
+
+    private static <T> List<T> concat(List<T> first, List<T> second) {
+        List<T> all = new java.util.ArrayList<>(first);
+        all.addAll(second);
+        return List.copyOf(all);
+    }
+
     private static IdentityPrimitiveCatalog.Nature nature(
             String path,
             String name,

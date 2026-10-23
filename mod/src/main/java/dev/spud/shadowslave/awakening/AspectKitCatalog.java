@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The four Natures the Dream Candle ritual can roll in the first slice:
- * Ember, Mist, Stone and Tide. Ability and Flaw ids match the procedural
- * catalogue so existing mechanics (Kindle, Cold Ash) keep working.
+ * The Natures the Dream Candle ritual can roll: Ember, Mist, Stone and Tide
+ * from the first slice, then Warden, Seer, Reaper and Wellspring, the
+ * backfill Natures for the Gates and rank-up passes. Ability and Flaw ids
+ * match the procedural catalogue so existing mechanics (Kindle, Cold Ash)
+ * keep working.
  */
 public final class AspectKitCatalog {
     private static final String NAMESPACE = "shadowslave";
@@ -53,7 +55,47 @@ public final class AspectKitCatalog {
             "Touch water once each day, or grow weak until you do."
     );
 
-    private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE);
+    public static final AspectKit WARDEN = new AspectKit(
+            id("generation/nature/warden"), "Warden",
+            id("kit/innate/warden_gate_sense"), "Gate Sense",
+            "You feel the pull of the nearest Nightmare Gate, and you can read a creature's Rank and Class on sight.",
+            id("generation/ability/mark_prey"), "Mark Prey",
+            "Mark the creature you look at: it glows and takes half again as much damage from everyone.",
+            id("generation/flaw/quarry_lock"), id("generation/flaw_effect/quarry_lock"), "Quarry Lock",
+            "While your mark is up, your damage to anything else is halved."
+    );
+
+    public static final AspectKit SEER = new AspectKit(
+            id("generation/nature/seer"), "Seer",
+            id("kit/innate/seer_forewarning"), "Forewarning",
+            "A flash of warning just before a creature near you lands its big attack.",
+            id("generation/ability/foresight"), "Foresight",
+            "Clear sight for 30 seconds: nearby hostiles glow, and a Gate within reach shows you its Category and roster.",
+            id("generation/flaw/clouded_eyes"), id("generation/flaw_effect/clouded_eyes"), "Clouded Eyes",
+            "Your view is short and hazy whenever Foresight isn't active."
+    );
+
+    public static final AspectKit REAPER = new AspectKit(
+            id("generation/nature/reaper"), "Reaper",
+            id("kit/innate/reaper_soul_feast"), "Soul Feast",
+            "Every kill restores essence; stronger creatures restore more.",
+            id("generation/ability/soul_siphon"), "Soul Siphon",
+            "A beam that drains the creature you look at for 3 seconds, feeding its essence to you.",
+            id("generation/flaw/hunger"), id("generation/flaw_effect/hunger"), "Hunger",
+            "Your essence never refills on its own. Fight, or meditate at the Dream Candle."
+    );
+
+    public static final AspectKit WELLSPRING = new AspectKit(
+            id("generation/nature/wellspring"), "Wellspring",
+            id("kit/innate/wellspring_deep_well"), "Deep Well",
+            "Essence refills three times as fast while you meditate, and twice as fast while you sneak still.",
+            id("generation/ability/essence_gift"), "Essence Gift",
+            "Pour essence into the ally you look at; with no ally in sight, it mends your own wounds.",
+            id("generation/flaw/brimming_vessel"), id("generation/flaw_effect/brimming_vessel"), "Brimming Vessel",
+            "A heavy hit spills a quarter of the essence you hold."
+    );
+
+    private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE, WARDEN, SEER, REAPER, WELLSPRING);
 
     private AspectKitCatalog() {
     }

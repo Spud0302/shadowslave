@@ -68,11 +68,18 @@ public final class GateGameTest {
         helper.assertTrue(!GateService.canOpen(level, lurePos.east(10)), "no second Gate close by");
         helper.assertTrue(level.getEntity(gate.rift) instanceof GateRiftEntity, "the rift stands at the Gate");
 
+        // A Seer's Foresight rolls the Category early and reads out the roster; the opening keeps it.
+        helper.assertTrue(GateService.foresee(level, player.blockPosition(), 128.0).orElseThrow() == gate, "Foresight finds the Gate");
+        int foreseen = gate.category;
+        helper.assertTrue(gate.foreseen, "the Gate is foreseen");
+        helper.assertTrue(GateService.roster(gate).get(0).startsWith("Wave 1: "), "roster: " + GateService.roster(gate));
+
         // Skip to the end of the countdown: the Gate opens at a Category from the forecast.
         gate.phaseTicks = GateEvent.WARNING_TICKS - 1;
         GateService.tick(level, gate);
         helper.assertTrue(gate.phase == GateEvent.Phase.OPEN, "the Gate opens after the countdown");
         helper.assertTrue(gate.category >= 1 && gate.category <= 3, "Category within the forecast: " + gate.category);
+        helper.assertTrue(gate.category == foreseen, "the Gate opens at the foreseen Category");
 
         // Pour out every wave.
         int waves = GateCategory.waves(gate.category).size();

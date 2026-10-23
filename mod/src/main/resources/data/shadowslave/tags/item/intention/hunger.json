@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:rotten_flesh",
+    "minecraft:spider_eye",
+    "minecraft:fermented_spider_eye",
+    "minecraft:soul_sand",
+    "minecraft:soul_soil",
+    "minecraft:sculk",
+    "minecraft:echo_shard",
+    "minecraft:wither_rose"
+  ]
+}
