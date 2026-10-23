@@ -4,10 +4,13 @@ import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
@@ -15,6 +18,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * Kit effects the client has to apply itself. Stone Sleep: you sink in water,
  * even while swimming up (movement is client-driven). Clouded Eyes: a short,
  * hazy view whenever Foresight isn't open (fog is drawn by the client).
+ * Red Haze: the inventory stays shut at full rage (the server shuts chests).
  */
 @EventBusSubscriber(modid = ShadowSlaveMod.MOD_ID, value = Dist.CLIENT)
 public final class ClientKitEffects {
@@ -49,6 +53,14 @@ public final class ClientKitEffects {
         event.setNearPlaneDistance(Math.min(event.getNearPlaneDistance(), CLOUDED_NEAR));
         event.setFarPlaneDistance(CLOUDED_FAR);
         event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void onScreenOpening(ScreenEvent.Opening event) {
+        if (ClientAbilityState.status().rage().hazed() && event.getNewScreen() instanceof AbstractContainerScreen<?>
+                && !(event.getNewScreen() instanceof CreativeModeInventoryScreen)) {
+            event.setCanceled(true);
+        }
     }
 
     /** Clouded Eyes is on: the player's Flaw, with Foresight not open right now. */

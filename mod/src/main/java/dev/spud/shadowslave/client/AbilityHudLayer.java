@@ -39,6 +39,10 @@ public final class AbilityHudLayer implements LayeredDraw.Layer {
     static final int ESSENCE_TOP = 0xFFB98CF0;
     static final int ESSENCE_BOTTOM = 0xFF5B3A9A;
     private static final int COST_MARK = 0xFFF2EDF7;
+    static final int RAGE_WIDTH = 4;
+    static final int RAGE_TOP = 0xFFF25A4A;
+    static final int RAGE_BOTTOM = 0xFF8A1A14;
+    private static final int HAZE = 0xFFFF2A1A;
 
     @Override
     public void render(GuiGraphics graphics, DeltaTracker delta) {
@@ -67,6 +71,23 @@ public final class AbilityHudLayer implements LayeredDraw.Layer {
             x -= SLOT_GAP;
         }
         renderEssence(graphics, status, x - BAR_WIDTH, y, now, partialTick);
+        if (status.rage().shown()) {
+            renderRage(graphics, status.rage(), x - BAR_WIDTH - SLOT_GAP - RAGE_WIDTH, y, now, partialTick);
+        }
+    }
+
+    /** Fury's rage beside the essence bar: red, filling from the bottom, throbbing under Red Haze. */
+    private static void renderRage(GuiGraphics graphics, AbilityStatusPayload.Rage rage, int x, int y, long now, float partialTick) {
+        int border = SpellStyle.BORDER;
+        if (rage.hazed()) {
+            border = SpellStyle.withAlpha(HAZE, 0.7F + 0.3F * Mth.sin((now + partialTick) * 0.5F));
+        }
+        SpellStyle.panel(graphics, x, y, x + RAGE_WIDTH, y + SIZE, border);
+        int inner = SIZE - 2;
+        int filled = Math.round(inner * Math.min(1.0F, rage.value() / 100.0F));
+        if (filled > 0) {
+            graphics.fillGradient(x + 1, y + 1 + inner - filled, x + RAGE_WIDTH - 1, y + 1 + inner, RAGE_TOP, RAGE_BOTTOM);
+        }
     }
 
     private static void renderSlot(GuiGraphics graphics, Font font, AbilityStatusPayload.Slot slot, int index,

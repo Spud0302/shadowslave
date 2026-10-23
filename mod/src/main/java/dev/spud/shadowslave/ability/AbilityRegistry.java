@@ -55,6 +55,15 @@ public final class AbilityRegistry {
         register(new LullabyAbility());
         register(new DreamfallAbility());
         register(new SleepwalkerAbility());
+        register(new GloamEdgeAbility());
+        register(new ShadeStepAbility());
+        register(new SnuffAbility());
+        register(new IceLanceAbility());
+        register(new EncaseAbility());
+        register(new RimepathAbility());
+        register(new ProvokeAbility());
+        register(new GroundSlamAbility());
+        register(new SecondWindAbility());
     }
 
     private AbilityRegistry() {

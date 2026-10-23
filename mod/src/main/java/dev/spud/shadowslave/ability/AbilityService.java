@@ -112,7 +112,7 @@ public final class AbilityService {
             return AbilityStatusPayload.NONE;
         }
         return new AbilityStatusPayload(slots, EssenceService.current(player), EssenceService.capacity(player),
-                EssenceService.regenPerTick(player), ChannelService.strikePrimed(player));
+                EssenceService.regenPerTick(player), ChannelService.strikePrimed(player), FuryRage.status(player));
     }
 
     /** Sends the HUD state to the owning client, if it has the mod's channel. */
@@ -142,6 +142,8 @@ public final class AbilityService {
             EssenceService.forget(player.getUUID());
             ForewarningService.forget(player.getUUID());
             DreamKitPassives.forget(player.getUUID());
+            SignatureKitPassives.forget(player.getUUID());
+            FuryRage.forget(player.getUUID());
         }
     }
 

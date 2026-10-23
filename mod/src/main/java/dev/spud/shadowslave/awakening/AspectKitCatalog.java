@@ -149,8 +149,36 @@ public final class AspectKitCatalog {
             "Beds cannot carry you through the night, only a Dream Candle can, so the phantoms come for you."
     );
 
+    public static final AspectKit GLOAM = new AspectKit(
+            id("generation/nature/gloam"), "Gloam",
+            id("kit/innate/gloam_deepening_dark"), "Deepening Dark",
+            "In the dark your blows land harder and essence comes back faster; the darker it is, the stronger you are.",
+            id("generation/ability/gloam_edge"), "Gloam Edge",
+            "Wreathe your blows in shadow for twenty seconds: the darker it is where you strike, the deeper they cut.",
+            id("generation/flaw/sunstruck"), id("generation/flaw_effect/sunstruck"), "Sunstruck",
+            "Essence does not come back at all while you stand in open daylight."
+    );
+    public static final AspectKit RIME = new AspectKit(
+            id("generation/nature/rime"), "Rime",
+            id("kit/innate/rime_frost_mark"), "Frost Mark",
+            "Your blows leave Frost Marks that stack up to five; each slows the creature and keeps biting after the hit.",
+            id("generation/ability/ice_lance"), "Ice Lance",
+            "Hurl a lance of ice at the creature you look at: it is hurt and takes two Frost Marks.",
+            id("generation/flaw/thin_blood"), id("generation/flaw_effect/thin_blood"), "Thin Blood",
+            "Near fire, lava, magma or a lit furnace your essence stops and your marks melt twice as fast; right beside it, it burns you."
+    );
+    public static final AspectKit FURY = new AspectKit(
+            id("generation/nature/fury"), "Fury",
+            id("kit/innate/fury_rage"), "Rage",
+            "Taking hits fills a rage meter that makes you bigger, longer-reaching and harder-hitting; it cools when the fight is over.",
+            id("generation/ability/provoke"), "Provoke",
+            "Roar: every hostile nearby turns on you, and the rage rises in you.",
+            id("generation/flaw/red_haze"), id("generation/flaw_effect/red_haze"), "Red Haze",
+            "At full rage you cannot eat or open your inventory or any chest until you cool down."
+    );
+
     private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE, WARDEN, SEER, REAPER, WELLSPRING,
-            FORGE, DELVE, MASON, VERDANT, WAYFARER, LULL);
+            FORGE, DELVE, MASON, VERDANT, WAYFARER, LULL, GLOAM, RIME, FURY);
 
     private AspectKitCatalog() {
     }

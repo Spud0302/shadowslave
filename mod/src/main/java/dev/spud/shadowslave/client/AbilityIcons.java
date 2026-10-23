@@ -22,10 +22,13 @@ final class AbilityIcons {
                     "quench", "tunnel_strike", "raise_wall", "bloom",
                     "masterwork", "molten_edge", "vein_pull", "stonewalk",
                     "blueprint", "scaffold", "living_wall", "wild_call",
-                    "waymark", "lullaby", "anchor_recall", "trailblaze", "dreamfall", "sleepwalker"),
+                    "waymark", "lullaby", "anchor_recall", "trailblaze", "dreamfall", "sleepwalker",
+                    "gloam_edge", "ice_lance", "provoke", "shade_step", "snuff", "encase", "rimepath",
+                    "ground_slam", "second_wind"),
             List.of("cold_ash", "borrowed_breath", "stone_sleep", "tidal_debt",
                     "quarry_lock", "clouded_eyes", "hunger", "brimming_vessel",
-                    "cold_hearth", "open_sky", "far_from_home", "rootbound", "wanderlust", "insomnia"));
+                    "cold_hearth", "open_sky", "far_from_home", "rootbound", "wanderlust", "insomnia",
+                    "sunstruck", "thin_blood", "red_haze"));
 
     private AbilityIcons() {
     }
