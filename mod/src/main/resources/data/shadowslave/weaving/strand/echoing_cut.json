@@ -1,0 +1,35 @@
+{
+  "name": "Echoing Cut",
+  "description": "A strike repeats faintly a moment later, like a voice from an empty room.",
+  "fits": [
+    "weapon"
+  ],
+  "effect": {
+    "type": "echo",
+    "values": [
+      0.2,
+      0.3,
+      0.45
+    ]
+  },
+  "study": [
+    {
+      "item": "shadowslave:hollow_edge"
+    }
+  ],
+  "material": {
+    "item": "shadowslave:mimic_husk",
+    "counts": [
+      1,
+      2,
+      3
+    ]
+  },
+  "essence": [
+    30,
+    60,
+    120
+  ],
+  "min_rank": "awakened",
+  "xp": 25
+}

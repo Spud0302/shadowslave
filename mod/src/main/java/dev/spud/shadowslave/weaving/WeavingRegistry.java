@@ -63,6 +63,12 @@ public final class WeavingRegistry {
                     .persistent(MemoryInstanceData.CODEC.codec())
                     .networkSynchronized(ByteBufCodecs.fromCodec(MemoryInstanceData.CODEC.codec())));
 
+    /** The strands laid into a piece, or the single strand a Woven Thread carries. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<WovenStrands>> WOVEN_STRANDS =
+            COMPONENTS.registerComponentType("woven_strands", builder -> builder
+                    .persistent(WovenStrands.CODEC)
+                    .networkSynchronized(ByteBufCodecs.fromCodec(WovenStrands.CODEC)));
+
     public static final DeferredBlock<WeavingTableBlock> WEAVING_TABLE = BLOCKS.registerBlock("weaving_table",
             WeavingTableBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.LOOM));
     public static final DeferredItem<BlockItem> WEAVING_TABLE_ITEM = ITEMS.registerSimpleBlockItem(WEAVING_TABLE);
@@ -76,6 +82,10 @@ public final class WeavingRegistry {
             new Item.Properties().rarity(Rarity.UNCOMMON));
     public static final DeferredItem<Item> MIMIC_HUSK = ITEMS.registerSimpleItem("mimic_husk",
             new Item.Properties().rarity(Rarity.UNCOMMON));
+
+    /** A strand unravelled out of one piece, ready to lay into another. */
+    public static final DeferredItem<WovenThreadItem> WOVEN_THREAD = ITEMS.registerItem("woven_thread",
+            WovenThreadItem::new, new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
 
     // Woven weapons get sturdier with Tier; they never take a repair material.
     private static final Tier WOVEN_I = new SimpleTier(BlockTags.INCORRECT_FOR_IRON_TOOL, 300, 6.0F, 2.0F, 14, () -> Ingredient.EMPTY);
@@ -157,6 +167,7 @@ public final class WeavingRegistry {
             event.accept(CHAINBACK_LINK);
             event.accept(MIMIC_HUSK);
         }
+        // Woven Threads only exist with a strand in them, so they stay out of the creative tabs.
         if (event.getTabKey() == CreativeModeTabs.COMBAT) {
             MEMORIES.forEach(event::accept);
         }

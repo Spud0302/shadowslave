@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
-/** Operator shortcuts for testing Weaving: grant XP, teach a pattern, or wipe progress. */
+/** Operator shortcuts for testing Weaving: grant XP, teach a pattern or a strand, or wipe progress. */
 public final class WeavingCommands {
     private WeavingCommands() {
     }
@@ -30,6 +30,10 @@ public final class WeavingCommands {
                         .then(Commands.argument("pattern", ResourceLocationArgument.id())
                                 .suggests((context, builder) -> SharedSuggestionProvider.suggestResource(WeavingContent.current().recipes().keySet(), builder))
                                 .executes(context -> learn(context.getSource(), ResourceLocationArgument.getId(context, "pattern")))))
+                .then(Commands.literal("study")
+                        .then(Commands.argument("strand", ResourceLocationArgument.id())
+                                .suggests((context, builder) -> SharedSuggestionProvider.suggestResource(WeavingContent.current().strands().keySet(), builder))
+                                .executes(context -> study(context.getSource(), ResourceLocationArgument.getId(context, "strand")))))
                 .then(Commands.literal("reset").executes(context -> reset(context.getSource()))));
     }
 
@@ -55,6 +59,18 @@ public final class WeavingCommands {
         WeavingService.set(player, WeavingService.get(player).withLearned(pattern));
         WeavingService.sync(player);
         source.sendSuccess(() -> Component.literal("Learned " + pattern).withStyle(ChatFormatting.LIGHT_PURPLE), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int study(CommandSourceStack source, ResourceLocation strand) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        if (WeavingContent.current().strand(strand).isEmpty()) {
+            source.sendFailure(Component.literal("No strand " + strand));
+            return 0;
+        }
+        WeavingService.set(player, WeavingService.get(player).withStudied(strand));
+        WeavingService.sync(player);
+        source.sendSuccess(() -> Component.literal("Studied " + strand).withStyle(ChatFormatting.LIGHT_PURPLE), false);
         return Command.SINGLE_SUCCESS;
     }
 

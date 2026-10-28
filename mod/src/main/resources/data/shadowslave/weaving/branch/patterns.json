@@ -1,0 +1,18 @@
+{
+  "name": "Patterns",
+  "description": "Strands studied out of other weaves and traced onto a soul-shard anchor: copy, then tune.",
+  "levels": [
+    {},
+    {
+      "cost": 1
+    },
+    {
+      "deed": {
+        "type": "weave",
+        "min_tier": 2,
+        "count": 5,
+        "description": "Lay five Tier II strands"
+      }
+    }
+  ]
+}

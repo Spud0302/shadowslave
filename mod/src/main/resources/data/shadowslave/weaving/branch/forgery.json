@@ -1,0 +1,10 @@
+{
+  "name": "Forgery",
+  "description": "Unravelling strands out of one piece into a Woven Thread, and laying them into another.",
+  "levels": [
+    {},
+    {
+      "cost": 1
+    }
+  ]
+}

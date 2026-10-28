@@ -1,15 +1,17 @@
 {
   "name": "Forging",
-  "description": "Weapons and armour woven from what Nightmare Creatures leave behind.",
+  "description": "Weapons and armour forged by hand at the hearth, anvil and trough.",
   "levels": [
     {},
-    { "cost": 1 },
+    {
+      "cost": 1
+    },
     {
       "deed": {
         "type": "weave",
         "min_tier": 2,
         "count": 5,
-        "description": "Weave five Tier II Memories"
+        "description": "Forge five Tier II pieces"
       }
     }
   ]

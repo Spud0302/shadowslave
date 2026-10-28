@@ -1,0 +1,35 @@
+{
+  "name": "Whetted Edge",
+  "description": "The plain sharpness every smith knows, picked out of an enchanted blade.",
+  "fits": [
+    "weapon"
+  ],
+  "effect": {
+    "type": "attribute",
+    "values": [
+      1.0,
+      2.0,
+      3.0
+    ],
+    "attribute": "minecraft:generic.attack_damage"
+  },
+  "study": [
+    {
+      "enchantment": "minecraft:sharpness"
+    }
+  ],
+  "material": {
+    "item": "minecraft:lapis_lazuli",
+    "counts": [
+      2,
+      4,
+      8
+    ]
+  },
+  "essence": [
+    15,
+    35,
+    70
+  ],
+  "xp": 10
+}

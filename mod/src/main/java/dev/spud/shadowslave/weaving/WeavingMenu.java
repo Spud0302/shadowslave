@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.weaving;
 
+import dev.spud.shadowslave.item.SoulShardItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,24 +17,49 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * The Weaving table's slots: four for materials and one the woven Memory
- * appears in. Buttons ask the server to weave, raise a branch or respec;
- * the server decides everything.
+ * The Weaving Table's slots (DESIGN, after Sunny's Weaving): the piece in the
+ * centre, a soul-shard anchor beside it, four slots for the materials a strand
+ * is spun from (or a Woven Thread to lay), and one a Woven Thread comes out
+ * of when a strand is unravelled. Buttons ask the server to study, unravel,
+ * lay a thread, raise a branch or respec; a traced weave arrives as its own
+ * packet. The server decides everything.
  */
 public class WeavingMenu extends AbstractContainerMenu {
-    public static final int BUTTON_WEAVE = 0;
     public static final int BUTTON_RESPEC = 1;
+    public static final int BUTTON_LAY = 2;
     /** Raising branch i is button {@code BUTTON_RAISE + i}, in {@link WeavingContent#branchOrder()} order. */
     public static final int BUTTON_RAISE = 10;
+    /** Starting and finishing the study of strand i of what the centre piece teaches. */
+    public static final int BUTTON_STUDY = 100;
+    public static final int BUTTON_STUDIED = 200;
+    /** Unravelling strand i out of the centre piece. */
+    public static final int BUTTON_UNRAVEL = 300;
+    public static final int MAX_LISTED = 16;
 
-    public static final int[][] MATERIAL_POS = {{34, 30}, {52, 30}, {34, 48}, {52, 48}};
-    public static final int OUTPUT_X = 124;
-    public static final int OUTPUT_Y = 39;
-    public static final int INVENTORY_Y = 140;
+    public static final int CENTRE_SLOT = 0;
+    public static final int ANCHOR_SLOT = 1;
+    public static final int FIRST_MATERIAL = 2;
+    public static final int OUTPUT_SLOT = FIRST_MATERIAL + WeavingRules.MATERIAL_SLOTS;
+    public static final int TABLE_SLOTS = OUTPUT_SLOT + 1;
+
+    public static final int CENTRE_X = 14;
+    public static final int CENTRE_Y = 24;
+    public static final int ANCHOR_X = 14;
+    public static final int ANCHOR_Y = 58;
+    public static final int[][] MATERIAL_POS = {{8, 98}, {26, 98}, {8, 116}, {26, 116}};
+    public static final int OUTPUT_X = 152;
+    public static final int OUTPUT_Y = 116;
+    public static final int INVENTORY_Y = 152;
 
     private final ContainerLevelAccess access;
-    final SimpleContainer materials = new SimpleContainer(WeavingRules.MATERIAL_SLOTS);
-    final SimpleContainer output = new SimpleContainer(1);
+    private final Player player;
+    final SimpleContainer table = new SimpleContainer(TABLE_SLOTS) {
+        @Override
+        public void setChanged() {
+            super.setChanged();
+            WeavingMenu.this.slotsChanged(this);
+        }
+    };
 
     /** Client side. */
     public WeavingMenu(int id, Inventory inventory) {
@@ -43,10 +69,23 @@ public class WeavingMenu extends AbstractContainerMenu {
     public WeavingMenu(int id, Inventory inventory, ContainerLevelAccess access) {
         super(WeavingRegistry.WEAVING_MENU.get(), id);
         this.access = access;
+        this.player = inventory.player;
+        addSlot(new Slot(table, CENTRE_SLOT, CENTRE_X, CENTRE_Y) {
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
+        });
+        addSlot(new Slot(table, ANCHOR_SLOT, ANCHOR_X, ANCHOR_Y) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return stack.getItem() instanceof SoulShardItem;
+            }
+        });
         for (int i = 0; i < WeavingRules.MATERIAL_SLOTS; i++) {
-            addSlot(new Slot(materials, i, MATERIAL_POS[i][0], MATERIAL_POS[i][1]));
+            addSlot(new Slot(table, FIRST_MATERIAL + i, MATERIAL_POS[i][0], MATERIAL_POS[i][1]));
         }
-        addSlot(new Slot(output, 0, OUTPUT_X, OUTPUT_Y) {
+        addSlot(new Slot(table, OUTPUT_SLOT, OUTPUT_X, OUTPUT_Y) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
@@ -62,11 +101,27 @@ public class WeavingMenu extends AbstractContainerMenu {
         }
     }
 
-    /** What lies on the table, as item id to total amount. */
+    public ItemStack centre() {
+        return table.getItem(CENTRE_SLOT);
+    }
+
+    public ItemStack anchor() {
+        return table.getItem(ANCHOR_SLOT);
+    }
+
+    public ItemStack output() {
+        return table.getItem(OUTPUT_SLOT);
+    }
+
+    public Container table() {
+        return table;
+    }
+
+    /** What lies in the material slots, as item id to total amount. */
     public Map<ResourceLocation, Integer> materialAmounts() {
         LinkedHashMap<ResourceLocation, Integer> amounts = new LinkedHashMap<>();
-        for (int i = 0; i < materials.getContainerSize(); i++) {
-            ItemStack stack = materials.getItem(i);
+        for (int i = FIRST_MATERIAL; i < OUTPUT_SLOT; i++) {
+            ItemStack stack = table.getItem(i);
             if (!stack.isEmpty()) {
                 amounts.merge(BuiltInRegistries.ITEM.getKey(stack.getItem()), stack.getCount(), Integer::sum);
             }
@@ -74,12 +129,25 @@ public class WeavingMenu extends AbstractContainerMenu {
         return amounts;
     }
 
-    public Container materials() {
-        return materials;
+    /** Takes {@code count} of {@code item} from the material slots; the caller has checked they are there. */
+    void takeMaterial(ResourceLocation item, int count) {
+        for (int i = FIRST_MATERIAL; i < OUTPUT_SLOT && count > 0; i++) {
+            ItemStack stack = table.getItem(i);
+            if (!stack.isEmpty() && BuiltInRegistries.ITEM.getKey(stack.getItem()).equals(item)) {
+                int taken = Math.min(count, stack.getCount());
+                stack.shrink(taken);
+                count -= taken;
+            }
+        }
+        table.setChanged();
     }
 
-    public Container output() {
-        return output;
+    @Override
+    public void slotsChanged(Container container) {
+        super.slotsChanged(container);
+        if (player instanceof ServerPlayer serverPlayer && serverPlayer.containerMenu == this) {
+            WeavingService.sync(serverPlayer);
+        }
     }
 
     @Override
@@ -98,12 +166,21 @@ public class WeavingMenu extends AbstractContainerMenu {
         }
         ItemStack stack = slot.getItem();
         ItemStack original = stack.copy();
-        int tableSlots = WeavingRules.MATERIAL_SLOTS + 1;
-        if (index < tableSlots) {
-            if (!moveItemStackTo(stack, tableSlots, this.slots.size(), true)) {
+        if (index < TABLE_SLOTS) {
+            if (!moveItemStackTo(stack, TABLE_SLOTS, this.slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (!moveItemStackTo(stack, 0, WeavingRules.MATERIAL_SLOTS, false)) {
+        } else if (stack.getItem() instanceof SoulShardItem) {
+            if (!moveItemStackTo(stack, ANCHOR_SLOT, ANCHOR_SLOT + 1, false)
+                    && !moveItemStackTo(stack, FIRST_MATERIAL, OUTPUT_SLOT, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (StrandFit.of(stack).isPresent() && !this.slots.get(CENTRE_SLOT).hasItem()) {
+            if (!moveItemStackTo(stack, CENTRE_SLOT, CENTRE_SLOT + 1, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (!moveItemStackTo(stack, FIRST_MATERIAL, OUTPUT_SLOT, false)
+                && !moveItemStackTo(stack, CENTRE_SLOT, CENTRE_SLOT + 1, false)) {
             return ItemStack.EMPTY;
         }
         if (stack.isEmpty()) {
@@ -124,8 +201,7 @@ public class WeavingMenu extends AbstractContainerMenu {
     public void removed(Player player) {
         super.removed(player);
         if (!player.level().isClientSide) {
-            clearContainer(player, materials);
-            clearContainer(player, output);
+            clearContainer(player, table);
         }
     }
 }

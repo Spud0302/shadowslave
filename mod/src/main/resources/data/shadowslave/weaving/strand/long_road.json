@@ -1,0 +1,37 @@
+{
+  "name": "Long Road",
+  "description": "Eases the weariness of long marches: sprinting costs less hunger.",
+  "fits": [
+    "boots"
+  ],
+  "effect": {
+    "type": "stride",
+    "values": [
+      0.3,
+      0.45,
+      0.6
+    ]
+  },
+  "study": [
+    {
+      "item": "minecraft:rabbit_foot"
+    },
+    {
+      "item": "shadowslave:wanderers_boots"
+    }
+  ],
+  "material": {
+    "item": "minecraft:rabbit_foot",
+    "counts": [
+      1,
+      2,
+      3
+    ]
+  },
+  "essence": [
+    15,
+    35,
+    70
+  ],
+  "xp": 12
+}

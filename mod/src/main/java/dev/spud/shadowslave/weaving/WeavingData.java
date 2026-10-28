@@ -24,6 +24,8 @@ import java.util.Set;
  * @param woven        how many times each pattern has been woven
  * @param hints        for patterns not yet found, the materials a failed attempt has revealed
  * @param respecs      how many times the player has respecced
+ * @param studied      strands learned by studying a weave
+ * @param laid         how many times each strand has been laid into a piece
  */
 public record WeavingData(
         Map<ResourceLocation, Integer> xp,
@@ -33,7 +35,9 @@ public record WeavingData(
         Set<ResourceLocation> learned,
         Map<ResourceLocation, Integer> woven,
         Map<ResourceLocation, List<ResourceLocation>> hints,
-        int respecs
+        int respecs,
+        Set<ResourceLocation> studied,
+        Map<ResourceLocation, Integer> laid
 ) {
     public static final MapCodec<WeavingData> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             Codec.unboundedMap(ResourceLocation.CODEC, Codec.INT).optionalFieldOf("xp", Map.of()).forGetter(WeavingData::xp),
@@ -43,7 +47,9 @@ public record WeavingData(
             ResourceLocation.CODEC.listOf().<Set<ResourceLocation>>xmap(Set::copyOf, List::copyOf).optionalFieldOf("learned", Set.of()).forGetter(WeavingData::learned),
             Codec.unboundedMap(ResourceLocation.CODEC, Codec.INT).optionalFieldOf("woven", Map.of()).forGetter(WeavingData::woven),
             Codec.unboundedMap(ResourceLocation.CODEC, ResourceLocation.CODEC.listOf()).optionalFieldOf("hints", Map.of()).forGetter(WeavingData::hints),
-            Codec.INT.optionalFieldOf("respecs", 0).forGetter(WeavingData::respecs)
+            Codec.INT.optionalFieldOf("respecs", 0).forGetter(WeavingData::respecs),
+            ResourceLocation.CODEC.listOf().<Set<ResourceLocation>>xmap(Set::copyOf, List::copyOf).optionalFieldOf("studied", Set.of()).forGetter(WeavingData::studied),
+            Codec.unboundedMap(ResourceLocation.CODEC, Codec.INT).optionalFieldOf("laid", Map.of()).forGetter(WeavingData::laid)
     ).apply(instance, WeavingData::new));
 
     public WeavingData {
@@ -59,10 +65,12 @@ public record WeavingData(
         hints.forEach((recipe, items) -> hintsCopy.put(recipe, List.copyOf(items)));
         hints = Map.copyOf(hintsCopy);
         respecs = Math.max(0, respecs);
+        studied = Set.copyOf(studied);
+        laid = Map.copyOf(laid);
     }
 
     public static WeavingData empty() {
-        return new WeavingData(Map.of(), Map.of(), Set.of(), Map.of(), Set.of(), Map.of(), Map.of(), 0);
+        return new WeavingData(Map.of(), Map.of(), Set.of(), Map.of(), Set.of(), Map.of(), Map.of(), 0, Set.of(), Map.of());
     }
 
     static String deedKey(ResourceLocation branch, int level) {
@@ -100,7 +108,7 @@ public record WeavingData(
     WeavingData withXp(ResourceLocation branch, int amount) {
         HashMap<ResourceLocation, Integer> next = new HashMap<>(xp);
         next.merge(branch, amount, Integer::sum);
-        return new WeavingData(next, bought, deeds, deedProgress, learned, woven, hints, respecs);
+        return new WeavingData(next, bought, deeds, deedProgress, learned, woven, hints, respecs, studied, laid);
     }
 
     WeavingData withBought(ResourceLocation branch, int level) {
@@ -110,7 +118,7 @@ public record WeavingData(
             levels.add(level);
         }
         next.put(branch, levels);
-        return new WeavingData(xp, next, deeds, deedProgress, learned, woven, hints, respecs);
+        return new WeavingData(xp, next, deeds, deedProgress, learned, woven, hints, respecs, studied, laid);
     }
 
     WeavingData withDeedProgress(ResourceLocation branch, int level, int progress, boolean earned) {
@@ -123,7 +131,7 @@ public record WeavingData(
         } else {
             nextProgress.put(key, progress);
         }
-        return new WeavingData(xp, bought, nextDeeds, nextProgress, learned, woven, hints, respecs);
+        return new WeavingData(xp, bought, nextDeeds, nextProgress, learned, woven, hints, respecs, studied, laid);
     }
 
     WeavingData withLearned(ResourceLocation recipe) {
@@ -131,22 +139,38 @@ public record WeavingData(
         next.add(recipe);
         HashMap<ResourceLocation, List<ResourceLocation>> nextHints = new HashMap<>(hints);
         nextHints.remove(recipe);
-        return new WeavingData(xp, bought, deeds, deedProgress, next, woven, nextHints, respecs);
+        return new WeavingData(xp, bought, deeds, deedProgress, next, woven, nextHints, respecs, studied, laid);
     }
 
     WeavingData withWoven(ResourceLocation recipe) {
         HashMap<ResourceLocation, Integer> next = new HashMap<>(woven);
         next.merge(recipe, 1, Integer::sum);
-        return new WeavingData(xp, bought, deeds, deedProgress, learned, next, hints, respecs);
+        return new WeavingData(xp, bought, deeds, deedProgress, learned, next, hints, respecs, studied, laid);
     }
 
     WeavingData withHint(ResourceLocation recipe, List<ResourceLocation> revealed) {
         HashMap<ResourceLocation, List<ResourceLocation>> next = new HashMap<>(hints);
         next.put(recipe, revealed);
-        return new WeavingData(xp, bought, deeds, deedProgress, learned, woven, next, respecs);
+        return new WeavingData(xp, bought, deeds, deedProgress, learned, woven, next, respecs, studied, laid);
+    }
+
+    public int laid(ResourceLocation strand) {
+        return laid.getOrDefault(strand, 0);
+    }
+
+    WeavingData withStudied(ResourceLocation strand) {
+        HashSet<ResourceLocation> next = new HashSet<>(studied);
+        next.add(strand);
+        return new WeavingData(xp, bought, deeds, deedProgress, learned, woven, hints, respecs, next, laid);
+    }
+
+    WeavingData withLaid(ResourceLocation strand) {
+        HashMap<ResourceLocation, Integer> next = new HashMap<>(laid);
+        next.merge(strand, 1, Integer::sum);
+        return new WeavingData(xp, bought, deeds, deedProgress, learned, woven, hints, respecs, studied, next);
     }
 
     WeavingData respecced() {
-        return new WeavingData(xp, Map.of(), deeds, deedProgress, learned, woven, hints, respecs + 1);
+        return new WeavingData(xp, Map.of(), deeds, deedProgress, learned, woven, hints, respecs + 1, studied, laid);
     }
 }
