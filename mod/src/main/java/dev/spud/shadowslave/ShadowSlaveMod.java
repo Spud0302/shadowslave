@@ -45,6 +45,8 @@ import dev.spud.shadowslave.nightmare.NightmareEvents;
 import dev.spud.shadowslave.soul.core.CoreService;
 import dev.spud.shadowslave.soul.core.ShardDrops;
 import dev.spud.shadowslave.soul.refinement.RefinementService;
+import dev.spud.shadowslave.smithing.SmithingRegistry;
+import dev.spud.shadowslave.smithing.SmithingService;
 import dev.spud.shadowslave.weaving.WeavingCommands;
 import dev.spud.shadowslave.weaving.WeavingContentLoader;
 import dev.spud.shadowslave.weaving.WeavingRegistry;
@@ -72,6 +74,7 @@ public final class ShadowSlaveMod {
         NightmareCreatureEntities.register(modEventBus);
         GateRegistry.register(modEventBus);
         WeavingRegistry.register(modEventBus);
+        SmithingRegistry.register(modEventBus);
         DreamRealmRegistry.register(modEventBus);
         FieldGuideRegistry.register(modEventBus);
         DreamRealmRules.bootstrap();
@@ -150,6 +153,7 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(WeavingService::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(WeavingService::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(WeavingService::onPlayerLoggedOut);
+        NeoForge.EVENT_BUS.addListener(SmithingService::onLeftClickBlock);
         NeoForge.EVENT_BUS.addListener(DreamRealmContentLoader::onAddReloadListeners);
         NeoForge.EVENT_BUS.addListener(DreamCommands::register);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onPlayerTick);

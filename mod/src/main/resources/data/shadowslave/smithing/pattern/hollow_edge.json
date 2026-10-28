@@ -24,5 +24,12 @@
   "unlock": {
     "type": "discover"
   },
-  "hint": "An edge cut from an empty voice, bound with what bound the Chainback."
+  "hint": "An edge cut from an empty voice, bound with what bound the Chainback.",
+  "forging": {
+    "heat_min": 950,
+    "heat_max": 1250,
+    "blows": 12,
+    "quench": true,
+    "quench_ticks": 36
+  }
 }

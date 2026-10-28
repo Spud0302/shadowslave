@@ -1,0 +1,22 @@
+{
+  "branch": "shadowslave:forging",
+  "name": "Iron Leggings",
+  "tier": 1,
+  "result": "minecraft:iron_leggings",
+  "materials": [
+    {
+      "item": "minecraft:iron_ingot",
+      "count": 7
+    }
+  ],
+  "xp": 8,
+  "unlock": {
+    "type": "starter"
+  },
+  "forging": {
+    "heat_min": 850,
+    "heat_max": 1200,
+    "blows": 10,
+    "quench": false
+  }
+}

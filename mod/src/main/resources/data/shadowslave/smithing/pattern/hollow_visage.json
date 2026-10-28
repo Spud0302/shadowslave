@@ -20,5 +20,11 @@
   "unlock": {
     "type": "discover"
   },
-  "hint": "A face that is not a face, set with something that listens."
+  "hint": "A face that is not a face, set with something that listens.",
+  "forging": {
+    "heat_min": 0,
+    "heat_max": 0,
+    "blows": 10,
+    "quench": false
+  }
 }

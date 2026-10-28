@@ -166,7 +166,7 @@ a blow is loaded, and the charge fades after 6 seconds.
 | Reaper | Reaping Arc (30) | A 120 degree sweep for 6 damage; anything left at 30% health or less (100 max health or less) is reaped outright for 10 essence |
 | Wellspring | Soul Ward (35) | Absorption II for 30 s on the ally you look at, or yourself |
 | Wellspring | Overflow (50) | A pool of 8 blocks for 20 s: Regeneration and 3 essence a second to everyone in it |
-| Forge | Masterwork (60) | For 60 s your next successful weave may reach one Tier above your branch level |
+| Forge | Masterwork (60) | For 60 s the next billet you fuse may reach one Tier above your Forging level, with a wider hammer mark and one grade higher |
 | Forge | Molten Edge (35) | For 15 s each melee hit deals 3 more damage and sets the target alight |
 | Delve | Vein Pull (40) | Mines the whole vein (up to 32 blocks) of the ore you look at, with the right tool, into your pack |
 | Delve | Stonewalk (30) | Step through up to 8 blocks of wall ahead to the first open space |
@@ -227,7 +227,7 @@ and farming rather than fighting. Quick start: `/shadowslave aspect set forge`
 
 | Nature | Innate (always on) | Ability (R) | Flaw |
 | --- | --- | --- | --- |
-| Forge | Thrifty Hands: 20% of smelted items come out doubled; Forging at the Weaving Table earns 1.5x XP | Quench: smelt up to 8 of the held stack in your hands; with nothing smeltable, a heat burst throws back and ignites hostiles within 4 (25 essence) | Cold Hearth: slow and weak in powder snow or anywhere cold enough to snow |
+| Forge | Thrifty Hands: 20% of smelted items come out doubled; Smithing earns 1.5x Forging XP; your billets cool 30% slower | Quench: holding a shaped blade, quench it perfectly on the spot; otherwise smelt up to 8 of the held stack in your hands; with nothing smeltable, a heat burst throws back and ignites hostiles within 4 (25 essence) | Cold Hearth: slow and weak in powder snow or anywhere cold enough to snow |
 | Delve | Ore Sense: sneak to see ores within 8 blocks outlined through stone, coloured by ore | Tunnel Strike: break a 3x3 tunnel 3 deep in the direction you face (up or down when you look steeply) (20 essence) | Open Sky: weak under the open sky, and essence refills at half speed there |
 | Mason | Long Reach: place and break blocks 2 blocks further away | Raise Wall: a 3x3 wall two blocks ahead from the block in your hand, one per block placed (20 essence) | Far From Home: abilities cost 50% more when you are over 32 blocks from anything you have placed |
 | Verdant | Green Thumb: crops and saplings within 6 blocks grow faster | Bloom: crops and saplings within 4 blocks grow two stages, animals within 6 heal 4 (25 essence) | Rootbound: essence only refills while you stand on grass, dirt, farmland, moss or leaves |
@@ -236,7 +236,8 @@ Things to try:
 
 1. Forge: hold raw iron and press R, then press R empty-handed next to a few
    zombies. Smelt a stack in a furnace and count the extras. Awaken with
-   Masterwork, then weave at a Weaving Table one Tier above your level. Stand in
+   Masterwork, then fuse a billet one Tier above your Forging level at a Forge
+   Hearth (the diamond sword at level 1). Stand in
    a snowy biome and watch the Flaw kick in.
 2. Delve: dig into a hillside, sneak, and look for the coloured outlines. Use
    Tunnel Strike looking ahead, then looking straight down. Step outside and
@@ -431,41 +432,58 @@ Regions and Seed tuning are data: `data/shadowslave/dream_realm/region/*.json`
 and `data/shadowslave/dream_realm/seeds.json`; cleanse loot is a normal loot
 table.
 
-## Weaving (Memory crafting)
+## Smithing (forge, hammer, quench)
 
-Anyone can weave Memories, Awakened or not. This first slice has the
-**Forging** branch (weapons and armour) up to level 3.
+Gear and Memories are now made by hand at a smithy. Anyone can smith,
+Awakened or not. Vanilla crafting of iron and diamond gear still works; a
+smithed piece is graded and can come out better.
 
-1. Craft a **Weaving Table**: string, a Dormant soul shard and string on top,
-   three planks in the middle, and two planks as legs (left and right) along
-   the bottom. It is also in the Functional Blocks creative tab. Right-click
-   it to open it.
-2. Everyone starts knowing three patterns (hover one in the list on the right
-   to see its materials). Lay the materials in the four slots, in any order,
-   and press **Weave**. Faint shards from ordinary mobs count as shards.
-   - Shard Knife: 2 iron ingots, a stick, a Dormant soul shard
-   - Sleeper's Hood: 3 leather, a Dormant soul shard
-   - Wanderer's Boots: 2 leather, a string, a Dormant soul shard
-3. The woven Memory appears in the right-hand slot, stamped "Woven by" you.
-   Weaving gives Forging XP, and the first weave of each pattern gives five
-   times as much. Every 100 XP is a Weaving point.
-4. **Level 2** costs 1 point (press Raise). It lets you weave Tier II
-   Memories. **Level 3** is a deed: weave five Tier II Memories. A respec
-   gives back every point, but a deed you earned stays earned.
-5. Nightmare Creatures drop materials when you kill them: Ash Burrowers drop
-   Ashen Hide, Chainbacks drop Chainback Links, and Hollow Mimics drop Mimic
-   Husks. Patterns with those materials have to be found by trial and error.
-   A combination that matches nothing costs nothing. If it comes close, the
-   Soul screen's **Weaving** tab (key 5 on the Soul screen) shows the
-   materials you got right, with a hint. There are four patterns to find.
-6. The first time you kill a Chainback, the Spell shows you the **Chainback
-   Mail** pattern. It can't be found by trial.
-7. Tier II and III Memories also need an Awakened soul. The tooltip and the
-   red line on a pattern say what is missing.
+1. Build the smithy (all three are in the Functional Blocks creative tab):
+   - **Forge Hearth**: three bricks on top, brick, furnace, brick in the
+     middle, three iron ingots on the bottom.
+   - **Smithing Anvil**: an anvil and a smithing table, shapeless.
+   - **Quench Trough**: planks in a U with a water bucket in the middle.
+   - **Smith's Hammer**: three iron ingots on top, iron ingot and stick in the
+     middle, a stick below.
+2. Open the hearth. Lay a pattern's materials in the four crucible slots, put
+   coal (or any fuel) in the fuel slot and press **Fuse**. The billet appears
+   in the slot above the fuel and starts to heat. The bar on the right shows
+   the fire and the billet's heat; the boxed band is the pattern's working
+   heat. Sneak and use the hearth to work the bellows, which drives the fire
+   up to white heat. Leave a billet too hot for too long and it burns.
+3. Take the billet out and use it on the **Smithing Anvil** to lay it there.
+   With the Smith's Hammer in hand, left-click the anvil. A bar shows a
+   sweeping marker: strike when it crosses the gold mark. Clean hits count
+   full, rough hits half, misses nothing. Each blow cools the billet; once it
+   drops below the band ("Too cold") put it back in the hearth.
+   Leather and hide patterns are **cold work**: no fire needed.
+4. When every blow has landed, blades want a **quench**: hold use on the
+   Quench Trough with the shaped billet and let go at the hiss (the bar's
+   mark). Too early scores less, far too late and the blade cracks. Armour
+   finishes straight off the anvil.
+5. The finished piece gets a grade from its heat, hammer and quench: Crude,
+   Fair, Fine, Superior or Masterwork. The grade scales its damage, armour
+   and durability (85% to 130%) and sets how many threads it will hold for
+   Weaving later. The tooltip says "Forged by" you.
+6. Starter patterns: iron sword, pickaxe, axe, helmet, chestplate, leggings,
+   boots, the Shard Knife, Sleeper's Hood and Wanderer's Boots. The diamond
+   sword needs Forging level 2. Nightmare materials still unlock the
+   discovered patterns (Linked Cleaver, Hollow Edge, Hollow Visage, Ashen
+   Hide Vest) by trial in the crucible, and Chainback Mail on your first
+   Chainback kill.
+7. Smithing gives Forging XP (five times as much the first time you make a
+   pattern). Levels widen the hammer's clean mark. The Forge Nature's
+   **Masterwork** lets the next billet reach one Tier higher with a wider
+   mark and one grade up; Forge's innate cools billets 30% slower.
 
-Branches, levels, deeds, patterns and the XP numbers are data files under
-`data/shadowslave/weaving/`, so a data pack can change them. Operators can
-use `/shadowslave_weaving xp shadowslave:forging <amount>`,
+The Weaving Table no longer makes items. It comes back as enchanting
+(weaving threads into finished gear) in the next update. Memories woven
+before this update are graded Fair on first use and keep their "Woven by"
+smith.
+
+Patterns are data files under `data/shadowslave/smithing/pattern/`, with
+their heat band, blow count and quench mark, so a data pack can change them.
+Operators can use `/shadowslave_weaving xp shadowslave:forging <amount>`,
 `/shadowslave_weaving learn <pattern>` and `/shadowslave_weaving reset`.
 
 ## Field Guide and map

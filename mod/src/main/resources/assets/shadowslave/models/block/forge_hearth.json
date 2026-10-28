@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "top": "shadowslave:block/forge_hearth_top",
+    "front": "shadowslave:block/forge_hearth_front",
+    "side": "shadowslave:block/forge_hearth_side",
+    "bottom": "shadowslave:block/forge_hearth_bottom"
+  }
+}

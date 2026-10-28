@@ -2,7 +2,6 @@ package dev.spud.shadowslave.weaving;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.item.ModItems;
-import dev.spud.shadowslave.memory.MemoryInstanceData;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.world.entity.ChainbackEntity;
@@ -29,27 +28,16 @@ public final class WeavingGameTest {
     private static final ResourceLocation CHAINBACK_MAIL = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "chainback_mail");
 
     @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room")
-    public static void aStarterPatternWeavesAStampedMemory(GameTestHelper helper) {
+    public static void theTableNoLongerMakesItems(GameTestHelper helper) {
         ServerPlayer player = player(helper);
         WeavingMenu menu = new WeavingMenu(0, player.getInventory(), ContainerLevelAccess.NULL);
         menu.materials().setItem(0, new ItemStack(Items.IRON_INGOT, 2));
         menu.materials().setItem(1, new ItemStack(Items.STICK));
         menu.materials().setItem(2, new ItemStack(ModItems.DORMANT_SOUL_SHARD.get()));
-
-        WeavingRules.Attempt attempt = WeavingService.weave(player, menu);
-        helper.assertTrue(attempt.outcome() == WeavingRules.Outcome.WOVEN, "woven: " + attempt.outcome());
-        ItemStack knife = menu.output().getItem(0);
-        helper.assertTrue(knife.is(WeavingRegistry.SHARD_KNIFE.get()), "a Shard Knife: " + knife);
-        MemoryInstanceData stamp = knife.get(WeavingRegistry.WOVEN_MEMORY.get());
-        helper.assertTrue(stamp != null && stamp.provenance().startsWith("Woven by "), "stamped with its weaver");
-        helper.assertTrue(menu.materials().isEmpty(), "materials used up");
-        helper.assertTrue(WeavingService.get(player).xp(FORGING) == 50, "first weave pays five times: " + WeavingService.get(player).xp(FORGING));
-
-        menu.materials().setItem(0, new ItemStack(Items.IRON_INGOT, 2));
-        menu.materials().setItem(1, new ItemStack(Items.STICK));
-        menu.materials().setItem(2, new ItemStack(ModItems.DORMANT_SOUL_SHARD.get()));
-        helper.assertTrue(WeavingService.weave(player, menu).outcome() == WeavingRules.Outcome.EMPTY, "the output slot is still full");
-        helper.assertTrue(!menu.materials().isEmpty(), "and the materials wait");
+        WeavingService.weave(player, menu);
+        helper.assertTrue(menu.output().isEmpty(), "nothing is woven: Smithing makes items now");
+        helper.assertTrue(!menu.materials().isEmpty(), "and the materials stay");
+        helper.assertTrue(WeavingService.lastResult(player).contains("Forge Hearth"), "it points to the forge: " + WeavingService.lastResult(player));
         helper.succeed();
     }
 
@@ -73,8 +61,8 @@ public final class WeavingGameTest {
     public static void forgingDataLoadsToLevelThree(GameTestHelper helper) {
         WeavingContent content = WeavingContent.current();
         helper.assertTrue(content.branch(FORGING).map(WeavingBranch::maxLevel).orElse(0) == 3, "Forging has three levels");
-        helper.assertTrue(content.recipes().size() == 8, "eight Forging patterns: " + content.recipes().size());
-        content.recipes().values().forEach(recipe -> helper.assertTrue(
+        helper.assertTrue(content.recipes().size() == 16, "sixteen Forging patterns: " + content.recipes().size());
+        content.recipes().values().stream().filter(recipe -> recipe.memory().isPresent()).forEach(recipe -> helper.assertTrue(
                 net.minecraft.core.registries.BuiltInRegistries.ITEM.get(recipe.result()) instanceof net.minecraft.world.item.Item item
                         && WeavingRegistry.memoryItems().containsValue(item), "result is a woven Memory: " + recipe.result()));
         helper.succeed();

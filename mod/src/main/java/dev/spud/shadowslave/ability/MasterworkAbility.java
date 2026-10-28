@@ -14,9 +14,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Forge, Awakened (craft): for a minute, your next weave at the Weaving table
- * may reach one Tier above your branch level. The weave that uses it ends it
- * (WeavingService), as does the minute running out.
+ * Forge, Awakened (craft): for a minute, the next billet you fuse at a Forge
+ * Hearth may reach one Tier above your Forging level, and that piece gets a
+ * hammer mark twice as wide and one Quality grade higher. Fusing the billet
+ * ends it (SmithingService), as does the minute running out.
  */
 public final class MasterworkAbility implements AspectAbility {
     public static final ResourceLocation ID = KitLadder.MASTERWORK.abilityId();
@@ -53,7 +54,7 @@ public final class MasterworkAbility implements AspectAbility {
         level.sendParticles(ParticleTypes.FLAME, player.getX(), player.getY() + 1.1, player.getZ(), 20, 0.4, 0.4, 0.4, 0.01);
         level.sendParticles(ParticleTypes.ELECTRIC_SPARK, player.getX(), player.getY() + 1.1, player.getZ(), 30, 0.5, 0.5, 0.5, 0.2);
         level.playSound(null, player.blockPosition(), SoundEvents.ANVIL_USE, SoundSource.PLAYERS, 0.8F, 1.3F);
-        AbilityService.feedback(player, "Masterwork: your next weave may reach one Tier higher", ChatFormatting.GOLD);
+        AbilityService.feedback(player, "Masterwork: your next forged piece reaches higher", ChatFormatting.GOLD);
         return Activation.USED;
     }
 
@@ -83,7 +84,7 @@ public final class MasterworkAbility implements AspectAbility {
         return until != null && until > player.serverLevel().getGameTime();
     }
 
-    /** Called by the Weaving table once a weave has used the masterwork. */
+    /** Called by the Forge Hearth once a billet has used the masterwork. */
     public static void spend(ServerPlayer player) {
         if (ACTIVE_UNTIL.remove(player.getUUID()) != null) {
             AbilityService.syncStatus(player);

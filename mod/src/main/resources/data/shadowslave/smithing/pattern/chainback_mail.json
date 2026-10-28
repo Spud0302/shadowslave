@@ -20,5 +20,11 @@
   "unlock": {
     "type": "first_kill",
     "entity": "shadowslave:chainback"
+  },
+  "forging": {
+    "heat_min": 800,
+    "heat_max": 1150,
+    "blows": 14,
+    "quench": false
   }
 }

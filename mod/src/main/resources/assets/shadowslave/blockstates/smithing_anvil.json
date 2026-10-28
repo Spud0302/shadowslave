@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "shadowslave:block/smithing_anvil",
+      "y": 90
+    },
+    "facing=east": {
+      "model": "shadowslave:block/smithing_anvil",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "shadowslave:block/smithing_anvil",
+      "y": 270
+    },
+    "facing=west": {
+      "model": "shadowslave:block/smithing_anvil"
+    }
+  }
+}

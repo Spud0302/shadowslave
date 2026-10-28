@@ -89,7 +89,7 @@ public record MemoryContentCatalog(List<MemoryProfile> memories) {
     }
 
     /**
-     * Forging Memories woven at the Weaving table, Tiers I to III (DESIGN).
+     * Forging Memories made at the Forge Hearth and Smithing Anvil, Tiers I to III (DESIGN).
      * Their Tier follows the Class of the creature whose remains they are
      * woven from: Beast I, Monster II, Demon III (ch. 74). Their enchantments
      * stay sealed until the Enchanting branch exists.

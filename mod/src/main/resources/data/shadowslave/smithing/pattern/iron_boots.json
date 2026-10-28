@@ -1,0 +1,22 @@
+{
+  "branch": "shadowslave:forging",
+  "name": "Iron Boots",
+  "tier": 1,
+  "result": "minecraft:iron_boots",
+  "materials": [
+    {
+      "item": "minecraft:iron_ingot",
+      "count": 4
+    }
+  ],
+  "xp": 8,
+  "unlock": {
+    "type": "starter"
+  },
+  "forging": {
+    "heat_min": 850,
+    "heat_max": 1200,
+    "blows": 7,
+    "quench": false
+  }
+}

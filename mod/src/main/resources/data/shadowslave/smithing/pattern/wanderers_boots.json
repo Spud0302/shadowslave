@@ -19,5 +19,11 @@
   "xp": 10,
   "unlock": {
     "type": "starter"
+  },
+  "forging": {
+    "heat_min": 0,
+    "heat_max": 0,
+    "blows": 5,
+    "quench": false
   }
 }

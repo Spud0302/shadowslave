@@ -1,0 +1,27 @@
+{
+  "branch": "shadowslave:forging",
+  "name": "Iron Axe",
+  "tier": 1,
+  "result": "minecraft:iron_axe",
+  "materials": [
+    {
+      "item": "minecraft:iron_ingot",
+      "count": 3
+    },
+    {
+      "item": "minecraft:stick",
+      "count": 1
+    }
+  ],
+  "xp": 8,
+  "unlock": {
+    "type": "starter"
+  },
+  "forging": {
+    "heat_min": 900,
+    "heat_max": 1250,
+    "blows": 7,
+    "quench": true,
+    "quench_ticks": 28
+  }
+}

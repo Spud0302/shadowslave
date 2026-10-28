@@ -4,7 +4,6 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import dev.spud.shadowslave.client.SoulPages;
-import dev.spud.shadowslave.content.memory.MemoryContentCatalog;
 import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
 import dev.spud.shadowslave.soul.SoulRank;
 import net.minecraft.resources.ResourceLocation;
@@ -27,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** The Forging data in the mod's resources, run through the pure Weaving rules. */
 class WeavingRulesTest {
     private static final Path DATA = Path.of("src/main/resources/data/shadowslave/weaving");
+    private static final Path PATTERNS = Path.of("src/main/resources/data/shadowslave/smithing/pattern");
     private static final Path ASSETS = Path.of("src/main/resources/assets/shadowslave");
     private static final ResourceLocation FORGING = id("forging");
     private static final Optional<SoulRank> DORMANT = Optional.of(SoulRank.DORMANT);
@@ -44,9 +44,9 @@ class WeavingRulesTest {
         return codec.parse(JsonOps.INSTANCE, JsonParser.parseString(Files.readString(file))).getOrThrow();
     }
 
-    private static <T> Map<ResourceLocation, T> folder(String name, Codec<T> codec) throws IOException {
+    private static <T> Map<ResourceLocation, T> folder(Path folder, Codec<T> codec) throws IOException {
         Map<ResourceLocation, T> values = new HashMap<>();
-        try (Stream<Path> files = Files.list(DATA.resolve(name))) {
+        try (Stream<Path> files = Files.list(folder)) {
             for (Path file : files.toList()) {
                 values.put(id(file.getFileName().toString().replace(".json", "")), parse(file, codec));
             }
@@ -57,7 +57,7 @@ class WeavingRulesTest {
     private static WeavingContent content() throws IOException {
         List<String> problems = new ArrayList<>();
         WeavingContent content = WeavingContent.build(parse(DATA.resolve("rules.json"), WeavingSettings.CODEC),
-                folder("branch", WeavingBranch.CODEC), folder("recipe", WeavingRecipe.CODEC), problems::add);
+                folder(DATA.resolve("branch"), WeavingBranch.CODEC), folder(PATTERNS, WeavingRecipe.CODEC), problems::add);
         assertEquals(List.of(), problems);
         return content;
     }
@@ -80,10 +80,13 @@ class WeavingRulesTest {
     void forgingDataLoadsWithAssetsForEveryPattern() throws IOException {
         WeavingContent content = content();
         assertEquals(3, content.branch(FORGING).orElseThrow().maxLevel());
-        assertEquals(8, content.recipes().size());
+        assertEquals(16, content.recipes().size(), "eight creature patterns and eight plain metal ones");
         for (WeavingRecipe recipe : content.recipes().values()) {
-            MemoryContentCatalog.MemoryProfile profile = content.profile(recipe);
-            assertTrue(profile.tier() <= 3, recipe.result() + " fits under Forging level 3");
+            assertTrue(content.tier(recipe) <= 3, recipe.result() + " fits under Forging level 3");
+            if (recipe.memory().isEmpty()) {
+                assertEquals("minecraft", recipe.result().getNamespace(), "plain patterns make vanilla gear: " + recipe.result());
+                continue;
+            }
             assertTrue(Files.exists(ASSETS.resolve("models/item/" + recipe.result().getPath() + ".json")), recipe.result() + " model");
             assertTrue(Files.exists(ASSETS.resolve("textures/item/" + recipe.result().getPath() + ".png")), recipe.result() + " texture");
             if (recipe.unlock().kind() == WeavingRecipe.Unlock.Kind.DISCOVER) {
@@ -91,7 +94,7 @@ class WeavingRulesTest {
             }
         }
         String lang = Files.readString(ASSETS.resolve("lang/en_us.json"));
-        content.recipes().values().forEach(recipe -> assertTrue(lang.contains("\"item.shadowslave." + recipe.result().getPath() + "\""),
+        content.recipes().values().stream().filter(recipe -> recipe.memory().isPresent()).forEach(recipe -> assertTrue(lang.contains("\"item.shadowslave." + recipe.result().getPath() + "\""),
                 recipe.result() + " has a name"));
     }
 
@@ -218,7 +221,7 @@ class WeavingRulesTest {
         List<String> texts = SoulPages.page(SoulPages.Tab.WEAVING, null, null, 0.0F, List.of(), null, status,
                 item -> item.substring(item.indexOf(':') + 1)).stream().map(SoulPages.Entry::text).toList();
         assertTrue(texts.contains("Forging, Tier III: mimic_husk, ?, ?, ?"), texts.toString());
-        assertTrue(texts.contains("Patterns you know: 3"), texts.toString());
+        assertTrue(texts.contains("Patterns you know: 11"), texts.toString());
         assertTrue(texts.stream().anyMatch(text -> text.startsWith("Level 2 costs 1 point")), texts.toString());
     }
 }

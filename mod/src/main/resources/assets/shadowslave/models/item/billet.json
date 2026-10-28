@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "shadowslave:item/billet"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "shadowslave:cold_work": 1
+      },
+      "model": "shadowslave:item/billet_bundle"
+    }
+  ]
+}

@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /** Server side of Weaving: the table's buttons, Spell-granted patterns, and keeping the client's view current. */
 public final class WeavingService {
-    static final ResourceLocation FORGING = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "forging");
+    public static final ResourceLocation FORGING = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "forging");
     /** Thrifty Hands (Forge): Forging XP earned, as a percentage of the usual. */
     static final int FORGE_XP_PERCENT = 150;
     /** What each player's last press of Weave did, for the table screen. Not saved. */
@@ -76,92 +76,22 @@ public final class WeavingService {
         }
     }
 
-    /** Weaves whatever lies on the table. Returns what happened. */
-    public static WeavingRules.Attempt weave(ServerPlayer player, WeavingMenu menu) {
-        WeavingContent content = WeavingContent.current();
-        WeavingData before = get(player);
-        if (!menu.output.isEmpty()) {
-            report(player, "Take what you have woven first.");
-            return new WeavingRules.Attempt(WeavingRules.Outcome.EMPTY, Optional.empty(), before, 0, Optional.empty(), List.of());
-        }
-        WeavingRules.Boons boons = boons(player);
-        WeavingRules.Attempt attempt = WeavingRules.attempt(content, before, menu.materialAmounts(), soulRank(player), boons);
-        set(player, attempt.data());
-        StringBuilder message = new StringBuilder();
-        Optional<WeavingRecipe> recipe = attempt.recipe().map(content.recipes()::get);
-        String name = recipe.map(value -> content.profile(value).formalName()).orElse("");
-        switch (attempt.outcome()) {
-            case EMPTY -> message.append("Lay materials on the table first.");
-            case WOVEN, DISCOVERED -> {
-                menu.materials.clearContent();
-                menu.output.setItem(0, woven(player, recipe.orElseThrow()));
-                if (attempt.outcome() == WeavingRules.Outcome.DISCOVERED) {
-                    message.append("A new pattern takes shape: ").append(name).append("! ");
-                } else {
-                    message.append("You weave the ").append(name).append(". ");
-                }
-                message.append("+").append(attempt.xp()).append(' ').append(content.branchName(recipe.get().branch())).append(" XP");
-                if (boons.tierBonus() > 0) {
-                    MasterworkAbility.spend(player);
-                    message.append(" · Masterwork spent");
-                }
-                player.level().playSound(null, player.blockPosition(), SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 0.8F, 1.2F);
-            }
-            case DISCOVERED_LOCKED -> message.append("A new pattern takes shape: ").append(name).append(". ")
-                    .append(attempt.lock().orElse("")).append(" to weave it.");
-            case LOCKED -> message.append(name).append(": ").append(attempt.lock().orElse("")).append('.');
-            case UNSHOWN -> message.append("The threads won't hold. The Spell has not shown you this pattern.");
-            case HINTED -> message.append("The threads slip apart, but something almost held. See Weaving on your Soul screen.");
-            case NOTHING -> message.append("The threads slip apart.");
-        }
-        if (!attempt.wove() && attempt.outcome() != WeavingRules.Outcome.EMPTY && attempt.outcome() != WeavingRules.Outcome.LOCKED
-                && attempt.outcome() != WeavingRules.Outcome.DISCOVERED_LOCKED) {
-            int lost = consume(menu, content.settings().failureConsumes());
-            if (lost > 0) {
-                message.append(lost == 1 ? " One material frays away." : " " + lost + " materials fray away.");
-            }
-        }
-        for (String deed : attempt.deeds()) {
-            player.sendSystemMessage(Component.literal("Deed done. " + deed).withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.ITALIC));
-        }
-        if (attempt.outcome() == WeavingRules.Outcome.DISCOVERED || attempt.outcome() == WeavingRules.Outcome.DISCOVERED_LOCKED) {
-            player.sendSystemMessage(Component.literal("You have learned a Weaving pattern: " + name + ".")
-                    .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
-        }
-        report(player, message.toString());
-        return attempt;
+    /**
+     * The table no longer makes items: Smithing patterns are forged at a
+     * Forge Hearth and Smithing Anvil. Weaving's own work (laying strands
+     * into finished items) comes in the next Weaving update.
+     */
+    public static void weave(ServerPlayer player, WeavingMenu menu) {
+        report(player, menu.materialAmounts().isEmpty()
+                ? "Weaving no longer makes items. Forge them at a Forge Hearth and Smithing Anvil."
+                : "These threads want a forge, not a loom. Lay them in a Forge Hearth's crucible instead.");
     }
 
-    /** Forge's gifts at the table: Masterwork's extra Tier while it lasts, and Thrifty Hands' quicker Forging. */
-    static WeavingRules.Boons boons(ServerPlayer player) {
+    /** Forge's gifts at the hearth: Masterwork's extra Tier while it lasts, and Thrifty Hands' quicker Forging. */
+    public static WeavingRules.Boons boons(ServerPlayer player) {
         boolean forge = KitRules.hasInnate(player, AspectKitCatalog.FORGE.innateId());
         return new WeavingRules.Boons(MasterworkAbility.active(player) ? MasterworkAbility.TIER_BONUS : 0,
                 forge ? Optional.of(FORGING) : Optional.empty(), forge ? FORGE_XP_PERCENT : 100);
-    }
-
-    private static ItemStack woven(ServerPlayer player, WeavingRecipe recipe) {
-        WeavingContent content = WeavingContent.current();
-        Item item = BuiltInRegistries.ITEM.get(recipe.result());
-        ItemStack stack = new ItemStack(item == Items.AIR ? Items.BARRIER : item);
-        MemoryContentCatalog.MemoryProfile profile = content.profile(recipe);
-        stack.set(WeavingRegistry.WOVEN_MEMORY.get(), new MemoryInstanceData(profile.id(), profile.formalName(),
-                "weaving", "Woven by " + player.getGameProfile().getName()));
-        return stack;
-    }
-
-    /** Takes up to {@code amount} items off the table, first slot first. */
-    private static int consume(WeavingMenu menu, int amount) {
-        int lost = 0;
-        for (int i = 0; i < menu.materials.getContainerSize() && lost < amount; i++) {
-            ItemStack stack = menu.materials.getItem(i);
-            int take = Math.min(stack.getCount(), amount - lost);
-            if (take > 0) {
-                stack.shrink(take);
-                lost += take;
-            }
-        }
-        menu.materials.setChanged();
-        return lost;
     }
 
     public static boolean raise(ServerPlayer player, ResourceLocation branch) {
@@ -214,7 +144,7 @@ public final class WeavingService {
         }
         for (ResourceLocation id : granted) {
             data = data.withLearned(id);
-            String name = content.profile(content.recipes().get(id)).formalName();
+            String name = content.name(content.recipes().get(id));
             player.sendSystemMessage(Component.literal("The Spell shows you a Weaving pattern: " + name + ".")
                     .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         }
@@ -233,7 +163,7 @@ public final class WeavingService {
         LAST_RESULT.remove(event.getEntity().getUUID());
     }
 
-    private static void report(ServerPlayer player, String message) {
+    public static void report(ServerPlayer player, String message) {
         LAST_RESULT.put(player.getUUID(), message);
         sync(player);
     }
@@ -262,14 +192,13 @@ public final class WeavingService {
         List<WeavingStatusPayload.Pattern> patterns = new ArrayList<>();
         List<WeavingStatusPayload.Hint> hints = new ArrayList<>();
         content.recipes().forEach((id, recipe) -> {
-            MemoryContentCatalog.MemoryProfile profile = content.profile(recipe);
             if (WeavingRules.knows(data, id, recipe)) {
-                patterns.add(new WeavingStatusPayload.Pattern(profile.formalName(), recipe.result().toString(),
-                        content.branchName(recipe.branch()), profile.tier(), WeavingRules.rankName(profile.rank()),
+                patterns.add(new WeavingStatusPayload.Pattern(content.name(recipe), recipe.result().toString(),
+                        content.branchName(recipe.branch()), content.tier(recipe), WeavingRules.rankName(content.rank(recipe)),
                         recipe.materials().stream().map(material -> new WeavingStatusPayload.Material(material.item().toString(), material.count())).toList(),
                         data.woven(id), WeavingRules.lock(content, data, recipe, soulRank).orElse("")));
             } else if (!data.hint(id).isEmpty()) {
-                hints.add(new WeavingStatusPayload.Hint(content.branchName(recipe.branch()), profile.tier(), recipe.materials().size(),
+                hints.add(new WeavingStatusPayload.Hint(content.branchName(recipe.branch()), content.tier(recipe), recipe.materials().size(),
                         data.hint(id).stream().map(ResourceLocation::toString).toList(), recipe.hint()));
             }
         });

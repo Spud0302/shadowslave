@@ -16,5 +16,11 @@
   "unlock": {
     "type": "discover"
   },
-  "hint": "Hide that swam through ash wants a dormant soul to hold its shape."
+  "hint": "Hide that swam through ash wants a dormant soul to hold its shape.",
+  "forging": {
+    "heat_min": 0,
+    "heat_max": 0,
+    "blows": 8,
+    "quench": false
+  }
 }
