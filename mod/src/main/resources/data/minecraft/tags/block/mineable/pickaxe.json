@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
-    "shadowslave:gate_lure"
+    "shadowslave:gate_lure",
+    "shadowslave:forge_hearth",
+    "shadowslave:smithing_anvil"
   ]
 }

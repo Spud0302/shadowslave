@@ -1,6 +1,5 @@
 package dev.spud.shadowslave.weaving;
 
-import dev.spud.shadowslave.content.memory.MemoryContentCatalog;
 import dev.spud.shadowslave.soul.SoulRank;
 import net.minecraft.resources.ResourceLocation;
 
@@ -131,13 +130,14 @@ public final class WeavingRules {
     /** As {@link #lock(WeavingContent, WeavingData, WeavingRecipe, Optional)}, with a Masterwork's extra Tier counted. */
     public static Optional<String> lock(WeavingContent content, WeavingData data, WeavingRecipe recipe,
                                         Optional<SoulRank> soulRank, Boons boons) {
-        MemoryContentCatalog.MemoryProfile profile = content.profile(recipe);
+        int tier = content.tier(recipe);
+        SoulRank rank = content.rank(recipe);
         int held = heldLevel(content, data, recipe.branch()) + boons.tierBonus();
-        if (profile.tier() > held) {
-            return Optional.of("Needs " + content.branchName(recipe.branch()) + " level " + profile.tier());
+        if (tier > held) {
+            return Optional.of("Needs " + content.branchName(recipe.branch()) + " level " + tier);
         }
-        if (profile.rank().ordinal() > soulRank.map(Enum::ordinal).orElse(0)) {
-            return Optional.of("Needs " + article(rankName(profile.rank())) + " " + rankName(profile.rank()) + " soul");
+        if (rank.ordinal() > soulRank.map(Enum::ordinal).orElse(0)) {
+            return Optional.of("Needs " + article(rankName(rank)) + " " + rankName(rank) + " soul");
         }
         return Optional.empty();
     }
@@ -203,6 +203,35 @@ public final class WeavingRules {
 
     public static Attempt attempt(WeavingContent content, WeavingData data, Map<ResourceLocation, Integer> materials,
                                   Optional<SoulRank> soulRank, Boons boons) {
+        Attempt laid = lay(content, data, materials, soulRank, boons);
+        if (!laid.wove()) {
+            return laid;
+        }
+        Credit credit = credit(content, laid.data(), laid.recipe().orElseThrow(), boons);
+        return new Attempt(laid.outcome(), laid.recipe(), credit.data(), credit.xp(), Optional.empty(), credit.deeds());
+    }
+
+    /** What finishing one piece of a pattern earns: XP (five times the first time), the count, and any deeds. */
+    public record Credit(WeavingData data, int xp, List<String> deeds) {
+    }
+
+    /** Credits one finished piece of {@code id}. The Forge hearth lays the billet; this pays once it is done. */
+    public static Credit credit(WeavingContent content, WeavingData data, ResourceLocation id, Boons boons) {
+        WeavingRecipe recipe = content.recipes().get(id);
+        int xp = boons.xp(recipe.branch(), recipe.xp() * (data.woven(id) == 0 ? content.settings().firstWeaveMultiplier() : 1));
+        WeavingData next = data.withWoven(id).withXp(recipe.branch(), xp);
+        List<String> deeds = new ArrayList<>();
+        next = advanceDeeds(content, next, recipe, deeds);
+        return new Credit(next, xp, deeds);
+    }
+
+    /**
+     * Matches materials to a pattern and learns it if found by trial, without
+     * paying anything: an outcome of WOVEN or DISCOVERED means the pattern can
+     * be made now. {@code xp} is always 0; {@link #credit} pays on completion.
+     */
+    public static Attempt lay(WeavingContent content, WeavingData data, Map<ResourceLocation, Integer> materials,
+                              Optional<SoulRank> soulRank, Boons boons) {
         if (materials.isEmpty()) {
             return new Attempt(Outcome.EMPTY, Optional.empty(), data, 0, Optional.empty(), List.of());
         }
@@ -221,11 +250,7 @@ public final class WeavingRules {
         if (lock.isPresent()) {
             return new Attempt(known ? Outcome.LOCKED : Outcome.DISCOVERED_LOCKED, matched, next, 0, lock, List.of());
         }
-        int xp = boons.xp(recipe.branch(), recipe.xp() * (next.woven(id) == 0 ? content.settings().firstWeaveMultiplier() : 1));
-        next = next.withWoven(id).withXp(recipe.branch(), xp);
-        List<String> deeds = new ArrayList<>();
-        next = advanceDeeds(content, next, recipe, deeds);
-        return new Attempt(known ? Outcome.WOVEN : Outcome.DISCOVERED, matched, next, xp, Optional.empty(), deeds);
+        return new Attempt(known ? Outcome.WOVEN : Outcome.DISCOVERED, matched, next, 0, Optional.empty(), List.of());
     }
 
     private static WeavingData advanceDeeds(WeavingContent content, WeavingData data, WeavingRecipe recipe, List<String> earned) {

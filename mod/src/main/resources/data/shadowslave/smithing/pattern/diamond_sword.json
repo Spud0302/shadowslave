@@ -1,0 +1,27 @@
+{
+  "branch": "shadowslave:forging",
+  "name": "Diamond Sword",
+  "tier": 2,
+  "result": "minecraft:diamond_sword",
+  "materials": [
+    {
+      "item": "minecraft:diamond",
+      "count": 2
+    },
+    {
+      "item": "minecraft:stick",
+      "count": 1
+    }
+  ],
+  "xp": 20,
+  "unlock": {
+    "type": "starter"
+  },
+  "forging": {
+    "heat_min": 1100,
+    "heat_max": 1350,
+    "blows": 9,
+    "quench": true,
+    "quench_ticks": 40
+  }
+}

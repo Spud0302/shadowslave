@@ -1,0 +1,30 @@
+{
+  "branch": "shadowslave:forging",
+  "memory": "shadowslave:memory/shard_knife",
+  "result": "shadowslave:shard_knife",
+  "materials": [
+    {
+      "item": "minecraft:iron_ingot",
+      "count": 2
+    },
+    {
+      "item": "minecraft:stick",
+      "count": 1
+    },
+    {
+      "item": "shadowslave:dormant_soul_shard",
+      "count": 1
+    }
+  ],
+  "xp": 10,
+  "unlock": {
+    "type": "starter"
+  },
+  "forging": {
+    "heat_min": 900,
+    "heat_max": 1250,
+    "blows": 6,
+    "quench": true,
+    "quench_ticks": 24
+  }
+}

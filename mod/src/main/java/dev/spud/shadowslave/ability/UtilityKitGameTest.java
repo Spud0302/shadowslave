@@ -86,7 +86,7 @@ public final class UtilityKitGameTest {
         helper.assertTrue(AbilityService.status(forge).slots().get(1).primed(), "lit on the HUD");
         helper.assertTrue(AbilityService.useAbility(forge, 1) == AbilityService.Outcome.FAILED, "only one at a time");
         MasterworkAbility.spend(forge);
-        helper.assertFalse(MasterworkAbility.active(forge), "a weave spends it");
+        helper.assertFalse(MasterworkAbility.active(forge), "a fuse spends it");
         helper.succeed();
     }
 

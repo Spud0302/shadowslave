@@ -97,9 +97,9 @@ public final class AspectKitCatalog {
     public static final AspectKit FORGE = new AspectKit(
             id("generation/nature/forge"), "Forge",
             id("kit/innate/forge_thrifty_hands"), "Thrifty Hands",
-            "Smelted goods sometimes come out doubled, and Forging at the Weaving table teaches you half again as fast.",
+            "Smelted goods sometimes come out doubled, Forging teaches you half again as fast, and your billets hold their heat longer.",
             id("generation/ability/quench"), "Quench",
-            "Smelt up to eight of whatever you hold, in your bare hands.",
+            "Smelt up to eight of whatever you hold, in your bare hands, or quench a shaped blade perfectly.",
             id("generation/flaw/cold_hearth"), id("generation/flaw_effect/cold_hearth"), "Cold Hearth",
             "Snow and frost sicken you: slow and weak wherever it is cold enough to snow."
     );

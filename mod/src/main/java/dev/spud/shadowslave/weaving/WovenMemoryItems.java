@@ -12,16 +12,21 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import dev.spud.shadowslave.smithing.ForgedData;
+import dev.spud.shadowslave.smithing.SmithingRegistry;
+import dev.spud.shadowslave.smithing.SmithingService;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 /**
- * Woven Memories as physical items (DESIGN, first Weaving slice): a weapon or
- * a piece of armour that names its Memory, its Rank and Tier, and who wove
- * it. Soul Sea storage for woven Memories comes later; until then they trade
- * like any item. Their enchantments stay sealed until the Enchanting branch.
+ * Forging Memories as physical items (DESIGN): a weapon or a piece of armour
+ * that names its Memory, its Rank and Tier, and who made it. They are forged
+ * at the hearth and anvil now; their enchantments stay sealed until the new
+ * Weaving lays strands into finished pieces.
  */
 public final class WovenMemoryItems {
     private WovenMemoryItems() {
@@ -39,6 +44,11 @@ public final class WovenMemoryItems {
         public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
             describe(memoryId, stack, tooltip);
         }
+
+        @Override
+        public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
+            grade(stack, level);
+        }
     }
 
     public static final class Armour extends ArmorItem {
@@ -53,6 +63,24 @@ public final class WovenMemoryItems {
         public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
             describe(memoryId, stack, tooltip);
         }
+
+        @Override
+        public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
+            grade(stack, level);
+        }
+    }
+
+    /**
+     * A piece woven before Smithing existed is given a Fair grade (its stats
+     * unchanged) the first time it sits in an inventory, keeping its maker.
+     */
+    public static void grade(ItemStack stack, Level level) {
+        if (level.isClientSide || stack.has(SmithingRegistry.FORGED.get())) {
+            return;
+        }
+        MemoryInstanceData woven = stack.get(WeavingRegistry.WOVEN_MEMORY.get());
+        String maker = woven == null ? "" : woven.provenance().replaceFirst("^Woven by ", "");
+        SmithingService.stamp(stack, ForgedData.legacy(maker));
     }
 
     static Optional<MemoryContentCatalog.MemoryProfile> profile(ResourceLocation memoryId) {

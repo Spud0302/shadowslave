@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.weaving;
 
 import dev.spud.shadowslave.content.memory.MemoryContentCatalog;
+import dev.spud.shadowslave.soul.SoulRank;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
@@ -33,7 +34,8 @@ public record WeavingContent(
         ArrayList<Map.Entry<ResourceLocation, WeavingRecipe>> entries = new ArrayList<>(recipes.entrySet());
         Map<ResourceLocation, MemoryContentCatalog.MemoryProfile> lookup = profiles;
         entries.sort(Comparator.<Map.Entry<ResourceLocation, WeavingRecipe>, String>comparing(entry -> entry.getValue().branch().toString())
-                .thenComparingInt(entry -> lookup.containsKey(entry.getValue().memory()) ? lookup.get(entry.getValue().memory()).tier() : 0)
+                .thenComparingInt(entry -> entry.getValue().memory().filter(lookup::containsKey).map(memory -> lookup.get(memory).tier())
+                        .orElse(entry.getValue().tier()))
                 .thenComparing(entry -> entry.getKey().toString()));
         LinkedHashMap<ResourceLocation, WeavingRecipe> ordered = new LinkedHashMap<>();
         entries.forEach(entry -> ordered.put(entry.getKey(), entry.getValue()));
@@ -60,8 +62,8 @@ public record WeavingContent(
         recipes.forEach((id, recipe) -> {
             if (!branches.containsKey(recipe.branch())) {
                 problems.accept("Weaving pattern " + id + " names unknown branch " + recipe.branch());
-            } else if (!profiles.containsKey(recipe.memory())) {
-                problems.accept("Weaving pattern " + id + " names unknown Memory " + recipe.memory());
+            } else if (recipe.memory().isPresent() && !profiles.containsKey(recipe.memory().get())) {
+                problems.accept("Weaving pattern " + id + " names unknown Memory " + recipe.memory().get());
             } else {
                 valid.put(id, recipe);
             }
@@ -69,12 +71,22 @@ public record WeavingContent(
         return new WeavingContent(settings, branches, valid, profiles);
     }
 
-    public MemoryContentCatalog.MemoryProfile profile(WeavingRecipe recipe) {
-        return profiles.get(recipe.memory());
+    /** The Memory a pattern makes, if it makes one; a plain pattern (an iron sword) has none. */
+    public Optional<MemoryContentCatalog.MemoryProfile> profile(WeavingRecipe recipe) {
+        return recipe.memory().map(profiles::get);
     }
 
     public int tier(WeavingRecipe recipe) {
-        return profile(recipe).tier();
+        return profile(recipe).map(MemoryContentCatalog.MemoryProfile::tier).orElse(recipe.tier());
+    }
+
+    /** The Soul Rank a pattern needs; plain patterns need none beyond Dormant. */
+    public SoulRank rank(WeavingRecipe recipe) {
+        return profile(recipe).map(MemoryContentCatalog.MemoryProfile::rank).orElse(SoulRank.DORMANT);
+    }
+
+    public String name(WeavingRecipe recipe) {
+        return recipe.name().orElseGet(() -> profile(recipe).map(MemoryContentCatalog.MemoryProfile::formalName).orElse(recipe.result().getPath()));
     }
 
     public Optional<WeavingBranch> branch(ResourceLocation id) {

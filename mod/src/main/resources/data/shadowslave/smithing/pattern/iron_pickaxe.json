@@ -1,0 +1,27 @@
+{
+  "branch": "shadowslave:forging",
+  "name": "Iron Pickaxe",
+  "tier": 1,
+  "result": "minecraft:iron_pickaxe",
+  "materials": [
+    {
+      "item": "minecraft:iron_ingot",
+      "count": 3
+    },
+    {
+      "item": "minecraft:stick",
+      "count": 2
+    }
+  ],
+  "xp": 8,
+  "unlock": {
+    "type": "starter"
+  },
+  "forging": {
+    "heat_min": 900,
+    "heat_max": 1250,
+    "blows": 7,
+    "quench": true,
+    "quench_ticks": 28
+  }
+}

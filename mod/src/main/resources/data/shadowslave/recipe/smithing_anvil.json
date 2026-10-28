@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:anvil"
+    },
+    {
+      "item": "minecraft:smithing_table"
+    }
+  ],
+  "result": {
+    "id": "shadowslave:smithing_anvil",
+    "count": 1
+  }
+}

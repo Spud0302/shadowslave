@@ -20,12 +20,12 @@ import java.util.Optional;
 
 /**
  * Loads Weaving from data packs: {@code weaving/branch/*.json},
- * {@code weaving/recipe/*.json} and {@code weaving/rules.json}. A data pack
+ * {@code smithing/pattern/*.json} and {@code weaving/rules.json}. A data pack
  * can add, change or remove branches and patterns without code.
  */
 public final class WeavingContentLoader extends SimplePreparableReloadListener<WeavingContent> {
     private static final FileToIdConverter BRANCHES = FileToIdConverter.json("weaving/branch");
-    private static final FileToIdConverter RECIPES = FileToIdConverter.json("weaving/recipe");
+    private static final FileToIdConverter RECIPES = FileToIdConverter.json("smithing/pattern");
     private static final ResourceLocation RULES = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "weaving/rules.json");
 
     public static void onAddReloadListeners(AddReloadListenerEvent event) {

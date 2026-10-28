@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.ability;
 
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
+import dev.spud.shadowslave.smithing.SmithingService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
@@ -22,7 +23,8 @@ import java.util.Optional;
 
 /**
  * Forge's Dormant ability: smelt up to eight of whatever you hold, in your
- * bare hands, as a furnace would (Thrifty Hands applies). With nothing
+ * bare hands, as a furnace would (Thrifty Hands applies). A shaped blade in
+ * hand is quenched perfectly instead. With nothing
  * smeltable in hand the heat bursts outward instead, throwing back and
  * igniting hostile creatures close by, so a Forge is never defenceless in a
  * Gate.
@@ -52,6 +54,12 @@ public final class QuenchAbility implements AspectAbility {
     @Override
     public Activation activate(ServerPlayer player) {
         ServerLevel level = player.serverLevel();
+        if (SmithingService.quenchInHand(player)) {
+            level.sendParticles(ParticleTypes.CLOUD, player.getX(), player.getEyeY() - 0.4, player.getZ(), 20, 0.3, 0.2, 0.3, 0.02);
+            level.playSound(null, player.blockPosition(), SoundEvents.LAVA_EXTINGUISH, SoundSource.PLAYERS, 0.9F, 1.0F);
+            AbilityService.feedback(player, "Quenched in your hands, perfectly", ChatFormatting.GOLD);
+            return Activation.USED;
+        }
         ItemStack held = player.getMainHandItem();
         Optional<RecipeHolder<SmeltingRecipe>> recipe = held.isEmpty() ? Optional.empty()
                 : level.getRecipeManager().getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(held), level);

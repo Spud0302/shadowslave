@@ -48,7 +48,7 @@ public final class KitLadder {
     public static final AbilityVariant OVERFLOW = variant("overflow", "Overflow",
             "An aura for 20 seconds: you and allies near you regenerate health and essence.", "Support");
     public static final AbilityVariant MASTERWORK = variant("masterwork", "Masterwork",
-            "For a minute, your next weave may reach one Tier above your branch level.", "Craft");
+            "For a minute, the next billet you fuse may reach one Tier above your Forging level, with a wider hammer mark and one Quality grade higher.", "Craft");
     public static final AbilityVariant MOLTEN_EDGE = variant("molten_edge", "Molten Edge",
             "Your blows burn for 15 seconds: each hit sets the target alight and sears it.", "Force");
     public static final AbilityVariant VEIN_PULL = variant("vein_pull", "Vein Pull",

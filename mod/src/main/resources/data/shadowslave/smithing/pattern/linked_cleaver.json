@@ -20,5 +20,12 @@
   "unlock": {
     "type": "discover"
   },
-  "hint": "A heavy head hung on links, and an awakened soul to swing it."
+  "hint": "A heavy head hung on links, and an awakened soul to swing it.",
+  "forging": {
+    "heat_min": 900,
+    "heat_max": 1250,
+    "blows": 10,
+    "quench": true,
+    "quench_ticks": 32
+  }
 }
