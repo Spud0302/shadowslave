@@ -51,6 +51,7 @@
   "item.shadowslave.hollow_visage": "Hollow Visage",
   "item.shadowslave.hollow_edge": "Hollow Edge",
   "block.shadowslave.nightmare_seed": "Nightmare Seed",
+  "block.shadowslave.citadel_gateway": "Citadel Gateway",
   "entity.shadowslave.sleeping_body": "Sleeping Body",
   "entity.shadowslave.sleeping_body.of": "%s (dreaming)",
   "death.attack.shadowslave.severed_dream": "%1$s died in their sleep while dreaming",

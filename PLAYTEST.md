@@ -615,3 +615,49 @@ Tuning is data: `data/shadowslave/field_guide/rules.json` (ranges, cooldowns,
 explore radius, danger cell size, starting item on/off) and one page per
 creature in `data/shadowslave/field_guide/creature/*.json`. A Dream Realm
 region's baseline danger is its `danger` field.
+
+## Citadels and clans
+
+Added by claude-code, 2026-10-29. First slice: one kind of Citadel in the
+Ashen Expanse. Quick start: get into the Dream Realm (see above), then
+`/locate structure shadowslave:citadel`, or `/shadowslave citadel build` to
+raise one in front of you (operators).
+
+1. **Finding one.** Citadels are walled keeps that generate in the Dream
+   Realm on flat enough ground, roughly one per 32 x 32 chunks. Coming within
+   96 blocks logs one in your Field Guide as a keep-shaped pin.
+2. **The Guardian.** An unclaimed Citadel is held by a Guardian, an Ashen
+   Tyrant at the region's rank (Dormant in the Ashen Expanse). It stays inside
+   the walls and never despawns. Its Gateway, on the dais under the arch, is
+   **sealed** (red); using it tells you who holds it.
+3. **Conquering.** Kill the Guardian: "Citadel Conquered" shows and the
+   Gateway opens (violet). For the first 5 minutes only the slayer (or their
+   clan) may claim it; after that anyone can.
+4. **Claiming.** Use the open Gateway. If you have no clan you become a clan
+   of one ("<name>'s clan"). The Gateway turns pale blue and becomes your
+   Dream Anchor, so the next time you dream you arrive beside it. Lit Dream
+   Candles on the dais wake you as usual.
+5. **Clans.** `/clan` shows your clan, members and Citadels. `/clan create
+   <name>`, `/clan rename <name>`, `/clan invite <player>`, `/clan join
+   <name>` (needs an invite), `/clan leave`, `/clan kick <player>`,
+   `/clan list`. Only the leader invites, kicks and renames; if the leader
+   leaves, the longest-standing member leads. If the last member leaves, the
+   clan ends and its Citadels fall open (claimable by anyone). If a clan of
+   one joins another clan, its Citadels and board come along.
+6. **Anchoring.** Any member can use a claimed Gateway to anchor to it. Leave
+   the clan (or lose the Citadel) and the Gateway lets your anchor go: your
+   next crossing lights a fresh Dream Anchor over your bed.
+7. **Field Guide board.** When a member comes within 24 blocks of their
+   clan's Citadel (or uses its Gateway), their Field Guide and the clan's
+   board share what they know: creature pages, explored map, danger marks
+   and logged Gates, Seeds, warnings and Citadels. Your own named places stay
+   yours. The chat line says what you learned.
+
+Not in this slice: upkeep, upgrades, Gateway links, raids, PvP sieges and the
+Sovereign Domain.
+
+Tuning is data: `data/shadowslave/citadel/settings.json` (Guardian, guard
+radius, claim window, visit and log range, clan name length, Citadel names),
+`data/shadowslave/worldgen/structure/citadel.json` (size, slope, block
+palette) and `worldgen/structure_set/citadels.json` (spacing). Operators:
+`/shadowslave citadel status|build|list|conquer`.

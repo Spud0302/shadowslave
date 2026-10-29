@@ -1,0 +1,13 @@
+{
+ "variants": {
+  "state=sealed": {
+   "model": "shadowslave:block/citadel_gateway_sealed"
+  },
+  "state=open": {
+   "model": "shadowslave:block/citadel_gateway_open"
+  },
+  "state=claimed": {
+   "model": "shadowslave:block/citadel_gateway_claimed"
+  }
+ }
+}

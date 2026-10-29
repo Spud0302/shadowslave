@@ -30,7 +30,7 @@ public final class FieldGuideData {
     public static final int MAX_PINS = 128;
 
     public enum PinKind implements StringRepresentable {
-        PLACE("place"), WARNING("warning"), GATE("gate"), SEED("seed"), ANCHOR("anchor");
+        PLACE("place"), WARNING("warning"), GATE("gate"), SEED("seed"), ANCHOR("anchor"), CITADEL("citadel");
 
         public static final Codec<PinKind> CODEC = StringRepresentable.fromEnum(PinKind::values);
         private final String name;
@@ -42,6 +42,11 @@ public final class FieldGuideData {
         /** Whether the player placed it themselves (and so may remove it). */
         public boolean named() {
             return this == PLACE || this == WARNING;
+        }
+
+        /** Whether a clan's Field Guide board passes it on; a player's own marked places stay their own. */
+        public boolean shared() {
+            return this != PLACE && this != ANCHOR;
         }
 
         @Override
@@ -112,6 +117,32 @@ public final class FieldGuideData {
                     Codec.INT.optionalFieldOf("x", 0).forGetter(Saved::x),
                     Codec.INT.optionalFieldOf("z", 0).forGetter(Saved::z)
             ).apply(instance, Saved::new));
+        }
+
+        Creature copy() {
+            Creature copy = new Creature();
+            copy.sightings = sightings;
+            copy.kills = kills;
+            copy.ranksSeen = ranksSeen;
+            copy.lastSighting = lastSighting;
+            copy.lastDimension = lastDimension;
+            copy.lastX = lastX;
+            copy.lastZ = lastZ;
+            return copy;
+        }
+
+        /** Takes what another record of the same creature knows that this one does not. Returns whether anything changed. */
+        boolean learn(Creature other) {
+            boolean changed = other.sightings > sightings || other.kills > kills || (other.ranksSeen & ~ranksSeen) != 0;
+            sightings = Math.max(sightings, other.sightings);
+            kills = Math.max(kills, other.kills);
+            ranksSeen |= other.ranksSeen;
+            if (lastDimension.isEmpty() && !other.lastDimension.isEmpty()) {
+                lastDimension = other.lastDimension;
+                lastX = other.lastX;
+                lastZ = other.lastZ;
+            }
+            return changed;
         }
 
         static final Codec<Creature> CODEC = Saved.CODEC.xmap(saved -> {
@@ -265,6 +296,66 @@ public final class FieldGuideData {
 
     public boolean removePin(java.util.function.Predicate<Pin> which) {
         return pins.removeIf(which);
+    }
+
+    // Sharing
+
+    /** What one guide learned from another: new or fuller creature pages, newly mapped chunks, new pins. */
+    public record Learned(int pages, int chunks, int pins) {
+        public boolean any() {
+            return pages > 0 || chunks > 0 || pins > 0;
+        }
+    }
+
+    /**
+     * Learns everything {@code other} knows that this guide does not, as a
+     * clan's Field Guide board does (CANON, ch. 877: people anchored to the
+     * same Citadel share what they know when they visit it). Counts only
+     * grow, the map only fills in, and only shared pins pass over.
+     */
+    public Learned learnFrom(FieldGuideData other, int maxChunks) {
+        int pages = 0;
+        for (Map.Entry<ResourceLocation, Creature> entry : other.creatures.entrySet()) {
+            Creature mine = creatures.get(entry.getKey());
+            if (mine == null) {
+                creatures.put(entry.getKey(), entry.getValue().copy());
+                pages++;
+            } else if (mine.learn(entry.getValue())) {
+                pages++;
+            }
+        }
+        int chunks = 0;
+        for (Map.Entry<String, LinkedHashMap<Long, byte[]>> dimension : other.explored.entrySet()) {
+            for (Map.Entry<Long, byte[]> chunk : dimension.getValue().entrySet()) {
+                if (!explored(dimension.getKey(), chunk.getKey()) && explore(dimension.getKey(), chunk.getKey(), chunk.getValue(), maxChunks)) {
+                    chunks++;
+                }
+            }
+        }
+        other.danger.forEach((dimension, cells) -> cells.forEach((cell, marks) -> {
+            Map<Long, Integer> mine = danger.computeIfAbsent(dimension, key -> new HashMap<>());
+            int own = mine.getOrDefault(cell, 0);
+            int strongest = Math.max(own & 0xFF, marks & 0xFF);
+            mine.put(cell, strongest | (Math.max(deaths(own), deaths(marks)) << 8));
+        }));
+        int pinsAdded = 0;
+        for (Pin pin : other.pins) {
+            if (!pin.kind().shared() || pins.stream().anyMatch(mine -> samePlace(mine, pin))) {
+                continue;
+            }
+            if (!addPin(pin)) {
+                break;
+            }
+            pinsAdded++;
+        }
+        return new Learned(pages, chunks, pinsAdded);
+    }
+
+    private static boolean samePlace(Pin a, Pin b) {
+        if (a.ref().isPresent() || b.ref().isPresent()) {
+            return a.ref().equals(b.ref());
+        }
+        return a.kind() == b.kind() && a.dimension().equals(b.dimension()) && a.x() == b.x() && a.z() == b.z();
     }
 
     // Saving

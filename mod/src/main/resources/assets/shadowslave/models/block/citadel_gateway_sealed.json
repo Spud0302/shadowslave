@@ -1,0 +1,240 @@
+{
+ "parent": "block/block",
+ "ambientocclusion": false,
+ "textures": {
+  "particle": "shadowslave:block/citadel_gateway_stone",
+  "stone": "shadowslave:block/citadel_gateway_stone",
+  "runes": "shadowslave:block/citadel_gateway_runes",
+  "top": "shadowslave:block/citadel_gateway_top",
+  "veil": "shadowslave:block/citadel_gateway_veil_sealed"
+ },
+ "elements": [
+  {
+   "from": [
+    0,
+    0,
+    2
+   ],
+   "to": [
+    16,
+    2,
+    14
+   ],
+   "faces": {
+    "north": {
+     "texture": "#stone"
+    },
+    "south": {
+     "texture": "#stone"
+    },
+    "east": {
+     "texture": "#stone"
+    },
+    "west": {
+     "texture": "#stone"
+    },
+    "up": {
+     "texture": "#top"
+    },
+    "down": {
+     "texture": "#top"
+    }
+   }
+  },
+  {
+   "from": [
+    1,
+    2,
+    4
+   ],
+   "to": [
+    15,
+    4,
+    12
+   ],
+   "faces": {
+    "north": {
+     "texture": "#stone"
+    },
+    "south": {
+     "texture": "#stone"
+    },
+    "east": {
+     "texture": "#stone"
+    },
+    "west": {
+     "texture": "#stone"
+    },
+    "up": {
+     "texture": "#top"
+    },
+    "down": {
+     "texture": "#top"
+    }
+   }
+  },
+  {
+   "from": [
+    1,
+    4,
+    5
+   ],
+   "to": [
+    4,
+    14,
+    11
+   ],
+   "faces": {
+    "north": {
+     "texture": "#runes"
+    },
+    "south": {
+     "texture": "#runes"
+    },
+    "east": {
+     "texture": "#runes"
+    },
+    "west": {
+     "texture": "#runes"
+    },
+    "up": {
+     "texture": "#top"
+    },
+    "down": {
+     "texture": "#top"
+    }
+   }
+  },
+  {
+   "from": [
+    12,
+    4,
+    5
+   ],
+   "to": [
+    15,
+    14,
+    11
+   ],
+   "faces": {
+    "north": {
+     "texture": "#runes"
+    },
+    "south": {
+     "texture": "#runes"
+    },
+    "east": {
+     "texture": "#runes"
+    },
+    "west": {
+     "texture": "#runes"
+    },
+    "up": {
+     "texture": "#top"
+    },
+    "down": {
+     "texture": "#top"
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    14,
+    4
+   ],
+   "to": [
+    16,
+    16,
+    12
+   ],
+   "faces": {
+    "north": {
+     "texture": "#stone"
+    },
+    "south": {
+     "texture": "#stone"
+    },
+    "east": {
+     "texture": "#stone"
+    },
+    "west": {
+     "texture": "#stone"
+    },
+    "up": {
+     "texture": "#top"
+    },
+    "down": {
+     "texture": "#top"
+    }
+   }
+  },
+  {
+   "from": [
+    4,
+    4,
+    7.5
+   ],
+   "to": [
+    12,
+    14,
+    8.5
+   ],
+   "shade": false,
+   "faces": {
+    "north": {
+     "texture": "#veil",
+     "uv": [
+      0,
+      1,
+      16,
+      16
+     ],
+     "neoforge_data": {
+      "block_light": 6,
+      "sky_light": 6
+     }
+    },
+    "south": {
+     "texture": "#veil",
+     "uv": [
+      0,
+      1,
+      16,
+      16
+     ],
+     "neoforge_data": {
+      "block_light": 6,
+      "sky_light": 6
+     }
+    },
+    "up": {
+     "texture": "#veil",
+     "uv": [
+      0,
+      7,
+      16,
+      8
+     ],
+     "neoforge_data": {
+      "block_light": 6,
+      "sky_light": 6
+     }
+    },
+    "down": {
+     "texture": "#veil",
+     "uv": [
+      0,
+      7,
+      16,
+      8
+     ],
+     "neoforge_data": {
+      "block_light": 6,
+      "sky_light": 6
+     }
+    }
+   }
+  }
+ ]
+}

@@ -114,7 +114,7 @@ public final class DreamRealmGameTest {
         helper.succeed();
     }
 
-    static ServerPlayer dreamerInBed(GameTestHelper helper, boolean lit) {
+    public static ServerPlayer dreamerInBed(GameTestHelper helper, boolean lit) {
         for (int x = 0; x < 5; x++) {
             for (int z = 0; z < 5; z++) {
                 helper.setBlock(new BlockPos(x, 0, z), Blocks.STONE);

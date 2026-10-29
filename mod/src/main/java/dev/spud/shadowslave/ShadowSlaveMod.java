@@ -17,6 +17,12 @@ import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.awakening.DreamCandleRitual;
 import dev.spud.shadowslave.awakening.SoulSeaService;
 import dev.spud.shadowslave.block.ModBlocks;
+import dev.spud.shadowslave.citadel.CitadelCommands;
+import dev.spud.shadowslave.citadel.CitadelContentLoader;
+import dev.spud.shadowslave.citadel.CitadelRegistry;
+import dev.spud.shadowslave.citadel.CitadelService;
+import dev.spud.shadowslave.clan.ClanCommands;
+import dev.spud.shadowslave.clan.ClanService;
 import dev.spud.shadowslave.command.ShadowSlaveCommands;
 import dev.spud.shadowslave.creature.NightmareRules;
 import dev.spud.shadowslave.dreamrealm.DreamCommands;
@@ -24,10 +30,10 @@ import dev.spud.shadowslave.dreamrealm.DreamCrossing;
 import dev.spud.shadowslave.dreamrealm.DreamRealmCommands;
 import dev.spud.shadowslave.dreamrealm.DreamRealmContentLoader;
 import dev.spud.shadowslave.dreamrealm.DreamRealmRegistry;
-import dev.spud.shadowslave.dreamrealm.DreamRealmRules;
-import dev.spud.shadowslave.dreamrealm.seed.SeedService;
 import dev.spud.shadowslave.dreamrealm.DreamRealmResourceInteractionRuntime;
+import dev.spud.shadowslave.dreamrealm.DreamRealmRules;
 import dev.spud.shadowslave.dreamrealm.DreamRealmStoryNpcRuntime;
+import dev.spud.shadowslave.dreamrealm.seed.SeedService;
 import dev.spud.shadowslave.echo.EchoCommands;
 import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.fieldguide.FieldGuideContentLoader;
@@ -42,11 +48,11 @@ import dev.spud.shadowslave.memory.MemoryCommands;
 import dev.spud.shadowslave.network.ModPayloads;
 import dev.spud.shadowslave.network.SoulPlayerEvents;
 import dev.spud.shadowslave.nightmare.NightmareEvents;
+import dev.spud.shadowslave.smithing.SmithingRegistry;
+import dev.spud.shadowslave.smithing.SmithingService;
 import dev.spud.shadowslave.soul.core.CoreService;
 import dev.spud.shadowslave.soul.core.ShardDrops;
 import dev.spud.shadowslave.soul.refinement.RefinementService;
-import dev.spud.shadowslave.smithing.SmithingRegistry;
-import dev.spud.shadowslave.smithing.SmithingService;
 import dev.spud.shadowslave.weaving.WeavingCommands;
 import dev.spud.shadowslave.weaving.MemoryWeave;
 import dev.spud.shadowslave.weaving.StrandEffects;
@@ -80,8 +86,10 @@ public final class ShadowSlaveMod {
         SmithingRegistry.register(modEventBus);
         DreamRealmRegistry.register(modEventBus);
         FieldGuideRegistry.register(modEventBus);
+        CitadelRegistry.register(modEventBus);
         DreamRealmRules.bootstrap();
         SeedService.bootstrap();
+        CitadelService.bootstrap();
 
         if (physicalSide == Dist.DEDICATED_SERVER) {
             modEventBus.addListener(ModPayloads::registerDedicatedServer);
@@ -182,6 +190,13 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(FieldGuideService::onPlayerLoggedOut);
         NeoForge.EVENT_BUS.addListener(FieldGuideService::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(FieldGuideService::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(CitadelContentLoader::onAddReloadListeners);
+        NeoForge.EVENT_BUS.addListener(CitadelCommands::register);
+        NeoForge.EVENT_BUS.addListener(CitadelService::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(CitadelService::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(CitadelService::onPlayerLoggedOut);
+        NeoForge.EVENT_BUS.addListener(ClanCommands::register);
+        NeoForge.EVENT_BUS.addListener(ClanService::onPlayerLoggedIn);
         LOGGER.info("Shadow Slave Java core is loading");
     }
 }
