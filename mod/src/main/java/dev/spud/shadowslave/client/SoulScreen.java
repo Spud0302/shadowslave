@@ -90,7 +90,7 @@ public final class SoulScreen extends Screen {
     }
 
     /** Each Memory's place on its orbit at {@code time}, as x, y pairs. */
-    private int[][] spheres(int count, double time) {
+    int[][] spheres(int count, double time) {
         int[][] places = new int[count][2];
         int rx = Math.min(130, (right - left) / 2 - 30);
         int ry = Math.max(24, (bottom - seaY()) - 22);

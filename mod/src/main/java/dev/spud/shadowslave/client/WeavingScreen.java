@@ -241,6 +241,10 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
         int cx = this.leftPos + VIEW_X;
         int cy = this.topPos + VIEW_Y;
         long time = this.minecraft.level == null ? 0 : this.minecraft.level.getGameTime();
+        if (fusing) {
+            renderFuse(graphics, mouseX, mouseY);
+            return;
+        }
         ring(graphics, cx, cy, VIEW_RADIUS, SpellStyle.withAlpha(SpellStyle.RULE, 0.9F));
         ring(graphics, cx, cy, VIEW_RADIUS - 1, SpellStyle.withAlpha(SpellStyle.BORDER, 0.35F));
         boolean anchored = !this.menu.anchor().isEmpty();
@@ -249,10 +253,6 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
         graphics.fill(cx - 3, cy - 3, cx + 3, cy + 3, SpellStyle.withAlpha(glow, anchored ? 0.4F + pulse : 0.3F));
         graphics.fill(cx - 1, cy - 1, cx + 1, cy + 1, SpellStyle.withAlpha(glow, 0.95F));
 
-        if (fusing) {
-            renderFuse(graphics, mouseX, mouseY);
-            return;
-        }
         if (holdsThread()) {
             renderButton(graphics, mouseX, mouseY, LAY_BOX, "Lay the thread", true);
         }
@@ -330,9 +330,9 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
         graphics.drawString(this.font, "Each part at " + status().createShare() + "%", x, y, SpellStyle.MUTED, false);
         boolean ready = !fuseFirst.isEmpty() && !fuseSecond.isEmpty();
         renderButton(graphics, mouseX, mouseY, FUSE_BOX, "Fuse", ready);
-        graphics.drawString(this.font, dev.spud.shadowslave.weaving.StrandFusion.CREATE_ESSENCE + " essence to work out",
+        graphics.drawString(this.font, "Costs " + dev.spud.shadowslave.weaving.StrandFusion.CREATE_ESSENCE + " essence,",
                 this.leftPos + 50, this.topPos + 119, SpellStyle.MUTED, false);
-        graphics.drawString(this.font, "then trace it as usual", this.leftPos + 50, this.topPos + 128, SpellStyle.HINT, false);
+        graphics.drawString(this.font, "then trace it", this.leftPos + 50, this.topPos + 128, SpellStyle.HINT, false);
     }
 
     /** How many of the chosen strand's points the trace has passed in order, as the server will count them. */
@@ -772,6 +772,7 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
     }
 
     void selectForTest(String id, int tier, int tune) {
+        setFusing(false);
         this.selected = id;
         this.tier = tier;
         this.tune = tune;
