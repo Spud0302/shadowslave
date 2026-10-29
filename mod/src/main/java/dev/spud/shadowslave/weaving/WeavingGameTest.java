@@ -253,10 +253,11 @@ public final class WeavingGameTest {
     }
 
     @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room")
-    public static void forgingDataLoadsToLevelThree(GameTestHelper helper) {
+    public static void forgingDataLoadsToLevelSeven(GameTestHelper helper) {
         WeavingContent content = WeavingContent.current();
-        helper.assertTrue(content.branch(FORGING).map(WeavingBranch::maxLevel).orElse(0) == 3, "Forging has three levels");
-        helper.assertTrue(content.recipes().size() == 16, "sixteen Forging patterns: " + content.recipes().size());
+        helper.assertTrue(content.branch(FORGING).map(WeavingBranch::maxLevel).orElse(0) == 7, "Forging has seven levels");
+        helper.assertTrue(content.branch(StrandService.BINDING).map(WeavingBranch::maxLevel).orElse(0) == 7, "Binding loads with seven levels");
+        helper.assertTrue(content.recipes().size() == 18, "eighteen Forging patterns: " + content.recipes().size());
         helper.assertTrue(content.strands().size() == 14, "fourteen strands: " + content.strands().size());
         helper.assertTrue(content.branch(StrandService.PATTERNS).isPresent() && content.branch(StrandService.FORGERY).isPresent(),
                 "the Patterns and Forgery branches load");
