@@ -102,12 +102,15 @@ public final class StrandEffects {
                 continue;
             }
             for (WovenStrands.Laid laid : strands.strands()) {
-                Optional<StrandPattern> strand = content.strand(laid.id());
-                if (strand.isEmpty() || strand.get().effect().kind() != kind || !strand.get().fits(fit.get())
-                        || laid.restriction().filter(restriction -> !restriction.holds(holder)).isPresent()) {
+                if (laid.restriction().filter(restriction -> !restriction.holds(holder)).isPresent()) {
                     continue;
                 }
-                found.add(new Active(strand.get(), laid, stack, StrandRules.strength(strand.get(), laid)));
+                // A strand of a Weaver's own making works as each of its parts, at the fusing share.
+                for (StrandFusion.Part part : StrandFusion.parts(content, laid)) {
+                    if (part.strand().effect().kind() == kind && part.strand().fits(fit.get())) {
+                        found.add(new Active(part.strand(), part.laid(), stack, StrandRules.strength(part.strand(), part.laid()) * part.share()));
+                    }
+                }
             }
         }
         return found;
@@ -144,19 +147,21 @@ public final class StrandEffects {
         WeavingContent content = WeavingContent.current();
         for (int i = 0; i < strands.size(); i++) {
             WovenStrands.Laid laid = strands.strands().get(i);
-            Optional<StrandPattern> strand = content.strand(laid.id());
-            if (strand.isEmpty() || strand.get().effect().kind() != StrandPattern.Kind.ATTRIBUTE || !strand.get().fits(fit.get())) {
-                continue;
+            for (StrandFusion.Part part : StrandFusion.parts(content, laid)) {
+                StrandPattern strand = part.strand();
+                if (strand.effect().kind() != StrandPattern.Kind.ATTRIBUTE || !strand.fits(fit.get())) {
+                    continue;
+                }
+                Optional<Holder.Reference<Attribute>> attribute = strand.effect().attribute()
+                        .flatMap(id -> BuiltInRegistries.ATTRIBUTE.getHolder(ResourceKey.create(Registries.ATTRIBUTE, id)));
+                if (attribute.isEmpty()) {
+                    continue;
+                }
+                ResourceLocation modifier = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID,
+                        "strand/" + part.laid().id().getPath() + "/" + i);
+                event.addModifier(attribute.get(), new AttributeModifier(modifier, StrandRules.strength(strand, part.laid()) * part.share(),
+                        AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.bySlot(fit.get().slot()));
             }
-            Optional<Holder.Reference<Attribute>> attribute = strand.get().effect().attribute()
-                    .flatMap(id -> BuiltInRegistries.ATTRIBUTE.getHolder(ResourceKey.create(Registries.ATTRIBUTE, id)));
-            if (attribute.isEmpty()) {
-                continue;
-            }
-            ResourceLocation modifier = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID,
-                    "strand/" + laid.id().getPath() + "/" + i);
-            event.addModifier(attribute.get(), new AttributeModifier(modifier, StrandRules.strength(strand.get(), laid),
-                    AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.bySlot(fit.get().slot()));
         }
     }
 

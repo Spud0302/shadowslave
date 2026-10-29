@@ -13,7 +13,9 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.event.entity.item.ItemTossEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.Iterator;
@@ -61,7 +63,17 @@ public final class MemoryWeave {
     }
 
     public static int capacity(ServerPlayer player) {
-        return StrandRules.soulCapacity(SoulService.get(player).soulRank());
+        return StrandRules.soulCapacity(SoulService.get(player).soulRank(), perk(player, WeavingBranch.PerkKind.SOUL_CAPACITY));
+    }
+
+    static int perk(ServerPlayer player, WeavingBranch.PerkKind kind) {
+        return WeavingRules.perk(WeavingContent.current(), WeavingService.get(player), kind);
+    }
+
+    /** What summoning a Memory costs this player: nothing to a soul with no essence core yet, else a little essence. */
+    public static int summonCost(ServerPlayer player) {
+        return EssenceService.capacity(player) > 0
+                ? StrandRules.summonCost(StrandService.essencePercent(player), perk(player, WeavingBranch.PerkKind.SUMMON_DISCOUNT)) : 0;
     }
 
     // The Memory key
@@ -104,27 +116,51 @@ public final class MemoryWeave {
         if (memories.size() >= capacity(player)) {
             return tell(player, Outcome.REFUSED, "Your soul holds " + memories.size() + " Memories already. A higher Rank holds more.");
         }
-        setHeld(player, memories.with(hand));
+        ItemStack dismissed = hand.copy();
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        return sink(player, dismissed, " dissolves into your soul");
+    }
+
+    /** Takes a Memory into the soul, counts it toward any deed for holding many, and tells the player. */
+    private static Outcome sink(ServerPlayer player, ItemStack stack, String how) {
+        SoulMemories memories = held(player).with(stack);
+        setHeld(player, memories);
+        java.util.List<String> deeds = new java.util.ArrayList<>();
+        WeavingData data = WeavingRules.holdDeeds(WeavingContent.current(), WeavingService.get(player), memories.size(), deeds);
+        if (!deeds.isEmpty()) {
+            WeavingService.set(player, data);
+            deeds.forEach(deed -> player.sendSystemMessage(Component.literal("Deed done. " + deed)
+                    .withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.ITALIC)));
+        }
         player.level().playSound(null, player.blockPosition(), SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.PLAYERS, 0.8F, 1.4F);
-        return tell(player, Outcome.DISMISSED, name(hand) + " dissolves into your soul (" + (memories.size() + 1) + "/" + capacity(player) + ").");
+        WeavingService.sync(player);
+        return tell(player, Outcome.DISMISSED, name(stack) + how + " (" + memories.size() + "/" + capacity(player) + ").");
     }
 
     static Outcome summon(ServerPlayer player) {
+        return summon(player, held(player).size() - 1);
+    }
+
+    /** Summons the Memory at {@code index} in the soul's line, as the Soul screen's Memories page asks. */
+    public static Outcome summon(ServerPlayer player, int index) {
         SoulMemories memories = held(player);
-        ItemStack next = memories.next();
+        if (index < 0 || index >= memories.size()) {
+            return Outcome.NONE;
+        }
+        ItemStack next = memories.held().get(index);
         if (!player.getMainHandItem().isEmpty() && player.getInventory().getFreeSlot() < 0) {
             return tell(player, Outcome.REFUSED, "Your hands and pack are full.");
         }
         // A soul with no essence core yet calls its Memories for nothing; anyone else rebuilds them from essence.
-        int cost = EssenceService.capacity(player) > 0 ? StrandRules.discounted(StrandRules.SUMMON_ESSENCE, StrandService.essencePercent(player)) : 0;
+        int cost = summonCost(player);
         if (cost > 0 && !EssenceService.covers(player, cost)) {
             return tell(player, Outcome.REFUSED, "Summoning a Memory takes " + cost + " essence.");
         }
         if (cost > 0) {
             EssenceService.spend(player, cost);
         }
-        setHeld(player, memories.withoutNext());
+        setHeld(player, memories.without(index));
+        WeavingService.sync(player);
         ItemStack stack = next.copy();
         if (player.getMainHandItem().isEmpty()) {
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -167,6 +203,7 @@ public final class MemoryWeave {
     static void mend(ServerPlayer player) {
         SoulMemories memories = held(player);
         boolean paying = EssenceService.capacity(player) > 0;
+        int bonus = perk(player, WeavingBranch.PerkKind.MEND);
         boolean changed = false;
         for (ItemStack stack : memories.held()) {
             if (!stack.isDamaged()) {
@@ -178,11 +215,12 @@ public final class MemoryWeave {
                 }
                 EssenceService.spend(player, 1);
             }
-            stack.setDamageValue(Math.max(0, stack.getDamageValue() - StrandRules.mend(stack.getMaxDamage())));
+            stack.setDamageValue(Math.max(0, stack.getDamageValue() - StrandRules.mend(stack.getMaxDamage(), bonus)));
             changed = true;
         }
         if (changed) {
             setHeld(player, new SoulMemories(memories.held()));
+            WeavingService.sync(player);
         }
     }
 
@@ -247,6 +285,62 @@ public final class MemoryWeave {
             player.sendSystemMessage(Component.literal(kept == 1 ? "A Memory sinks into your soul as you fall."
                     : kept + " Memories sink into your soul as you fall.").withStyle(ChatFormatting.LIGHT_PURPLE));
         }
+    }
+
+    // Passing Memories on
+
+    /**
+     * A Memory is never dropped on the ground (lore: Memories pass hand to
+     * hand, ch. 54). Tossing one sends it back into the soul, or into the
+     * pack if the soul is full; only a Memory Bound to someone else falls.
+     */
+    public static void onToss(ItemTossEvent event) {
+        if (!(event.getPlayer() instanceof ServerPlayer player)) {
+            return;
+        }
+        ItemStack stack = event.getEntity().getItem();
+        if (!isMemory(stack) || !answers(stack, player)) {
+            return;
+        }
+        if (held(player).size() < capacity(player)) {
+            event.setCanceled(true);
+            sink(player, stack.copy(), " won't touch the ground and sinks back into your soul");
+        } else if (player.getInventory().add(stack.copy())) {
+            event.setCanceled(true);
+            tell(player, Outcome.REFUSED, "A Memory won't lie on the ground. Hand it over to another player instead.");
+        }
+    }
+
+    /**
+     * Handing a Memory over (lore: it takes touch, ch. 54): sneak and use
+     * another player while holding it, and it passes to their hands. A Memory
+     * Bound to you would not answer them, so it stays.
+     */
+    public static void onInteractPlayer(PlayerInteractEvent.EntityInteract event) {
+        if (!(event.getEntity() instanceof ServerPlayer giver) || !(event.getTarget() instanceof ServerPlayer taker)
+                || !giver.isShiftKeyDown() || event.getHand() != InteractionHand.MAIN_HAND) {
+            return;
+        }
+        ItemStack hand = giver.getMainHandItem();
+        if (!isMemory(hand)) {
+            return;
+        }
+        event.setCanceled(true);
+        event.setCancellationResult(net.minecraft.world.InteractionResult.SUCCESS);
+        if (isBound(hand) && hand.has(WeavingRegistry.BOUND_TO.get())) {
+            tell(giver, Outcome.REFUSED, name(hand) + " is Bound to " + bond(hand).map(BoundTo::name).orElse("someone")
+                    + " and would not answer " + taker.getGameProfile().getName() + ".");
+            return;
+        }
+        ItemStack given = hand.copy();
+        if (!taker.getInventory().add(given)) {
+            tell(giver, Outcome.REFUSED, taker.getGameProfile().getName() + "'s hands and pack are full.");
+            return;
+        }
+        giver.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        giver.level().playSound(null, taker.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.0F, 1.3F);
+        tell(giver, Outcome.SUMMONED, "You hand " + name(given) + " to " + taker.getGameProfile().getName() + ".");
+        tell(taker, Outcome.SUMMONED, giver.getGameProfile().getName() + " hands you " + name(given) + ".");
     }
 
     /** What a Memory reads as for the tooltip: empty for a piece that is not one. */

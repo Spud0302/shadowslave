@@ -47,18 +47,42 @@ public record WovenStrands(List<Laid> strands) {
      * @param potency     how cleanly it was traced, 1 to 100: the share of its Tier's strength it gives
      * @param restriction the condition it was tuned to, if any
      * @param weaver      who laid it
+     * @param fused       for a strand of a Weaver's own making, its name and the strands it fuses
      */
-    public record Laid(ResourceLocation id, int tier, int potency, Optional<StrandRestriction> restriction, String weaver) {
+    public record Laid(ResourceLocation id, int tier, int potency, Optional<StrandRestriction> restriction, String weaver,
+                       Optional<Fused> fused) {
         public static final Codec<Laid> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 ResourceLocation.CODEC.fieldOf("id").forGetter(Laid::id),
                 Codec.intRange(1, StrandRules.MAX_TIER).fieldOf("tier").forGetter(Laid::tier),
                 Codec.intRange(1, 100).fieldOf("potency").forGetter(Laid::potency),
                 StrandRestriction.CODEC.optionalFieldOf("restriction").forGetter(Laid::restriction),
-                Codec.STRING.optionalFieldOf("weaver", "").forGetter(Laid::weaver)
+                Codec.STRING.optionalFieldOf("weaver", "").forGetter(Laid::weaver),
+                Fused.CODEC.optionalFieldOf("fused").forGetter(Laid::fused)
         ).apply(instance, Laid::new));
 
+        public Laid(ResourceLocation id, int tier, int potency, Optional<StrandRestriction> restriction, String weaver) {
+            this(id, tier, potency, restriction, weaver, Optional.empty());
+        }
+
         public Laid withPotency(int potency) {
-            return new Laid(id, tier, Math.max(1, Math.min(100, potency)), restriction, weaver);
+            return new Laid(id, tier, Math.max(1, Math.min(100, potency)), restriction, weaver, fused);
+        }
+    }
+
+    /**
+     * A strand a Weaver made by fusing two learned ones (DESIGN, plan 2b:
+     * copy, tune, create). It carries both parts so it works, reads and
+     * teaches anywhere, and each part works at {@code share} percent.
+     */
+    public record Fused(String name, List<ResourceLocation> parts, int share) {
+        public static final Codec<Fused> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.fieldOf("name").forGetter(Fused::name),
+                ResourceLocation.CODEC.listOf().fieldOf("parts").forGetter(Fused::parts),
+                Codec.intRange(1, 100).fieldOf("share").forGetter(Fused::share)
+        ).apply(instance, Fused::new));
+
+        public Fused {
+            parts = List.copyOf(parts);
         }
     }
 }

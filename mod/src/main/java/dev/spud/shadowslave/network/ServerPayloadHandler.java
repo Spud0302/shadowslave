@@ -13,6 +13,8 @@ import dev.spud.shadowslave.echo.content.EchoContentCatalog;
 import dev.spud.shadowslave.fieldguide.FieldGuideService;
 import dev.spud.shadowslave.memory.MemoryManifestationService;
 import dev.spud.shadowslave.network.payload.MemoryKeyPayload;
+import dev.spud.shadowslave.network.payload.MemorySummonPayload;
+import dev.spud.shadowslave.network.payload.StrandCreatePayload;
 import dev.spud.shadowslave.network.payload.WeaveTracePayload;
 import dev.spud.shadowslave.network.payload.FieldGuidePinRequestPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
@@ -80,6 +82,20 @@ public final class ServerPayloadHandler {
         ServerPlayer player = serverPlayer(context, "Weaving trace");
         if (player != null) {
             dev.spud.shadowslave.weaving.WeavingService.weaveTrace(player, payload);
+        }
+    }
+
+    public static void handleMemorySummon(MemorySummonPayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "Memory summon");
+        if (player != null) {
+            dev.spud.shadowslave.weaving.MemoryWeave.summon(player, payload.index());
+        }
+    }
+
+    public static void handleStrandCreate(StrandCreatePayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "Strand create");
+        if (player != null) {
+            dev.spud.shadowslave.weaving.WeavingService.createStrand(player, payload);
         }
     }
 

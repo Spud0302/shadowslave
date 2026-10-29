@@ -1,0 +1,26 @@
+{
+  "branch": "shadowslave:forging",
+  "name": "Netherite Chestplate",
+  "tier": 4,
+  "result": "minecraft:netherite_chestplate",
+  "materials": [
+    {
+      "item": "minecraft:netherite_ingot",
+      "count": 2
+    },
+    {
+      "item": "minecraft:diamond",
+      "count": 6
+    }
+  ],
+  "xp": 60,
+  "unlock": {
+    "type": "starter"
+  },
+  "forging": {
+    "heat_min": 1250,
+    "heat_max": 1450,
+    "blows": 18,
+    "quench": false
+  }
+}

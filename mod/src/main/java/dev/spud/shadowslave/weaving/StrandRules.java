@@ -59,10 +59,15 @@ public final class StrandRules {
 
     /** How many strands a piece holds: its forged grade's threads, or one for any plain piece a strand fits. */
     public static int threads(Optional<Quality> forged, boolean fits) {
+        return threads(forged, 0, fits);
+    }
+
+    /** As {@link #threads(Optional, boolean)}, with the threads a master smith's hand added. */
+    public static int threads(Optional<Quality> forged, int extra, boolean fits) {
         if (!fits) {
             return 0;
         }
-        return forged.map(Quality::threads).orElse(1);
+        return forged.map(quality -> quality.threads() + Math.max(0, extra)).orElse(1);
     }
 
     // Caps
@@ -215,12 +220,27 @@ public final class StrandRules {
 
     /** How many Memories a soul can hold dismissed: three to an unranked or Dormant soul, two more for each Rank above. */
     public static int soulCapacity(Optional<SoulRank> rank) {
-        return 3 + 2 * rank.map(value -> Math.max(0, value.ordinal() - SoulRank.DORMANT.ordinal())).orElse(0);
+        return soulCapacity(rank, 0);
+    }
+
+    /** As above, with the Memories a Binding perk adds. */
+    public static int soulCapacity(Optional<SoulRank> rank, int extra) {
+        return 3 + 2 * rank.map(value -> Math.max(0, value.ordinal() - SoulRank.DORMANT.ordinal())).orElse(0) + Math.max(0, extra);
     }
 
     /** Durability one mend restores to a piece that can take {@code maxDamage}: a small share, never less than one. */
     public static int mend(int maxDamage) {
-        return Math.max(1, maxDamage * MEND_PERCENT / 100);
+        return mend(maxDamage, 0);
+    }
+
+    /** As above, mending {@code bonus} percent more (a Binding perk). */
+    public static int mend(int maxDamage, int bonus) {
+        return Math.max(1, maxDamage * MEND_PERCENT * (100 + Math.max(0, bonus)) / 10_000);
+    }
+
+    /** The essence a summon costs with a {@code discount} percent off, never below one. */
+    public static int summonCost(int percent, int discount) {
+        return Math.max(1, discounted(discounted(SUMMON_ESSENCE, percent), 100 - Math.min(100, Math.max(0, discount))));
     }
 
     /** XP for laying a strand: its XP times its Tier, five times over the first time (as patterns at the forge). */
@@ -234,10 +254,17 @@ public final class StrandRules {
      */
     public static WeavingRules.Credit credit(WeavingContent content, WeavingData data, ResourceLocation id, StrandPattern strand,
                                              int tier, ResourceLocation branch) {
+        return credit(content, data, id, strand, tier, branch, false);
+    }
+
+    /** As above; {@code tuned} says the strand was tied to a condition, which some deeds ask for. */
+    public static WeavingRules.Credit credit(WeavingContent content, WeavingData data, ResourceLocation id, StrandPattern strand,
+                                             int tier, ResourceLocation branch, boolean tuned) {
         int xp = xp(strand, tier, data.laid(id) == 0, content.settings().firstWeaveMultiplier());
         WeavingData next = data.withLaid(id).withXp(branch, xp);
         List<String> deeds = new ArrayList<>();
-        next = WeavingRules.advanceDeeds(content, next, branch, tier, deeds);
+        next = WeavingRules.advanceDeeds(content, next, branch, new WeavingBranch.Made(tier, Optional.of(id), Optional.empty(), tuned,
+                strand.effect().kind() == StrandPattern.Kind.FUSED), deeds);
         return new WeavingRules.Credit(next, xp, deeds);
     }
 

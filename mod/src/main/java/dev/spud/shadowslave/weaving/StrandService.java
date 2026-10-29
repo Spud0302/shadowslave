@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class StrandService {
     public static final ResourceLocation PATTERNS = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "patterns");
     public static final ResourceLocation FORGERY = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "forgery");
+    public static final ResourceLocation BINDING = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "binding");
     /** Forgery XP for each Tier of a strand unravelled, and for laying a thread. */
     static final int UNRAVEL_XP = 10;
     static final int LAY_XP = 5;
@@ -72,8 +73,18 @@ public final class StrandService {
     }
 
     static boolean knows(ServerPlayer player, ResourceLocation id) {
-        return WeavingContent.current().strand(id)
-                .map(strand -> StrandRules.knows(WeavingService.get(player).studied(), id, strand)).orElse(false);
+        return StrandFusion.known(WeavingContent.current(), WeavingService.get(player), id);
+    }
+
+    /** The strand a laid one is: from data, or for one of a Weaver's own making, built from what it carries. */
+    public static Optional<StrandPattern> pattern(WeavingContent content, WovenStrands.Laid laid) {
+        return laid.fused().isPresent() ? StrandFusion.pattern(content, laid.id(), laid.fused().get()) : content.strand(laid.id());
+    }
+
+    /** A laid strand's name: its own for a fused strand, else the data's, else its id. */
+    public static String name(WeavingContent content, WovenStrands.Laid laid) {
+        return laid.fused().map(WovenStrands.Fused::name)
+                .orElseGet(() -> content.strand(laid.id()).map(StrandPattern::name).orElse(laid.id().getPath()));
     }
 
     /** Whether the piece holds a strand of {@code kind}. */
@@ -98,7 +109,8 @@ public final class StrandService {
     /** How many strands a piece holds: its forged grade's threads, or one for a plain piece a strand fits. */
     public static int threads(ItemStack stack) {
         ForgedData forged = stack.get(SmithingRegistry.FORGED.get());
-        return StrandRules.threads(Optional.ofNullable(forged).map(ForgedData::quality), StrandFit.of(stack).isPresent());
+        return StrandRules.threads(Optional.ofNullable(forged).map(ForgedData::quality),
+                forged == null ? 0 : forged.extraThreads(), StrandFit.of(stack).isPresent());
     }
 
     public static WovenStrands strands(ItemStack stack) {
@@ -115,7 +127,8 @@ public final class StrandService {
         if (stack.isEmpty()) {
             return List.of();
         }
-        strands(stack).strands().stream().map(WovenStrands.Laid::id).filter(content.strands()::containsKey).forEach(found::add);
+        strands(stack).strands().stream().filter(laid -> content.strands().containsKey(laid.id()) || laid.fused().isPresent())
+                .map(WovenStrands.Laid::id).forEach(found::add);
         ResourceLocation item = BuiltInRegistries.ITEM.getKey(stack.getItem());
         List<ResourceLocation> enchantments = enchantments(stack);
         content.strands().forEach((id, strand) -> {
@@ -171,13 +184,20 @@ public final class StrandService {
     public static boolean study(ServerPlayer player, WeavingMenu menu, ResourceLocation strand, long held) {
         WeavingContent content = WeavingContent.current();
         WeavingData data = WeavingService.get(player);
-        Optional<StrandPattern> pattern = content.strand(strand);
+        // A strand another Weaver made is copied whole out of the piece that holds it (lore: Sunny copied weaves, ch. 2048).
+        Optional<WovenStrands.Fused> fused = strands(menu.centre()).strands().stream()
+                .filter(laid -> laid.id().equals(strand)).findFirst().flatMap(WovenStrands.Laid::fused);
+        Optional<StrandPattern> pattern = fused.isPresent() ? StrandFusion.pattern(content, strand, fused.get()) : content.strand(strand);
         if (pattern.isEmpty() || !teaches(content, menu.centre()).contains(strand)) {
             WeavingService.report(player, "There is no such weave in this piece.");
             return false;
         }
-        if (StrandRules.knows(data.studied(), strand, pattern.get())) {
+        if (StrandFusion.known(content, data, strand)) {
             WeavingService.report(player, "You already know " + pattern.get().name() + ".");
+            return false;
+        }
+        if (fused.isPresent() && data.created().size() >= StrandFusion.MAX_CREATED) {
+            WeavingService.report(player, "You keep " + StrandFusion.MAX_CREATED + " strands of your own already; there is no room for another.");
             return false;
         }
         if (held < StrandRules.STUDY_TICKS) {
@@ -193,7 +213,7 @@ public final class StrandService {
             return false;
         }
         pay(player, menu, payment.get());
-        WeavingService.set(player, data.withStudied(strand));
+        WeavingService.set(player, fused.isPresent() ? data.withCreated(strand, fused.get()) : data.withStudied(strand));
         WeavingService.report(player, "You pick " + pattern.get().name() + " out of the weave. You can trace it now.");
         player.level().playSound(null, player.blockPosition(), SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 0.8F, 1.3F);
         return true;
@@ -215,7 +235,7 @@ public final class StrandService {
     static Optional<String> lock(ServerPlayer player, WeavingMenu menu, ResourceLocation id, int tier,
                                  Optional<StrandRestriction> restriction) {
         WeavingContent content = WeavingContent.current();
-        Optional<StrandPattern> found = content.strand(id);
+        Optional<StrandPattern> found = StrandFusion.resolve(content, WeavingService.get(player), id);
         if (found.isEmpty() || !knows(player, id)) {
             return Optional.of("You haven't studied that strand.");
         }
@@ -231,6 +251,14 @@ public final class StrandService {
         WovenStrands laid = strands(piece);
         if (laid.strands().stream().anyMatch(existing -> existing.id().equals(id))) {
             return Optional.of("This piece already holds " + strand.name() + ".");
+        }
+        List<ResourceLocation> parts = Optional.ofNullable(WeavingService.get(player).created().get(id))
+                .map(WovenStrands.Fused::parts).orElse(List.of(id));
+        for (WovenStrands.Laid existing : laid.strands()) {
+            List<ResourceLocation> held = existing.fused().map(WovenStrands.Fused::parts).orElse(List.of(existing.id()));
+            if (held.stream().anyMatch(parts::contains)) {
+                return Optional.of("This piece already holds " + name(content, existing) + ", and a weave can't hold the same pattern twice.");
+            }
         }
         if (laid.size() >= threads(piece)) {
             return Optional.of("Every thread of this piece is taken. A finer forging holds more.");
@@ -257,11 +285,17 @@ public final class StrandService {
         if (restriction.isPresent() && (!strand.tunable() || patternsLevel(player) < 2)) {
             return Optional.of(strand.tunable() ? "Tuning a strand needs Patterns level 2." : strand.name() + " can't be tuned.");
         }
-        int material = strand.material().count(tier);
-        if (menu.materialAmounts().getOrDefault(strand.material().item(), 0) < material) {
-            return Optional.of("Spinning it takes " + material + " × " + itemName(strand.material().item()) + ".");
+        Map<ResourceLocation, Integer> held = menu.materialAmounts();
+        for (Map.Entry<ResourceLocation, Integer> material : strand.materials(tier).entrySet()) {
+            if (held.getOrDefault(material.getKey(), 0) < material.getValue()) {
+                return Optional.of("Spinning it takes " + materialText(strand.materials(tier)) + ".");
+            }
         }
         return Optional.empty();
+    }
+
+    static String materialText(Map<ResourceLocation, Integer> materials) {
+        return String.join(" and ", materials.entrySet().stream().map(entry -> entry.getValue() + " × " + itemName(entry.getKey())).toList());
     }
 
     static String itemName(ResourceLocation item) {
@@ -283,7 +317,8 @@ public final class StrandService {
             WeavingService.report(player, lock.get());
             return 0;
         }
-        StrandPattern strand = content.strand(id).orElseThrow();
+        WeavingData before = WeavingService.get(player);
+        StrandPattern strand = StrandFusion.resolve(content, before, id).orElseThrow();
         int cost = StrandRules.discounted(strand.essence().get(tier - 1), essencePercent(player));
         // The anchor shard itself stays to hold the strand; any others in the slot can be burned.
         Optional<StrandRules.Payment> payment = StrandRules.pay(cost, (int) EssenceService.current(player),
@@ -304,12 +339,14 @@ public final class StrandService {
         }
         int potency = StrandRules.potency(score);
         menu.anchor().shrink(1);
-        menu.takeMaterial(strand.material().item(), strand.material().count(tier));
+        strand.materials(tier).forEach(menu::takeMaterial);
         ItemStack piece = menu.centre();
         piece.set(WeavingRegistry.WOVEN_STRANDS.get(), strands(piece).with(
-                new WovenStrands.Laid(id, tier, potency, restriction, player.getGameProfile().getName())));
+                new WovenStrands.Laid(id, tier, potency, restriction, player.getGameProfile().getName(),
+                        Optional.ofNullable(before.created().get(id)))));
         menu.table().setChanged();
-        WeavingRules.Credit credit = StrandRules.credit(content, WeavingService.get(player), id, strand, tier, PATTERNS);
+        WeavingRules.Credit credit = StrandRules.credit(content, WeavingService.get(player), id, strand, tier, strand.branch(),
+                restriction.isPresent());
         WeavingService.set(player, credit.data());
         StringBuilder message = new StringBuilder(judged == StrandRules.Trace.CLEAN
                 ? strand.name() + " " + WeavingRules.tierName(tier) + " holds, clean and whole."
@@ -319,7 +356,7 @@ public final class StrandService {
         } else if (strand.effect().kind() == StrandPattern.Kind.BOUND) {
             message.append(" It will bond to the next hand that holds it.");
         }
-        message.append(" +").append(credit.xp()).append(" Patterns XP.");
+        message.append(" +").append(credit.xp()).append(' ').append(content.branchName(strand.branch())).append(" XP.");
         for (String deed : credit.deeds()) {
             message.append(" Deed done: ").append(deed).append('.');
         }
@@ -367,7 +404,7 @@ public final class StrandService {
         thread.set(WeavingRegistry.WOVEN_STRANDS.get(), new WovenStrands(List.of(strand.withPotency(StrandRules.unravelled(strand.potency(), forgery)))));
         menu.table().setItem(WeavingMenu.OUTPUT_SLOT, thread);
         WeavingService.set(player, WeavingService.get(player).withXp(FORGERY, UNRAVEL_XP * strand.tier()));
-        String name = WeavingContent.current().strand(strand.id()).map(StrandPattern::name).orElse(strand.id().getPath());
+        String name = name(content, strand);
         WeavingService.report(player, name + " comes loose as a Woven Thread" + (forgery >= 2 ? ", whole." : ", a little frayed."));
         player.level().playSound(null, player.blockPosition(), SoundEvents.WOOL_BREAK, SoundSource.PLAYERS, 1.0F, 0.8F);
         return true;
@@ -410,7 +447,7 @@ public final class StrandService {
             piece.set(WeavingRegistry.WOVEN_STRANDS.get(), rest);
         }
         menu.table().setChanged();
-        WeavingService.set(player, WeavingService.get(player).withXp(FORGERY, UNRAVEL_XP));
+        WeavingService.set(player, WeavingService.get(player).withXp(unbinding ? BINDING : FORGERY, UNRAVEL_XP));
         WeavingService.report(player, unbinding ? "The bond is cut. Anyone may wield it now." : "The Memory weave comes undone. It is only a piece again.");
         player.level().playSound(null, player.blockPosition(), SoundEvents.CHAIN_BREAK, SoundSource.PLAYERS, 1.0F, 0.8F);
         return true;
@@ -436,10 +473,10 @@ public final class StrandService {
             return false;
         }
         WovenStrands.Laid strand = carried.strands().getFirst();
-        Optional<StrandPattern> pattern = WeavingContent.current().strand(strand.id());
+        Optional<StrandPattern> pattern = pattern(WeavingContent.current(), strand);
         ItemStack piece = menu.centre();
         Optional<StrandFit> fit = StrandFit.of(piece);
-        String name = pattern.map(StrandPattern::name).orElse(strand.id().getPath());
+        String name = name(WeavingContent.current(), strand);
         if (pattern.isEmpty() || fit.isEmpty() || !pattern.get().fits(fit.get())) {
             WeavingService.report(player, fit.isEmpty() ? "Lay a weapon, tool or piece of armour in the centre."
                     : name + " doesn't suit " + fit.get().plural() + ".");
@@ -469,6 +506,65 @@ public final class StrandService {
         WeavingService.report(player, name + " is laid into the piece.");
         player.level().playSound(null, player.blockPosition(), SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.0F, 1.2F);
         return true;
+    }
+
+    // Create
+
+    /** The share each part of a strand this Weaver fuses works at; 0 until Patterns opens fusing. */
+    public static int createShare(ServerPlayer player) {
+        return WeavingRules.perk(WeavingContent.current(), WeavingService.get(player), WeavingBranch.PerkKind.CREATE);
+    }
+
+    /**
+     * Fuses learned strands {@code a} and {@code b} into one of the
+     * Weaver's own named {@code chosen} (DESIGN, plan 2b: at the top of
+     * Patterns you create). Burns a little essence, or shards from the
+     * anchor slot, and leaves a new strand to trace. Returns its id, or
+     * empty if nothing was made.
+     */
+    public static Optional<ResourceLocation> create(ServerPlayer player, WeavingMenu menu, ResourceLocation a, ResourceLocation b,
+                                                    String chosen) {
+        WeavingContent content = WeavingContent.current();
+        WeavingData data = WeavingService.get(player);
+        int share = createShare(player);
+        if (share <= 0) {
+            WeavingService.report(player, "Fusing strands of your own takes a deeper hand at Patterns.");
+            return Optional.empty();
+        }
+        if (!content.strand(a).map(strand -> StrandRules.knows(data.studied(), a, strand)).orElse(false)
+                || !content.strand(b).map(strand -> StrandRules.knows(data.studied(), b, strand)).orElse(false)) {
+            WeavingService.report(player, "Only strands you have studied can be fused.");
+            return Optional.empty();
+        }
+        Optional<String> problem = StrandFusion.check(content, a, b);
+        if (problem.isPresent()) {
+            WeavingService.report(player, problem.get());
+            return Optional.empty();
+        }
+        ResourceLocation id = StrandFusion.id(a, b, share);
+        if (data.created().containsKey(id)) {
+            WeavingService.report(player, "You already know " + data.created().get(id).name() + ".");
+            return Optional.empty();
+        }
+        if (data.created().size() >= StrandFusion.MAX_CREATED) {
+            WeavingService.report(player, "You keep " + StrandFusion.MAX_CREATED + " strands of your own already.");
+            return Optional.empty();
+        }
+        int cost = StrandRules.discounted(StrandFusion.CREATE_ESSENCE, essencePercent(player));
+        Optional<StrandRules.Payment> payment = StrandRules.pay(cost, (int) EssenceService.current(player),
+                menu.anchor().getCount(), anchorValue(menu.anchor()));
+        if (payment.isEmpty()) {
+            WeavingService.report(player, "Working out a fusion takes " + cost + " essence. Rest, or lay soul shards in the anchor slot to burn.");
+            return Optional.empty();
+        }
+        pay(player, menu, payment.get());
+        String name = StrandFusion.name(chosen, StrandFusion.defaultName(content.strand(a).orElseThrow().name(),
+                content.strand(b).orElseThrow().name()));
+        WeavingService.set(player, data.withCreated(id, new WovenStrands.Fused(name, List.of(a, b), share)));
+        WeavingService.report(player, "The two patterns run together into one: " + name
+                + ". It is yours now; trace it like any strand you know.");
+        player.level().playSound(null, player.blockPosition(), SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 1.0F, 0.6F);
+        return Optional.of(id);
     }
 
     public static void forget(UUID player) {

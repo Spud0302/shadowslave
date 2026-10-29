@@ -200,6 +200,8 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(StrandEffects::onChangeTarget);
         NeoForge.EVENT_BUS.addListener(MemoryWeave::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(MemoryWeave::onDrops);
+        NeoForge.EVENT_BUS.addListener(MemoryWeave::onToss);
+        NeoForge.EVENT_BUS.addListener(MemoryWeave::onInteractPlayer);
         NeoForge.EVENT_BUS.addListener(WeaveSight::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(DreamRealmContentLoader::onAddReloadListeners);
         NeoForge.EVENT_BUS.addListener(DreamCommands::register);

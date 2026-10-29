@@ -18,14 +18,55 @@ import java.util.List;
  * Weaving Table can teach, and what the last action did. Text is worded on
  * the server; item ids are named on the client.
  *
- * @param tierCap the highest strand Tier the soul and the Patterns branch allow, before the anchor's own cap
+ * @param tierCap     the highest strand Tier the soul and the Patterns branch allow, before the anchor's own cap
+ * @param createShare the share each part of a strand the player fuses works at, or 0 while fusing is closed to them
+ * @param soul        the Memories dismissed into the player's soul, for the Soul screen's Memories page
  */
 public record WeavingStatusPayload(int points, int xpTowardPoint, int xpPerPoint, boolean canRespec,
                                    List<Branch> branches, List<Pattern> patterns, List<Hint> hints,
                                    String lastResult, List<Strand> strands, List<Lesson> table,
-                                   int tierCap, int patternsLevel, int forgeryLevel) implements CustomPacketPayload {
+                                   int tierCap, int patternsLevel, int forgeryLevel, int createShare, Soul soul) implements CustomPacketPayload {
     public static final WeavingStatusPayload NONE = new WeavingStatusPayload(0, 0, 100, false, List.of(), List.of(), List.of(), "",
-            List.of(), List.of(), 1, 1, 1);
+            List.of(), List.of(), 1, 1, 1, 0, Soul.EMPTY);
+
+    /** One Tier of a strand: its essence and everything it is spun from. */
+    public record Cost(int essence, List<Material> materials) {
+        static final Codec<Cost> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.INT.fieldOf("essence").forGetter(Cost::essence),
+                Material.CODEC.listOf().fieldOf("materials").forGetter(Cost::materials)
+        ).apply(instance, Cost::new));
+    }
+
+    /**
+     * A Memory resting in the soul. {@code item} is its item id, named and
+     * drawn on the client; {@code name} is what it is called, {@code strands}
+     * its strands worded on the server, and {@code bound} whose it is, if Bound.
+     */
+    public record Memory(String item, String name, int damage, int maxDamage, String bound, List<String> strands) {
+        static final Codec<Memory> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.fieldOf("item").forGetter(Memory::item),
+                Codec.STRING.fieldOf("name").forGetter(Memory::name),
+                Codec.INT.fieldOf("damage").forGetter(Memory::damage),
+                Codec.INT.fieldOf("max_damage").forGetter(Memory::maxDamage),
+                Codec.STRING.fieldOf("bound").forGetter(Memory::bound),
+                Codec.STRING.listOf().fieldOf("strands").forGetter(Memory::strands)
+        ).apply(instance, Memory::new));
+    }
+
+    /** The soul's Memories, how many it can hold and what a summon costs. */
+    public record Soul(List<Memory> held, int capacity, int summonCost, int mendBonus) {
+        public static final Soul EMPTY = new Soul(List.of(), 3, 0, 0);
+        static final Codec<Soul> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Memory.CODEC.listOf().fieldOf("held").forGetter(Soul::held),
+                Codec.INT.fieldOf("capacity").forGetter(Soul::capacity),
+                Codec.INT.fieldOf("summon_cost").forGetter(Soul::summonCost),
+                Codec.INT.fieldOf("mend_bonus").forGetter(Soul::mendBonus)
+        ).apply(instance, Soul::new));
+
+        public Soul {
+            held = List.copyOf(held);
+        }
+    }
 
     /**
      * A strand the player has studied. {@code points} holds the anchor
@@ -33,7 +74,8 @@ public record WeavingStatusPayload(int points, int xpTowardPoint, int xpPerPoint
      * value per Tier.
      */
     public record Strand(String id, String name, String description, String fits, boolean tunable, String material,
-                         List<Integer> counts, List<Integer> essence, List<Float> points, int laid, String lock) {
+                         List<Integer> counts, List<Integer> essence, List<Float> points, int laid, String lock,
+                         List<Cost> costs, String fused) {
         static final Codec<Strand> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.STRING.fieldOf("id").forGetter(Strand::id),
                 Codec.STRING.fieldOf("name").forGetter(Strand::name),
@@ -45,8 +87,15 @@ public record WeavingStatusPayload(int points, int xpTowardPoint, int xpPerPoint
                 Codec.INT.listOf().fieldOf("essence").forGetter(Strand::essence),
                 Codec.FLOAT.listOf().fieldOf("points").forGetter(Strand::points),
                 Codec.INT.fieldOf("laid").forGetter(Strand::laid),
-                Codec.STRING.fieldOf("lock").forGetter(Strand::lock)
+                Codec.STRING.fieldOf("lock").forGetter(Strand::lock),
+                Cost.CODEC.listOf().fieldOf("costs").forGetter(Strand::costs),
+                Codec.STRING.fieldOf("fused").forGetter(Strand::fused)
         ).apply(instance, Strand::new));
+
+        /** Whether the player fused this one themselves (or copied another Weaver's), rather than learning it from data. */
+        public boolean own() {
+            return !fused.isEmpty();
+        }
 
         public int maxTier() {
             return essence.size();
@@ -62,14 +111,15 @@ public record WeavingStatusPayload(int points, int xpTowardPoint, int xpPerPoint
         ).apply(instance, Lesson::new));
     }
 
-    public record Branch(String name, int level, int maxLevel, int xp, String next, boolean canRaise) {
+    public record Branch(String name, int level, int maxLevel, int xp, String next, boolean canRaise, List<String> perks) {
         static final Codec<Branch> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.STRING.fieldOf("name").forGetter(Branch::name),
                 Codec.INT.fieldOf("level").forGetter(Branch::level),
                 Codec.INT.fieldOf("max").forGetter(Branch::maxLevel),
                 Codec.INT.fieldOf("xp").forGetter(Branch::xp),
                 Codec.STRING.fieldOf("next").forGetter(Branch::next),
-                Codec.BOOL.fieldOf("can_raise").forGetter(Branch::canRaise)
+                Codec.BOOL.fieldOf("can_raise").forGetter(Branch::canRaise),
+                Codec.STRING.listOf().fieldOf("perks").forGetter(Branch::perks)
         ).apply(instance, Branch::new));
     }
 
@@ -119,7 +169,9 @@ public record WeavingStatusPayload(int points, int xpTowardPoint, int xpPerPoint
             Lesson.CODEC.listOf().fieldOf("table").forGetter(WeavingStatusPayload::table),
             Codec.INT.fieldOf("tier_cap").forGetter(WeavingStatusPayload::tierCap),
             Codec.INT.fieldOf("patterns_level").forGetter(WeavingStatusPayload::patternsLevel),
-            Codec.INT.fieldOf("forgery_level").forGetter(WeavingStatusPayload::forgeryLevel)
+            Codec.INT.fieldOf("forgery_level").forGetter(WeavingStatusPayload::forgeryLevel),
+            Codec.INT.fieldOf("create_share").forGetter(WeavingStatusPayload::createShare),
+            Soul.CODEC.fieldOf("soul").forGetter(WeavingStatusPayload::soul)
     ).apply(instance, WeavingStatusPayload::new));
 
     public static final Type<WeavingStatusPayload> TYPE = new Type<>(

@@ -29,7 +29,8 @@ public final class SoulPages {
         ABILITIES("Abilities"),
         FLAW("Flaw"),
         SOUL("Soul"),
-        WEAVING("Weaving");
+        WEAVING("Weaving"),
+        MEMORIES("Memories");
 
         public final String label;
 
@@ -102,6 +103,7 @@ public final class SoulPages {
             case FLAW -> flaw(snapshot);
             case SOUL -> soul(snapshot, status, essence, core);
             case WEAVING -> weaving(weaving, itemName);
+            case MEMORIES -> memories(weaving.soul());
         };
     }
 
@@ -249,6 +251,9 @@ public final class SoulPages {
         for (WeavingStatusPayload.Branch branch : weaving.branches()) {
             entries.add(Entry.row(branch.name(), "Level " + branch.level() + " of " + branch.maxLevel() + "  ·  "
                     + branch.xp() + " XP", SpellStyle.TEXT));
+            if (!branch.perks().isEmpty()) {
+                entries.add(Entry.of(Style.BODY, String.join("  ·  ", branch.perks()), SpellStyle.ABILITY));
+            }
             entries.add(Entry.of(Style.BODY, branch.next(), SpellStyle.HINT));
         }
         entries.add(Entry.spacer());
@@ -274,6 +279,42 @@ public final class SoulPages {
             }
         }
         return entries;
+    }
+
+    /**
+     * The Memories page's words (lore: Memories rest in the Soul Sea as
+     * orbiting spheres, ch. 47). The screen draws the spheres themselves
+     * around these lines; this is what it says above and below them.
+     */
+    static List<Entry> memories(WeavingStatusPayload.Soul soul) {
+        List<Entry> entries = new ArrayList<>();
+        entries.add(Entry.row("Held", soul.held().size() + " of " + soul.capacity() + " Memories", SpellStyle.ASPECT));
+        entries.add(Entry.row("Summoning", soul.summonCost() == 0 ? "Free until your soul holds essence"
+                : soul.summonCost() + " essence each", SpellStyle.TEXT));
+        if (soul.mendBonus() > 0) {
+            entries.add(Entry.row("Mending", soul.mendBonus() + "% faster while they rest", SpellStyle.TEXT));
+        }
+        if (soul.held().isEmpty()) {
+            entries.add(Entry.spacer());
+            entries.add(Entry.of(Style.BODY, "Your Soul Sea is still. Dismiss a Memory with the Memory key and it will rest here, "
+                    + "mending, until you call it back.", SpellStyle.MUTED));
+        }
+        return entries;
+    }
+
+    /** A Memory's lines when hovered on the Memories page. */
+    public static List<String> memoryLines(WeavingStatusPayload.Memory memory) {
+        List<String> lines = new ArrayList<>();
+        lines.add(memory.name());
+        if (memory.maxDamage() > 0) {
+            lines.add("Durability " + (memory.maxDamage() - memory.damage()) + "/" + memory.maxDamage());
+        }
+        lines.addAll(memory.strands());
+        if (!memory.bound().isEmpty()) {
+            lines.add("Bound to " + memory.bound());
+        }
+        lines.add("Click to summon it");
+        return lines;
     }
 
     static String tier(int tier) {

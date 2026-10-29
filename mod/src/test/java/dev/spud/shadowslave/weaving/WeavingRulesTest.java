@@ -79,10 +79,10 @@ class WeavingRulesTest {
     @Test
     void forgingDataLoadsWithAssetsForEveryPattern() throws IOException {
         WeavingContent content = content();
-        assertEquals(3, content.branch(FORGING).orElseThrow().maxLevel());
-        assertEquals(16, content.recipes().size(), "eight creature patterns and eight plain metal ones");
+        assertEquals(7, content.branch(FORGING).orElseThrow().maxLevel());
+        assertEquals(18, content.recipes().size(), "eight creature patterns and ten plain metal ones");
         for (WeavingRecipe recipe : content.recipes().values()) {
-            assertTrue(content.tier(recipe) <= 3, recipe.result() + " fits under Forging level 3");
+            assertTrue(content.tier(recipe) <= (recipe.memory().isEmpty() ? 4 : 3), recipe.result() + " fits under its Forging level");
             if (recipe.memory().isEmpty()) {
                 assertEquals("minecraft", recipe.result().getNamespace(), "plain patterns make vanilla gear: " + recipe.result());
                 continue;
@@ -164,7 +164,7 @@ class WeavingRulesTest {
         assertEquals(1, fifth.deeds().size(), "the fifth Tier II weave earns the deed");
         data = fifth.data();
         assertEquals(3, WeavingRules.heldLevel(content, data, FORGING));
-        assertTrue(WeavingRules.next(content, data, FORGING).maxed());
+        assertEquals(4, WeavingRules.next(content, data, FORGING).level(), "level 4 is next, for points");
 
         data = WeavingRules.respec(data).orElseThrow();
         assertEquals(1, WeavingRules.heldLevel(content, data, FORGING), "level 3 hangs on level 2");
@@ -221,7 +221,7 @@ class WeavingRulesTest {
         List<String> texts = SoulPages.page(SoulPages.Tab.WEAVING, null, null, 0.0F, List.of(), null, status,
                 item -> item.substring(item.indexOf(':') + 1)).stream().map(SoulPages.Entry::text).toList();
         assertTrue(texts.contains("Forging, Tier III: mimic_husk, ?, ?, ?"), texts.toString());
-        assertTrue(texts.contains("Patterns you know: 11"), texts.toString());
+        assertTrue(texts.contains("Patterns you know: 13"), texts.toString());
         assertTrue(texts.stream().anyMatch(text -> text.startsWith("Level 2 costs 1 point")), texts.toString());
     }
 }

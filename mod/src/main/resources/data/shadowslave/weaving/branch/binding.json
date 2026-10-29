@@ -1,0 +1,75 @@
+{
+  "name": "Binding",
+  "description": "The Memory weave and Bound: making pieces into Memories, and how the soul keeps them.",
+  "levels": [
+    {},
+    {
+      "cost": 1,
+      "perks": [
+        {
+          "type": "soul_capacity",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "deed": {
+        "type": "weave",
+        "strand": "shadowslave:memory_weave",
+        "count": 3,
+        "description": "Lay the Memory weave into three pieces"
+      },
+      "perks": [
+        {
+          "type": "mend",
+          "amount": 50
+        }
+      ]
+    },
+    {
+      "cost": 2,
+      "perks": [
+        {
+          "type": "summon_discount",
+          "amount": 50
+        }
+      ]
+    },
+    {
+      "deed": {
+        "type": "hold",
+        "count": 5,
+        "description": "Hold five Memories in your soul at once"
+      },
+      "perks": [
+        {
+          "type": "soul_capacity",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "cost": 3,
+      "perks": [
+        {
+          "type": "mend",
+          "amount": 50
+        }
+      ]
+    },
+    {
+      "deed": {
+        "type": "weave",
+        "strand": "shadowslave:bound",
+        "count": 3,
+        "description": "Bind three Memories"
+      },
+      "perks": [
+        {
+          "type": "soul_capacity",
+          "amount": 2
+        }
+      ]
+    }
+  ]
+}

@@ -44,7 +44,8 @@ public final class WeavingClientEvents {
             lines.add(Component.literal("Lay it into a piece at a Weaving Table").withStyle(ChatFormatting.DARK_GRAY));
         } else {
             ForgedData forged = stack.get(SmithingRegistry.FORGED.get());
-            int threads = StrandRules.threads(Optional.ofNullable(forged).map(ForgedData::quality), StrandFit.of(stack).isPresent());
+            int threads = StrandRules.threads(Optional.ofNullable(forged).map(ForgedData::quality),
+                forged == null ? 0 : forged.extraThreads(), StrandFit.of(stack).isPresent());
             StrandText.describe(strands, threads, lines);
             memoryLines(stack, strands, lines);
         }

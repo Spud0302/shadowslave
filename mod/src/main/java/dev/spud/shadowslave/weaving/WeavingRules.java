@@ -217,11 +217,18 @@ public final class WeavingRules {
 
     /** Credits one finished piece of {@code id}. The Forge hearth lays the billet; this pays once it is done. */
     public static Credit credit(WeavingContent content, WeavingData data, ResourceLocation id, Boons boons) {
+        return credit(content, data, id, boons, Optional.empty());
+    }
+
+    /** As {@link #credit(WeavingContent, WeavingData, ResourceLocation, Boons)}, with the grade the piece was forged at. */
+    public static Credit credit(WeavingContent content, WeavingData data, ResourceLocation id, Boons boons,
+                                Optional<dev.spud.shadowslave.smithing.Quality> quality) {
         WeavingRecipe recipe = content.recipes().get(id);
         int xp = boons.xp(recipe.branch(), recipe.xp() * (data.woven(id) == 0 ? content.settings().firstWeaveMultiplier() : 1));
         WeavingData next = data.withWoven(id).withXp(recipe.branch(), xp);
         List<String> deeds = new ArrayList<>();
-        next = advanceDeeds(content, next, recipe.branch(), content.tier(recipe), deeds);
+        next = advanceDeeds(content, next, recipe.branch(),
+                new WeavingBranch.Made(content.tier(recipe), Optional.empty(), quality, false, false), deeds);
         return new Credit(next, xp, deeds);
     }
 
@@ -255,6 +262,12 @@ public final class WeavingRules {
 
     /** Counts one piece of {@code tier} made in a branch toward its deeds, listing any it earns in {@code earned}. */
     static WeavingData advanceDeeds(WeavingContent content, WeavingData data, ResourceLocation branchId, int tier, List<String> earned) {
+        return advanceDeeds(content, data, branchId, WeavingBranch.Made.tier(tier), earned);
+    }
+
+    /** Counts one thing made in a branch toward the deeds it fits, listing any it earns in {@code earned}. */
+    static WeavingData advanceDeeds(WeavingContent content, WeavingData data, ResourceLocation branchId, WeavingBranch.Made made,
+                                    List<String> earned) {
         Optional<WeavingBranch> found = content.branch(branchId);
         if (found.isEmpty()) {
             return data;
@@ -262,8 +275,7 @@ public final class WeavingRules {
         WeavingBranch branch = found.get();
         for (int number = 2; number <= branch.maxLevel(); number++) {
             Optional<WeavingBranch.Deed> deed = branch.level(number).deed();
-            if (deed.isEmpty() || data.hasDeed(branchId, number)
-                    || deed.get().kind() != WeavingBranch.Deed.Kind.WEAVE || tier < deed.get().minTier()) {
+            if (deed.isEmpty() || data.hasDeed(branchId, number) || !deed.get().counts(made)) {
                 continue;
             }
             int progress = data.deedProgress(branchId, number) + 1;
@@ -274,6 +286,62 @@ public final class WeavingRules {
             }
         }
         return data;
+    }
+
+    /**
+     * Marks every {@code hold} deed whose count {@code held} reaches, in any
+     * branch. Progress is the most held at once so far.
+     */
+    public static WeavingData holdDeeds(WeavingContent content, WeavingData data, int held, List<String> earned) {
+        for (Map.Entry<ResourceLocation, WeavingBranch> entry : content.branches().entrySet()) {
+            WeavingBranch branch = entry.getValue();
+            for (int number = 2; number <= branch.maxLevel(); number++) {
+                Optional<WeavingBranch.Deed> deed = branch.level(number).deed();
+                if (deed.isEmpty() || deed.get().kind() != WeavingBranch.Deed.Kind.HOLD || data.hasDeed(entry.getKey(), number)
+                        || held <= data.deedProgress(entry.getKey(), number)) {
+                    continue;
+                }
+                boolean done = held >= deed.get().count();
+                data = data.withDeedProgress(entry.getKey(), number, held, done);
+                if (done) {
+                    earned.add(branch.name() + " level " + number + ": " + deed.get().description());
+                }
+            }
+        }
+        return data;
+    }
+
+    // Perks
+
+    /**
+     * What every held level's perks of {@code kind} come to, across all
+     * branches: the sum, or for {@code create} the highest single amount.
+     */
+    public static int perk(WeavingContent content, WeavingData data, WeavingBranch.PerkKind kind) {
+        int total = 0;
+        for (Map.Entry<ResourceLocation, WeavingBranch> entry : content.branches().entrySet()) {
+            int held = heldLevel(content, data, entry.getKey());
+            for (int number = 1; number <= held; number++) {
+                for (WeavingBranch.Perk perk : entry.getValue().level(number).perks()) {
+                    if (perk.kind() == kind) {
+                        total = kind == WeavingBranch.PerkKind.CREATE ? Math.max(total, perk.amount()) : total + perk.amount();
+                    }
+                }
+            }
+        }
+        return total;
+    }
+
+    /** Every perk a branch's level gives, worded for the screen: "+1 Memory held in the soul". */
+    public static String perkText(WeavingBranch.Perk perk) {
+        int amount = perk.amount();
+        return switch (perk.kind()) {
+            case SOUL_CAPACITY -> "+" + amount + (amount == 1 ? " Memory" : " Memories") + " held in the soul";
+            case SUMMON_DISCOUNT -> "Summoning costs " + amount + "% less essence";
+            case MEND -> "Dismissed Memories mend " + amount + "% faster";
+            case CREATE -> "Fuse two strands into one of your own (" + amount + "% each)";
+            case EXTRA_THREAD -> "Pieces you forge hold " + amount + (amount == 1 ? " more thread" : " more threads");
+        };
     }
 
     /**

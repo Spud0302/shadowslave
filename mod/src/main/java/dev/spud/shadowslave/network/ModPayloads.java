@@ -24,6 +24,8 @@ import dev.spud.shadowslave.network.payload.ToggleAshCompassRequestPayload;
 import dev.spud.shadowslave.network.payload.UseAbilityRequestPayload;
 import dev.spud.shadowslave.network.payload.WaymarkPayload;
 import dev.spud.shadowslave.network.payload.MemoryKeyPayload;
+import dev.spud.shadowslave.network.payload.MemorySummonPayload;
+import dev.spud.shadowslave.network.payload.StrandCreatePayload;
 import dev.spud.shadowslave.network.payload.WeaveTracePayload;
 import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -133,6 +135,16 @@ public final class ModPayloads {
                 MemoryKeyPayload.TYPE,
                 MemoryKeyPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleMemoryKey
+        );
+        registrar.playToServer(
+                MemorySummonPayload.TYPE,
+                MemorySummonPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleMemorySummon
+        );
+        registrar.playToServer(
+                StrandCreatePayload.TYPE,
+                StrandCreatePayload.STREAM_CODEC,
+                ServerPayloadHandler::handleStrandCreate
         );
         registrar.playToServer(
                 FieldGuidePinRequestPayload.TYPE,

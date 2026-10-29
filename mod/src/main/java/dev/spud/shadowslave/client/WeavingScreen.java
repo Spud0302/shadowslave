@@ -61,6 +61,12 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
     private int traceFade;
     private int studying = -1;
     private long studyStart;
+    /** Fusing two known strands into one of your own (Patterns, high levels): the two picked, in order. */
+    private boolean fusing;
+    private String fuseFirst = "";
+    private String fuseSecond = "";
+    private net.minecraft.client.gui.components.EditBox fuseName;
+    private static final int[] FUSE_BOX = {60, 102, 156, 102 + BUTTON_HEIGHT};
 
     public WeavingScreen(WeavingMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -89,6 +95,41 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
         }
         branch = Math.min(branch, branches.size() - 1);
         return branches.get(branch);
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        fuseName = new net.minecraft.client.gui.components.EditBox(this.font, this.leftPos + 50, this.topPos + 80, 118, 14,
+                Component.literal("Name"));
+        fuseName.setMaxLength(dev.spud.shadowslave.weaving.StrandFusion.NAME_LENGTH);
+        fuseName.setHint(Component.literal("Name it (optional)").withStyle(ChatFormatting.DARK_GRAY));
+        fuseName.visible = fusing;
+        addRenderableWidget(fuseName);
+    }
+
+    private Optional<WeavingStatusPayload.Strand> known(String id) {
+        return status().strands().stream().filter(strand -> strand.id().equals(id)).findFirst();
+    }
+
+    private int[] fuseToggleBox() {
+        int x = RIGHT_LEFT + 8;
+        int width = this.imageWidth - RIGHT_LEFT - 16;
+        int y = knownTop() - 2;
+        return new int[]{x + width - 34, y, x + width, y + 11};
+    }
+
+    private void setFusing(boolean on) {
+        fusing = on;
+        fuseFirst = "";
+        fuseSecond = "";
+        if (fuseName != null) {
+            fuseName.visible = on;
+            fuseName.setValue("");
+            fuseName.setFocused(false);
+        }
+        selected = "";
+        trace.clear();
     }
 
     private Optional<WeavingStatusPayload.Strand> chosen() {
@@ -133,7 +174,7 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
         WovenStrands strands = centreStrands();
         for (int i = 0; i < strands.size() && rows.size() < WeavingMenu.MAX_LISTED; i++) {
             WovenStrands.Laid laid = strands.strands().get(i);
-            rows.add(new PieceRow(i, -1, StrandText.name(laid.id()).copy().append(" " + WeavingRules.tierName(laid.tier()))));
+            rows.add(new PieceRow(i, -1, StrandText.name(laid).copy().append(" " + WeavingRules.tierName(laid.tier()))));
         }
         List<WeavingStatusPayload.Lesson> table = status().table();
         for (int i = 0; i < table.size() && rows.size() < WeavingMenu.MAX_LISTED; i++) {
@@ -200,6 +241,10 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
         int cx = this.leftPos + VIEW_X;
         int cy = this.topPos + VIEW_Y;
         long time = this.minecraft.level == null ? 0 : this.minecraft.level.getGameTime();
+        if (fusing) {
+            renderFuse(graphics, mouseX, mouseY);
+            return;
+        }
         ring(graphics, cx, cy, VIEW_RADIUS, SpellStyle.withAlpha(SpellStyle.RULE, 0.9F));
         ring(graphics, cx, cy, VIEW_RADIUS - 1, SpellStyle.withAlpha(SpellStyle.BORDER, 0.35F));
         boolean anchored = !this.menu.anchor().isEmpty();
@@ -250,8 +295,7 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
             String tuneLabel = restriction().map(value -> value.getSerializedName().substring(0, 1).toUpperCase()
                     + value.getSerializedName().substring(1)).orElse("Untuned");
             renderButton(graphics, mouseX, mouseY, TUNE_BOX, tuneLabel, canTune(strand));
-            String cost = strand.essence().get(tier - 1) + " essence · " + strand.counts().get(tier - 1) + " × "
-                    + SoulScreen.itemName(strand.material());
+            String cost = costText(strand, tier);
             int line = 0;
             for (FormattedCharSequence text : this.font.split(Component.literal(cost), 96)) {
                 if (line++ < 2) {
@@ -259,6 +303,36 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
                 }
             }
         }
+    }
+
+    /** "30 essence · 1 × Chainback Link, 1 × Mimic Husk" for one Tier. */
+    private static String costText(WeavingStatusPayload.Strand strand, int tier) {
+        if (strand.costs().size() < tier) {
+            return strand.essence().get(tier - 1) + " essence · " + strand.counts().get(tier - 1) + " × " + SoulScreen.itemName(strand.material());
+        }
+        WeavingStatusPayload.Cost cost = strand.costs().get(tier - 1);
+        return cost.essence() + " essence · " + String.join(", ", cost.materials().stream()
+                .map(material -> material.count() + " × " + SoulScreen.itemName(material.item())).toList());
+    }
+
+    /** The fusing view: the two strands picked from the list, a name, and the button that fuses them. */
+    private void renderFuse(GuiGraphics graphics, int mouseX, int mouseY) {
+        int x = this.leftPos + 50;
+        int y = this.topPos + 22;
+        graphics.drawString(this.font, "Fuse two strands", x, y, SpellStyle.TITLE, false);
+        y += 12;
+        String first = known(fuseFirst).map(WeavingStatusPayload.Strand::name).orElse("Pick a strand you know");
+        String second = known(fuseSecond).map(WeavingStatusPayload.Strand::name).orElse(fuseFirst.isEmpty() ? "…then another" : "Pick a second strand");
+        graphics.drawString(this.font, fit("1  " + first, 118), x, y, fuseFirst.isEmpty() ? SpellStyle.HINT : SpellStyle.ABILITY, false);
+        y += 11;
+        graphics.drawString(this.font, fit("2  " + second, 118), x, y, fuseSecond.isEmpty() ? SpellStyle.HINT : SpellStyle.ABILITY, false);
+        y += 13;
+        graphics.drawString(this.font, "Each part at " + status().createShare() + "%", x, y, SpellStyle.MUTED, false);
+        boolean ready = !fuseFirst.isEmpty() && !fuseSecond.isEmpty();
+        renderButton(graphics, mouseX, mouseY, FUSE_BOX, "Fuse", ready);
+        graphics.drawString(this.font, "Costs " + dev.spud.shadowslave.weaving.StrandFusion.CREATE_ESSENCE + " essence,",
+                this.leftPos + 50, this.topPos + 119, SpellStyle.MUTED, false);
+        graphics.drawString(this.font, "then trace it", this.leftPos + 50, this.topPos + 128, SpellStyle.HINT, false);
     }
 
     /** How many of the chosen strand's points the trace has passed in order, as the server will count them. */
@@ -393,6 +467,13 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
         }
         int knownY = this.topPos + knownTop();
         graphics.drawString(this.font, "Strands you know", x, knownY, SpellStyle.ASPECT, false);
+        if (status.createShare() > 0) {
+            int[] box = fuseToggleBox();
+            boolean over = inside(mouseX, mouseY, box);
+            String label = fusing ? "Done" : "Fuse";
+            graphics.drawString(this.font, label, this.leftPos + box[2] - this.font.width(label), this.topPos + box[1] + 2,
+                    over || fusing ? SpellStyle.TEXT : SpellStyle.HINT, false);
+        }
         List<WeavingStatusPayload.Strand> known = status.strands();
         for (int i = 0; i < known.size(); i++) {
             WeavingStatusPayload.Strand strand = known.get(i);
@@ -401,12 +482,14 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
                 break;
             }
             boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= rowY - 1 && mouseY < rowY + ROW - 1;
-            boolean picked = strand.id().equals(selected);
+            boolean picked = fusing ? strand.id().equals(fuseFirst) || strand.id().equals(fuseSecond) : strand.id().equals(selected);
             if (hovered || picked) {
                 graphics.fill(x - 2, rowY - 2, x + width + 2, rowY + ROW - 2,
                         SpellStyle.withAlpha(picked ? SpellStyle.ASPECT : SpellStyle.BORDER, picked ? 0.2F : 0.25F));
             }
-            graphics.drawString(this.font, strand.name(), x, rowY, strand.lock().isEmpty() ? SpellStyle.TEXT : SpellStyle.HINT, false);
+            boolean dim = !strand.lock().isEmpty() || (fusing && strand.own());
+            graphics.drawString(this.font, fit((strand.own() ? "✦ " : "") + strand.name(), width - 24), x, rowY,
+                    dim ? SpellStyle.HINT : strand.own() ? SpellStyle.ASPECT : SpellStyle.TEXT, false);
             int reach = Math.max(1, Math.min(strand.maxTier(), status.tierCap()));
             String tiers = reach == 1 ? "I" : "I-" + WeavingRules.tierName(reach);
             graphics.drawString(this.font, tiers, x + width - this.font.width(tiers), rowY, SpellStyle.ABILITY, false);
@@ -446,9 +529,11 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
                 lines.add(Component.literal(strand.name()).withStyle(ChatFormatting.LIGHT_PURPLE));
                 lines.add(Component.literal(strand.description()).withStyle(ChatFormatting.GRAY));
                 lines.add(Component.literal("Suits " + strand.fits()).withStyle(ChatFormatting.AQUA));
+                if (strand.own()) {
+                    lines.add(Component.literal("Fused: " + strand.fused()).withStyle(ChatFormatting.DARK_PURPLE));
+                }
                 for (int tierIndex = 0; tierIndex < strand.maxTier(); tierIndex++) {
-                    lines.add(Component.literal("Tier " + WeavingRules.tierName(tierIndex + 1) + ": " + strand.essence().get(tierIndex)
-                            + " essence, " + strand.counts().get(tierIndex) + " × " + SoulScreen.itemName(strand.material()))
+                    lines.add(Component.literal("Tier " + WeavingRules.tierName(tierIndex + 1) + ": " + costText(strand, tierIndex + 1))
                             .withStyle(ChatFormatting.DARK_AQUA));
                 }
                 if (!strand.lock().isEmpty()) {
@@ -502,6 +587,35 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 0 && status().createShare() > 0 && inside(mouseX, mouseY, fuseToggleBox())) {
+            setFusing(!fusing);
+            click();
+            return true;
+        }
+        if (fusing && button == 0) {
+            if (inside(mouseX, mouseY, FUSE_BOX) && !fuseFirst.isEmpty() && !fuseSecond.isEmpty()) {
+                click();
+                PacketDistributor.sendToServer(new dev.spud.shadowslave.network.payload.StrandCreatePayload(fuseFirst, fuseSecond,
+                        fuseName.getValue()));
+                setFusing(false);
+                return true;
+            }
+            int knownY = this.topPos + knownTop();
+            List<WeavingStatusPayload.Strand> known = status().strands();
+            int x = this.leftPos + RIGHT_LEFT + 8;
+            int width = this.imageWidth - RIGHT_LEFT - 16;
+            for (int i = 0; i < known.size() && mouseX >= x - 2 && mouseX < x + width + 2; i++) {
+                int rowY = knownY + 12 + i * ROW;
+                if (mouseY >= rowY - 1 && mouseY < rowY + ROW - 1) {
+                    pickForFuse(known.get(i));
+                    return true;
+                }
+            }
+            if (fuseName.isMouseOver(mouseX, mouseY)) {
+                return super.mouseClicked(mouseX, mouseY, button);
+            }
+            fuseName.setFocused(false);
+        }
         WeavingStatusPayload.Branch current = currentBranch();
         Optional<WeavingStatusPayload.Strand> chosen = chosen();
         if (button == 0 && holdsThread() && inside(mouseX, mouseY, LAY_BOX)) {
@@ -611,6 +725,44 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
+    /** Picks a strand for the fusion: the first click fills the first part, the next the second; clicking a picked one drops it. */
+    private void pickForFuse(WeavingStatusPayload.Strand strand) {
+        if (strand.own()) {
+            return;
+        }
+        if (strand.id().equals(fuseFirst)) {
+            fuseFirst = fuseSecond;
+            fuseSecond = "";
+        } else if (strand.id().equals(fuseSecond)) {
+            fuseSecond = "";
+        } else if (fuseFirst.isEmpty()) {
+            fuseFirst = strand.id();
+        } else {
+            fuseSecond = strand.id();
+        }
+        click();
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (fusing && fuseName.isFocused()) {
+            if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) {
+                fuseName.setFocused(false);
+                return true;
+            }
+            return fuseName.keyPressed(keyCode, scanCode, modifiers) || fuseName.canConsumeInput() || super.keyPressed(keyCode, scanCode, modifiers);
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    /** Lets the screenshot rig open the fusing view with two strands picked and a name typed. */
+    void fuseForTest(String first, String second, String name) {
+        setFusing(true);
+        fuseFirst = first;
+        fuseSecond = second;
+        fuseName.setValue(name);
+    }
+
     /** Lets the screenshot rig and tests draw a trace without a mouse. */
     void traceForTest(List<float[]> points) {
         trace.clear();
@@ -620,6 +772,7 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
     }
 
     void selectForTest(String id, int tier, int tune) {
+        setFusing(false);
         this.selected = id;
         this.tier = tier;
         this.tune = tune;

@@ -676,6 +676,40 @@ rebuilt from essence, and mends itself).
 - **Tide** quenches in any water: use a shaped, hot blade on a water source
   for a perfect quench, no trough needed.
 
+## Weaving depth: your own strands, level 7, the Soul Sea
+
+Added by claude-code, 2026-10-29 (Run G).
+
+1. **Fusing a strand of your own** (Patterns 5). At the Weaving Table, press
+   **Fuse** beside "Strands you know", click two strands that suit the same
+   kind of piece, type a name (or keep the suggested one, such as "Dragging
+   Cut") and press **Fuse** (40 essence). The new strand shows in your list
+   with a ✦ and works like any other: trace it, choose its Tier, weave it. It
+   takes one thread and does both parts at 70% each (85% at Patterns 7). It
+   costs both parts' essence and materials and needs the higher Rank. You can
+   keep 12 of your own. Anyone who studies a piece holding it learns it too.
+   The tooltip shows "fused: A + B · 70% each".
+2. **Seven levels.** Forging, Patterns and the new **Binding** branch (Memory
+   weave and Bound XP, plus unbinding) each go to level 7. Deeds sit at levels
+   3, 5 and 7 and the other levels cost points. The Soul screen's Weaving tab
+   lists what each held level gives and what the next one would.
+   - Forging: 3 five Tier II pieces, 5 three Superior pieces, 7 a Masterwork.
+     Forging 7 makes every piece you forge hold one more thread.
+   - Patterns: 5 three tuned strands (unlocks fusing), 7 three Tier II strands
+     of your own (85% share).
+   - Binding: more Memories held in the soul, faster mending while dismissed,
+     cheaper summoning. Its deeds are three Memory weaves (3), holding five
+     Memories at once (5) and three Bound pieces (7).
+3. **The Soul Sea.** The Soul screen has a **Memories** tab (key 6). Your
+   dismissed Memories orbit there with their durability. Hover one to read it
+   and click it to summon that one into your hand.
+4. **Memories don't drop.** Tossing a Memory (Q) sends it back into your soul,
+   or into your inventory if the soul is full. To hand one to another player,
+   hold it, sneak and use it on them. A piece Bound to someone else can't be
+   handed over.
+5. Two Tier 4 smithing patterns (netherite sword and chestplate) start known,
+   heat 1250–1450°.
+
 ## Field Guide and map
 
 Added by claude-code, 2026-10-23. First slice: creature pages, the map, places,
