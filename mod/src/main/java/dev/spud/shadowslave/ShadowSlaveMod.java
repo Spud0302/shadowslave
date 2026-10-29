@@ -47,6 +47,11 @@ import dev.spud.shadowslave.soul.core.ShardDrops;
 import dev.spud.shadowslave.soul.refinement.RefinementService;
 import dev.spud.shadowslave.smithing.SmithingRegistry;
 import dev.spud.shadowslave.smithing.SmithingService;
+import dev.spud.shadowslave.trial.EchoSites;
+import dev.spud.shadowslave.trial.TrialCommands;
+import dev.spud.shadowslave.trial.TrialRules;
+import dev.spud.shadowslave.trial.TrialService;
+import dev.spud.shadowslave.trial.content.TrialContentLoader;
 import dev.spud.shadowslave.weaving.WeavingCommands;
 import dev.spud.shadowslave.weaving.MemoryWeave;
 import dev.spud.shadowslave.weaving.StrandEffects;
@@ -57,6 +62,7 @@ import dev.spud.shadowslave.weaving.WeavingService;
 import dev.spud.shadowslave.world.entity.DrownedBellListenerEntityAdapter;
 import dev.spud.shadowslave.world.entity.NightmareCreatureEntities;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
@@ -82,6 +88,7 @@ public final class ShadowSlaveMod {
         FieldGuideRegistry.register(modEventBus);
         DreamRealmRules.bootstrap();
         SeedService.bootstrap();
+        TrialRules.bootstrap();
 
         if (physicalSide == Dist.DEDICATED_SERVER) {
             modEventBus.addListener(ModPayloads::registerDedicatedServer);
@@ -172,11 +179,22 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(DreamCommands::register);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onRightClickBlock);
+        // Ahead of the Dream Realm's own login hook: a challenger is put back where they entered before they wake.
+        NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, TrialService::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onPlayerLoggedOut);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onChangedDimension);
         NeoForge.EVENT_BUS.addListener(SeedService::onServerTick);
+        NeoForge.EVENT_BUS.addListener(TrialContentLoader::onAddReloadListeners);
+        NeoForge.EVENT_BUS.addListener(TrialCommands::register);
+        NeoForge.EVENT_BUS.addListener(TrialService::onServerTick);
+        NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, TrialService::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(TrialService::onPlayerLoggedOut);
+        NeoForge.EVENT_BUS.addListener(TrialService::onChangedDimension);
+        NeoForge.EVENT_BUS.addListener(TrialService::onNameFormat);
+        NeoForge.EVENT_BUS.addListener(TrialService::onTabListNameFormat);
+        NeoForge.EVENT_BUS.addListener(EchoSites::onServerTick);
         NeoForge.EVENT_BUS.addListener(FieldGuideContentLoader::onAddReloadListeners);
         NeoForge.EVENT_BUS.addListener(FieldGuideService::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(FieldGuideService::onPlayerLoggedOut);

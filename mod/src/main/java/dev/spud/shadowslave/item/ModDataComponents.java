@@ -25,6 +25,12 @@ public final class ModDataComponents {
                     .persistent(Unit.CODEC)
                     .networkSynchronized(StreamCodec.unit(Unit.INSTANCE)));
 
+    /** Marks an item a Nightmare role started with: it cannot leave the Nightmare. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> NIGHTMARE_BOUND =
+            COMPONENTS.registerComponentType("nightmare_bound", builder -> builder
+                    .persistent(Unit.CODEC)
+                    .networkSynchronized(StreamCodec.unit(Unit.INSTANCE)));
+
     private ModDataComponents() {
     }
 

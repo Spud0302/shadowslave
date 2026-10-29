@@ -11,6 +11,9 @@ import dev.spud.shadowslave.gate.GateEvent;
 import dev.spud.shadowslave.gate.GateForecast;
 import dev.spud.shadowslave.gate.GateService;
 import dev.spud.shadowslave.gate.GateTrigger;
+import dev.spud.shadowslave.trial.TrialService;
+import dev.spud.shadowslave.trial.content.EchoSite;
+import dev.spud.shadowslave.trial.content.TrialContent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -155,6 +158,48 @@ public final class SeedService {
         return Optional.of(seed);
     }
 
+    /**
+     * Plants a Seed at an echo site, whatever the spacing to other Seeds: the
+     * site's weight sets its Category and its Nightmare waits inside. Returns
+     * empty if the ground cannot hold it or no region covers it.
+     */
+    public static Optional<SeedData.Seed> plantAtEcho(ServerLevel realm, BlockPos pos, ResourceLocation site) {
+        SeedData data = SeedData.get(realm);
+        BlockPos below = pos.below();
+        if (!realm.getBlockState(pos).canBeReplaced() || !realm.getFluidState(pos).isEmpty()
+                || !realm.getBlockState(below).isFaceSturdy(realm, below, Direction.UP)) {
+            return Optional.empty();
+        }
+        Optional<Map.Entry<ResourceLocation, DreamRegion>> region = DreamRealmContent.get().regionAt(pos);
+        if (region.isEmpty()) {
+            return Optional.empty();
+        }
+        SeedData.Seed seed = new SeedData.Seed(UUID.randomUUID(), pos, region.get().getKey());
+        seed.echoSite = site;
+        data.seeds.add(seed);
+        data.setDirty();
+        realm.setBlockAndUpdate(pos, DreamRealmRegistry.NIGHTMARE_SEED.get().defaultBlockState());
+        realm.sendParticles(ParticleTypes.REVERSE_PORTAL, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 40, 0.3, 0.4, 0.3, 0.05);
+        return Optional.of(seed);
+    }
+
+    /** Removes a Seed for good, as when its Nightmare is conquered. Returns false if it was already gone. */
+    public static boolean spend(ServerLevel realm, UUID id) {
+        SeedData data = SeedData.get(realm);
+        Optional<SeedData.Seed> seed = data.byId(id);
+        if (seed.isEmpty()) {
+            return false;
+        }
+        data.seeds.remove(seed.get());
+        data.setDirty();
+        if (realm.getBlockState(seed.get().pos).is(DreamRealmRegistry.NIGHTMARE_SEED.get())) {
+            realm.removeBlock(seed.get().pos, false);
+        }
+        realm.sendParticles(ParticleTypes.END_ROD, seed.get().pos.getX() + 0.5, seed.get().pos.getY() + 0.5,
+                seed.get().pos.getZ() + 0.5, 40, 0.4, 0.6, 0.4, 0.06);
+        return true;
+    }
+
     // ---- growing and blooming ------------------------------------------------------------------------------------
 
     /** Grows every Seed by {@code points} (hundredths of a tick) and blooms the ripe ones. */
@@ -264,6 +309,10 @@ public final class SeedService {
     }
 
     static GateForecast forecast(SeedData.Seed seed) {
+        Optional<Integer> echoCategory = seed.echoSite().flatMap(TrialContent.get()::site).map(TrialContent.get()::category);
+        if (echoCategory.isPresent()) {
+            return GateForecast.certain(echoCategory.get());
+        }
         return DreamRealmContent.get().region(seed.region).map(DreamRegion::seedForecast).orElse(GateForecast.certain(1));
     }
 
@@ -283,6 +332,17 @@ public final class SeedService {
         int percent = DreamRealmRules.seedGrowthPercent(player.server);
         String bloom = percent <= 0 ? "it is not growing"
                 : "it blooms in about " + describeTime(left * 100 / percent);
+        Optional<EchoSite> site = seed.echoSite().flatMap(TrialContent.get()::site);
+        if (site.isPresent()) {
+            DreamCrossing.spell(player, Component.literal("A Nightmare Seed of " + site.get().displayName() + ". Category "
+                    + TrialContent.get().category(site.get()) + ".").withStyle(ChatFormatting.DARK_PURPLE));
+            if (!site.get().lore().isEmpty()) {
+                DreamCrossing.spell(player, Component.literal(site.get().lore()));
+            }
+            DreamCrossing.spell(player, Component.literal("Growth " + (settings.stage(seed.grownTicks()) + 1) + " of " + DreamSeedSettings.STAGES
+                    + "; " + bloom + ". Sneak and use it to challenge its Nightmare."));
+            return;
+        }
         DreamCrossing.spell(player, Component.literal("A Nightmare Seed of " + region + ". " + forecast(seed).describeOdds() + ".")
                 .withStyle(ChatFormatting.DARK_PURPLE));
         DreamCrossing.spell(player, Component.literal("Growth " + (settings.stage(seed.grownTicks()) + 1) + " of " + DreamSeedSettings.STAGES
@@ -312,6 +372,10 @@ public final class SeedService {
             return false;
         }
         SeedData.Seed seed = found.get();
+        if (seed.echoSite().isPresent()) {
+            // A Seed at an echo site holds a hand-made Nightmare, not a Gate.
+            return TrialService.challenge(player, realm, seed);
+        }
         int stage = DreamRealmContent.get().seeds().stage(seed.grownTicks());
         Optional<GateEvent> gate = GateService.open(realm, pos.below(), GateTrigger.SEED_CLEANSE, forecast(seed), seed.id);
         if (gate.isEmpty()) {

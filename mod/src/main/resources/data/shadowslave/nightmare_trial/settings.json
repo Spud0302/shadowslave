@@ -1,0 +1,16 @@
+{
+  "category_weights": {"1": 0, "2": 30, "3": 60, "4": 80, "5": 95},
+  "gather_seconds": 15,
+  "join_range": 12,
+  "site_notice_range": 96,
+  "site_seed_chance": 0.5,
+  "kill_points": {"dormant": 2, "awakened": 5, "fallen": 10, "corrupted": 20, "great": 40},
+  "solo_bonus": 25,
+  "unbroken_bonus": 10,
+  "grades": [
+    {"name": "Passable", "min": 0},
+    {"name": "Commendable", "min": 60},
+    {"name": "Admirable", "min": 100},
+    {"name": "Glorious", "min": 150}
+  ]
+}
