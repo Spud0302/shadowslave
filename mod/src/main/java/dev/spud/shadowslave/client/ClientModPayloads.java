@@ -6,6 +6,8 @@ import dev.spud.shadowslave.network.payload.AbilityCastPayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
+import dev.spud.shadowslave.network.payload.CallingFrequencyPayload;
+import dev.spud.shadowslave.network.payload.SpellCallingsPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
@@ -95,6 +97,16 @@ public final class ClientModPayloads {
                 FieldGuideMapPayload.TYPE,
                 FieldGuideMapPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleFieldGuideMap
+        );
+        registrar.playToClient(
+                SpellCallingsPayload.TYPE,
+                SpellCallingsPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleSpellCallings
+        );
+        registrar.playToServer(
+                CallingFrequencyPayload.TYPE,
+                CallingFrequencyPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleCallingFrequency
         );
         registrar.playToServer(
                 WeaveTracePayload.TYPE,

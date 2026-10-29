@@ -1,0 +1,11 @@
+{
+  "record_cap": 2000,
+  "check_ticks": 40,
+  "core_nearly_full": 0.9,
+  "core_reset": 0.5,
+  "seed_range": 48,
+  "citadel_range": 96,
+  "idle_minutes": 90,
+  "callings_kept": 64,
+  "gap_seconds": {"rare": 600, "normal": 120, "often": 30}
+}

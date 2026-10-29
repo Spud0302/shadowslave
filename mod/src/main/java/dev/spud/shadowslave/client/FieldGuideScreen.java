@@ -22,11 +22,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The Field Guide: a parchment book with three tabs. Creatures lists every
+ * The Field Guide: a parchment book with four tabs. Creatures lists every
  * page the player has started and shows only what they have learned. Map is
  * the waking world, filled in only where they have been, with toggleable
  * layers. Dream Realm is the same map of the Dream Realm, where each Seed
- * pin also says where its Gate would open in the waking world.
+ * pin also says where its Gate would open in the waking world. Callings keeps
+ * every Calling the Spell has made to the player, newest first, with how often
+ * they want them.
  */
 public class FieldGuideScreen extends Screen {
     static final int WIDTH = 360;
@@ -42,7 +44,7 @@ public class FieldGuideScreen extends Screen {
     static final float[] ZOOMS = {0.125F, 0.25F, 0.5F, 1.0F, 2.0F};
 
     enum Tab {
-        CREATURES("Creatures"), MAP("Map"), DREAM("Dream Realm");
+        CREATURES("Creatures"), MAP("Map"), DREAM("Dream Realm"), CALLINGS("Callings");
 
         final String label;
 
@@ -56,7 +58,8 @@ public class FieldGuideScreen extends Screen {
     private int pageScroll;
     private final double[] centreX = new double[Tab.values().length];
     private final double[] centreZ = new double[Tab.values().length];
-    private final int[] zoom = {2, 2, 2};
+    private final int[] zoom = {2, 2, 2, 2};
+    private int callingsScroll;
     private final boolean[] centred = new boolean[Tab.values().length];
     private boolean dragging;
     private EditBox pinName;
@@ -118,12 +121,13 @@ public class FieldGuideScreen extends Screen {
         switch (tab) {
             case CREATURES -> drawCreatures(graphics, mouseX, mouseY);
             case MAP, DREAM -> drawMap(graphics, mouseX, mouseY);
+            case CALLINGS -> drawCallings(graphics, mouseX, mouseY);
         }
         if (pending) {
             drawPinPrompt(graphics, mouseX, mouseY);
         }
         super.render(graphics, mouseX, mouseY, partialTick);
-        if (tab != Tab.CREATURES && !pending) {
+        if (isMap() && !pending) {
             drawMapTooltip(graphics, mouseX, mouseY);
         }
     }
@@ -260,6 +264,61 @@ public class FieldGuideScreen extends Screen {
             return "Nether";
         }
         return dimension;
+    }
+
+    // Callings tab
+
+    private boolean isMap() {
+        return tab == Tab.MAP || tab == Tab.DREAM;
+    }
+
+    private String frequencyLabel() {
+        return "Callings: " + SpellClientConfig.frequency().displayName();
+    }
+
+    private boolean overFrequency(double mouseX, double mouseY) {
+        int w = font.width(frequencyLabel()) + 12;
+        int x = left() + WIDTH - 8 - w;
+        int y = top() + HEIGHT - 20;
+        return mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + 14;
+    }
+
+    private void drawCallings(GuiGraphics graphics, int mouseX, int mouseY) {
+        int x = left() + 12;
+        int w = WIDTH - 24;
+        int top = top() + 24;
+        int bottom = top() + HEIGHT - 24;
+        List<dev.spud.shadowslave.network.payload.SpellCallingsPayload.Entry> heard = ClientCallingsState.heard();
+        if (heard.isEmpty()) {
+            graphics.drawString(font, "No Callings yet", x, top + 4, INK_MUTED, false);
+            drawWrapped(graphics, "Now and then the Spell calls to the Awakened: when a core is nearly full, when a Seed "
+                    + "of the Nightmare they need grows near, when they reach a new region, or when a Citadel stands unclaimed. "
+                    + "What it says is kept here.", x, top + 18, w, INK);
+        } else {
+            graphics.enableScissor(x - 2, top, x + w + 2, bottom);
+            int y = top + 4 - callingsScroll;
+            for (dev.spud.shadowslave.network.payload.SpellCallingsPayload.Entry entry : heard) {
+                String heading = "Day " + entry.day() + (entry.title().isEmpty() ? "" : "  \u00B7  " + entry.title());
+                graphics.drawString(font, heading, x, y, ACCENT, false);
+                y = drawWrapped(graphics, "\u201C" + entry.text() + "\u201D", x + 6, y + 11, w - 6, INK) + 3;
+                graphics.fill(x, y, x + w, y + 1, RULE);
+                y += 5;
+            }
+            graphics.disableScissor();
+            int overflow = (y + callingsScroll) - bottom;
+            callingsScroll = Math.max(0, Math.min(callingsScroll, Math.max(0, overflow + 4)));
+        }
+        graphics.fill(left() + 6, bottom + 1, left() + WIDTH - 6, bottom + 2, RULE);
+        graphics.drawString(font, heard.size() == 1 ? "1 Calling heard" : heard.size() + " Callings heard",
+                x, top() + HEIGHT - 16, INK_MUTED, false);
+        String label = frequencyLabel();
+        int bw = font.width(label) + 12;
+        int bx = left() + WIDTH - 8 - bw;
+        int by = top() + HEIGHT - 20;
+        boolean hover = overFrequency(mouseX, mouseY);
+        graphics.fill(bx, by, bx + bw, by + 14, hover ? 0xFFE3D6B4 : PAGE_SHADE);
+        graphics.renderOutline(bx, by, bw, 14, RULE);
+        graphics.drawString(font, label, bx + 6, by + 3, INK, false);
     }
 
     // Map tabs
@@ -650,6 +709,14 @@ public class FieldGuideScreen extends Screen {
             }
             return super.mouseClicked(mouseX, mouseY, button);
         }
+        if (tab == Tab.CALLINGS) {
+            if (overFrequency(mouseX, mouseY)) {
+                SpellClientConfig.setFrequency(SpellClientConfig.frequency().next());
+                click();
+                return true;
+            }
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
         if (pending) {
             String choice = promptButtonAt(mouseX, mouseY);
             if (choice != null) {
@@ -710,7 +777,7 @@ public class FieldGuideScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (dragging && tab != Tab.CREATURES) {
+        if (dragging && isMap()) {
             int i = tab.ordinal();
             float scale = ZOOMS[zoom[i]];
             centreX[i] -= dragX / scale;
@@ -722,6 +789,10 @@ public class FieldGuideScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (tab == Tab.CALLINGS) {
+            callingsScroll = Math.max(0, callingsScroll - (int) (scrollY * 10));
+            return true;
+        }
         if (tab == Tab.CREATURES) {
             pageScroll = Math.max(0, pageScroll - (int) (scrollY * 10));
             return true;

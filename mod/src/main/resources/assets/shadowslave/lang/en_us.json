@@ -88,5 +88,10 @@
   "strand.shadowslave.warding": "Warding",
   "strand.shadowslave.whetted_edge": "Whetted Edge",
   "strand.shadowslave.memory_weave": "Memory Weave",
-  "strand.shadowslave.bound": "Bound"
+  "strand.shadowslave.bound": "Bound",
+  "shadowslave.configuration.title": "Shadow Slave",
+  "shadowslave.configuration.section.shadowslave.client.toml": "Client",
+  "shadowslave.configuration.section.shadowslave.client.toml.title": "Shadow Slave: client",
+  "shadowslave.configuration.calling_frequency": "Spell Callings",
+  "shadowslave.configuration.calling_frequency.tooltip": "How often the Spell calls to you. Past Callings are kept on the Field Guide's Callings page."
 }

@@ -1,0 +1,34 @@
+{
+  "lines": {
+    "failed": [
+      "Failed. The Nightmare keeps what you could not carry out of it.",
+      "Failed. The Spell has seen your end in this dream, and it will not forget it."
+    ],
+    "poor": [
+      "Poor. You lived, and little else.",
+      "Poor. The Spell expected more from a soul of your rank.",
+      {"text": "Poor. Mercy is not the same as weakness, but tonight it looked like it.", "when": {"behaviour": "merciful"}}
+    ],
+    "adequate": [
+      "Adequate. You did what the Nightmare asked, and nothing it did not.",
+      "Adequate. Enough to be remembered for a day."
+    ],
+    "good": [
+      "Good. The Nightmare bent where you pushed it.",
+      "Good. The threads of this dream remember your weight."
+    ],
+    "excellent": [
+      "Excellent. Few who walk this Nightmare leave it in such order.",
+      "Excellent. The Spell takes note of you."
+    ],
+    "glorious": [
+      "Glorious. The Spell will remember this.",
+      {"text": "Glorious. Your treachery truly knows no bounds.", "when": {"behaviour": "treachery"}},
+      {"text": "Glorious. You walked it alone, and the dream could not hold you.", "when": {"behaviour": "alone"}}
+    ],
+    "impossible": [
+      "You have achieved the impossible.",
+      "You have achieved the impossible. Even the Spell did not foresee this."
+    ]
+  }
+}

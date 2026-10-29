@@ -129,15 +129,16 @@
     }
   ],
   "comments": {
-    "Passable": "You survived. The Spell expected little, and you gave it little.",
-    "Commendable": "Commendable. The Watch would have been proud of you, had it lived.",
-    "Admirable": "Admirable. Few who stand in the ash stand so well.",
+    "Poor": "Poor. You survived. The Watch would not have noticed you either way.",
+    "Adequate": "Adequate. The Watch would have been grateful, had it lived.",
+    "Good": "Good. Few who stand in the ash stand so well.",
+    "Excellent": "Excellent. Few could have kept the Watch standing until morning.",
     "Glorious": "Glorious. The Spell will remember this vigil."
   },
   "boons": {
-    "Passable": "shadowslave:nightmare_trial/last_vigil/passable",
-    "Commendable": "shadowslave:nightmare_trial/last_vigil/commendable",
-    "Admirable": "shadowslave:nightmare_trial/last_vigil/admirable",
+    "Poor": "shadowslave:nightmare_trial/last_vigil/poor",
+    "Good": "shadowslave:nightmare_trial/last_vigil/good",
+    "Excellent": "shadowslave:nightmare_trial/last_vigil/excellent",
     "Glorious": "shadowslave:nightmare_trial/last_vigil/glorious"
   },
   "lore": "The Ember Watch kept its lamps lit at the edge of the world for a thousand years. On the night the ash first fell, the lamps were dark. What is left of the Watch still stands in the Ashen Expanse."

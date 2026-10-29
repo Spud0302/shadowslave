@@ -462,9 +462,9 @@ Dream Realm, then `/shadowslave trial site shadowslave:ember_watch visit` and
    dusk, or simply last until dawn. Each scores differently and a role whose
    fate matches the ending scores more.
 5. **Appraisal.** On a clear the Spell lists your deeds and kills, gives a
-   grade (Passable, Commendable, Admirable, Glorious) with a comment, and
-   boons from a loot table per grade. Click once to finish the typing and
-   again to wake. You keep what you won inside.
+   grade with its comments (see "The Spell's memory, judgement and voice"
+   below), and boons from a loot table per grade. Click once to finish the
+   typing and again to wake. You keep what you won inside.
 6. **Death.** Dying inside puts you back where you were, exactly as you were
    when you entered: items, experience and effects gained inside are lost,
    and that Seed will never let you in again. Logging out or your sleeping
@@ -487,6 +487,49 @@ Content is data: Nightmares in `data/shadowslave/nightmare_trial/nightmare/`,
 echo sites in `data/shadowslave/dream_realm/echo_site/`, tuning (weights to
 Category, gather time, kill points, grades) in
 `data/shadowslave/nightmare_trial/settings.json`, boons as `gift` loot tables.
+
+## The Spell's memory, judgement and voice
+
+Added by claude-code, 2026-10-29 (Run A of the lore doc's run backlog). No AI
+anywhere: the Spell's words come from written line tables, behind a voice
+interface a later optional module can sit in front of.
+
+1. **The Recorder.** The world keeps a log of notable events: Nightmare
+   Creature kills (by rank and class; Tyrants and named creatures count as
+   unique), Nightmares conquered, failed and left, Citadels claimed and lost,
+   deaths, rank-ups and server firsts. Doing something nobody has done before
+   (first Fallen Demon slain, first Category 2 Nightmare, first Glorious, first
+   Citadel, first to Awaken) gets a gold line from the Spell.
+   `/shadowslave spell record` shows the Spell's record of you and
+   `/shadowslave spell firsts` the server's firsts.
+2. **The Judge.** Appraisals now grade on a longer ladder: Poor, Adequate,
+   Good, Excellent, Glorious, and "You have achieved the impossible" at the
+   rare top. A death inside is judged Failed. What counts: the ending and your
+   role's fate, each kill (rank points times soul cores), unique kills and
+   kills above your own rank, going alone or in a small cohort, cohort
+   members lost, and striking your own (a heavy penalty).
+3. **Commentary.** Under the grade the Spell says how you played (treachery,
+   protecting others, recklessness, fighting above your rank, mercy, going
+   alone, or steadfast) and what it remembers of you ("Again, you flee.",
+   "Better than before.").
+4. **Callings.** Now and then a band of the Spell's starry thread-web opens at
+   the top of the screen and a line types itself out, with a soft chime: when
+   your core is nearly full or saturated, when a Seed of the Category you need
+   next grows within 48 blocks, the first time you enter a Dream Realm region,
+   when an unclaimed Citadel stands within 96 blocks, and gently after 90
+   minutes of play without progress. Each moment is called once.
+5. **Callings page.** The Field Guide has a fourth tab, Callings, with every
+   Calling you have heard, newest first. Its button sets how often they come
+   (Off, Rare, Normal, Often); the same option is in the mod's config screen.
+
+Operators: `/shadowslave spell log [count]`, `record <player>`,
+`call <calling> [player]` (core_nearly_full, seed_next_category, new_region,
+unclaimed_citadel, idle), `say <topic> <key>` to preview a line, and `voices`.
+
+Content is data: lines in `data/shadowslave/spell_voice/<topic>.json` (keys
+per grade, behaviour, memory and Calling; variants can require facts with a
+`when` map), Callings tuning in `data/shadowslave/spell/settings.json`, and
+the grade ladder and scoring in `data/shadowslave/nightmare_trial/settings.json`.
 
 ## Smithing (forge, hammer, quench)
 

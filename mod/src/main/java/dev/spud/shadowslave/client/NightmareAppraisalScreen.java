@@ -8,9 +8,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import org.lwjgl.glfw.GLFW;
 
@@ -27,15 +25,11 @@ import java.util.List;
 public final class NightmareAppraisalScreen extends Screen {
     private static final long MS_PER_CHAR = 16;
     private static final int CHARS_PER_TICK_SOUND = 3;
-    private static final ResourceLocation RUNE_FONT = ResourceLocation.withDefaultNamespace("alt");
     private static final int STARS = 140;
     private static final int RUNES = 18;
     private static final int LINK_DISTANCE = 46;
 
     private static final int GRADE_COLOR = 0xFFFFD27A;
-    private static final int RUNE_COLOR = 0xFFB8E4FF;
-    private static final int STAR_COLOR = 0xFFE8F2FF;
-    private static final int WEB_COLOR = 0x30A8C8FF;
 
     private enum Kind {
         VOICE(1.0F, 13),
@@ -60,17 +54,10 @@ public final class NightmareAppraisalScreen extends Screen {
     private record Row(Kind kind, String text, int color) {
     }
 
-    private record Star(float x, float y, float size, float twinkle) {
-    }
-
-    private record Rune(float x, float y, String glyph, float phase, float drift, float scale) {
-    }
-
     private final RandomSource random = RandomSource.create();
     private final List<Line> lines;
     private final List<Row> rows = new ArrayList<>();
-    private final List<Star> stars = new ArrayList<>();
-    private final List<Rune> runes = new ArrayList<>();
+    private final SpellWeb web;
     private RevealTypewriter typewriter;
     private long openedAt = -1;
     private long skipOffset;
@@ -81,15 +68,7 @@ public final class NightmareAppraisalScreen extends Screen {
     public NightmareAppraisalScreen(NightmareAppraisalPayload appraisal) {
         super(Component.translatable("screen.shadowslave.appraisal"));
         this.lines = script(appraisal);
-        RandomSource sky = RandomSource.create(appraisal.nightmare().hashCode());
-        for (int i = 0; i < STARS; i++) {
-            stars.add(new Star(sky.nextFloat(), sky.nextFloat(), sky.nextFloat() < 0.15F ? 2.0F : 1.0F, sky.nextFloat() * 6.28F));
-        }
-        String alphabet = "abcdefghijklmnopqrstuvwxyz";
-        for (int i = 0; i < RUNES; i++) {
-            runes.add(new Rune(sky.nextFloat(), sky.nextFloat(), String.valueOf(alphabet.charAt(sky.nextInt(alphabet.length()))),
-                    sky.nextFloat() * 6.28F, 0.3F + sky.nextFloat() * 0.7F, 1.5F + sky.nextFloat() * 1.5F));
-        }
+        this.web = new SpellWeb(appraisal.nightmare().hashCode(), STARS, RUNES, LINK_DISTANCE);
     }
 
     static List<Line> script(NightmareAppraisalPayload appraisal) {
@@ -111,8 +90,8 @@ public final class NightmareAppraisalScreen extends Screen {
         lines.add(new Line(Kind.GAP, "", 0, 0));
         lines.add(new Line(Kind.LABEL, "Your performance has been appraised:", SpellStyle.TEXT, 300));
         lines.add(new Line(Kind.GRADE, appraisal.grade(), GRADE_COLOR, 300));
-        if (!appraisal.comment().isEmpty()) {
-            lines.add(new Line(Kind.VOICE, appraisal.comment(), SpellStyle.VOICE, 500));
+        for (String comment : appraisal.comments()) {
+            lines.add(new Line(Kind.VOICE, comment, SpellStyle.VOICE, 500));
         }
         lines.add(new Line(Kind.GAP, "", 0, 0));
         lines.add(new Line(Kind.LABEL, "You have received:", SpellStyle.TEXT, 150));
@@ -178,71 +157,11 @@ public final class NightmareAppraisalScreen extends Screen {
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         int w = this.width;
         int h = this.height;
-        graphics.fill(0, 0, w, h, 0xFF02030A);
-        // Two soft nebulae, teal and ember, as layered translucent bands.
-        nebula(graphics, w * 0.32F, h * 0.42F, Math.min(w, h) * 0.55F, 0x0E2A6E8C);
-        nebula(graphics, w * 0.70F, h * 0.36F, Math.min(w, h) * 0.38F, 0x0C8C5A2A);
-        nebula(graphics, w * 0.55F, h * 0.75F, Math.min(w, h) * 0.30F, 0x0A2A3E8C);
-
         float time = (Util.getMillis() - Math.max(0, openedAt)) / 1000.0F;
-        // The web: faint threads between near stars.
-        for (int i = 0; i < stars.size(); i++) {
-            Star a = stars.get(i);
-            for (int j = i + 1; j < stars.size(); j++) {
-                Star b = stars.get(j);
-                float dx = (a.x - b.x) * w;
-                float dy = (a.y - b.y) * h;
-                if (dx * dx + dy * dy < LINK_DISTANCE * LINK_DISTANCE) {
-                    line(graphics, a.x * w, a.y * h, b.x * w, b.y * h, WEB_COLOR);
-                }
-            }
-        }
-        for (Star star : stars) {
-            float glow = 0.55F + 0.45F * Mth.sin(time * 1.7F + star.twinkle);
-            int x = (int) (star.x * w);
-            int y = (int) (star.y * h);
-            int size = (int) star.size;
-            graphics.fill(x, y, x + size, y + size, SpellStyle.withAlpha(STAR_COLOR, glow));
-            if (size > 1) {
-                graphics.fill(x - 1, y, x + size + 1, y + size, SpellStyle.withAlpha(STAR_COLOR, glow * 0.25F));
-            }
-        }
-        // Runes of the Spell drifting through the web.
-        for (Rune rune : runes) {
-            float rise = (rune.y * h - time * 6.0F * rune.drift) % h;
-            if (rise < 0) {
-                rise += h;
-            }
-            float pulse = 0.35F + 0.65F * (0.5F + 0.5F * Mth.sin(time * 0.9F + rune.phase));
-            Component glyph = Component.literal(rune.glyph).withStyle(style -> style.withFont(RUNE_FONT));
-            graphics.pose().pushPose();
-            graphics.pose().translate(rune.x * w, rise, 0.0F);
-            graphics.pose().scale(rune.scale, rune.scale, 1.0F);
-            graphics.drawString(this.font, glyph, -1, -1, SpellStyle.withAlpha(RUNE_COLOR, pulse * 0.25F), false);
-            graphics.drawString(this.font, glyph, 0, 0, SpellStyle.withAlpha(RUNE_COLOR, pulse * 0.8F), false);
-            graphics.pose().popPose();
-        }
+        web.render(graphics, this.font, 0, 0, w, h, time, 1.0F, 1.0F);
         // A veil behind the text so the words stay readable.
         int panel = Math.min(380, w - 20);
         graphics.fillGradient(w / 2 - panel / 2, 0, w / 2 + panel / 2, h, 0x70020308, 0xA0020308);
-    }
-
-    private static void nebula(GuiGraphics graphics, float cx, float cy, float radius, int color) {
-        for (int ring = 6; ring >= 1; ring--) {
-            float r = radius * ring / 6.0F;
-            graphics.fill((int) (cx - r), (int) (cy - r * 0.6F), (int) (cx + r), (int) (cy + r * 0.6F), color);
-        }
-    }
-
-    /** A one-pixel line, drawn as a run of dots. */
-    private static void line(GuiGraphics graphics, float x0, float y0, float x1, float y1, int color) {
-        int steps = (int) Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
-        for (int i = 0; i <= steps; i += 2) {
-            float t = steps == 0 ? 0 : (float) i / steps;
-            int x = (int) (x0 + (x1 - x0) * t);
-            int y = (int) (y0 + (y1 - y0) * t);
-            graphics.fill(x, y, x + 1, y + 1, color);
-        }
     }
 
     // ---- the words -----------------------------------------------------------------------------------------------

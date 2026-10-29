@@ -9,6 +9,7 @@ import dev.spud.shadowslave.dreamrealm.seed.SeedService;
 import dev.spud.shadowslave.item.ModDataComponents;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
+import dev.spud.shadowslave.spell.SpellRecord;
 import dev.spud.shadowslave.trial.content.EchoSite;
 import dev.spud.shadowslave.trial.content.NightmarePack;
 import dev.spud.shadowslave.trial.content.TrialContent;
@@ -96,6 +97,9 @@ public final class TrialGameTest {
         helper.assertTrue(RankUpRequirements.nightmareConquered(2).met(player), "a Category 2 Nightmare now counts towards Ascension");
         helper.assertTrue(RankUpRequirements.forRank(SoulRank.ASCENDED).orElseThrow().describe(player).contains("conquered"),
                 "the Ascension requirement reads the clear");
+        SpellRecord.Tally tally = SpellRecord.get(player.server).find(player.getUUID()).orElseThrow();
+        helper.assertTrue(tally.cleared() == 1 && tally.lastGrade().isPresent() && tally.lastOutcome().equals("cleared"),
+                "the Recorder kept the conquest and its grade");
         helper.assertTrue(SeedData.get(realm).byId(seed.id()).isEmpty(), "the conquered Seed is gone");
         helper.assertTrue(EchoSites.grow(realm, EMBER_WATCH, site).isEmpty(), "the site rests after its Nightmare is conquered");
 
@@ -133,6 +137,8 @@ public final class TrialGameTest {
         helper.assertTrue(instance.over(), "a Nightmare with nobody left in it closes");
         helper.assertTrue(TrialService.judgedBy(player, seed), "the Seed has judged them");
         helper.assertFalse(RankUpRequirements.nightmareConquered(2).met(player), "a death conquers nothing");
+        SpellRecord.Tally tally = SpellRecord.get(player.server).find(player.getUUID()).orElseThrow();
+        helper.assertTrue(tally.failed() == 1 && tally.lastOutcome().equals("failed"), "the Recorder kept the failure");
         helper.succeed();
     }
 

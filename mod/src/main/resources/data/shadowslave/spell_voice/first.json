@@ -1,0 +1,24 @@
+{
+  "lines": {
+    "kill": [
+      "You are the first under the Spell to slay {what}.",
+      "No one before you has slain {what}. The Spell remembers who was first."
+    ],
+    "nightmare": [
+      "You are the first under the Spell to conquer {what}.",
+      "No one before you has conquered {what}."
+    ],
+    "grade": [
+      "You are the first to be judged {what}.",
+      "No one before you has been judged {what}."
+    ],
+    "citadel": [
+      "You are the first under the Spell to claim a Citadel.",
+      "No Citadel had a master before you claimed one."
+    ],
+    "rank": [
+      "You are the first under the Spell to rise to {what}.",
+      "No one before you has risen to {what}."
+    ]
+  }
+}
