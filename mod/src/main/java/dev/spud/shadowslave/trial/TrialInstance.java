@@ -49,6 +49,18 @@ public final class TrialInstance {
         final Map<String, Integer> kills = new LinkedHashMap<>();
         int killScore;
         boolean slewTyrant;
+        /** Tyrants or stronger, and named creatures, slain. */
+        int uniqueKills;
+        /** Kills of creatures above their own rank. */
+        int aboveRank;
+        /** Others of the cohort they struck, each counted once. */
+        final Set<UUID> struck = new HashSet<>();
+        /** Creatures they slew while those were hunting another of the cohort. */
+        int alliesSaved;
+        /** Times they fell to a quarter of their health or less. */
+        int closeCalls;
+        /** Whether they are low right now, so one close call is counted once. */
+        boolean low;
 
         Member(UUID player, String name, NightmarePack.Role role) {
             this.player = player;

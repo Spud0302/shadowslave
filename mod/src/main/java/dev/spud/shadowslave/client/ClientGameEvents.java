@@ -51,6 +51,12 @@ public final class ClientGameEvents {
         ClientCoreState.clear();
         ClientWeavingState.clear();
         ClientFieldGuideState.clear();
+        ClientCallingsState.reset();
+    }
+
+    @SubscribeEvent
+    public static void onLoggingIn(ClientPlayerNetworkEvent.LoggingIn event) {
+        SpellClientConfig.sync();
     }
 
     private static void consume(KeyMapping mapping, CustomPacketPayload payload, Minecraft minecraft) {

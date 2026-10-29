@@ -1,5 +1,8 @@
 package dev.spud.shadowslave.network;
 
+import dev.spud.shadowslave.network.payload.CallingFrequencyPayload;
+import dev.spud.shadowslave.spell.calling.CallingFrequency;
+import dev.spud.shadowslave.spell.calling.SpellCallings;
 import dev.spud.shadowslave.ability.AbilityService;
 import dev.spud.shadowslave.ability.ChannelService;
 import dev.spud.shadowslave.awakening.SoulSeaService;
@@ -56,6 +59,13 @@ public final class ServerPayloadHandler {
         ServerPlayer player = serverPlayer(context, "Refinement");
         if (player != null) {
             SoulSeaService.requestRefinement(player, payload.action());
+        }
+    }
+
+    public static void handleCallingFrequency(CallingFrequencyPayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "Calling frequency");
+        if (player != null) {
+            SpellCallings.setFrequency(player, CallingFrequency.byOrdinal(payload.frequency()));
         }
     }
 

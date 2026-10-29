@@ -23,12 +23,24 @@ import java.util.TreeMap;
  *       ruin and may grow a Seed when a dreamer comes this close.</li>
  *   <li>{@code kill_points}, {@code solo_bonus} and {@code unbroken_bonus}: what deeds are
  *       worth in the appraisal, beside the ending's own score.</li>
- *   <li>{@code grades}: the appraisal's grades, each from a minimum score.</li>
+ *   <li>{@code unique_bonus}, {@code above_rank_bonus}: extra for each unique creature (a Tyrant
+ *       or stronger, or a named one) and for each kill of a creature above your own rank.</li>
+ *   <li>{@code small_cohort_size} and {@code small_cohort_bonus}: a cohort this small or smaller
+ *       (but not alone) earns this much.</li>
+ *   <li>{@code loss_penalty} and {@code treachery_penalty}: taken off for each of your cohort who
+ *       fell, and for each time you struck one of your own.</li>
+ *   <li>{@code grades}: the appraisal's grades for survivors, each from a minimum score; the
+ *       Judge's ladder (Spell Callings section): Poor up to Glorious, with "the impossible" as
+ *       the rare top. {@code failed_grade} is what a challenger who died inside is judged.</li>
  * </ul>
+ *
+ * <p>Each kill is worth its rank's {@code kill_points} times the creature's soul cores
+ * (one for a Beast, five for a Tyrant).</p>
  */
 public record TrialSettings(Map<Integer, Integer> categoryWeights, int gatherSeconds, int joinRange,
                             int siteNoticeRange, float siteSeedChance, Map<CreatureRank, Integer> killPoints,
-                            int soloBonus, int unbrokenBonus, List<Grade> grades) {
+                            int soloBonus, int unbrokenBonus, int uniqueBonus, int aboveRankBonus, int smallCohortSize,
+                            int smallCohortBonus, int lossPenalty, int treacheryPenalty, List<Grade> grades, String failedGrade) {
     public record Grade(String name, int min) {
         public static final Codec<Grade> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.STRING.fieldOf("name").forGetter(Grade::name),
@@ -39,8 +51,10 @@ public record TrialSettings(Map<Integer, Integer> categoryWeights, int gatherSec
     public static final TrialSettings DEFAULT = new TrialSettings(
             Map.of(1, 0, 2, 30, 3, 60, 4, 80, 5, 95), 15, 12, 96, 0.5F,
             Map.of(CreatureRank.DORMANT, 2, CreatureRank.AWAKENED, 5, CreatureRank.FALLEN, 10, CreatureRank.CORRUPTED, 20),
-            25, 10,
-            List.of(new Grade("Passable", 0), new Grade("Commendable", 50), new Grade("Admirable", 90), new Grade("Glorious", 130)));
+            25, 10, 20, 10, 3, 10, 10, 30,
+            List.of(new Grade("Poor", 0), new Grade("Adequate", 40), new Grade("Good", 80), new Grade("Excellent", 120),
+                    new Grade("Glorious", 170), new Grade("Impossible", 300)),
+            "Failed");
 
     private static final Codec<Map<Integer, Integer>> CATEGORY_WEIGHTS = Codec.unboundedMap(Codec.STRING, Codec.intRange(0, 100))
             .comapFlatMap(raw -> {
@@ -74,7 +88,14 @@ public record TrialSettings(Map<Integer, Integer> categoryWeights, int gatherSec
                     .forGetter(TrialSettings::killPoints),
             Codec.intRange(0, 10000).optionalFieldOf("solo_bonus", DEFAULT.soloBonus).forGetter(TrialSettings::soloBonus),
             Codec.intRange(0, 10000).optionalFieldOf("unbroken_bonus", DEFAULT.unbrokenBonus).forGetter(TrialSettings::unbrokenBonus),
-            Grade.CODEC.listOf(1, 16).optionalFieldOf("grades", DEFAULT.grades).forGetter(TrialSettings::grades)
+            Codec.intRange(0, 10000).optionalFieldOf("unique_bonus", DEFAULT.uniqueBonus).forGetter(TrialSettings::uniqueBonus),
+            Codec.intRange(0, 10000).optionalFieldOf("above_rank_bonus", DEFAULT.aboveRankBonus).forGetter(TrialSettings::aboveRankBonus),
+            Codec.intRange(1, 64).optionalFieldOf("small_cohort_size", DEFAULT.smallCohortSize).forGetter(TrialSettings::smallCohortSize),
+            Codec.intRange(0, 10000).optionalFieldOf("small_cohort_bonus", DEFAULT.smallCohortBonus).forGetter(TrialSettings::smallCohortBonus),
+            Codec.intRange(0, 10000).optionalFieldOf("loss_penalty", DEFAULT.lossPenalty).forGetter(TrialSettings::lossPenalty),
+            Codec.intRange(0, 10000).optionalFieldOf("treachery_penalty", DEFAULT.treacheryPenalty).forGetter(TrialSettings::treacheryPenalty),
+            Grade.CODEC.listOf(1, 16).optionalFieldOf("grades", DEFAULT.grades).forGetter(TrialSettings::grades),
+            Codec.STRING.optionalFieldOf("failed_grade", DEFAULT.failedGrade).forGetter(TrialSettings::failedGrade)
     ).apply(instance, TrialSettings::new));
 
     public TrialSettings {
@@ -105,5 +126,20 @@ public record TrialSettings(Map<Integer, Integer> categoryWeights, int gatherSec
 
     public int pointsFor(CreatureRank rank) {
         return killPoints.getOrDefault(rank, 1);
+    }
+
+    /** A grade's key for line tables and saved records: its name in lower case, spaces as underscores. */
+    public static String key(String grade) {
+        return grade.toLowerCase(java.util.Locale.ROOT).replace(' ', '_');
+    }
+
+    /** How high a grade stands on the ladder: its place, from 0; -1 for the failed grade or one not on it. */
+    public int standing(String grade) {
+        for (int i = 0; i < grades.size(); i++) {
+            if (key(grades.get(i).name()).equals(key(grade))) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

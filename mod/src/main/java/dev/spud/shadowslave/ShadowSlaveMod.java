@@ -60,6 +60,11 @@ import dev.spud.shadowslave.soul.refinement.RefinementService;
 import dev.spud.shadowslave.trial.EchoSites;
 import dev.spud.shadowslave.trial.TrialCommands;
 import dev.spud.shadowslave.trial.TrialRules;
+import dev.spud.shadowslave.spell.SpellCommands;
+import dev.spud.shadowslave.spell.SpellContentLoader;
+import dev.spud.shadowslave.spell.SpellRecorder;
+import dev.spud.shadowslave.spell.SpellRegistry;
+import dev.spud.shadowslave.spell.calling.SpellCallings;
 import dev.spud.shadowslave.trial.TrialService;
 import dev.spud.shadowslave.trial.content.TrialContentLoader;
 import dev.spud.shadowslave.weaving.WeavingCommands;
@@ -97,6 +102,7 @@ public final class ShadowSlaveMod {
         DreamRealmRegistry.register(modEventBus);
         FieldGuideRegistry.register(modEventBus);
         CitadelRegistry.register(modEventBus);
+        SpellRegistry.register(modEventBus);
         DreamRealmRules.bootstrap();
         SeedService.bootstrap();
         TrialRules.bootstrap();
@@ -227,6 +233,12 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(CitadelService::onPlayerLoggedOut);
         NeoForge.EVENT_BUS.addListener(ClanCommands::register);
         NeoForge.EVENT_BUS.addListener(ClanService::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(SpellContentLoader::onAddReloadListeners);
+        NeoForge.EVENT_BUS.addListener(SpellCommands::register);
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOW, SpellRecorder::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(SpellCallings::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(SpellCallings::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(TrialService::onDamaged);
         LOGGER.info("Shadow Slave Java core is loading");
     }
 }

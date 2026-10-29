@@ -7,10 +7,19 @@
   "kill_points": {"dormant": 2, "awakened": 5, "fallen": 10, "corrupted": 20, "great": 40},
   "solo_bonus": 25,
   "unbroken_bonus": 10,
+  "unique_bonus": 20,
+  "above_rank_bonus": 10,
+  "small_cohort_size": 3,
+  "small_cohort_bonus": 10,
+  "loss_penalty": 10,
+  "treachery_penalty": 30,
   "grades": [
-    {"name": "Passable", "min": 0},
-    {"name": "Commendable", "min": 60},
-    {"name": "Admirable", "min": 100},
-    {"name": "Glorious", "min": 150}
-  ]
+    {"name": "Poor", "min": 0},
+    {"name": "Adequate", "min": 40},
+    {"name": "Good", "min": 80},
+    {"name": "Excellent", "min": 120},
+    {"name": "Glorious", "min": 170},
+    {"name": "Impossible", "min": 300}
+  ],
+  "failed_grade": "Failed"
 }

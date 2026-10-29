@@ -1,0 +1,44 @@
+{
+  "lines": {
+    "first_conquest": [
+      "This is the first Nightmare you have conquered. It will not be the last.",
+      "The first of many, perhaps."
+    ],
+    "after_fleeing": [
+      "Last time, you fled. This time you did not.",
+      "You ran from your last Nightmare. You stood in this one."
+    ],
+    "after_failing": [
+      "The last Nightmare broke you. This one did not.",
+      "You died in your last dream. You learned from it."
+    ],
+    "again_behaviour": [
+      {"text": "Again, you betray your own. It is becoming who you are.", "when": {"behaviour": "treachery"}},
+      {"text": "Again, you shield the others. It is becoming who you are.", "when": {"behaviour": "protector"}},
+      {"text": "Again, you court death. One day it will answer.", "when": {"behaviour": "reckless"}},
+      {"text": "Again, you reach above your rank.", "when": {"behaviour": "defiant"}},
+      {"text": "Again, you spare them all.", "when": {"behaviour": "merciful"}},
+      {"text": "Again, you walk alone.", "when": {"behaviour": "alone"}}
+    ],
+    "rose": [
+      "Better than before.",
+      "You have grown since your last Nightmare."
+    ],
+    "fell": [
+      "Worse than before.",
+      "You have done better. The Spell remembers."
+    ],
+    "same_grade": [
+      "As before.",
+      "Neither better nor worse than last time."
+    ],
+    "again_failed": [
+      "Again, you fall.",
+      "This is not the first Nightmare to end you."
+    ],
+    "again_fled": [
+      "Again, you flee.",
+      "You leave another Nightmare unfinished."
+    ]
+  }
+}

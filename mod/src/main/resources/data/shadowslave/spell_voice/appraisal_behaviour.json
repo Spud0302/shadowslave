@@ -1,0 +1,32 @@
+{
+  "lines": {
+    "treachery": [
+      "You turned your blade on those who stood beside you.",
+      "Your cohort trusted you. The Spell saw what you did with that trust."
+    ],
+    "protector": [
+      "Again and again, you stepped between the dark and the others.",
+      "Those who walked with you are alive because of you."
+    ],
+    "reckless": [
+      "You danced at the edge of death as if it were a game.",
+      "Courage and recklessness wear the same mask. You wore it often."
+    ],
+    "defiant": [
+      "You raised your hand against things far above you, and they fell.",
+      "Your rank did not stop you. It rarely does, for long."
+    ],
+    "merciful": [
+      "You took no lives in this Nightmare.",
+      "Not one creature fell by your hand. Whether that was mercy or fear, the Spell does not say."
+    ],
+    "alone": [
+      "You entered alone, and alone you left.",
+      "No one shared this Nightmare with you."
+    ],
+    "steadfast": [
+      "You held your ground.",
+      "Nothing about you wavered."
+    ]
+  }
+}

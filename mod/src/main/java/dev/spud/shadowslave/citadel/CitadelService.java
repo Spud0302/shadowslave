@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.citadel;
 
 import dev.spud.shadowslave.clan.ClanData;
+import dev.spud.shadowslave.spell.SpellRecorder;
 import dev.spud.shadowslave.clan.ClanService;
 import dev.spud.shadowslave.creature.CreatureRank;
 import dev.spud.shadowslave.creature.NightmareCreature;
@@ -74,6 +75,7 @@ public final class CitadelService {
                     citadel.conquerorClan = null;
                     citadel.conqueredAt = 0;
                     showState(level, citadel);
+                    SpellRecorder.citadelLost(server, citadel.name, clan);
                 });
             }
 
@@ -382,6 +384,7 @@ public final class CitadelService {
                 Component.literal(citadel.name + " belongs to " + clan.name()).withStyle(ChatFormatting.GRAY));
         ClanService.tell(player.server, clan, player.getGameProfile().getName() + " claimed " + citadel.name + " for "
                 + clan.name() + ". Use its Gateway to anchor there.");
+        SpellRecorder.citadelClaimed(player, citadel.name);
         anchor(player, citadel);
         visit(player, citadel, clan, true);
         return true;

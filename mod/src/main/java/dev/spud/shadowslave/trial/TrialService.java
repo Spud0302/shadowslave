@@ -9,6 +9,11 @@ import dev.spud.shadowslave.dreamrealm.seed.SeedData;
 import dev.spud.shadowslave.dreamrealm.seed.SeedService;
 import dev.spud.shadowslave.item.ModDataComponents;
 import dev.spud.shadowslave.network.payload.NightmareAppraisalPayload;
+import dev.spud.shadowslave.soul.core.CoreService;
+import dev.spud.shadowslave.spell.SpellAppraisal;
+import dev.spud.shadowslave.spell.SpellJudge;
+import dev.spud.shadowslave.spell.SpellRecord;
+import dev.spud.shadowslave.spell.SpellRecorder;
 import dev.spud.shadowslave.trial.content.EchoSite;
 import dev.spud.shadowslave.trial.content.NightmarePack;
 import dev.spud.shadowslave.trial.content.TrialContent;
@@ -62,6 +67,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.scores.Team;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -465,6 +471,12 @@ public final class TrialService {
             instance.tyrantBar.setProgress(Math.max(0.0F, tyrant.getHealth() / tyrant.getMaxHealth()));
         }
         if (instance.ticks % ENDING_CHECK_INTERVAL == 0) {
+            for (TrialInstance.Member member : instance.inside()) {
+                ServerPlayer player = level.getServer().getPlayerList().getPlayer(member.player);
+                if (player != null) {
+                    recover(member, player);
+                }
+            }
             checkEndings(level, instance);
         }
     }
@@ -581,18 +593,22 @@ public final class TrialService {
             if (player == null) {
                 continue;
             }
-            Appraisal appraisal = Appraisal.of(instance.pack.comments(), ending,
-                    new Appraisal.Run(member.kills, member.killScore, member.role.id(), instance.members.size(), instance.falls),
-                    settings);
-            finish(player, instance, member, ending, appraisal);
+            SpellJudge.Judgement judgement = SpellJudge.judge(ending, run(instance, member), settings);
+            finish(player, instance, member, ending, judgement, settings);
         }
         instance.seed.ifPresent(seed -> SeedService.realm(server).ifPresent(realm -> SeedService.spend(realm, seed)));
         instance.site.ifPresent(site -> EchoSites.rest(server, site));
         teardown(server, instance);
     }
 
+    /** What a challenger did in this run, as the Judge needs it. */
+    static SpellJudge.Run run(TrialInstance instance, TrialInstance.Member member) {
+        return new SpellJudge.Run(member.kills, member.killScore, member.uniqueKills, member.aboveRank, member.role.id(),
+                instance.members.size(), instance.falls, member.struck.size(), member.alliesSaved, member.closeCalls);
+    }
+
     private static void finish(ServerPlayer player, TrialInstance instance, TrialInstance.Member member,
-                               NightmarePack.Ending ending, Appraisal appraisal) {
+                               NightmarePack.Ending ending, SpellJudge.Judgement appraisal, TrialSettings settings) {
         member.inside = false;
         stripBound(player);
         TrialData data = TrialData.get(player.server);
@@ -601,7 +617,9 @@ public final class TrialService {
         BY_PLAYER.remove(player.getUUID());
         entry.ifPresent(found -> goHome(player, found));
         data.end(player.getUUID());
+        Optional<SpellRecord.Tally> before = SpellRecord.get(player.server).find(player.getUUID()).map(SpellRecord.Tally::copy);
         data.clear(player.getUUID(), instance.category, instance.nightmareId, appraisal.grade().name());
+        SpellRecorder.cleared(player, instance.pack.displayName(), instance.category, appraisal, settings);
         player.refreshDisplayName();
         player.refreshTabListName();
 
@@ -621,7 +639,8 @@ public final class TrialService {
         }
         received.forEach((name, count) -> boons.add(count + " × " + name));
         NightmareAppraisalPayload payload = new NightmareAppraisalPayload(instance.pack.displayName(), instance.pack.setting(),
-                ending.comment(), appraisal.deeds(), appraisal.grade().name(), appraisal.comment(), boons, instance.pack.lore());
+                ending.comment(), appraisal.deeds(), appraisal.grade().name(),
+                SpellAppraisal.comments(player, instance.pack, appraisal, before, settings), boons, instance.pack.lore());
         if (player.connection != null && player.connection.hasChannel(NightmareAppraisalPayload.TYPE)) {
             PacketDistributor.sendToPlayer(player, payload);
         }
@@ -632,8 +651,27 @@ public final class TrialService {
                 appraisal.grade().name(), appraisal.score());
     }
 
+    /**
+     * The loot table for a grade: the pack's own for it, or else the one of the
+     * highest grade below it that has one, so a pack need not name every grade.
+     */
+    static ResourceLocation boonTable(NightmarePack pack, String grade, TrialSettings settings) {
+        ResourceLocation exact = pack.boons().get(grade);
+        if (exact != null) {
+            return exact;
+        }
+        List<TrialSettings.Grade> grades = settings.grades();
+        for (int i = settings.standing(grade); i >= 0; i--) {
+            ResourceLocation lower = pack.boons().get(grades.get(i).name());
+            if (lower != null) {
+                return lower;
+            }
+        }
+        return null;
+    }
+
     static List<ItemStack> rollBoons(ServerPlayer player, NightmarePack pack, String grade) {
-        ResourceLocation tableId = pack.boons().get(grade);
+        ResourceLocation tableId = boonTable(pack, grade, TrialContent.get().settings());
         if (tableId == null) {
             return List.of();
         }
@@ -670,7 +708,7 @@ public final class TrialService {
         boolean tyrant = event.getEntity().getUUID().equals(instance.get().tyrant);
         if (event.getSource().getEntity() instanceof ServerPlayer killer) {
             instance.get().member(killer.getUUID()).filter(TrialInstance.Member::inside)
-                    .ifPresent(member -> recordKill(member, event.getEntity(), tyrant));
+                    .ifPresent(member -> recordKill(instance.get(), member, killer, event.getEntity(), tyrant));
         }
         if (tyrant) {
             instance.get().tyrantSlain = true;
@@ -681,15 +719,57 @@ public final class TrialService {
         }
     }
 
-    static void recordKill(TrialInstance.Member member, Entity victim, boolean tyrant) {
+    static void recordKill(TrialInstance instance, TrialInstance.Member member, ServerPlayer killer, Entity victim, boolean tyrant) {
         CreatureRank rank = victim instanceof NightmareCreature creature ? creature.rank() : CreatureRank.DORMANT;
-        String kind = victim instanceof NightmareCreature creature
-                ? creature.rank().displayName() + " " + creature.creatureClass().displayName()
-                : "Dormant Beast";
-        String name = tyrant && victim.hasCustomName() ? victim.getCustomName().getString() : victim.getType().getDescription().getString();
+        CreatureClass creatureClass = victim instanceof NightmareCreature creature ? creature.creatureClass() : CreatureClass.BEAST;
+        String kind = rank.displayName() + " " + creatureClass.displayName();
+        boolean named = tyrant && victim.hasCustomName();
+        String name = named ? victim.getCustomName().getString() : victim.getType().getDescription().getString();
+        boolean unique = SpellJudge.unique(creatureClass, named);
+        boolean above = SpellJudge.aboveRank(rank, CoreService.rank(killer));
         member.kills.merge(kind + ", " + name, 1, Integer::sum);
-        member.killScore += TrialContent.get().settings().pointsFor(rank) * (tyrant ? 5 : 1);
+        member.killScore += SpellJudge.killPoints(TrialContent.get().settings(), rank, creatureClass, unique, above);
         member.slewTyrant |= tyrant;
+        if (unique) {
+            member.uniqueKills++;
+        }
+        if (above) {
+            member.aboveRank++;
+        }
+        if (victim instanceof Mob mob && mob.getTarget() instanceof ServerPlayer hunted && !hunted.getUUID().equals(killer.getUUID())
+                && instance.member(hunted.getUUID()).filter(TrialInstance.Member::inside).isPresent()) {
+            member.alliesSaved++;
+        }
+    }
+
+    /** Notes a challenger hurting one of their own, and close calls with death, for the Judge. */
+    public static void onDamaged(LivingDamageEvent.Post event) {
+        if (!(event.getEntity() instanceof ServerPlayer victim)) {
+            return;
+        }
+        Optional<TrialInstance> instance = instanceOf(victim);
+        if (instance.isEmpty() || instance.get().over) {
+            return;
+        }
+        Optional<TrialInstance.Member> hurt = instance.get().member(victim.getUUID()).filter(TrialInstance.Member::inside);
+        hurt.ifPresent(member -> {
+            boolean low = victim.getHealth() <= victim.getMaxHealth() * 0.25F;
+            if (low && !member.low) {
+                member.closeCalls++;
+            }
+            member.low = low;
+        });
+        if (event.getSource().getEntity() instanceof ServerPlayer attacker && !attacker.getUUID().equals(victim.getUUID())) {
+            instance.get().member(attacker.getUUID()).filter(TrialInstance.Member::inside)
+                    .ifPresent(member -> member.struck.add(victim.getUUID()));
+        }
+    }
+
+    /** A challenger's health climbing back clears their close call, so the next one counts. */
+    static void recover(TrialInstance.Member member, ServerPlayer player) {
+        if (member.low && player.getHealth() > player.getMaxHealth() * 0.5F) {
+            member.low = false;
+        }
     }
 
     /** A challenger died inside: revert them, send them home and bar them from the Seed. */
@@ -702,6 +782,7 @@ public final class TrialService {
         String role = member == null ? "A challenger" : "[" + member.role.name() + "]";
         instance.get().falls++;
         putBack(player, instance.get());
+        SpellRecorder.failed(player, instance.get().pack.displayName());
         instance.get().seed.ifPresent(seed -> TrialData.get(player.server).judge(player.getUUID(), seed));
 
         spell(player, Component.literal("You have died in the Nightmare.").withStyle(ChatFormatting.DARK_RED));
@@ -709,6 +790,7 @@ public final class TrialService {
         if (instance.get().seed.isPresent()) {
             spell(player, Component.literal("[This Nightmare has judged you.]").withStyle(ChatFormatting.DARK_RED));
         }
+        SpellAppraisal.failed(player, instance.get().pack, TrialContent.get().settings());
         MinecraftServer server = player.server;
         if (TrialRules.scar(server)) {
             player.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 20 * 60 * 20, 0));
@@ -738,7 +820,9 @@ public final class TrialService {
             return false;
         }
         putBack(player, instance.get());
+        SpellRecorder.fled(player, instance.get().pack.displayName());
         spell(player, Component.literal(line).withStyle(ChatFormatting.GRAY));
+        SpellAppraisal.fled(player, instance.get().pack);
         collapseIfEmpty(player.server, instance.get());
         return true;
     }
