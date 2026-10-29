@@ -2,6 +2,8 @@ package dev.spud.shadowslave.dreamrealm;
 
 import dev.spud.shadowslave.awakening.DreamCandleRitual;
 import dev.spud.shadowslave.block.ModBlocks;
+import dev.spud.shadowslave.citadel.CitadelRegistry;
+import dev.spud.shadowslave.citadel.CitadelService;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.trial.TrialService;
@@ -85,7 +87,7 @@ public final class DreamCrossing {
         return player.getData(DreamRealmRegistry.DREAM);
     }
 
-    static void setData(ServerPlayer player, DreamData data) {
+    public static void setData(ServerPlayer player, DreamData data) {
         player.setData(DreamRealmRegistry.DREAM, data);
     }
 
@@ -161,6 +163,16 @@ public final class DreamCrossing {
         Optional<BlockPos> anchor = data(player).anchor();
         if (anchor.isPresent()) {
             realm.getChunk(anchor.get());
+            if (realm.getBlockState(anchor.get()).is(CitadelRegistry.GATEWAY.get())) {
+                // A Citadel's Gateway holds the anchor only while the dreamer's clan holds the Citadel.
+                if (CitadelService.welcomes(player, realm, anchor.get())) {
+                    return standBeside(realm, anchor.get());
+                }
+                spell(player, Component.literal(CitadelService.nameAt(realm, anchor.get()).orElse("That Citadel")
+                        + " is no longer your clan's. Its Gateway lets your anchor go.").withStyle(ChatFormatting.GRAY));
+                setData(player, new DreamData(Optional.empty(), data(player).seedsOptIn(), data(player).dreaming()));
+                return arrival(player, realm, bed);
+            }
             if (!isLitCandle(realm.getBlockState(anchor.get()))) {
                 spell(player, Component.literal("Your Dream Anchor has gone dark. Light a Dream Candle to set a new one.")
                         .withStyle(ChatFormatting.GRAY));

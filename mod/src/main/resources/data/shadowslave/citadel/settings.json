@@ -1,0 +1,20 @@
+{
+  "guardian": "shadowslave:ashen_tyrant",
+  "guardian_class": "tyrant",
+  "guard_radius": 14,
+  "guardian_return_seconds": 10,
+  "claim_priority_seconds": 300,
+  "visit_radius": 24,
+  "log_range": 96,
+  "clan_name_max": 24,
+  "names": [
+    "Ashen Hold",
+    "Greywatch",
+    "Cinder Keep",
+    "Hollow Bastion",
+    "Duskwall",
+    "Grey Spire",
+    "Emberless Gate",
+    "Silent Ward"
+  ]
+}

@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.fieldguide;
 
 import dev.spud.shadowslave.ability.ForewarningService;
+import dev.spud.shadowslave.citadel.CitadelService;
 import dev.spud.shadowslave.creature.CreatureRank;
 import dev.spud.shadowslave.creature.NightmareCreature;
 import dev.spud.shadowslave.dreamrealm.DreamCrossing;
@@ -81,6 +82,11 @@ public final class FieldGuideService {
 
     private static FieldGuideSettings settings() {
         return FieldGuideContent.get().settings();
+    }
+
+    /** Explored chunks a guide remembers per dimension. */
+    public static int maxChunks() {
+        return settings().maxChunks();
     }
 
     public static String dimension(Level level) {
@@ -379,6 +385,9 @@ public final class FieldGuideService {
                 tracking(player).dirty = true;
             }
         }
+        if (CitadelService.logCitadels(player, data, dimension)) {
+            tracking(player).dirty = true;
+        }
         if (DreamRealm.is(level)) {
             for (SeedData.Seed seed : SeedData.get(level).seeds()) {
                 if (data.hasPin(seed.id()) || horizontalDistance(player.blockPosition(), seed.pos()) > settings.seedRange()) {
@@ -473,6 +482,8 @@ public final class FieldGuideService {
         });
 
         pruneSpentPins(server, data, realm);
+        Optional<BlockPos> anchor = DreamCrossing.data(player).anchor();
+        boolean anchorShown = false;
         List<FieldGuideStatusPayload.Pin> pins = new ArrayList<>();
         for (FieldGuideData.Pin pin : data.pins()) {
             String detail = "";
@@ -487,12 +498,21 @@ public final class FieldGuideService {
             } else if (pin.kind() == FieldGuideData.PinKind.GATE) {
                 active = pin.ref().flatMap(id -> gate(server, pin.dimension(), id)).filter(gate -> gate.phase() != GateEvent.Phase.CLOSED).isPresent();
                 detail = active ? "Open" : "Closed";
+            } else if (pin.kind() == FieldGuideData.PinKind.CITADEL) {
+                detail = pin.ref().map(id -> CitadelService.describe(server, id)).orElse("");
+                if (anchor.filter(at -> at.getX() == pin.x() && at.getZ() == pin.z()).isPresent()) {
+                    // Anchored to this Citadel's Gateway: one pin says both.
+                    detail += " · your Dream Anchor";
+                    anchorShown = true;
+                }
             }
             pins.add(new FieldGuideStatusPayload.Pin(pin.kind().getSerializedName(), pin.dimension(), pin.x(), pin.z(), pin.label(),
                     detail, active, gateX, gateZ));
         }
-        DreamCrossing.data(player).anchor().ifPresent(anchor -> pins.add(new FieldGuideStatusPayload.Pin("anchor", realm,
-                anchor.getX(), anchor.getZ(), "Dream Anchor", "You arrive here when you dream", true, 0, 0)));
+        if (anchor.isPresent() && !anchorShown) {
+            pins.add(new FieldGuideStatusPayload.Pin("anchor", realm, anchor.get().getX(), anchor.get().getZ(), "Dream Anchor",
+                    "You arrive here when you dream", true, 0, 0));
+        }
 
         List<FieldGuideStatusPayload.Region> regions = new ArrayList<>();
         for (DreamRegion region : DreamRealmContent.get().regions().values()) {

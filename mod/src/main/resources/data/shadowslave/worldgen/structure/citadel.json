@@ -1,0 +1,19 @@
+{
+  "type": "shadowslave:citadel",
+  "biomes": "#shadowslave:has_structure/citadel",
+  "step": "surface_structures",
+  "terrain_adaptation": "beard_thin",
+  "spawn_overrides": {},
+  "half_size": 12,
+  "max_slope": 10,
+  "palette": {
+    "wall": { "Name": "minecraft:deepslate_bricks" },
+    "wall_worn": { "Name": "minecraft:cracked_deepslate_bricks" },
+    "floor": { "Name": "minecraft:polished_deepslate" },
+    "trim": { "Name": "minecraft:deepslate_tiles" },
+    "pillar": { "Name": "minecraft:polished_basalt", "Properties": { "axis": "y" } },
+    "accent": { "Name": "minecraft:chiseled_deepslate" },
+    "glow": { "Name": "minecraft:crying_obsidian" },
+    "light": { "Name": "minecraft:soul_lantern", "Properties": { "hanging": "false", "waterlogged": "false" } }
+  }
+}

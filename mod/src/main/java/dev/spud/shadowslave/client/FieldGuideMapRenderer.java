@@ -295,6 +295,7 @@ public final class FieldGuideMapRenderer {
             case "gate" -> 0xFF7B3FC4;
             case "seed" -> 0xFF7A1020;
             case "anchor" -> 0xFF1F8FA3;
+            case "citadel" -> 0xFF5B4A7A;
             default -> INK;
         };
     }
@@ -312,6 +313,16 @@ public final class FieldGuideMapRenderer {
                 diamond(graphics, x, y, 4, 0xFF1A0A0A);
                 diamond(graphics, x, y, 3, colour);
                 graphics.fill(x, y - 1, x + 1, y + 2, 0xFFF0A0A0);
+            }
+            case "citadel" -> {
+                // A keep: a squat block with two towers either side of a lit gate.
+                graphics.fill(x - 5, y - 2, x + 6, y + 5, 0xFF140E1C);
+                graphics.fill(x - 5, y - 5, x - 2, y - 1, 0xFF140E1C);
+                graphics.fill(x + 3, y - 5, x + 6, y - 1, 0xFF140E1C);
+                graphics.fill(x - 4, y - 1, x + 5, y + 4, colour);
+                graphics.fill(x - 4, y - 4, x - 2, y - 1, colour);
+                graphics.fill(x + 3, y - 4, x + 5, y - 1, colour);
+                graphics.fill(x, y + 1, x + 1, y + 4, active ? 0xFFD9B8FF : 0xFFCFC6BB);
             }
             case "anchor" -> {
                 graphics.fill(x - 4, y - 1, x + 5, y + 2, 0xFF0C2A30);
