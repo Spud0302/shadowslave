@@ -7,6 +7,7 @@ import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
+import dev.spud.shadowslave.network.payload.NightmareAppraisalPayload;
 import dev.spud.shadowslave.network.payload.FieldGuidePinRequestPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
 import dev.spud.shadowslave.network.payload.ForewarningPayload;
@@ -28,7 +29,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
-    public static final String NETWORK_VERSION = "19";
+    public static final String NETWORK_VERSION = "20";
 
     private ModPayloads() {
     }
@@ -95,6 +96,12 @@ public final class ModPayloads {
         registrar.playToClient(
                 FieldGuideStatusPayload.TYPE,
                 FieldGuideStatusPayload.STREAM_CODEC,
+                (payload, context) -> {
+                }
+        );
+        registrar.playToClient(
+                NightmareAppraisalPayload.TYPE,
+                NightmareAppraisalPayload.STREAM_CODEC,
                 (payload, context) -> {
                 }
         );

@@ -33,6 +33,8 @@ public final class SeedData extends SavedData {
         /** The Gate a player opened to cleanse it, while that fight lasts. */
         UUID cleansing;
         int cleansingStage;
+        /** The echo site this Seed grew at, if any: its Category and Nightmare come from there. */
+        ResourceLocation echoSite;
 
         Seed(UUID id, BlockPos pos, ResourceLocation region) {
             this.id = id;
@@ -65,6 +67,10 @@ public final class SeedData extends SavedData {
             return cleansing != null;
         }
 
+        public Optional<ResourceLocation> echoSite() {
+            return Optional.ofNullable(echoSite);
+        }
+
         CompoundTag save() {
             CompoundTag tag = new CompoundTag();
             tag.putUUID("id", id);
@@ -78,6 +84,9 @@ public final class SeedData extends SavedData {
                 tag.putUUID("cleansing", cleansing);
                 tag.putInt("cleansing_stage", cleansingStage);
             }
+            if (echoSite != null) {
+                tag.putString("echo_site", echoSite.toString());
+            }
             return tag;
         }
 
@@ -88,6 +97,7 @@ public final class SeedData extends SavedData {
             seed.owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
             seed.cleansing = tag.hasUUID("cleansing") ? tag.getUUID("cleansing") : null;
             seed.cleansingStage = tag.getInt("cleansing_stage");
+            seed.echoSite = tag.contains("echo_site") ? ResourceLocation.tryParse(tag.getString("echo_site")) : null;
             return seed;
         }
     }
@@ -116,11 +126,11 @@ public final class SeedData extends SavedData {
         return List.copyOf(seeds);
     }
 
-    Optional<Seed> at(BlockPos pos) {
+    public Optional<Seed> at(BlockPos pos) {
         return seeds.stream().filter(seed -> seed.pos.equals(pos)).findFirst();
     }
 
-    Optional<Seed> byId(UUID id) {
+    public Optional<Seed> byId(UUID id) {
         return seeds.stream().filter(seed -> seed.id.equals(id)).findFirst();
     }
 }

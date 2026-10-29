@@ -432,6 +432,56 @@ Regions and Seed tuning are data: `data/shadowslave/dream_realm/region/*.json`
 and `data/shadowslave/dream_realm/seeds.json`; cleanse loot is a normal loot
 table.
 
+## Nightmares and Seed trials
+
+Added by claude-code, 2026-10-29. First slice: echo sites, the trial framework
+and one hand-made Category 2 Nightmare, The Last Vigil, at the Ember Watch echo
+site in the Ashen Expanse. Quick start: Awaken (see above), cross into the
+Dream Realm, then `/shadowslave trial site shadowslave:ember_watch visit` and
+`/shadowslave trial site shadowslave:ember_watch grow`.
+
+1. **Echo sites.** Some Dream Realm places are echoes of a past. Walk near one
+   and its ruin rises out of the ash; now and then a Seed grows at it. Reading
+   that Seed names the site, its Category (set by the site's weight, so it is
+   certain) and a line of lore.
+2. **Challenging.** Sneak-use the Seed. The Spell gathers a cohort for 15
+   seconds: anyone Awakened within 12 blocks is drawn in with you, party or
+   stranger. A Seed that already judged you refuses with a line.
+3. **Inside.** You wake at the Ember Watch as it stood, with a role the Spell
+   deals (Lamplighter, Watch Slave, Sworn Guard, Ash Pilgrim) and its kit.
+   Names above heads are hidden and chat and the tab list show your role.
+   Kit items are bound to the Nightmare and stay behind when you leave.
+4. **Endings.** The goals are hidden. The Last Vigil has three: light the
+   three watch lamps after the second wave, slay the Ash Herald that comes at
+   dusk, or simply last until dawn. Each scores differently and a role whose
+   fate matches the ending scores more.
+5. **Appraisal.** On a clear the Spell lists your deeds and kills, gives a
+   grade (Passable, Commendable, Admirable, Glorious) with a comment, and
+   boons from a loot table per grade. Click once to finish the typing and
+   again to wake. You keep what you won inside.
+6. **Death.** Dying inside puts you back where you were, exactly as you were
+   when you entered: items, experience and effects gained inside are lost,
+   and that Seed will never let you in again. Logging out or your sleeping
+   body being hurt also reverts you, without the Seed's judgement.
+7. **Rank-up.** Ascension now needs a full core and a cleared Category 2
+   Nightmare (the rise to Ascended itself is not built yet; the Soul screen
+   shows the requirement).
+
+Server options (game rules, all off): `shadowslaveNightmareScar` (a death
+inside leaves 20 minutes of weakness and mining fatigue),
+`shadowslaveNightmareTrueDeath` (a death inside costs a rank; today that means
+Awakened back to Dormant), `shadowslaveNightmareHardcore` (a death inside drops
+you all the way back to Dormant) and `shadowslaveFirstNightmare` (Awakening also needs a cleared
+Category 1 Nightmare). PvP inside follows the server's PvP setting.
+Anyone can run `/shadowslave trial status`. Operators: `/shadowslave trial
+sites`, `site <id> visit|grow`, `start <nightmare> [category] [players]`,
+`skip <seconds>`, `end <ending>`, `abort` and `forget <player>`.
+
+Content is data: Nightmares in `data/shadowslave/nightmare_trial/nightmare/`,
+echo sites in `data/shadowslave/dream_realm/echo_site/`, tuning (weights to
+Category, gather time, kill points, grades) in
+`data/shadowslave/nightmare_trial/settings.json`, boons as `gift` loot tables.
+
 ## Smithing (forge, hammer, quench)
 
 Gear and Memories are now made by hand at a smithy. Anyone can smith,

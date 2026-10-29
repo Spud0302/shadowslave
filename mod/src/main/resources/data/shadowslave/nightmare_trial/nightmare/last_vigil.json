@@ -1,0 +1,144 @@
+{
+  "display_name": "The Last Vigil",
+  "setting": "The Ember Watch, on the night the ash first fell",
+  "structure": "shadowslave:nightmare/last_vigil",
+  "arrival": "arrival",
+  "points": {
+    "arrival": [30, 4, 42],
+    "lamp_nw": [10, 14, 10],
+    "lamp_ne": [50, 14, 10],
+    "lamp_sw": [10, 14, 50],
+    "ash_west": [3, 4, 30],
+    "ash_east": [57, 4, 30],
+    "ash_north": [30, 4, 3],
+    "gate_south": [30, 4, 57],
+    "ashfall": [30, 4, 55]
+  },
+  "opening": [
+    "Prepare for your Second Nightmare.",
+    "The Watch has stood at the edge of the world for a thousand years. Tonight its eyes are closed."
+  ],
+  "roles": [
+    {
+      "id": "watch_slave",
+      "name": "Watch Slave",
+      "weight": 4,
+      "description": "A slave of the Ember Watch, chained to its stores. Nobody here will miss you.",
+      "kit": [{"id": "minecraft:bread", "count": 3}]
+    },
+    {
+      "id": "lamplighter",
+      "name": "Lamplighter",
+      "weight": 2,
+      "min": 1,
+      "description": "Keeper of the Watch's lamps. The towers have been dark for a long time.",
+      "kit": [{"id": "minecraft:flint_and_steel", "count": 1}, {"id": "minecraft:torch", "count": 4}]
+    },
+    {
+      "id": "sworn_guard",
+      "name": "Sworn Guard",
+      "weight": 2,
+      "description": "Sworn to the walls, to die on them if you must.",
+      "kit": [{"id": "minecraft:iron_sword", "count": 1}, {"id": "minecraft:shield", "count": 1}]
+    },
+    {
+      "id": "ash_pilgrim",
+      "name": "Ash Pilgrim",
+      "weight": 1,
+      "description": "You came a long way to watch the end of the world.",
+      "kit": [{"id": "minecraft:golden_apple", "count": 1}]
+    }
+  ],
+  "events": [
+    {
+      "at": 25,
+      "spell": "The horizon greys. Something burrows through the ash towards the walls.",
+      "spawns": [
+        {"entity": "shadowslave:ash_burrower", "rank": "dormant", "class": "beast", "count": 3, "per_member": 1, "point": "ash_north"}
+      ]
+    },
+    {
+      "at": 85,
+      "spell": "The first flakes of ash fall on the Watch. Heavy things climb the cliffs.",
+      "spawns": [
+        {"entity": "shadowslave:ash_burrower", "rank": "awakened", "class": "beast", "count": 2, "per_member": 1, "point": "ash_west"},
+        {"entity": "shadowslave:chainback", "rank": "awakened", "class": "monster", "count": 1, "point": "ash_east"}
+      ]
+    },
+    {
+      "at": 150,
+      "spell": "The ash falls thick now. Someone outside the gate is calling your name.",
+      "spawns": [
+        {"entity": "shadowslave:hollow_mimic", "rank": "awakened", "class": "demon", "count": 1, "point": "gate_south"},
+        {"entity": "shadowslave:ash_burrower", "rank": "awakened", "class": "beast", "count": 2, "per_member": 1, "point": "ash_north"},
+        {"entity": "shadowslave:chainback", "rank": "awakened", "class": "monster", "count": 1, "per_member": 1, "point": "ash_west"}
+      ]
+    },
+    {
+      "at": 300,
+      "spell": "The Herald's host comes on and on.",
+      "spawns": [
+        {"entity": "shadowslave:ash_burrower", "rank": "awakened", "class": "beast", "count": 3, "per_member": 1, "point": "ash_east"},
+        {"entity": "shadowslave:chainback", "rank": "awakened", "class": "monster", "count": 1, "per_member": 1, "point": "ash_north"}
+      ]
+    }
+  ],
+  "tyrant": {
+    "at": 220,
+    "entity": "shadowslave:ashen_tyrant",
+    "rank": "awakened",
+    "class": "tyrant",
+    "point": "ashfall",
+    "name": "The Ash Herald",
+    "spell": "The Ash Herald stands before the gate. The ash obeys it.",
+    "health_per_member": 0.5
+  },
+  "endings": [
+    {
+      "id": "vigil",
+      "kind": "light",
+      "after": 150,
+      "points": ["lamp_nw", "lamp_ne", "lamp_sw"],
+      "score": 90,
+      "deed": "You lit the lamps of the Ember Watch, and the Watch saw the ash coming.",
+      "comment": "The Watch opened its eyes. For one more night, the edge of the world held.",
+      "role": "lamplighter",
+      "role_score": 25,
+      "role_deed": "A Lamplighter kept the lamps, as was their fate."
+    },
+    {
+      "id": "herald",
+      "kind": "slay_tyrant",
+      "score": 70,
+      "deed": "You slew the Ash Herald before the gate.",
+      "comment": "The Herald fell, and the ash fell with it. The Watch never learned who saved it.",
+      "role": "sworn_guard",
+      "role_score": 20,
+      "role_deed": "A Sworn Guard held the wall, as was their oath."
+    },
+    {
+      "id": "dawn",
+      "kind": "survive",
+      "after": 480,
+      "score": 25,
+      "deed": "You lived to see a grey dawn.",
+      "comment": "The night ended, and the Watch with it. You only endured.",
+      "role": "ash_pilgrim",
+      "role_score": 20,
+      "role_deed": "An Ash Pilgrim watched the end of the world, as they had come to."
+    }
+  ],
+  "comments": {
+    "Passable": "You survived. The Spell expected little, and you gave it little.",
+    "Commendable": "Commendable. The Watch would have been proud of you, had it lived.",
+    "Admirable": "Admirable. Few who stand in the ash stand so well.",
+    "Glorious": "Glorious. The Spell will remember this vigil."
+  },
+  "boons": {
+    "Passable": "shadowslave:nightmare_trial/last_vigil/passable",
+    "Commendable": "shadowslave:nightmare_trial/last_vigil/commendable",
+    "Admirable": "shadowslave:nightmare_trial/last_vigil/admirable",
+    "Glorious": "shadowslave:nightmare_trial/last_vigil/glorious"
+  },
+  "lore": "The Ember Watch kept its lamps lit at the edge of the world for a thousand years. On the night the ash first fell, the lamps were dark. What is left of the Watch still stands in the Ashen Expanse."
+}
