@@ -223,7 +223,7 @@ public final class SoulSeaScreen extends Screen {
             if (i < odds.size()) {
                 int oddsY = y0 + BUTTON_HEIGHT + 6;
                 String label = longings[i].natureName() + " " + odds.get(i) + "%";
-                // Seven to a row leaves little room: shrink the longer names to fit their column.
+                // Eight to a row leaves little room: shrink the longer names to fit their column.
                 float scale = Math.min(1.0F, (float) width / this.font.width(label));
                 graphics.pose().pushPose();
                 graphics.pose().translate(x0 + width / 2.0F, oddsY + (1.0F - scale) * 4.0F, 0.0F);
@@ -246,8 +246,8 @@ public final class SoulSeaScreen extends Screen {
         hint(graphics, "screen.shadowslave.soul_sea.intention");
     }
 
-    /** Longings sit in rows of seven, one per Nature. */
-    private static final int LONGINGS_PER_ROW = 7;
+    /** Longings sit in rows of eight, one per Nature. */
+    private static final int LONGINGS_PER_ROW = 8;
     private static final int LONGING_ROW = BUTTON_HEIGHT + 22;
 
     private int longingWidth() {

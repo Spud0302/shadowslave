@@ -108,6 +108,33 @@ public final class CitadelService {
         return Optional.ofNullable(nearest);
     }
 
+    /** Whether the player stands on land their clan has claimed: near the Gateway of a Citadel it holds. */
+    public static boolean onClanLand(ServerPlayer player) {
+        if (!DreamRealm.is(player.level())) {
+            return false;
+        }
+        Optional<UUID> clan = ClanService.clanOf(player.server, player.getUUID()).map(ClanData.Clan::id);
+        if (clan.isEmpty()) {
+            return false;
+        }
+        double reach = (double) settings().landRadius() * settings().landRadius();
+        return CitadelData.get(player.serverLevel()).citadels.stream()
+                .anyMatch(citadel -> citadel.hold == CitadelData.Hold.CLAN && clan.get().equals(citadel.clan)
+                        && citadel.gateway.distSqr(player.blockPosition()) <= reach);
+    }
+
+    /** The Citadels the player's clan holds, nearest to {@code from} first. */
+    public static List<CitadelData.Citadel> clanCitadels(ServerPlayer player, ServerLevel realm, BlockPos from) {
+        Optional<UUID> clan = ClanService.clanOf(player.server, player.getUUID()).map(ClanData.Clan::id);
+        if (clan.isEmpty()) {
+            return List.of();
+        }
+        return CitadelData.get(realm).citadels.stream()
+                .filter(citadel -> citadel.hold == CitadelData.Hold.CLAN && clan.get().equals(citadel.clan))
+                .sorted(java.util.Comparator.comparingDouble(citadel -> citadel.gateway.distSqr(from)))
+                .toList();
+    }
+
     /** Names of the Citadels a clan holds. */
     public static List<String> heldBy(MinecraftServer server, UUID clan) {
         ServerLevel realm = DreamRealm.level(server);
@@ -327,7 +354,7 @@ public final class CitadelService {
     }
 
     /** Claims an open Gateway for the player's clan, founding a clan of one if they have none. */
-    static boolean claim(ServerPlayer player, CitadelData.Citadel citadel) {
+    public static boolean claim(ServerPlayer player, CitadelData.Citadel citadel) {
         ServerLevel level = DreamRealm.level(player.server);
         if (level == null) {
             return false;

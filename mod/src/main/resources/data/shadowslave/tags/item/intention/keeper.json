@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:shield",
+    "minecraft:respawn_anchor",
+    "minecraft:crying_obsidian",
+    "minecraft:iron_chestplate",
+    "minecraft:cobblestone_wall",
+    "minecraft:iron_trapdoor"
+  ]
+}

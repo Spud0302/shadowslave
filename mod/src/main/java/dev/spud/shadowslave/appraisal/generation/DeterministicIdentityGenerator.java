@@ -56,7 +56,8 @@ public final class DeterministicIdentityGenerator {
                 "archetype",
                 seed,
                 evidence,
-                catalog.archetypes(),
+                // No "Keeper of Keeper": an archetype that would repeat the Nature's own name sits this roll out.
+                catalog.archetypes().stream().filter(candidate -> !repeats(candidate, nature)).toList(),
                 candidate -> score(candidate.baseWeight(), candidate.affinityTags(), nature.tags(), evidence),
                 IdentityPrimitiveCatalog.Archetype::id
         );
@@ -211,5 +212,9 @@ public final class DeterministicIdentityGenerator {
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("JVM does not provide SHA-256", exception);
         }
+    }
+
+    static boolean repeats(IdentityPrimitiveCatalog.Archetype archetype, IdentityPrimitiveCatalog.Nature nature) {
+        return archetype.namePattern().replace("%s", "").trim().equalsIgnoreCase(nature.nameToken());
     }
 }

@@ -99,6 +99,15 @@ public final class KitLadder {
     public static final AbilityVariant STILL_MOMENT = variant("still_moment", "Still Moment",
             "Hold every hostile around you out of time for two seconds.", "Control");
 
+    public static final AbilityVariant RALLY_CALL = variant("rally_call", "Rally Call",
+            "Sound the call: allies who answer it by sneaking are drawn to your side, and your pets come at once.", "Movement");
+    public static final AbilityVariant OATH_OF_ARMS = variant("oath_of_arms", "Oath of Arms",
+            "Bind the ally you look at: for twenty seconds you take half of every blow that falls on them.", "Support");
+    public static final AbilityVariant BULWARK = variant("bulwark", "Bulwark",
+            "Raise a great dome: for ten seconds you and your allies inside take less harm, and arrows from outside fly back.", "Shelter");
+    public static final AbilityVariant GATEWAY_STEP = variant("gateway_step", "Gateway Step",
+            "At a lit Dream Candle, step straight through to your clan's Citadel Gateway.", "Movement");
+
     private static final Map<ResourceLocation, List<AbilityVariant>> AWAKENED = Map.ofEntries(
             Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(CARRY_THE_FLAME, EMBER_WARD)),
             Map.entry(AspectKitCatalog.MIST.natureId(), List.of(THROUGH_THE_HAZE, VEIL)),
@@ -119,7 +128,9 @@ public final class KitLadder {
             Map.entry(AspectKitCatalog.FURY.natureId(), List.of(GROUND_SLAM, SECOND_WIND)),
             Map.entry(AspectKitCatalog.THRESHOLD.natureId(), List.of(DOORWAY, BANISH)),
             Map.entry(AspectKitCatalog.ANCHOR.natureId(), List.of(CRUSH, GRAVITY_WELL)),
-            Map.entry(AspectKitCatalog.HOURGLASS.natureId(), List.of(REWIND, STILL_MOMENT))
+            Map.entry(AspectKitCatalog.HOURGLASS.natureId(), List.of(REWIND, STILL_MOMENT)),
+            Map.entry(AspectKitCatalog.HERALD.natureId(), List.of(RALLY_CALL, OATH_OF_ARMS)),
+            Map.entry(AspectKitCatalog.KEEPER.natureId(), List.of(BULWARK, GATEWAY_STEP))
     );
 
     private KitLadder() {

@@ -88,7 +88,7 @@ public final class AbilityService {
 
     /** Essence this player pays for one use of the ability. */
     public static int costFor(ServerPlayer player, AspectAbility ability) {
-        return MasonWorks.costFor(player, RefinementRules.cost(ability.essenceCost(), RefinementService.get(player)));
+        return KeeperHold.costFor(player, MasonWorks.costFor(player, RefinementRules.cost(ability.essenceCost(), RefinementService.get(player))));
     }
 
     /** Everyone nearby, the caster included, plays the casting pose. */
@@ -146,6 +146,8 @@ public final class AbilityService {
             FuryRage.forget(player.getUUID());
             AnchorWeight.forget(player.getUUID());
             Stasis.forget(player.getUUID());
+            HeraldCommand.forget(player.getUUID());
+            KeeperHold.forget(player.getUUID());
         }
     }
 

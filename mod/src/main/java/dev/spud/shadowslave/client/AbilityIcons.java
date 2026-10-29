@@ -25,11 +25,13 @@ final class AbilityIcons {
                     "waymark", "lullaby", "anchor_recall", "trailblaze", "dreamfall", "sleepwalker",
                     "gloam_edge", "ice_lance", "provoke", "shade_step", "snuff", "encase", "rimepath",
                     "ground_slam", "second_wind",
-                    "pocket", "doorway", "banish", "shift_weight", "crush", "gravity_well", "stasis", "rewind", "still_moment"),
+                    "pocket", "doorway", "banish", "shift_weight", "crush", "gravity_well", "stasis", "rewind", "still_moment",
+                    "war_banner", "rally_call", "oath_of_arms", "sanctuary", "bulwark", "gateway_step"),
             List.of("cold_ash", "borrowed_breath", "stone_sleep", "tidal_debt",
                     "quarry_lock", "clouded_eyes", "hunger", "brimming_vessel",
                     "cold_hearth", "open_sky", "far_from_home", "rootbound", "wanderlust", "insomnia",
-                    "sunstruck", "thin_blood", "red_haze", "unmoored", "leaden", "borrowed_time"));
+                    "sunstruck", "thin_blood", "red_haze", "unmoored", "leaden", "borrowed_time",
+                    "burden_of_command", "homebound"));
 
     private AbilityIcons() {
     }

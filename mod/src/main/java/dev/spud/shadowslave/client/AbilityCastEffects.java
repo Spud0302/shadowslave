@@ -50,7 +50,9 @@ public final class AbilityCastEffects {
         FURY(new Color(255, 90, 50), new Color(120, 10, 10)),
         THRESHOLD(new Color(200, 140, 255), new Color(40, 20, 80)),
         ANCHOR(new Color(170, 175, 190), new Color(50, 55, 70)),
-        HOURGLASS(new Color(250, 225, 160), new Color(150, 110, 50));
+        HOURGLASS(new Color(250, 225, 160), new Color(150, 110, 50)),
+        HERALD(new Color(255, 200, 80), new Color(160, 30, 30)),
+        KEEPER(new Color(230, 235, 255), new Color(90, 110, 170));
 
         final Color start;
         final Color end;
