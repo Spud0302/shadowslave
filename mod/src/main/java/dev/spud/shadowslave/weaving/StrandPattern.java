@@ -25,7 +25,7 @@ import java.util.Optional;
  */
 public record StrandPattern(String name, String description, List<StrandFit> fits, Effect effect, List<Source> study,
                             Material material, List<Integer> essence, SoulRank minRank, List<Point> pattern, int xp,
-                            boolean starter) {
+                            boolean starter, ResourceLocation branch, List<Material> extraMaterials) {
     public static final Codec<StrandPattern> CODEC = RecordCodecBuilder.<StrandPattern>create(instance -> instance.group(
             Codec.STRING.fieldOf("name").forGetter(StrandPattern::name),
             Codec.STRING.optionalFieldOf("description", "").forGetter(StrandPattern::description),
@@ -37,7 +37,9 @@ public record StrandPattern(String name, String description, List<StrandFit> fit
             SoulRank.CODEC.optionalFieldOf("min_rank", SoulRank.DORMANT).forGetter(StrandPattern::minRank),
             Point.CODEC.listOf().optionalFieldOf("pattern", List.of()).forGetter(StrandPattern::pattern),
             Codec.intRange(0, 10_000).optionalFieldOf("xp", 20).forGetter(StrandPattern::xp),
-            Codec.BOOL.optionalFieldOf("starter", false).forGetter(StrandPattern::starter)
+            Codec.BOOL.optionalFieldOf("starter", false).forGetter(StrandPattern::starter),
+            ResourceLocation.CODEC.optionalFieldOf("branch", StrandService.PATTERNS).forGetter(StrandPattern::branch),
+            Material.CODEC.listOf().optionalFieldOf("extra_materials", List.of()).forGetter(StrandPattern::extraMaterials)
     ).apply(instance, StrandPattern::new)).validate(StrandPattern::validate);
 
     public StrandPattern {
@@ -47,6 +49,8 @@ public record StrandPattern(String name, String description, List<StrandFit> fit
         study = List.copyOf(study);
         essence = List.copyOf(essence);
         pattern = List.copyOf(pattern);
+        branch = Objects.requireNonNull(branch, "branch");
+        extraMaterials = List.copyOf(extraMaterials);
     }
 
     private static DataResult<StrandPattern> validate(StrandPattern strand) {
@@ -62,6 +66,12 @@ public record StrandPattern(String name, String description, List<StrandFit> fit
         }
         if (!strand.pattern.isEmpty() && (strand.pattern.size() < StrandRules.MIN_POINTS || strand.pattern.size() > StrandRules.MAX_POINTS)) {
             return DataResult.error(() -> strand.name + " needs " + StrandRules.MIN_POINTS + " to " + StrandRules.MAX_POINTS + " pattern points");
+        }
+        if (strand.effect.kind() == Kind.FUSED) {
+            return DataResult.error(() -> strand.name + ": fused strands are made by Weavers, not written in data");
+        }
+        if (strand.extraMaterials.stream().anyMatch(extra -> extra.counts().size() != tiers)) {
+            return DataResult.error(() -> strand.name + " needs a count for each of its " + tiers + " Tiers in every extra material");
         }
         if (strand.effect.kind() == Kind.ATTRIBUTE && strand.effect.attribute().isEmpty()) {
             return DataResult.error(() -> strand.name + " is an attribute strand with no attribute");
@@ -80,9 +90,22 @@ public record StrandPattern(String name, String description, List<StrandFit> fit
         return fits.contains(fit);
     }
 
-    /** Attribute strands are always on, and the Memory weave and Bound are what a piece is, so none of them can be tied to a condition. */
+    /**
+     * Attribute strands are always on, and the Memory weave and Bound are what a piece is, so none of them can be tied to a
+     * condition. A fused strand is tunable when both its parts are; {@link StrandFusion} decides that and marks it here by
+     * giving it a non-attribute kind.
+     */
     public boolean tunable() {
-        return effect.kind() != Kind.ATTRIBUTE && !effect.kind().foundational();
+        return effect.kind() != Kind.ATTRIBUTE && !effect.kind().foundational() && (effect.kind() != Kind.FUSED || effect.values().getFirst() > 0);
+    }
+
+    /** Everything one Tier is spun from: the material and any extra ones, item to count. */
+    public java.util.Map<ResourceLocation, Integer> materials(int tier) {
+        java.util.LinkedHashMap<ResourceLocation, Integer> all = new java.util.LinkedHashMap<>();
+        all.merge(material.item(), material.count(tier), Integer::sum);
+        extraMaterials.forEach(extra -> all.merge(extra.item(), extra.count(tier), Integer::sum));
+        all.values().removeIf(count -> count <= 0);
+        return all;
     }
 
     /** What a strand does. Each kind's numbers mean something different; see {@link StrandEffects}. */
@@ -111,7 +134,12 @@ public record StrandPattern(String name, String description, List<StrandFit> fit
          */
         MEMORY("memory"),
         /** Bound (lore: rarer than a plain Memory): a Memory only its bonded owner can wield or wear. {@code values} is unused. */
-        BOUND("bound");
+        BOUND("bound"),
+        /**
+         * A strand of a Weaver's own making, fused from two learned strands. Only {@link StrandFusion} makes one; its effects
+         * are its parts'. {@code values} is 1 for each Tier when it can be tuned, 0 when not.
+         */
+        FUSED("fused");
 
         public static final Codec<Kind> CODEC = StringRepresentable.fromEnum(Kind::values);
 

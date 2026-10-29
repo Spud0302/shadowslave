@@ -1,10 +1,19 @@
 {
   "name": "Bound",
   "description": "A bond laid over the Memory weave. The piece answers only to the first soul that holds it, and slips from any other hand.",
-  "fits": ["weapon", "tool", "helmet", "chest", "legs", "boots"],
+  "fits": [
+    "weapon",
+    "tool",
+    "helmet",
+    "chest",
+    "legs",
+    "boots"
+  ],
   "effect": {
     "type": "bound",
-    "values": [1.0]
+    "values": [
+      1.0
+    ]
   },
   "study": [
     {
@@ -13,9 +22,14 @@
   ],
   "material": {
     "item": "shadowslave:awakened_soul_shard",
-    "counts": [1]
+    "counts": [
+      1
+    ]
   },
-  "essence": [60],
+  "essence": [
+    60
+  ],
   "min_rank": "awakened",
-  "xp": 40
+  "xp": 40,
+  "branch": "shadowslave:binding"
 }

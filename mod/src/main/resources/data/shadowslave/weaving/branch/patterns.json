@@ -1,6 +1,6 @@
 {
   "name": "Patterns",
-  "description": "Strands studied out of other weaves and traced onto a soul-shard anchor: copy, then tune.",
+  "description": "Strands studied out of other weaves and traced onto a soul-shard anchor: copy, then tune, then create your own.",
   "levels": [
     {},
     {
@@ -13,6 +13,41 @@
         "count": 5,
         "description": "Lay five Tier II strands"
       }
+    },
+    {
+      "cost": 2
+    },
+    {
+      "deed": {
+        "type": "weave",
+        "tuned": true,
+        "count": 3,
+        "description": "Lay three tuned strands"
+      },
+      "perks": [
+        {
+          "type": "create",
+          "amount": 70
+        }
+      ]
+    },
+    {
+      "cost": 3
+    },
+    {
+      "deed": {
+        "type": "weave",
+        "fused": true,
+        "min_tier": 2,
+        "count": 3,
+        "description": "Lay three Tier II strands of your own making"
+      },
+      "perks": [
+        {
+          "type": "create",
+          "amount": 85
+        }
+      ]
     }
   ]
 }

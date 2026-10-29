@@ -1,6 +1,8 @@
 package dev.spud.shadowslave.client;
 
+import dev.spud.shadowslave.network.payload.MemorySummonPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshot;
+import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -61,6 +63,9 @@ public final class SoulScreen extends Screen {
                 ClientAbilityState.essence(now, partialTick), ClientKeyMappings.abilityKeyNames(),
                 ClientCoreState.status(), ClientWeavingState.status(), SoulScreen::itemName);
         renderEntries(graphics, entries);
+        if (tab == SoulPages.Tab.MEMORIES) {
+            renderSea(graphics, mouseX, mouseY, now + partialTick);
+        }
 
         graphics.drawCenteredString(this.font, Component.translatable("screen.shadowslave.soul.tabs_hint"),
                 this.width / 2, bottom + 6, SpellStyle.HINT);
@@ -73,6 +78,90 @@ public final class SoulScreen extends Screen {
             return id;
         }
         return net.minecraft.core.registries.BuiltInRegistries.ITEM.get(location).getDescription().getString();
+    }
+
+    /** Where the Soul Sea's spheres circle: below the page's lines, in the panel's lower part. */
+    private int seaX() {
+        return (left + right) / 2;
+    }
+
+    private int seaY() {
+        return top + TAB_HEIGHT + 60 + (bottom - top - TAB_HEIGHT - 60) / 2;
+    }
+
+    /** Each Memory's place on its orbit at {@code time}, as x, y pairs. */
+    private int[][] spheres(int count, double time) {
+        int[][] places = new int[count][2];
+        int rx = Math.min(130, (right - left) / 2 - 30);
+        int ry = Math.max(24, (bottom - seaY()) - 22);
+        for (int i = 0; i < count; i++) {
+            double angle = time * 0.01 + Math.PI * 2 * i / Math.max(1, count);
+            places[i][0] = seaX() + (int) Math.round(Math.cos(angle) * rx);
+            places[i][1] = seaY() + (int) Math.round(Math.sin(angle) * ry);
+        }
+        return places;
+    }
+
+    /**
+     * The Soul Sea (lore: Memories rest there as spheres circling the soul,
+     * ch. 47): a glow at the centre and each dismissed Memory as a sphere
+     * around it, its item drawn inside. Hover one to read it; click to summon it.
+     */
+    private void renderSea(GuiGraphics graphics, int mouseX, int mouseY, double time) {
+        List<WeavingStatusPayload.Memory> held = ClientWeavingState.status().soul().held();
+        int cx = seaX();
+        int cy = seaY();
+        float pulse = 0.5F + 0.5F * (float) Math.sin(time * 0.08);
+        for (int radius = 14; radius > 0; radius -= 2) {
+            graphics.fill(cx - radius, cy - radius / 2, cx + radius, cy + radius / 2,
+                    SpellStyle.withAlpha(SpellStyle.ASPECT, 0.05F + 0.04F * pulse));
+        }
+        graphics.fill(cx - 2, cy - 2, cx + 2, cy + 2, SpellStyle.withAlpha(SpellStyle.TITLE, 0.9F));
+        int[][] places = spheres(held.size(), time);
+        int hovered = -1;
+        for (int i = 0; i < held.size(); i++) {
+            int x = places[i][0];
+            int y = places[i][1];
+            boolean over = Math.abs(mouseX - x) <= 11 && Math.abs(mouseY - y) <= 11;
+            if (over) {
+                hovered = i;
+            }
+            orb(graphics, x, y, over ? SpellStyle.TITLE : SpellStyle.ABILITY, over);
+            net.minecraft.resources.ResourceLocation item = net.minecraft.resources.ResourceLocation.tryParse(held.get(i).item());
+            if (item != null && net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(item)) {
+                graphics.renderItem(new net.minecraft.world.item.ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(item)), x - 8, y - 8);
+            }
+            WeavingStatusPayload.Memory memory = held.get(i);
+            if (memory.maxDamage() > 0 && memory.damage() > 0) {
+                int width = Math.round(14.0F * (memory.maxDamage() - memory.damage()) / memory.maxDamage());
+                graphics.fill(x - 7, y + 10, x + 7, y + 11, 0xFF101010);
+                graphics.fill(x - 7, y + 10, x - 7 + width, y + 11, SpellStyle.ASPECT);
+            }
+        }
+        if (hovered >= 0) {
+            List<Component> lines = new java.util.ArrayList<>();
+            List<String> text = SoulPages.memoryLines(held.get(hovered));
+            for (int i = 0; i < text.size(); i++) {
+                lines.add(Component.literal(text.get(i)).withStyle(i == 0 ? net.minecraft.ChatFormatting.LIGHT_PURPLE
+                        : i == text.size() - 1 ? net.minecraft.ChatFormatting.DARK_GRAY : net.minecraft.ChatFormatting.GRAY));
+            }
+            graphics.renderComponentTooltip(this.font, lines, mouseX, mouseY);
+        }
+    }
+
+    /** A soft sphere: a faint disc, lighter toward the top, inside a bright rim. */
+    private static void orb(GuiGraphics graphics, int x, int y, int colour, boolean bright) {
+        int radius = 11;
+        for (int dy = -radius; dy <= radius; dy++) {
+            int half = (int) Math.round(Math.sqrt(radius * radius - dy * dy));
+            float shade = 0.10F + 0.12F * (radius - dy) / (2.0F * radius);
+            graphics.fill(x - half, y + dy, x + half + 1, y + dy + 1, SpellStyle.withAlpha(colour, shade));
+            int rim = SpellStyle.withAlpha(colour, bright ? 0.95F : 0.65F);
+            graphics.fill(x - half, y + dy, x - half + 1, y + dy + 1, rim);
+            graphics.fill(x + half, y + dy, x + half + 1, y + dy + 1, rim);
+        }
+        graphics.fill(x - 4, y - radius, x + 5, y - radius + 1, SpellStyle.withAlpha(colour, bright ? 0.95F : 0.65F));
+        graphics.fill(x - 4, y + radius, x + 5, y + radius + 1, SpellStyle.withAlpha(colour, bright ? 0.95F : 0.65F));
     }
 
     private void renderTabs(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -160,6 +249,17 @@ public final class SoulScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (tab == SoulPages.Tab.MEMORIES && button == 0 && this.minecraft.level != null) {
+            List<WeavingStatusPayload.Memory> held = ClientWeavingState.status().soul().held();
+            int[][] places = spheres(held.size(), this.minecraft.level.getGameTime() + this.minecraft.getTimer().getGameTimeDeltaPartialTick(false));
+            for (int i = 0; i < places.length; i++) {
+                if (Math.abs(mouseX - places[i][0]) <= 11 && Math.abs(mouseY - places[i][1]) <= 11) {
+                    net.neoforged.neoforge.network.PacketDistributor.sendToServer(new MemorySummonPayload(i));
+                    this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_CHIME, 1.0F));
+                    return true;
+                }
+            }
+        }
         if (mouseY >= top && mouseY < top + TAB_HEIGHT && mouseX >= left && mouseX < right) {
             int index = (int) ((mouseX - left) / ((right - left) / TABS.length));
             select(TABS[Math.min(TABS.length - 1, index)]);

@@ -42,6 +42,16 @@ public record SoulMemories(List<ItemStack> held) {
         return held.isEmpty() ? this : new SoulMemories(held.subList(0, held.size() - 1));
     }
 
+    /** Every Memory but the one at {@code index}. */
+    public SoulMemories without(int index) {
+        if (index < 0 || index >= held.size()) {
+            return this;
+        }
+        List<ItemStack> next = new ArrayList<>(held);
+        next.remove(index);
+        return new SoulMemories(next);
+    }
+
     /** Moves the oldest Memory to the front of the line, so a summon brings it next. */
     public SoulMemories cycled() {
         if (held.size() < 2) {

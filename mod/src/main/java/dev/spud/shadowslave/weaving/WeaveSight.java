@@ -82,8 +82,7 @@ public final class WeaveSight {
         WeavingContent content = WeavingContent.current();
         List<String> names = new ArrayList<>();
         for (WovenStrands.Laid laid : strands.strands()) {
-            names.add(content.strand(laid.id()).map(StrandPattern::name).orElse(laid.id().getPath())
-                    + " " + WeavingRules.tierName(laid.tier()));
+            names.add(StrandService.name(content, laid) + " " + WeavingRules.tierName(laid.tier()));
         }
         pieces.add(stack.getHoverName().getString() + ": " + String.join(", ", names));
     }

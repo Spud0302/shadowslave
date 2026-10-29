@@ -9,6 +9,7 @@ import dev.spud.shadowslave.soul.SoulService;
 import dev.spud.shadowslave.weaving.WeavingContent;
 import dev.spud.shadowslave.weaving.WeavingData;
 import dev.spud.shadowslave.weaving.WeavingRecipe;
+import dev.spud.shadowslave.weaving.WeavingBranch;
 import dev.spud.shadowslave.weaving.WeavingRules;
 import dev.spud.shadowslave.weaving.WeavingService;
 import net.minecraft.ChatFormatting;
@@ -358,8 +359,10 @@ public final class SmithingService {
         Quality quality = SmithingRules.grade(score, billet.masterwork(), cracked);
         Item item = BuiltInRegistries.ITEM.get(recipe.result());
         ItemStack stack = new ItemStack(item == Items.AIR ? Items.BARRIER : item);
-        stamp(stack, new ForgedData(quality, score, billet.smith().isEmpty() ? player.getGameProfile().getName() : billet.smith()));
-        WeavingRules.Credit credit = WeavingRules.credit(content, WeavingService.get(player), billet.pattern(), WeavingService.boons(player));
+        int extra = WeavingRules.perk(content, WeavingService.get(player), WeavingBranch.PerkKind.EXTRA_THREAD);
+        stamp(stack, new ForgedData(quality, score, billet.smith().isEmpty() ? player.getGameProfile().getName() : billet.smith(), extra));
+        WeavingRules.Credit credit = WeavingRules.credit(content, WeavingService.get(player), billet.pattern(), WeavingService.boons(player),
+                Optional.of(quality));
         WeavingService.set(player, credit.data());
         player.sendSystemMessage(Component.literal("You forge a " + quality.displayName() + " " + billet.name()
                 + " (score " + score + "). +" + credit.xp() + " " + content.branchName(recipe.branch()) + " XP")

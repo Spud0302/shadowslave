@@ -21,7 +21,7 @@ public class WovenThreadItem extends Item {
         if (strands == null || strands.isEmpty()) {
             return super.getName(stack);
         }
-        return Component.translatable("item.shadowslave.woven_thread.named", StrandText.name(strands.strands().getFirst().id()));
+        return Component.translatable("item.shadowslave.woven_thread.named", StrandText.name(strands.strands().getFirst()));
     }
 
     @Override

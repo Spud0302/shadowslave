@@ -103,6 +103,18 @@ public final class WeavingService {
         StrandService.weave(player, menu, id, payload.tier(), restriction, trace);
     }
 
+    /** A fusion asked for from the table's screen. The table must be open. */
+    public static void createStrand(ServerPlayer player, dev.spud.shadowslave.network.payload.StrandCreatePayload payload) {
+        if (!(player.containerMenu instanceof WeavingMenu menu) || !menu.stillValid(player)) {
+            return;
+        }
+        ResourceLocation first = ResourceLocation.tryParse(payload.first());
+        ResourceLocation second = ResourceLocation.tryParse(payload.second());
+        if (first != null && second != null) {
+            StrandService.create(player, menu, first, second, payload.name());
+        }
+    }
+
     /** Forge's gifts at the hearth: Masterwork's extra Tier while it lasts, and Thrifty Hands' quicker Forging. */
     public static WeavingRules.Boons boons(ServerPlayer player) {
         boolean forge = KitRules.hasInnate(player, AspectKitCatalog.FORGE.innateId());
@@ -199,27 +211,57 @@ public final class WeavingService {
 
     public static WeavingStatusPayload status(ServerPlayer player) {
         WeavingContent content = WeavingContent.current();
-        List<ResourceLocation> lessons = player.containerMenu instanceof WeavingMenu menu ? StrandService.teaches(content, menu.centre()) : List.of();
-        return status(content, get(player), soulRank(player), lastResult(player), lessons, StrandService.essencePercent(player));
+        WeavingData data = get(player);
+        List<WeavingStatusPayload.Lesson> lessons = player.containerMenu instanceof WeavingMenu menu ? lessons(content, data, menu.centre()) : List.of();
+        return status(content, data, soulRank(player), lastResult(player), lessons, StrandService.essencePercent(player),
+                soul(player));
+    }
+
+    /** What the piece on an open table can teach: its strands and its study sources, each marked once known. */
+    static List<WeavingStatusPayload.Lesson> lessons(WeavingContent content, WeavingData data, ItemStack piece) {
+        List<WovenStrands.Laid> laid = StrandService.strands(piece).strands();
+        return StrandService.teaches(content, piece).stream().map(id -> new WeavingStatusPayload.Lesson(id.toString(),
+                laid.stream().filter(strand -> strand.id().equals(id)).findFirst().map(strand -> StrandService.name(content, strand))
+                        .orElseGet(() -> content.strand(id).map(StrandPattern::name).orElse(id.getPath())),
+                StrandFusion.known(content, data, id))).toList();
+    }
+
+    /** The soul's Memories as the Memories page shows them. */
+    static WeavingStatusPayload.Soul soul(ServerPlayer player) {
+        WeavingContent content = WeavingContent.current();
+        List<WeavingStatusPayload.Memory> held = new ArrayList<>();
+        for (ItemStack stack : MemoryWeave.held(player).held()) {
+            List<String> strands = StrandService.strands(stack).strands().stream()
+                    .filter(laid -> content.strand(laid.id()).map(strand -> !strand.effect().kind().foundational()).orElse(true))
+                    .map(laid -> StrandService.name(content, laid) + " " + WeavingRules.tierName(laid.tier())).toList();
+            held.add(new WeavingStatusPayload.Memory(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), stack.getHoverName().getString(),
+                    stack.getDamageValue(), stack.getMaxDamage(), MemoryWeave.bond(stack).map(BoundTo::name).orElse(""), strands));
+        }
+        return new WeavingStatusPayload.Soul(held, MemoryWeave.capacity(player), MemoryWeave.summonCost(player),
+                MemoryWeave.perk(player, WeavingBranch.PerkKind.MEND));
     }
 
     static WeavingStatusPayload status(WeavingContent content, WeavingData data, Optional<SoulRank> soulRank, String lastResult) {
-        return status(content, data, soulRank, lastResult, List.of());
+        return status(content, data, soulRank, lastResult, List.of(), 100, WeavingStatusPayload.Soul.EMPTY);
     }
 
-    /** {@code lessons} are the strands the piece on an open Weaving Table teaches. */
+    /**
+     * {@code lessons} are the strands the piece on an open Weaving Table
+     * teaches; {@code essencePercent} is the share of each essence cost the
+     * player pays (Wellspring pays less).
+     */
     static WeavingStatusPayload status(WeavingContent content, WeavingData data, Optional<SoulRank> soulRank, String lastResult,
-                                       List<ResourceLocation> lessons) {
-        return status(content, data, soulRank, lastResult, lessons, 100);
-    }
-
-    /** {@code essencePercent} is the share of each essence cost the player pays (Wellspring pays less). */
-    static WeavingStatusPayload status(WeavingContent content, WeavingData data, Optional<SoulRank> soulRank, String lastResult,
-                                       List<ResourceLocation> lessons, int essencePercent) {
+                                       List<WeavingStatusPayload.Lesson> lessons, int essencePercent, WeavingStatusPayload.Soul soul) {
         List<WeavingStatusPayload.Branch> branches = new ArrayList<>();
-        content.branches().forEach((id, branch) -> branches.add(new WeavingStatusPayload.Branch(
-                branch.name(), WeavingRules.heldLevel(content, data, id), branch.maxLevel(), data.xp(id),
-                nextText(content, data, id), WeavingRules.canRaise(content, data, id))));
+        content.branches().forEach((id, branch) -> {
+            int held = WeavingRules.heldLevel(content, data, id);
+            List<String> perks = new ArrayList<>();
+            for (int number = 1; number <= held; number++) {
+                branch.level(number).perks().forEach(perk -> perks.add(WeavingRules.perkText(perk)));
+            }
+            branches.add(new WeavingStatusPayload.Branch(branch.name(), held, branch.maxLevel(), data.xp(id),
+                    nextText(content, data, id), WeavingRules.canRaise(content, data, id), perks));
+        });
         List<WeavingStatusPayload.Pattern> patterns = new ArrayList<>();
         List<WeavingStatusPayload.Hint> hints = new ArrayList<>();
         content.recipes().forEach((id, recipe) -> {
@@ -236,29 +278,40 @@ public final class WeavingService {
         int patternsLevel = WeavingRules.heldLevel(content, data, StrandService.PATTERNS);
         List<WeavingStatusPayload.Strand> strands = new ArrayList<>();
         content.strands().forEach((id, strand) -> {
-            if (!StrandRules.knows(data.studied(), id, strand)) {
-                return;
+            if (StrandRules.knows(data.studied(), id, strand)) {
+                strands.add(strandRow(id, strand, "", data, soulRank, essencePercent));
             }
-            List<Float> points = new ArrayList<>();
-            StrandRules.points(id, strand).forEach(point -> {
-                points.add(point.x());
-                points.add(point.y());
-            });
-            String lock = strand.minRank() != SoulRank.DORMANT && soulRank.map(rank -> rank.ordinal() < strand.minRank().ordinal()).orElse(true)
-                    ? "Needs " + WeavingRules.rankName(strand.minRank()) + " soul" : "";
-            strands.add(new WeavingStatusPayload.Strand(id.toString(), strand.name(), strand.description(),
-                    String.join(", ", strand.fits().stream().map(StrandFit::plural).toList()), strand.tunable(),
-                    strand.material().item().toString(), strand.material().counts(),
-                    strand.essence().stream().map(cost -> StrandRules.discounted(cost, essencePercent)).toList(), points, data.laid(id), lock));
         });
-        List<WeavingStatusPayload.Lesson> table = lessons.stream()
-                .map(id -> new WeavingStatusPayload.Lesson(id.toString(), content.strand(id).map(StrandPattern::name).orElse(id.getPath()),
-                        content.strand(id).map(strand -> StrandRules.knows(data.studied(), id, strand)).orElse(false)))
-                .toList();
+        StrandFusion.created(data).forEach((id, fused) -> StrandFusion.pattern(content, id, fused).ifPresent(strand ->
+                strands.add(strandRow(id, strand, String.join(" + ", fused.parts().stream()
+                        .map(part -> content.strand(part).map(StrandPattern::name).orElse(part.getPath())).toList())
+                        + " · " + fused.share() + "% each", data, soulRank, essencePercent))));
         return new WeavingStatusPayload(WeavingRules.unspent(content, data), WeavingRules.xpTowardPoint(content, data),
                 content.settings().xpPerPoint(), WeavingRules.canRespec(data), branches, patterns, hints, lastResult,
-                strands, table, Math.min(StrandRules.soulCap(soulRank), patternsLevel), patternsLevel,
-                WeavingRules.heldLevel(content, data, StrandService.FORGERY));
+                strands, lessons, Math.min(StrandRules.soulCap(soulRank), patternsLevel), patternsLevel,
+                WeavingRules.heldLevel(content, data, StrandService.FORGERY),
+                WeavingRules.perk(content, data, WeavingBranch.PerkKind.CREATE), soul);
+    }
+
+    private static WeavingStatusPayload.Strand strandRow(ResourceLocation id, StrandPattern strand, String fused, WeavingData data,
+                                                         Optional<SoulRank> soulRank, int essencePercent) {
+        List<Float> points = new ArrayList<>();
+        StrandRules.points(id, strand).forEach(point -> {
+            points.add(point.x());
+            points.add(point.y());
+        });
+        String lock = strand.minRank() != SoulRank.DORMANT && soulRank.map(rank -> rank.ordinal() < strand.minRank().ordinal()).orElse(true)
+                ? "Needs " + WeavingRules.rankName(strand.minRank()) + " soul" : "";
+        List<WeavingStatusPayload.Cost> costs = new ArrayList<>();
+        for (int tier = 1; tier <= strand.maxTier(); tier++) {
+            costs.add(new WeavingStatusPayload.Cost(StrandRules.discounted(strand.essence().get(tier - 1), essencePercent),
+                    strand.materials(tier).entrySet().stream()
+                            .map(entry -> new WeavingStatusPayload.Material(entry.getKey().toString(), entry.getValue())).toList()));
+        }
+        return new WeavingStatusPayload.Strand(id.toString(), strand.name(), strand.description(),
+                String.join(", ", strand.fits().stream().map(StrandFit::plural).toList()), strand.tunable(),
+                strand.material().item().toString(), strand.material().counts(),
+                costs.stream().map(WeavingStatusPayload.Cost::essence).toList(), points, data.laid(id), lock, costs, fused);
     }
 
     static String nextText(WeavingContent content, WeavingData data, ResourceLocation branch) {
@@ -266,10 +319,12 @@ public final class WeavingService {
         if (next.maxed()) {
             return "Every level is yours.";
         }
+        List<WeavingBranch.Perk> perks = content.branch(branch).orElseThrow().level(next.level()).perks();
+        String gives = perks.isEmpty() ? "" : ". It gives: " + String.join("; ", perks.stream().map(WeavingRules::perkText).toList());
         if (next.deed().isPresent()) {
             WeavingBranch.Deed deed = next.deed().get();
-            return "Level " + next.level() + " is a deed: " + deed.description() + " (" + next.progress() + "/" + deed.count() + ")";
+            return "Level " + next.level() + " is a deed: " + deed.description() + " (" + next.progress() + "/" + deed.count() + ")" + gives;
         }
-        return "Level " + next.level() + " costs " + next.cost() + (next.cost() == 1 ? " point" : " points");
+        return "Level " + next.level() + " costs " + next.cost() + (next.cost() == 1 ? " point" : " points") + gives;
     }
 }

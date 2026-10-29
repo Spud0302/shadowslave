@@ -1,6 +1,6 @@
 {
   "name": "Forging",
-  "description": "Weapons and armour forged by hand at the hearth, anvil and trough.",
+  "description": "Weapons and armour forged by hand at the hearth, anvil and trough. Each level widens the hammer's clean zone and opens a higher Tier of pattern.",
   "levels": [
     {},
     {
@@ -13,6 +13,34 @@
         "count": 5,
         "description": "Forge five Tier II pieces"
       }
+    },
+    {
+      "cost": 2
+    },
+    {
+      "deed": {
+        "type": "weave",
+        "quality": "superior",
+        "count": 3,
+        "description": "Forge three Superior pieces"
+      }
+    },
+    {
+      "cost": 3
+    },
+    {
+      "deed": {
+        "type": "weave",
+        "quality": "masterwork",
+        "count": 1,
+        "description": "Forge a Masterwork piece"
+      },
+      "perks": [
+        {
+          "type": "extra_thread",
+          "amount": 1
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,31 @@
+{
+  "branch": "shadowslave:forging",
+  "name": "Netherite Sword",
+  "tier": 4,
+  "result": "minecraft:netherite_sword",
+  "materials": [
+    {
+      "item": "minecraft:netherite_ingot",
+      "count": 1
+    },
+    {
+      "item": "minecraft:diamond",
+      "count": 2
+    },
+    {
+      "item": "minecraft:stick",
+      "count": 1
+    }
+  ],
+  "xp": 45,
+  "unlock": {
+    "type": "starter"
+  },
+  "forging": {
+    "heat_min": 1250,
+    "heat_max": 1450,
+    "blows": 14,
+    "quench": true,
+    "quench_ticks": 44
+  }
+}
