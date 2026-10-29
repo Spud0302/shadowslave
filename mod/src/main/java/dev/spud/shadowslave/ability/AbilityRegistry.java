@@ -73,6 +73,12 @@ public final class AbilityRegistry {
         register(new StasisAbility());
         register(new RewindAbility());
         register(new StillMomentAbility());
+        register(new WarBannerAbility());
+        register(new RallyCallAbility());
+        register(new OathOfArmsAbility());
+        register(new SanctuaryAbility());
+        register(new BulwarkAbility());
+        register(new GatewayStepAbility());
     }
 
     private AbilityRegistry() {

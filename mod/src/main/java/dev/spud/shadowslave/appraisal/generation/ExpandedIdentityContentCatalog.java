@@ -223,7 +223,8 @@ public final class ExpandedIdentityContentCatalog {
      * passes (Warden, Seer, Reaper, Wellspring) and the utility Natures of
      * the Weaving pass (Forge, Delve, Mason, Verdant) and the Dream Realm
      * Natures (Wayfarer, Lull) and the Awakening-inspired Natures (Gloam, Rime,
-     * Fury, Threshold, Anchor, Hourglass), their Dormant abilities and
+     * Fury, Threshold, Anchor, Hourglass) and the Citadel Natures (Herald,
+     * Keeper), their Dormant abilities and
      * Flaws. The Dream Candle roll draws on this; the older appraisal flows
      * keep {@link #waveOne()} so their generated identities stay stable.
      */
@@ -246,7 +247,9 @@ public final class ExpandedIdentityContentCatalog {
                         nature("fury", "Fury", Set.of("fury", "rage", "wrath"), 3),
                         nature("threshold", "Threshold", Set.of("threshold", "pocket", "doorway"), 3),
                         nature("anchor", "Anchor", Set.of("anchor", "weight", "gravity"), 3),
-                        nature("hourglass", "Hourglass", Set.of("hourglass", "time", "stillness"), 3)
+                        nature("hourglass", "Hourglass", Set.of("hourglass", "time", "stillness"), 3),
+                        nature("herald", "Herald", Set.of("herald", "command", "banner"), 3),
+                        nature("keeper", "Keeper", Set.of("keeper", "citadel", "ward"), 3)
                 )),
                 wave.archetypes(),
                 concat(wave.abilities(), List.of(
@@ -264,7 +267,9 @@ public final class ExpandedIdentityContentCatalog {
                         ability("provoke", "Provoke", Set.of("fury"), Set.of("resolve", "sacrifice"), 5),
                         ability("pocket", "Pocket", Set.of("threshold"), Set.of("preservation", "concealment"), 5),
                         ability("shift_weight", "Shift Weight", Set.of("anchor"), Set.of("stability", "adaptation"), 5),
-                        ability("stasis", "Stasis", Set.of("hourglass"), Set.of("control", "precision"), 5)
+                        ability("stasis", "Stasis", Set.of("hourglass"), Set.of("control", "precision"), 5),
+                        ability("war_banner", "War Banner", Set.of("herald"), Set.of("resolve", "mercy"), 5),
+                        ability("sanctuary", "Sanctuary", Set.of("keeper"), Set.of("preservation", "stability"), 5)
                 )),
                 concat(wave.flaws(), List.of(
                         flaw("quarry_lock", "Quarry Lock", Set.of("hunt", "pursuit"),
@@ -298,6 +303,10 @@ public final class ExpandedIdentityContentCatalog {
                         flaw("leaden", "Leaden", Set.of("anchor", "weight"),
                                 Set.of("physical", "compulsion"), Set.of(), 3),
                         flaw("borrowed_time", "Borrowed Time", Set.of("hourglass", "time"),
+                                Set.of("resource", "conditional"), Set.of(), 3),
+                        flaw("burden_of_command", "Burden of Command", Set.of("herald", "command"),
+                                Set.of("physical", "conditional"), Set.of(), 3),
+                        flaw("homebound", "Homebound", Set.of("keeper", "citadel"),
                                 Set.of("resource", "conditional"), Set.of(), 3)
                 ))
         );

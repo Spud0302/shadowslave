@@ -68,9 +68,9 @@ Added by claude-code, 2026-10-22.
 
 You can only roll once. Operators can reroll with `/shadowslave aspect reroll`
 (optionally followed by player names), and `/shadowslave reset` clears the Soul
-entirely. The roll picks one of twenty Natures (Ember, Mist, Stone, Tide, Warden,
+entirely. The roll picks one of twenty-two Natures (Ember, Mist, Stone, Tide, Warden,
 Seer, Reaper, Wellspring, Forge, Delve, Mason, Verdant, Wayfarer, Lull, Gloam,
-Rime, Fury, Threshold, Anchor, Hourglass), nudged slightly by how you played beforehand (lighting
+Rime, Fury, Threshold, Anchor, Hourglass, Herald, Keeper), nudged slightly by how you played beforehand (lighting
 and smelting, sneaking, mining, swimming nudge the first four). Operators can
 pick a Nature outright with `/shadowslave aspect set <nature>`. Press R to use
 your Aspect's ability. Abilities have no cooldowns: each one spends **essence**
@@ -103,7 +103,7 @@ quarter of their core out as a shard you can absorb; turn that off with
 
 **Intention offering.** Before your first roll you can meditate at a lit Dream
 Candle (sneak and use it) to offer an intention. Name a longing (Burn, Hide,
-Endure, Return, Hunt, Foresee, Devour, Give, Shape, Dig, Build, Grow, Wander, Rest, Darken, Chill, Rage, Keep, Weigh or Linger) and press Offer: one of the item in your hand is taken if the
+Endure, Return, Hunt, Foresee, Devour, Give, Shape, Dig, Build, Grow, Wander, Rest, Darken, Chill, Rage, Keep, Weigh, Linger, Rally or Guard) and press Offer: one of the item in your hand is taken if the
 Spell cares for it (Ember: coal, torches, blaze powder; Mist: feathers, phantom
 membrane, ender pearls; Stone: cobblestone, iron, amethyst, diamond; Tide: kelp,
 fish, prismarine, a water bucket; Warden: bows, arrows, a lead, a rabbit's foot;
@@ -120,10 +120,12 @@ powder snow bucket; Fury: an iron sword or axe, a stone axe, a goat horn, TNT,
 gunpowder, red dye; Threshold: a chest, barrel, ender chest, shulker shell,
 bundle, an oak or iron door; Anchor: a lodestone, chain, heavy core, iron bars,
 pointed dripstone, slime balls; Hourglass: sand, red sand, glass, a repeater,
-comparator, daylight detector; the
+comparator, daylight detector; Herald: a white, red, blue or yellow banner, a
+golden helmet, an emerald, a book and quill; Keeper: a shield, a respawn anchor,
+crying obsidian, an iron chestplate, a cobblestone wall, an iron trapdoor; the
 full lists are the `data/shadowslave/tags/item/intention/` tags). The Soul Sea
 shows the odds under each longing: offering and longing for the same Nature
-takes it from about 5% to 11%, never certain. Then sleep beside the candle; the roll uses the intention once.
+takes it from about 4.5% to 10%, never certain. Then sleep beside the candle; the roll uses the intention once.
 
 **Meditation and Awakening.** Sneak and use a lit Dream Candle (with anything
 in hand) to meditate: the **Soul Sea** opens, showing your Soul Rank, your core
@@ -190,6 +192,10 @@ a blow is loaded, and the charge fades after 6 seconds.
 | Anchor | Gravity Well (40) | A well opens where you look (24 blocks): for 4 s hostiles within 8 blocks of it are dragged in and pinned |
 | Hourglass | Rewind (35) | Snap back to where you stood 3 s ago, with the health you had then if it was more |
 | Hourglass | Still Moment (60) | Every hostile within 8 blocks, no higher in rank, is held out of time for 2 s |
+| Herald | Rally Call (40) | Every other player within 256 blocks in your world hears the call; those who sneak within 10 s are drawn to your side. Your pets within 64 come at once |
+| Herald | Oath of Arms (35) | Bind the ally you look at (16 blocks) for 20 s: half of every blow on them falls on you instead |
+| Keeper | Bulwark (50) | A 7-block dome for 10 s: you and your allies inside take half harm, and arrows and other projectiles from outside fly back at the edge. You can fight out of it |
+| Keeper | Gateway Step (50) | Standing by a lit Dream Candle, step straight to the Gateway of your clan's nearest Citadel. From the waking world it is a crossing: your body sleeps where you stood |
 
 ### The newer Natures: Warden, Seer, Reaper, Wellspring
 
@@ -711,3 +717,32 @@ radius, claim window, visit and log range, clan name length, Citadel names),
 `data/shadowslave/worldgen/structure/citadel.json` (size, slope, block
 palette) and `worldgen/structure_set/citadels.json` (spacing). Operators:
 `/shadowslave citadel status|build|list|conquer`.
+
+### Citadel Natures: Herald and Keeper
+
+Added by claude-code, 2026-10-29. Quick start: `/shadowslave aspect set
+herald` (or keeper), then `/shadowslave core fill` and `/shadowslave awaken
+<name>` for the Awakened abilities above. "Allies" are other players and
+your own pets, as for the other Natures. "Clan land" is within 48 blocks of
+the Gateway of a Citadel your clan holds (`land_radius` in the Citadel
+settings).
+
+| Nature | Innate (always on) | Ability (R) | Flaw |
+| --- | --- | --- | --- |
+| Herald | Command Presence: allies within 8 blocks of you deal 15% more damage | War Banner: plant a red banner at your feet for 15 s; you and your allies within 8 blocks of it get Speed I and Strength I. Breaking it only furls it early, and it never drops (35 essence) | Burden of Command: when an ally within 16 blocks dies, you get Weakness I and Slowness I for 30 s |
+| Keeper | Hearthhold: on clan land your abilities cost half (rounded up) | Sanctuary: a 4-block dome for 6 s; you and your allies inside take half harm, but nothing sheltering in it can hurt anything outside (35 essence) | Homebound: off clan land your essence pool holds a third less (67 of 100 Dormant, 133 of 200 Awakened) |
+
+Things to try:
+
+1. Herald: tame two wolves and fight a zombie with them, with and without the
+   Herald nearby. Plant a War Banner and watch the effect icons on you and the
+   wolves. Let a wolf die beside you. Awakened: Rally Call with a friend 100
+   blocks away (they sneak to come; someone who doesn't sneak stays put), and
+   with your pets sitting or roaming. Swear Oath of Arms to a friend and have
+   a zombie hit them.
+2. Keeper: check your essence bar in the waking world (a third short), then
+   claim a Citadel and stand in its courtyard (full pool, half-price
+   Sanctuary). Raise Sanctuary in a fight and try hitting a zombie outside it.
+   Awakened: Bulwark near skeletons and watch the arrows turn back. Light a
+   Dream Candle at home, Gateway Step to your Citadel, then wake with an empty
+   hand on a lit Candle to return.

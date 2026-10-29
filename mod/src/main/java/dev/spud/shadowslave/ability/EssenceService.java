@@ -40,7 +40,7 @@ public final class EssenceService {
     /** Essence the player's core holds when full; 0 before the Spell names an Aspect. */
     public static int capacity(ServerPlayer player) {
         int base = capacityFor(SoulService.get(player).soulRank());
-        return base <= 0 ? 0 : base + RefinementRules.capacityBonus(RefinementService.get(player));
+        return base <= 0 ? 0 : KeeperHold.capacityFor(player, base + RefinementRules.capacityBonus(RefinementService.get(player)));
     }
 
     static int capacityFor(Optional<SoulRank> rank) {

@@ -204,9 +204,28 @@ public final class AspectKitCatalog {
             id("generation/flaw/borrowed_time"), id("generation/flaw_effect/borrowed_time"), "Borrowed Time",
             "Every second you hold out of time is paid back after: your essence will not refill for as long."
     );
+    public static final AspectKit HERALD = new AspectKit(
+            id("generation/nature/herald"), "Herald",
+            id("kit/innate/herald_command_presence"), "Command Presence",
+            "Allies fighting near you strike a little harder.",
+            id("generation/ability/war_banner"), "War Banner",
+            "Plant a banner: for a short while, allies near it run faster and hit harder.",
+            id("generation/flaw/burden_of_command"), id("generation/flaw_effect/burden_of_command"), "Burden of Command",
+            "When an ally near you dies, you are weakened for thirty seconds."
+    );
+    public static final AspectKit KEEPER = new AspectKit(
+            id("generation/nature/keeper"), "Keeper",
+            id("kit/innate/keeper_hearthhold"), "Hearthhold",
+            "Your abilities cost half on land your clan has claimed.",
+            id("generation/ability/sanctuary"), "Sanctuary",
+            "Raise a small dome: for a few seconds you and your allies inside take less harm, but cannot strike out of it.",
+            id("generation/flaw/homebound"), id("generation/flaw_effect/homebound"), "Homebound",
+            "Away from your clan's land, your essence pool holds a third less."
+    );
 
     private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE, WARDEN, SEER, REAPER, WELLSPRING,
-            FORGE, DELVE, MASON, VERDANT, WAYFARER, LULL, GLOAM, RIME, FURY, THRESHOLD, ANCHOR, HOURGLASS);
+            FORGE, DELVE, MASON, VERDANT, WAYFARER, LULL, GLOAM, RIME, FURY, THRESHOLD, ANCHOR, HOURGLASS,
+            HERALD, KEEPER);
 
     private AspectKitCatalog() {
     }

@@ -6,6 +6,7 @@
   "claim_priority_seconds": 300,
   "visit_radius": 24,
   "log_range": 96,
+  "land_radius": 48,
   "clan_name_max": 24,
   "names": [
     "Ashen Hold",

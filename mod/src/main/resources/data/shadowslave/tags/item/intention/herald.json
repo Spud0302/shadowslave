@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:white_banner",
+    "minecraft:red_banner",
+    "minecraft:blue_banner",
+    "minecraft:yellow_banner",
+    "minecraft:golden_helmet",
+    "minecraft:emerald",
+    "minecraft:writable_book"
+  ]
+}

@@ -28,7 +28,9 @@ public enum Longing {
     RAGE("Rage", "fury", "Fury"),
     KEEP("Keep", "threshold", "Threshold"),
     WEIGH("Weigh", "anchor", "Anchor"),
-    LINGER("Linger", "hourglass", "Hourglass");
+    LINGER("Linger", "hourglass", "Hourglass"),
+    RALLY("Rally", "herald", "Herald"),
+    GUARD("Guard", "keeper", "Keeper");
 
     private final String label;
     private final String evidenceTag;

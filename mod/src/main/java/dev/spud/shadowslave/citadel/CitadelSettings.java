@@ -20,13 +20,15 @@ import java.util.List;
  * @param claimPrioritySeconds  how long only the clan that slew the Guardian may claim the Gateway
  * @param visitRadius           how close to its Gateway a member must come to visit a Citadel
  * @param logRange              how close you must come to a Citadel for your Field Guide to log it
+ * @param landRadius            how far from its Gateway a claimed Citadel's land reaches (Keeper)
  * @param clanNameMax           longest clan name allowed
  * @param names                 names a Citadel can be known by; each takes one, fixed by where it stands
  */
 public record CitadelSettings(ResourceLocation guardian, CreatureClass guardianClass, int guardRadius, int guardianReturnSeconds,
-                              int claimPrioritySeconds, int visitRadius, int logRange, int clanNameMax, List<String> names) {
+                              int claimPrioritySeconds, int visitRadius, int logRange, int landRadius, int clanNameMax,
+                              List<String> names) {
     public static final CitadelSettings DEFAULT = new CitadelSettings(
-            ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "ashen_tyrant"), CreatureClass.TYRANT, 14, 10, 300, 24, 96, 24,
+            ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "ashen_tyrant"), CreatureClass.TYRANT, 14, 10, 300, 24, 96, 48, 24,
             List.of("Ashen Hold", "Greywatch", "Cinder Keep", "Hollow Bastion", "Duskwall", "Grey Spire"));
 
     public static final Codec<CitadelSettings> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -37,6 +39,7 @@ public record CitadelSettings(ResourceLocation guardian, CreatureClass guardianC
             Codec.intRange(0, 86400).optionalFieldOf("claim_priority_seconds", DEFAULT.claimPrioritySeconds).forGetter(CitadelSettings::claimPrioritySeconds),
             Codec.intRange(4, 256).optionalFieldOf("visit_radius", DEFAULT.visitRadius).forGetter(CitadelSettings::visitRadius),
             Codec.intRange(0, 512).optionalFieldOf("log_range", DEFAULT.logRange).forGetter(CitadelSettings::logRange),
+            Codec.intRange(4, 512).optionalFieldOf("land_radius", DEFAULT.landRadius).forGetter(CitadelSettings::landRadius),
             Codec.intRange(3, 48).optionalFieldOf("clan_name_max", DEFAULT.clanNameMax).forGetter(CitadelSettings::clanNameMax),
             Codec.STRING.listOf(1, 256).optionalFieldOf("names", DEFAULT.names).forGetter(CitadelSettings::names)
     ).apply(instance, CitadelSettings::new));
