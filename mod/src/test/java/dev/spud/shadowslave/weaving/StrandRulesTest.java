@@ -59,7 +59,7 @@ class StrandRulesTest {
     @Test
     void everyStrandLoadsWithANameAndAShape() throws IOException {
         Map<ResourceLocation, StrandPattern> strands = strands();
-        assertEquals(12, strands.size());
+        assertEquals(14, strands.size());
         String lang = Files.readString(LANG);
         strands.forEach((id, strand) -> {
             assertTrue(lang.contains("\"strand.shadowslave." + id.getPath() + "\""), "lang names " + id);
@@ -138,5 +138,30 @@ class StrandRulesTest {
         assertEquals(strands, WovenStrands.CODEC.parse(JsonOps.INSTANCE, WovenStrands.CODEC.encodeStart(JsonOps.INSTANCE, strands).getOrThrow())
                 .getOrThrow());
         assertEquals(1, strands.without(0).size());
+    }
+
+    @Test
+    void theMemoryWeaveIsKnownByAllAndBoundMustBeStudied() throws IOException {
+        Map<ResourceLocation, StrandPattern> strands = strands();
+        ResourceLocation memory = ResourceLocation.fromNamespaceAndPath("shadowslave", "memory_weave");
+        ResourceLocation bound = ResourceLocation.fromNamespaceAndPath("shadowslave", "bound");
+        assertTrue(StrandRules.knows(java.util.Set.of(), memory, strands.get(memory)), "every Weaver knows the Memory weave");
+        assertFalse(StrandRules.knows(java.util.Set.of(), bound, strands.get(bound)), "Bound has to be studied");
+        assertTrue(StrandRules.knows(java.util.Set.of(bound), bound, strands.get(bound)));
+        assertEquals(StrandPattern.Kind.MEMORY, strands.get(memory).effect().kind());
+        assertEquals(SoulRank.AWAKENED, strands.get(bound).minRank());
+        assertFalse(strands.get(memory).tunable(), "what a piece is can't be tuned");
+    }
+
+    @Test
+    void soulsHoldMoreMemoriesByRankAndWellspringPaysLess() {
+        assertEquals(3, StrandRules.soulCapacity(Optional.empty()));
+        assertEquals(3, StrandRules.soulCapacity(Optional.of(SoulRank.DORMANT)));
+        assertEquals(5, StrandRules.soulCapacity(Optional.of(SoulRank.AWAKENED)));
+        assertEquals(19, StrandRules.discounted(25, StrandRules.WELLSPRING_PERCENT), "rounded up");
+        assertEquals(1, StrandRules.discounted(1, StrandRules.WELLSPRING_PERCENT), "never free by rounding");
+        assertEquals(0, StrandRules.discounted(0, StrandRules.WELLSPRING_PERCENT));
+        assertEquals(5, StrandRules.mend(250));
+        assertEquals(1, StrandRules.mend(30), "a mend is never nothing");
     }
 }

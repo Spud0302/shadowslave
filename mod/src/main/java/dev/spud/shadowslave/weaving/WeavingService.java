@@ -200,7 +200,7 @@ public final class WeavingService {
     public static WeavingStatusPayload status(ServerPlayer player) {
         WeavingContent content = WeavingContent.current();
         List<ResourceLocation> lessons = player.containerMenu instanceof WeavingMenu menu ? StrandService.teaches(content, menu.centre()) : List.of();
-        return status(content, get(player), soulRank(player), lastResult(player), lessons);
+        return status(content, get(player), soulRank(player), lastResult(player), lessons, StrandService.essencePercent(player));
     }
 
     static WeavingStatusPayload status(WeavingContent content, WeavingData data, Optional<SoulRank> soulRank, String lastResult) {
@@ -210,6 +210,12 @@ public final class WeavingService {
     /** {@code lessons} are the strands the piece on an open Weaving Table teaches. */
     static WeavingStatusPayload status(WeavingContent content, WeavingData data, Optional<SoulRank> soulRank, String lastResult,
                                        List<ResourceLocation> lessons) {
+        return status(content, data, soulRank, lastResult, lessons, 100);
+    }
+
+    /** {@code essencePercent} is the share of each essence cost the player pays (Wellspring pays less). */
+    static WeavingStatusPayload status(WeavingContent content, WeavingData data, Optional<SoulRank> soulRank, String lastResult,
+                                       List<ResourceLocation> lessons, int essencePercent) {
         List<WeavingStatusPayload.Branch> branches = new ArrayList<>();
         content.branches().forEach((id, branch) -> branches.add(new WeavingStatusPayload.Branch(
                 branch.name(), WeavingRules.heldLevel(content, data, id), branch.maxLevel(), data.xp(id),
@@ -230,7 +236,7 @@ public final class WeavingService {
         int patternsLevel = WeavingRules.heldLevel(content, data, StrandService.PATTERNS);
         List<WeavingStatusPayload.Strand> strands = new ArrayList<>();
         content.strands().forEach((id, strand) -> {
-            if (!data.studied().contains(id)) {
+            if (!StrandRules.knows(data.studied(), id, strand)) {
                 return;
             }
             List<Float> points = new ArrayList<>();
@@ -242,11 +248,12 @@ public final class WeavingService {
                     ? "Needs " + WeavingRules.rankName(strand.minRank()) + " soul" : "";
             strands.add(new WeavingStatusPayload.Strand(id.toString(), strand.name(), strand.description(),
                     String.join(", ", strand.fits().stream().map(StrandFit::plural).toList()), strand.tunable(),
-                    strand.material().item().toString(), strand.material().counts(), strand.essence(), points, data.laid(id), lock));
+                    strand.material().item().toString(), strand.material().counts(),
+                    strand.essence().stream().map(cost -> StrandRules.discounted(cost, essencePercent)).toList(), points, data.laid(id), lock));
         });
         List<WeavingStatusPayload.Lesson> table = lessons.stream()
                 .map(id -> new WeavingStatusPayload.Lesson(id.toString(), content.strand(id).map(StrandPattern::name).orElse(id.getPath()),
-                        data.studied().contains(id)))
+                        content.strand(id).map(strand -> StrandRules.knows(data.studied(), id, strand)).orElse(false)))
                 .toList();
         return new WeavingStatusPayload(WeavingRules.unspent(content, data), WeavingRules.xpTowardPoint(content, data),
                 content.settings().xpPerPoint(), WeavingRules.canRespec(data), branches, patterns, hints, lastResult,

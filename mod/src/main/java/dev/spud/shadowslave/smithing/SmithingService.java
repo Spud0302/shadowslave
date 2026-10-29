@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.smithing;
 
+import dev.spud.shadowslave.ability.EssenceService;
 import dev.spud.shadowslave.ability.KitRules;
 import dev.spud.shadowslave.ability.MasterworkAbility;
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
@@ -256,12 +257,90 @@ public final class SmithingService {
 
     /** Quench (Forge): a shaped blade held in the hand is quenched perfectly. Returns false if there was none. */
     public static boolean quenchInHand(ServerPlayer player) {
-        ItemStack stack = player.getMainHandItem();
+        return quenchPerfectly(player, InteractionHand.MAIN_HAND);
+    }
+
+    static boolean quenchPerfectly(ServerPlayer player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
         BilletData billet = stack.get(SmithingRegistry.BILLET.get());
         if (billet == null || !billet.shaped() || !billet.quench()) {
             return false;
         }
-        player.setItemInHand(InteractionHand.MAIN_HAND, finish(player, billet, 1.0F, false));
+        player.setItemInHand(hand, finish(player, billet, 1.0F, false));
+        return true;
+    }
+
+    // Nature edges
+
+    /** Ember heats a billet held in the hand toward this, and no further. */
+    public static final int EMBER_HEAT = 1200;
+    /** Degrees each use of Ember's hands adds, the essence it costs, and the ticks before the next. */
+    public static final int EMBER_RISE = 120;
+    public static final int EMBER_ESSENCE = 2;
+    static final int EMBER_COOLDOWN = 8;
+
+    static boolean ember(ServerPlayer player) {
+        return KitRules.hasInnate(player, AspectKitCatalog.EMBER.innateId());
+    }
+
+    static boolean tide(ServerPlayer player) {
+        return KitRules.hasInnate(player, AspectKitCatalog.TIDE.innateId());
+    }
+
+    /**
+     * Ember heats a billet in the hand, no hearth needed (DESIGN, plan section
+     * 4): each use adds {@link #EMBER_RISE} degrees for a little essence, up
+     * to {@link #EMBER_HEAT}. Returns false if Ember can't help here.
+     */
+    static boolean emberHeat(ServerPlayer player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        BilletData billet = stack.get(SmithingRegistry.BILLET.get());
+        if (billet == null || billet.cold() || !ember(player)) {
+            return false;
+        }
+        long now = player.level().getGameTime();
+        int heat = billet.heatAt(now);
+        if (heat >= EMBER_HEAT) {
+            tell(player, "Your hands can't make it any hotter. A hearth's bellows can.");
+            return true;
+        }
+        if (!EssenceService.covers(player, EMBER_ESSENCE)) {
+            tell(player, "Heating it in your hands takes " + EMBER_ESSENCE + " essence.");
+            return true;
+        }
+        EssenceService.spend(player, EMBER_ESSENCE);
+        int next = Math.min(EMBER_HEAT, heat + EMBER_RISE);
+        stack.set(SmithingRegistry.BILLET.get(), billet.measured(next, now, coolPercent(player, player.blockPosition())));
+        player.getCooldowns().addCooldown(stack.getItem(), EMBER_COOLDOWN);
+        ServerLevel level = player.serverLevel();
+        var look = player.getLookAngle();
+        level.sendParticles(ParticleTypes.SMALL_FLAME, player.getX() + look.x * 1.2, player.getEyeY() - 0.5, player.getZ() + look.z * 1.2,
+                5, 0.1, 0.08, 0.1, 0.01);
+        level.playSound(null, player.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.5F, 1.4F);
+        tell(player, next + "° · " + SmithingRules.glow(next).label());
+        return true;
+    }
+
+    /**
+     * Tide quenches in any water (DESIGN, plan section 4): a shaped blade
+     * dipped into a water block is quenched perfectly, no trough needed.
+     * Returns false if Tide can't help here.
+     */
+    static boolean tideQuench(ServerPlayer player, InteractionHand hand) {
+        BilletData billet = player.getItemInHand(hand).get(SmithingRegistry.BILLET.get());
+        if (billet == null || !tide(player) || !billet.quench()) {
+            return false;
+        }
+        if (!billet.shaped()) {
+            tell(player, "Shape it on the anvil before you quench it.");
+            return true;
+        }
+        if (billet.heatAt(player.level().getGameTime()) < SmithingRules.QUENCH_MIN) {
+            tell(player, "Too cold to quench. Bring it back to a cherry glow first.");
+            return true;
+        }
+        quenchPerfectly(player, hand);
+        player.level().playSound(null, player.blockPosition(), SoundEvents.LAVA_EXTINGUISH, SoundSource.PLAYERS, 0.8F, 1.0F);
         return true;
     }
 

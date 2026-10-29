@@ -9,6 +9,7 @@ import dev.spud.shadowslave.echo.EchoOwnershipService;
 import dev.spud.shadowslave.echo.content.EchoContentCatalog;
 import dev.spud.shadowslave.fieldguide.FieldGuideService;
 import dev.spud.shadowslave.memory.MemoryManifestationService;
+import dev.spud.shadowslave.network.payload.MemoryKeyPayload;
 import dev.spud.shadowslave.network.payload.WeaveTracePayload;
 import dev.spud.shadowslave.network.payload.FieldGuidePinRequestPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
@@ -70,6 +71,20 @@ public final class ServerPayloadHandler {
         if (player != null) {
             dev.spud.shadowslave.weaving.WeavingService.weaveTrace(player, payload);
         }
+    }
+
+    /** The Memory key: woven Memories first, then the Spell's own Memory. */
+    public static void handleMemoryKey(MemoryKeyPayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "Memory key");
+        if (player == null || dev.spud.shadowslave.weaving.MemoryWeave.toggle(player, payload.cycle())
+                != dev.spud.shadowslave.weaving.MemoryWeave.Outcome.NONE) {
+            return;
+        }
+        MemoryManifestationService.ManifestResult result = MemoryManifestationService.summonAshCompass(player);
+        if (result == MemoryManifestationService.ManifestResult.ALREADY_SUMMONED) {
+            result = MemoryManifestationService.dismissAshCompass(player);
+        }
+        sendMemoryResult(player, result);
     }
 
     public static void handleIntention(IntentionRequestPayload payload, IPayloadContext context) {

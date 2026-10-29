@@ -5,7 +5,7 @@ import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoRequestPayload;
-import dev.spud.shadowslave.network.payload.ToggleAshCompassRequestPayload;
+import dev.spud.shadowslave.network.payload.MemoryKeyPayload;
 import dev.spud.shadowslave.network.payload.UseAbilityRequestPayload;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -34,7 +34,9 @@ public final class ClientGameEvents {
         // Sneak while channeling to gather the essence into the next blow instead of leaping.
         consume(ClientKeyMappings.CHANNEL_ESSENCE,
                 new ChannelRequestPayload(minecraft.player != null && minecraft.player.isShiftKeyDown()), minecraft);
-        consume(ClientKeyMappings.TOGGLE_MEMORY, ToggleAshCompassRequestPayload.INSTANCE, minecraft);
+        // Sneak with the Memory key to turn which dismissed Memory answers next.
+        consume(ClientKeyMappings.TOGGLE_MEMORY,
+                new MemoryKeyPayload(minecraft.player != null && minecraft.player.isShiftKeyDown()), minecraft);
         consume(ClientKeyMappings.TOGGLE_ECHO, ToggleAshBurrowerEchoRequestPayload.INSTANCE, minecraft);
         consume(ClientKeyMappings.TOGGLE_ECHO_MODE, ToggleAshBurrowerEchoModeRequestPayload.INSTANCE, minecraft);
         if (minecraft.level != null && ClientAbilityState.consumeReadyCue(minecraft.level.getGameTime())) {

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Pure rules for Weaving strands (DESIGN, after ch. 2048 and 3024): how many
@@ -37,6 +38,13 @@ public final class StrandRules {
     public static final int UNRAVEL_KEEP = 75;
     /** Essence it takes to lay a ready thread into a piece. */
     public static final int LAY_ESSENCE = 10;
+    /** Essence it takes to summon a Memory out of the soul (lore: rebuilt from essence, ch. 3024). */
+    public static final int SUMMON_ESSENCE = 5;
+    /** Wellspring pays this share of Weaving's essence costs. */
+    public static final int WELLSPRING_PERCENT = 75;
+    /** Ticks between each mend of a dismissed Memory, and the share of its durability each mend restores, in percent. */
+    public static final int MEND_TICKS = 40;
+    public static final int MEND_PERCENT = 2;
     /** The trace tolerance at Patterns level 1, in anchor radii, what each level adds, and how each Tier tightens it. */
     static final float BASE_TOLERANCE = 0.16F;
     static final float TOLERANCE_PER_LEVEL = 0.02F;
@@ -193,6 +201,26 @@ public final class StrandRules {
         int tier = Mth.clamp(laid.tier(), 1, strand.maxTier());
         float value = strand.effect().values().get(tier - 1) * laid.potency() / 100.0F;
         return laid.restriction().isPresent() ? value * TUNED : value;
+    }
+
+    /** Whether a Weaver knows {@code strand}: every Weaver knows a starter strand, and the rest are studied. */
+    public static boolean knows(Set<ResourceLocation> studied, ResourceLocation id, StrandPattern strand) {
+        return strand.starter() || studied.contains(id);
+    }
+
+    /** An essence cost at {@code percent} of itself, rounded up so nothing becomes free by rounding. */
+    public static int discounted(int cost, int percent) {
+        return (cost * percent + 99) / 100;
+    }
+
+    /** How many Memories a soul can hold dismissed: three to an unranked or Dormant soul, two more for each Rank above. */
+    public static int soulCapacity(Optional<SoulRank> rank) {
+        return 3 + 2 * rank.map(value -> Math.max(0, value.ordinal() - SoulRank.DORMANT.ordinal())).orElse(0);
+    }
+
+    /** Durability one mend restores to a piece that can take {@code maxDamage}: a small share, never less than one. */
+    public static int mend(int maxDamage) {
+        return Math.max(1, maxDamage * MEND_PERCENT / 100);
     }
 
     /** XP for laying a strand: its XP times its Tier, five times over the first time (as patterns at the forge). */

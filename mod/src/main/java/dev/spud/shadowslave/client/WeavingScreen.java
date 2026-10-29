@@ -3,6 +3,7 @@ package dev.spud.shadowslave.client;
 import dev.spud.shadowslave.item.SoulShardItem;
 import dev.spud.shadowslave.network.payload.WeaveTracePayload;
 import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
+import dev.spud.shadowslave.weaving.MemoryWeave;
 import dev.spud.shadowslave.weaving.StrandRestriction;
 import dev.spud.shadowslave.weaving.StrandRules;
 import dev.spud.shadowslave.weaving.StrandText;
@@ -15,6 +16,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
@@ -382,7 +384,7 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
                     float progress = Math.min(1.0F, (this.minecraft.level.getGameTime() - studyStart + 0.0F) / StrandRules.STUDY_TICKS);
                     graphics.fill(x - 2, rowY + ROW - 3, x - 2 + Math.round((width + 4) * progress), rowY + ROW - 2, SpellStyle.ASPECT);
                 }
-                String action = row.strandIndex() >= 0 ? "Unravel" : "Study";
+                String action = row.strandIndex() < 0 ? "Study" : unravelLabel(row.strandIndex());
                 graphics.drawString(this.font, fit(row.label().getString(), width - this.font.width(action) - 6), x, rowY,
                         row.strandIndex() >= 0 ? SpellStyle.ABILITY : SpellStyle.MUTED, false);
                 graphics.drawString(this.font, action, x + width - this.font.width(action), rowY,
@@ -412,6 +414,12 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
         if (known.isEmpty()) {
             graphics.drawString(this.font, "None yet. Study a weave.", x, knownY + 12, SpellStyle.HINT, false);
         }
+    }
+
+    /** The Memory weave is undone and Bound is cut; every other strand unravels into a thread. */
+    private String unravelLabel(int strandIndex) {
+        ResourceLocation id = centreStrands().strands().get(strandIndex).id();
+        return id.equals(MemoryWeave.BOUND) ? "Unbind" : id.equals(MemoryWeave.MEMORY_WEAVE) ? "Undo" : "Unravel";
     }
 
     /** {@code text} cut to {@code width} pixels, with an ellipsis if it had to be cut. */

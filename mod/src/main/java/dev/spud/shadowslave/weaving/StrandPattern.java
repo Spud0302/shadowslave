@@ -21,9 +21,11 @@ import java.util.Optional;
  * come from here, one per Tier.
  *
  * @param pattern the anchor points to trace, in order, each within the unit circle; empty means one is drawn from the id
+ * @param starter known by every Weaver from the start, without study
  */
 public record StrandPattern(String name, String description, List<StrandFit> fits, Effect effect, List<Source> study,
-                            Material material, List<Integer> essence, SoulRank minRank, List<Point> pattern, int xp) {
+                            Material material, List<Integer> essence, SoulRank minRank, List<Point> pattern, int xp,
+                            boolean starter) {
     public static final Codec<StrandPattern> CODEC = RecordCodecBuilder.<StrandPattern>create(instance -> instance.group(
             Codec.STRING.fieldOf("name").forGetter(StrandPattern::name),
             Codec.STRING.optionalFieldOf("description", "").forGetter(StrandPattern::description),
@@ -34,7 +36,8 @@ public record StrandPattern(String name, String description, List<StrandFit> fit
             Codec.intRange(0, 10_000).listOf().fieldOf("essence").forGetter(StrandPattern::essence),
             SoulRank.CODEC.optionalFieldOf("min_rank", SoulRank.DORMANT).forGetter(StrandPattern::minRank),
             Point.CODEC.listOf().optionalFieldOf("pattern", List.of()).forGetter(StrandPattern::pattern),
-            Codec.intRange(0, 10_000).optionalFieldOf("xp", 20).forGetter(StrandPattern::xp)
+            Codec.intRange(0, 10_000).optionalFieldOf("xp", 20).forGetter(StrandPattern::xp),
+            Codec.BOOL.optionalFieldOf("starter", false).forGetter(StrandPattern::starter)
     ).apply(instance, StrandPattern::new)).validate(StrandPattern::validate);
 
     public StrandPattern {
@@ -77,9 +80,9 @@ public record StrandPattern(String name, String description, List<StrandFit> fit
         return fits.contains(fit);
     }
 
-    /** Attribute strands are always on, so they can't be tied to a condition. */
+    /** Attribute strands are always on, and the Memory weave and Bound are what a piece is, so none of them can be tied to a condition. */
     public boolean tunable() {
-        return effect.kind() != Kind.ATTRIBUTE;
+        return effect.kind() != Kind.ATTRIBUTE && !effect.kind().foundational();
     }
 
     /** What a strand does. Each kind's numbers mean something different; see {@link StrandEffects}. */
@@ -101,7 +104,14 @@ public record StrandPattern(String name, String description, List<StrandFit> fit
         /** Sprinting tires you less: {@code values} is the share of hunger saved. */
         STRIDE("stride"),
         /** Lesser creatures hesitate before turning on you: {@code values} is seconds of hesitation. */
-        DETER("deter");
+        DETER("deter"),
+        /**
+         * The Memory weave (lore: the foundational set, ch. 3024): the piece can be dismissed into the soul,
+         * summoned back, mends while dismissed and stays with its holder through death. {@code values} is unused.
+         */
+        MEMORY("memory"),
+        /** Bound (lore: rarer than a plain Memory): a Memory only its bonded owner can wield or wear. {@code values} is unused. */
+        BOUND("bound");
 
         public static final Codec<Kind> CODEC = StringRepresentable.fromEnum(Kind::values);
 
@@ -114,6 +124,11 @@ public record StrandPattern(String name, String description, List<StrandFit> fit
         @Override
         public String getSerializedName() {
             return serializedName;
+        }
+
+        /** The Memory weave and Bound change what the piece is rather than adding a power. */
+        public boolean foundational() {
+            return this == MEMORY || this == BOUND;
         }
     }
 

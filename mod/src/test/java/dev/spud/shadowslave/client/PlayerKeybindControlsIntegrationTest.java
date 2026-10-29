@@ -48,7 +48,7 @@ class PlayerKeybindControlsIntegrationTest {
         assertTrue(events.contains("minecraft.screen == null"));
         assertTrue(events.contains("new UseAbilityRequestPayload(0)"));
         assertTrue(events.contains("new UseAbilityRequestPayload(1)"));
-        assertTrue(events.contains("ToggleAshCompassRequestPayload.INSTANCE"));
+        assertTrue(events.contains("new MemoryKeyPayload("));
         assertTrue(events.contains("ToggleAshBurrowerEchoRequestPayload.INSTANCE"));
         assertTrue(events.contains("ToggleAshBurrowerEchoModeRequestPayload.INSTANCE"));
     }
@@ -58,11 +58,12 @@ class PlayerKeybindControlsIntegrationTest {
         String dedicatedRegistration = Files.readString(PAYLOADS);
         String clientRegistration = Files.readString(CLIENT_PAYLOADS);
 
-        assertTrue(dedicatedRegistration.contains("NETWORK_VERSION = \"18\""));
+        assertTrue(dedicatedRegistration.contains("NETWORK_VERSION = \"19\""));
         for (String handler : new String[] {
                 "ServerPayloadHandler::handleOpenSoulScreen",
                 "ServerPayloadHandler::handleUseAbility",
                 "ServerPayloadHandler::handleToggleAshCompass",
+                "ServerPayloadHandler::handleMemoryKey",
                 "ServerPayloadHandler::handleToggleAshBurrowerEcho",
                 "ServerPayloadHandler::handleToggleAshBurrowerEchoMode"
         }) {
