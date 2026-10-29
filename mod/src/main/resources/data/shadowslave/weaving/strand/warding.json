@@ -1,0 +1,38 @@
+{
+  "name": "Warding",
+  "description": "A ward against blows, picked out of enchanted armour.",
+  "fits": [
+    "helmet",
+    "chest",
+    "legs",
+    "boots"
+  ],
+  "effect": {
+    "type": "attribute",
+    "values": [
+      1.0,
+      1.5,
+      2.0
+    ],
+    "attribute": "minecraft:generic.armor"
+  },
+  "study": [
+    {
+      "enchantment": "minecraft:protection"
+    }
+  ],
+  "material": {
+    "item": "minecraft:lapis_lazuli",
+    "counts": [
+      2,
+      4,
+      8
+    ]
+  },
+  "essence": [
+    15,
+    35,
+    70
+  ],
+  "xp": 10
+}

@@ -20,13 +20,14 @@ import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshCompassRequestPayload;
 import dev.spud.shadowslave.network.payload.UseAbilityRequestPayload;
 import dev.spud.shadowslave.network.payload.WaymarkPayload;
+import dev.spud.shadowslave.network.payload.WeaveTracePayload;
 import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
-    public static final String NETWORK_VERSION = "17";
+    public static final String NETWORK_VERSION = "18";
 
     private ModPayloads() {
     }
@@ -101,6 +102,11 @@ public final class ModPayloads {
                 FieldGuideMapPayload.STREAM_CODEC,
                 (payload, context) -> {
                 }
+        );
+        registrar.playToServer(
+                WeaveTracePayload.TYPE,
+                WeaveTracePayload.STREAM_CODEC,
+                ServerPayloadHandler::handleWeaveTrace
         );
         registrar.playToServer(
                 FieldGuidePinRequestPayload.TYPE,

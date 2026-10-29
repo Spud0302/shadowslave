@@ -69,5 +69,19 @@
   "block.shadowslave.smithing_anvil": "Smithing Anvil",
   "block.shadowslave.quench_trough": "Quench Trough",
   "item.shadowslave.smiths_hammer": "Smith's Hammer",
-  "item.shadowslave.billet": "Billet"
+  "item.shadowslave.billet": "Billet",
+  "item.shadowslave.woven_thread": "Woven Thread",
+  "item.shadowslave.woven_thread.named": "Woven Thread: %s",
+  "strand.shadowslave.borrowed_face": "Borrowed Face",
+  "strand.shadowslave.cinder_skin": "Cinder Skin",
+  "strand.shadowslave.dragging_links": "Dragging Links",
+  "strand.shadowslave.echoing_cut": "Echoing Cut",
+  "strand.shadowslave.light_fall": "Light Fall",
+  "strand.shadowslave.long_road": "Long Road",
+  "strand.shadowslave.quick_hands": "Quick Hands",
+  "strand.shadowslave.quiet_dreams": "Quiet Dreams",
+  "strand.shadowslave.rattling_guard": "Rattling Guard",
+  "strand.shadowslave.splinter_edge": "Splinter Edge",
+  "strand.shadowslave.warding": "Warding",
+  "strand.shadowslave.whetted_edge": "Whetted Edge"
 }

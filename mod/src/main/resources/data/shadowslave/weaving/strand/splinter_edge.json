@@ -1,0 +1,35 @@
+{
+  "name": "Splinter Edge",
+  "description": "A sliver of soul keeps the edge keen: hits and broken blocks sometimes cost no wear.",
+  "fits": [
+    "weapon",
+    "tool"
+  ],
+  "effect": {
+    "type": "keen",
+    "values": [
+      0.25,
+      0.4,
+      0.55
+    ]
+  },
+  "study": [
+    {
+      "item": "shadowslave:dormant_soul_shard"
+    }
+  ],
+  "material": {
+    "item": "shadowslave:dormant_soul_shard",
+    "counts": [
+      1,
+      2,
+      3
+    ]
+  },
+  "essence": [
+    15,
+    35,
+    70
+  ],
+  "xp": 10
+}

@@ -13,14 +13,54 @@ import java.util.List;
 
 /**
  * Server-to-client reading of the player's Weaving: points, each branch's
- * level and next step, the patterns they know, the hints failed attempts
- * have left, and what the last press of Weave did. Text is worded on the
- * server; item ids are named on the client.
+ * level and next step, the Smithing patterns they know, the hints failed
+ * attempts have left, the strands they have studied, what the piece on the
+ * Weaving Table can teach, and what the last action did. Text is worded on
+ * the server; item ids are named on the client.
+ *
+ * @param tierCap the highest strand Tier the soul and the Patterns branch allow, before the anchor's own cap
  */
 public record WeavingStatusPayload(int points, int xpTowardPoint, int xpPerPoint, boolean canRespec,
                                    List<Branch> branches, List<Pattern> patterns, List<Hint> hints,
-                                   String lastResult) implements CustomPacketPayload {
-    public static final WeavingStatusPayload NONE = new WeavingStatusPayload(0, 0, 100, false, List.of(), List.of(), List.of(), "");
+                                   String lastResult, List<Strand> strands, List<Lesson> table,
+                                   int tierCap, int patternsLevel, int forgeryLevel) implements CustomPacketPayload {
+    public static final WeavingStatusPayload NONE = new WeavingStatusPayload(0, 0, 100, false, List.of(), List.of(), List.of(), "",
+            List.of(), List.of(), 1, 1, 1);
+
+    /**
+     * A strand the player has studied. {@code points} holds the anchor
+     * pattern as x, y pairs; {@code essence} and {@code counts} hold one
+     * value per Tier.
+     */
+    public record Strand(String id, String name, String description, String fits, boolean tunable, String material,
+                         List<Integer> counts, List<Integer> essence, List<Float> points, int laid, String lock) {
+        static final Codec<Strand> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.fieldOf("id").forGetter(Strand::id),
+                Codec.STRING.fieldOf("name").forGetter(Strand::name),
+                Codec.STRING.fieldOf("description").forGetter(Strand::description),
+                Codec.STRING.fieldOf("fits").forGetter(Strand::fits),
+                Codec.BOOL.fieldOf("tunable").forGetter(Strand::tunable),
+                Codec.STRING.fieldOf("material").forGetter(Strand::material),
+                Codec.INT.listOf().fieldOf("counts").forGetter(Strand::counts),
+                Codec.INT.listOf().fieldOf("essence").forGetter(Strand::essence),
+                Codec.FLOAT.listOf().fieldOf("points").forGetter(Strand::points),
+                Codec.INT.fieldOf("laid").forGetter(Strand::laid),
+                Codec.STRING.fieldOf("lock").forGetter(Strand::lock)
+        ).apply(instance, Strand::new));
+
+        public int maxTier() {
+            return essence.size();
+        }
+    }
+
+    /** A strand the piece in the table's centre holds or teaches; {@code known} once studied. */
+    public record Lesson(String id, String name, boolean known) {
+        static final Codec<Lesson> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.fieldOf("id").forGetter(Lesson::id),
+                Codec.STRING.fieldOf("name").forGetter(Lesson::name),
+                Codec.BOOL.fieldOf("known").forGetter(Lesson::known)
+        ).apply(instance, Lesson::new));
+    }
 
     public record Branch(String name, int level, int maxLevel, int xp, String next, boolean canRaise) {
         static final Codec<Branch> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -74,7 +114,12 @@ public record WeavingStatusPayload(int points, int xpTowardPoint, int xpPerPoint
             Branch.CODEC.listOf().fieldOf("branches").forGetter(WeavingStatusPayload::branches),
             Pattern.CODEC.listOf().fieldOf("patterns").forGetter(WeavingStatusPayload::patterns),
             Hint.CODEC.listOf().fieldOf("hints").forGetter(WeavingStatusPayload::hints),
-            Codec.STRING.fieldOf("last").forGetter(WeavingStatusPayload::lastResult)
+            Codec.STRING.fieldOf("last").forGetter(WeavingStatusPayload::lastResult),
+            Strand.CODEC.listOf().fieldOf("strands").forGetter(WeavingStatusPayload::strands),
+            Lesson.CODEC.listOf().fieldOf("table").forGetter(WeavingStatusPayload::table),
+            Codec.INT.fieldOf("tier_cap").forGetter(WeavingStatusPayload::tierCap),
+            Codec.INT.fieldOf("patterns_level").forGetter(WeavingStatusPayload::patternsLevel),
+            Codec.INT.fieldOf("forgery_level").forGetter(WeavingStatusPayload::forgeryLevel)
     ).apply(instance, WeavingStatusPayload::new));
 
     public static final Type<WeavingStatusPayload> TYPE = new Type<>(
@@ -86,6 +131,8 @@ public record WeavingStatusPayload(int points, int xpTowardPoint, int xpPerPoint
         branches = List.copyOf(branches);
         patterns = List.copyOf(patterns);
         hints = List.copyOf(hints);
+        strands = List.copyOf(strands);
+        table = List.copyOf(table);
     }
 
     @Override

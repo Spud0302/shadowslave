@@ -1,0 +1,37 @@
+{
+  "name": "Dragging Links",
+  "description": "The chained head drags struck foes a step toward the wielder.",
+  "fits": [
+    "weapon"
+  ],
+  "effect": {
+    "type": "pull",
+    "values": [
+      0.35,
+      0.55,
+      0.8
+    ]
+  },
+  "study": [
+    {
+      "item": "shadowslave:chainback_link"
+    },
+    {
+      "item": "shadowslave:linked_cleaver"
+    }
+  ],
+  "material": {
+    "item": "shadowslave:chainback_link",
+    "counts": [
+      1,
+      2,
+      3
+    ]
+  },
+  "essence": [
+    20,
+    45,
+    90
+  ],
+  "xp": 18
+}

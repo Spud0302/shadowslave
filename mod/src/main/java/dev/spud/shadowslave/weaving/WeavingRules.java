@@ -221,7 +221,7 @@ public final class WeavingRules {
         int xp = boons.xp(recipe.branch(), recipe.xp() * (data.woven(id) == 0 ? content.settings().firstWeaveMultiplier() : 1));
         WeavingData next = data.withWoven(id).withXp(recipe.branch(), xp);
         List<String> deeds = new ArrayList<>();
-        next = advanceDeeds(content, next, recipe, deeds);
+        next = advanceDeeds(content, next, recipe.branch(), content.tier(recipe), deeds);
         return new Credit(next, xp, deeds);
     }
 
@@ -253,18 +253,22 @@ public final class WeavingRules {
         return new Attempt(known ? Outcome.WOVEN : Outcome.DISCOVERED, matched, next, 0, Optional.empty(), List.of());
     }
 
-    private static WeavingData advanceDeeds(WeavingContent content, WeavingData data, WeavingRecipe recipe, List<String> earned) {
-        WeavingBranch branch = content.branch(recipe.branch()).orElseThrow();
-        int tier = content.tier(recipe);
+    /** Counts one piece of {@code tier} made in a branch toward its deeds, listing any it earns in {@code earned}. */
+    static WeavingData advanceDeeds(WeavingContent content, WeavingData data, ResourceLocation branchId, int tier, List<String> earned) {
+        Optional<WeavingBranch> found = content.branch(branchId);
+        if (found.isEmpty()) {
+            return data;
+        }
+        WeavingBranch branch = found.get();
         for (int number = 2; number <= branch.maxLevel(); number++) {
             Optional<WeavingBranch.Deed> deed = branch.level(number).deed();
-            if (deed.isEmpty() || data.hasDeed(recipe.branch(), number)
+            if (deed.isEmpty() || data.hasDeed(branchId, number)
                     || deed.get().kind() != WeavingBranch.Deed.Kind.WEAVE || tier < deed.get().minTier()) {
                 continue;
             }
-            int progress = data.deedProgress(recipe.branch(), number) + 1;
+            int progress = data.deedProgress(branchId, number) + 1;
             boolean done = progress >= deed.get().count();
-            data = data.withDeedProgress(recipe.branch(), number, progress, done);
+            data = data.withDeedProgress(branchId, number, progress, done);
             if (done) {
                 earned.add(branch.name() + " level " + number + ": " + deed.get().description());
             }

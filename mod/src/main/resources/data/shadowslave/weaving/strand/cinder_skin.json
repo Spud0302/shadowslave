@@ -1,0 +1,39 @@
+{
+  "name": "Cinder Skin",
+  "description": "Hide that once swam through ash shrugs off embers and heat.",
+  "fits": [
+    "chest",
+    "legs"
+  ],
+  "effect": {
+    "type": "resist",
+    "values": [
+      0.2,
+      0.35,
+      0.5
+    ],
+    "damage_tag": "minecraft:is_fire"
+  },
+  "study": [
+    {
+      "item": "shadowslave:ashen_hide"
+    },
+    {
+      "item": "shadowslave:ashen_hide_vest"
+    }
+  ],
+  "material": {
+    "item": "shadowslave:ashen_hide",
+    "counts": [
+      1,
+      2,
+      3
+    ]
+  },
+  "essence": [
+    20,
+    40,
+    80
+  ],
+  "xp": 15
+}

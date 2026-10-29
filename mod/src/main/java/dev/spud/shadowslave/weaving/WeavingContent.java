@@ -14,17 +14,18 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 /**
- * The branches, patterns and tuning loaded from data packs, joined with the
- * Memory catalogue. Rebuilt on every data reload; pure so rules can be tested
+ * The branches, patterns, strands and tuning loaded from data packs, joined
+ * with the Memory catalogue. Rebuilt on every data reload; pure so rules can be tested
  * without a server.
  */
 public record WeavingContent(
         WeavingSettings settings,
         Map<ResourceLocation, WeavingBranch> branches,
         Map<ResourceLocation, WeavingRecipe> recipes,
-        Map<ResourceLocation, MemoryContentCatalog.MemoryProfile> profiles
+        Map<ResourceLocation, MemoryContentCatalog.MemoryProfile> profiles,
+        Map<ResourceLocation, StrandPattern> strands
 ) {
-    public static final WeavingContent EMPTY = new WeavingContent(WeavingSettings.DEFAULT, Map.of(), Map.of(), Map.of());
+    public static final WeavingContent EMPTY = new WeavingContent(WeavingSettings.DEFAULT, Map.of(), Map.of(), Map.of(), Map.of());
     private static volatile WeavingContent current = EMPTY;
 
     public WeavingContent {
@@ -40,6 +41,10 @@ public record WeavingContent(
         LinkedHashMap<ResourceLocation, WeavingRecipe> ordered = new LinkedHashMap<>();
         entries.forEach(entry -> ordered.put(entry.getKey(), entry.getValue()));
         recipes = java.util.Collections.unmodifiableMap(ordered);
+        // Strands run in id order, so a menu button can name one by index.
+        TreeMap<ResourceLocation, StrandPattern> strandOrder = new TreeMap<>(Comparator.comparing(ResourceLocation::toString));
+        strandOrder.putAll(strands);
+        strands = java.util.Collections.unmodifiableMap(strandOrder);
     }
 
     public static WeavingContent current() {
@@ -56,6 +61,12 @@ public record WeavingContent(
      */
     public static WeavingContent build(WeavingSettings settings, Map<ResourceLocation, WeavingBranch> branches,
                                        Map<ResourceLocation, WeavingRecipe> recipes, Consumer<String> problems) {
+        return build(settings, branches, recipes, Map.of(), problems);
+    }
+
+    public static WeavingContent build(WeavingSettings settings, Map<ResourceLocation, WeavingBranch> branches,
+                                       Map<ResourceLocation, WeavingRecipe> recipes, Map<ResourceLocation, StrandPattern> strands,
+                                       Consumer<String> problems) {
         Map<ResourceLocation, MemoryContentCatalog.MemoryProfile> profiles = new TreeMap<>(Comparator.comparing(ResourceLocation::toString));
         MemoryContentCatalog.all().memories().forEach(profile -> profiles.put(profile.id(), profile));
         LinkedHashMap<ResourceLocation, WeavingRecipe> valid = new LinkedHashMap<>();
@@ -68,7 +79,7 @@ public record WeavingContent(
                 valid.put(id, recipe);
             }
         });
-        return new WeavingContent(settings, branches, valid, profiles);
+        return new WeavingContent(settings, branches, valid, profiles, strands);
     }
 
     /** The Memory a pattern makes, if it makes one; a plain pattern (an iron sword) has none. */
@@ -87,6 +98,17 @@ public record WeavingContent(
 
     public String name(WeavingRecipe recipe) {
         return recipe.name().orElseGet(() -> profile(recipe).map(MemoryContentCatalog.MemoryProfile::formalName).orElse(recipe.result().getPath()));
+    }
+
+    public Optional<StrandPattern> strand(ResourceLocation id) {
+        return Optional.ofNullable(strands.get(id));
+    }
+
+    /** The strand a Forging Memory's old sealed enchantment becomes: {@code memory_enchantment/x} is strand {@code x}. */
+    public Optional<ResourceLocation> strandFor(ResourceLocation enchantment) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(enchantment.getNamespace(),
+                enchantment.getPath().substring(enchantment.getPath().lastIndexOf('/') + 1));
+        return strands.containsKey(id) ? Optional.of(id) : Optional.empty();
     }
 
     public Optional<WeavingBranch> branch(ResourceLocation id) {

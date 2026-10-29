@@ -1,0 +1,37 @@
+{
+  "name": "Borrowed Face",
+  "description": "Lesser creatures hesitate, unsure whose face they are seeing.",
+  "fits": [
+    "helmet"
+  ],
+  "effect": {
+    "type": "deter",
+    "values": [
+      1.5,
+      3.0,
+      4.5
+    ]
+  },
+  "study": [
+    {
+      "item": "shadowslave:mimic_husk"
+    },
+    {
+      "item": "shadowslave:hollow_visage"
+    }
+  ],
+  "material": {
+    "item": "shadowslave:mimic_husk",
+    "counts": [
+      1,
+      2,
+      3
+    ]
+  },
+  "essence": [
+    25,
+    50,
+    100
+  ],
+  "xp": 20
+}

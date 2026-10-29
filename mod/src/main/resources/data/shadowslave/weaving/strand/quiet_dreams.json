@@ -1,0 +1,37 @@
+{
+  "name": "Quiet Dreams",
+  "description": "Muffles your steps and breathing while you sneak, so creatures notice you later.",
+  "fits": [
+    "helmet"
+  ],
+  "effect": {
+    "type": "hush",
+    "values": [
+      0.3,
+      0.45,
+      0.6
+    ]
+  },
+  "study": [
+    {
+      "item": "minecraft:phantom_membrane"
+    },
+    {
+      "item": "shadowslave:sleepers_hood"
+    }
+  ],
+  "material": {
+    "item": "minecraft:phantom_membrane",
+    "counts": [
+      1,
+      2,
+      3
+    ]
+  },
+  "essence": [
+    15,
+    35,
+    70
+  ],
+  "xp": 12
+}

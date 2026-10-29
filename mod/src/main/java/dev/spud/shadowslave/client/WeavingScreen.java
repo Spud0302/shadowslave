@@ -1,7 +1,15 @@
 package dev.spud.shadowslave.client;
 
+import dev.spud.shadowslave.item.SoulShardItem;
+import dev.spud.shadowslave.network.payload.WeaveTracePayload;
 import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
+import dev.spud.shadowslave.weaving.StrandRestriction;
+import dev.spud.shadowslave.weaving.StrandRules;
+import dev.spud.shadowslave.weaving.StrandText;
 import dev.spud.shadowslave.weaving.WeavingMenu;
+import dev.spud.shadowslave.weaving.WeavingRegistry;
+import dev.spud.shadowslave.weaving.WeavingRules;
+import dev.spud.shadowslave.weaving.WovenStrands;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -9,32 +17,53 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * The Weaving table in the Spell look. Left: four material slots, the Weave
- * button and the woven Memory. Right: the branch's level, points and next
- * step, Raise and Respec, and the patterns the player knows (hover one for
- * its materials). Everything shown comes from the server's Weaving reading.
+ * The Weaving Table in the Spell look (DESIGN, after Sunny's Weaving). Left:
+ * the piece, its soul-shard anchor, the materials, and the Weave view, where
+ * the chosen strand's pattern shows as points around the anchor; hold the
+ * mouse and trace through them in order. Right: the branch's level and
+ * points, what the piece holds or teaches (study by holding, or unravel),
+ * the strands you know, and what the last action did. Everything shown comes
+ * from the server's Weaving reading; the server judges every trace.
  */
 public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
     private static final int LEFT_WIDTH = 176;
     private static final int RIGHT_LEFT = 180;
     private static final int BUTTON_HEIGHT = 14;
-    private static final int[] WEAVE = {100, 62, 160, 62 + BUTTON_HEIGHT};
-    private static final int PATTERN_TOP = 104;
-    private static final int PATTERN_ROW = 11;
+    private static final int VIEW_X = 108;
+    private static final int VIEW_Y = 62;
+    private static final int VIEW_RADIUS = 38;
+    private static final int[] TIER_BOX = {48, 102, 92, 102 + BUTTON_HEIGHT};
+    private static final int[] TUNE_BOX = {96, 102, 168, 102 + BUTTON_HEIGHT};
+    private static final int[] LAY_BOX = {60, 102, 156, 102 + BUTTON_HEIGHT};
+    private static final int LIST_TOP = 94;
+    private static final int ROW = 11;
+    private static final int MESSAGE_TOP = 196;
 
-    private int branch;
+    private int branch = -1;
+    private String selected = "";
+    private int tier = 1;
+    private int tune = -1;
+    private final List<float[]> trace = new ArrayList<>();
+    private boolean tracing;
+    private int traceFade;
+    private int studying = -1;
+    private long studyStart;
 
     public WeavingScreen(WeavingMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
         this.imageWidth = 320;
-        this.imageHeight = 222;
+        this.imageHeight = WeavingMenu.INVENTORY_Y + 82;
         this.inventoryLabelY = WeavingMenu.INVENTORY_Y - 11;
     }
 
@@ -47,19 +76,95 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
         if (branches.isEmpty()) {
             return null;
         }
+        if (branch < 0) {
+            // Open on Patterns, the branch the table is for.
+            branch = 0;
+            for (int i = 0; i < branches.size(); i++) {
+                if (branches.get(i).name().equals("Patterns")) {
+                    branch = i;
+                }
+            }
+        }
         branch = Math.min(branch, branches.size() - 1);
         return branches.get(branch);
     }
 
-    private List<WeavingStatusPayload.Pattern> patterns() {
-        WeavingStatusPayload.Branch current = currentBranch();
-        return current == null ? List.of() : status().patterns().stream().filter(pattern -> pattern.branch().equals(current.name())).toList();
+    private Optional<WeavingStatusPayload.Strand> chosen() {
+        return status().strands().stream().filter(strand -> strand.id().equals(selected)).findFirst();
+    }
+
+    /** The highest Tier the chosen strand can be laid at here, counting the anchor in the slot. */
+    private int maxTier(WeavingStatusPayload.Strand strand) {
+        ItemStack anchor = this.menu.anchor();
+        int anchorCap = anchor.getItem() instanceof SoulShardItem shard ? StrandRules.anchorCap(Optional.of(shard.rank())) : 1;
+        return Math.max(1, Math.min(strand.maxTier(), Math.min(status().tierCap(), anchorCap)));
+    }
+
+    private Optional<StrandRestriction> restriction() {
+        return tune < 0 ? Optional.empty() : Optional.of(StrandRestriction.values()[tune]);
+    }
+
+    private boolean canTune(WeavingStatusPayload.Strand strand) {
+        return strand.tunable() && status().patternsLevel() >= 2;
+    }
+
+    private boolean holdsThread() {
+        for (int i = WeavingMenu.FIRST_MATERIAL; i < WeavingMenu.OUTPUT_SLOT; i++) {
+            if (this.menu.table().getItem(i).is(WeavingRegistry.WOVEN_THREAD.get())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private WovenStrands centreStrands() {
+        WovenStrands strands = this.menu.centre().get(WeavingRegistry.WOVEN_STRANDS.get());
+        return strands == null ? WovenStrands.EMPTY : strands;
+    }
+
+    /** What the right-hand "In this piece" list shows: the piece's strands, then what it teaches that you don't know. */
+    private record PieceRow(int strandIndex, int lessonIndex, Component label) {
+    }
+
+    private List<PieceRow> pieceRows() {
+        List<PieceRow> rows = new ArrayList<>();
+        WovenStrands strands = centreStrands();
+        for (int i = 0; i < strands.size() && rows.size() < WeavingMenu.MAX_LISTED; i++) {
+            WovenStrands.Laid laid = strands.strands().get(i);
+            rows.add(new PieceRow(i, -1, StrandText.name(laid.id()).copy().append(" " + WeavingRules.tierName(laid.tier()))));
+        }
+        List<WeavingStatusPayload.Lesson> table = status().table();
+        for (int i = 0; i < table.size() && rows.size() < WeavingMenu.MAX_LISTED; i++) {
+            WeavingStatusPayload.Lesson lesson = table.get(i);
+            if (!lesson.known()) {
+                rows.add(new PieceRow(-1, i, Component.literal("◇ " + lesson.name()).withStyle(ChatFormatting.GRAY)));
+            }
+        }
+        return rows;
+    }
+
+    private int knownTop() {
+        List<PieceRow> rows = pieceRows();
+        return rows.isEmpty() ? LIST_TOP : LIST_TOP + 12 + rows.size() * ROW + 4;
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        if (traceFade > 0 && !tracing && --traceFade == 0) {
+            trace.clear();
+        }
+        if (studying >= 0 && this.minecraft.level != null
+                && this.minecraft.level.getGameTime() - studyStart >= StrandRules.STUDY_TICKS) {
+            press(WeavingMenu.BUTTON_STUDIED + studying);
+            studying = -1;
+        }
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
-        renderPatternTooltip(graphics, mouseX, mouseY);
+        renderListTooltip(graphics, mouseX, mouseY);
         this.renderTooltip(graphics, mouseX, mouseY);
     }
 
@@ -70,46 +175,161 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
         SpellStyle.panel(graphics, x, y, x + LEFT_WIDTH, y + this.imageHeight, SpellStyle.RULE);
         SpellStyle.panel(graphics, x + RIGHT_LEFT, y, x + this.imageWidth, y + this.imageHeight, SpellStyle.RULE);
         for (Slot slot : this.menu.slots) {
-            boolean output = slot.index == 4;
-            int colour = output ? SpellStyle.ASPECT : SpellStyle.RULE;
+            if (slot.index >= WeavingMenu.TABLE_SLOTS && slot.container != this.menu.table()) {
+                graphics.fill(x + slot.x - 1, y + slot.y - 1, x + slot.x + 17, y + slot.y + 17, 0xE0080610);
+                graphics.renderOutline(x + slot.x - 2, y + slot.y - 2, 20, 20, SpellStyle.RULE);
+                continue;
+            }
+            int colour = slot.index == WeavingMenu.ANCHOR_SLOT ? SpellStyle.ASPECT
+                    : slot.index == WeavingMenu.CENTRE_SLOT ? SpellStyle.ABILITY
+                    : slot.index == WeavingMenu.OUTPUT_SLOT ? SpellStyle.withAlpha(SpellStyle.ASPECT, 0.6F) : SpellStyle.RULE;
             graphics.fill(x + slot.x - 1, y + slot.y - 1, x + slot.x + 17, y + slot.y + 17, 0xE0080610);
-            graphics.renderOutline(x + slot.x - 2, y + slot.y - 2, 20, 20, output ? SpellStyle.withAlpha(colour, 0.8F) : colour);
+            graphics.renderOutline(x + slot.x - 2, y + slot.y - 2, 20, 20, colour);
         }
-        // Threads run from the material slots to the woven Memory.
-        int threadY = y + WeavingMenu.OUTPUT_Y + 8;
+        graphics.drawString(this.font, "Piece", x + WeavingMenu.CENTRE_X - 1, y + WeavingMenu.CENTRE_Y + 20, SpellStyle.HINT, false);
+        graphics.drawString(this.font, "Anchor", x + WeavingMenu.ANCHOR_X - 4, y + WeavingMenu.ANCHOR_Y + 20, SpellStyle.HINT, false);
+        renderView(graphics, mouseX, mouseY);
+        graphics.fill(x + 8, y + WeavingMenu.INVENTORY_Y - 14, x + LEFT_WIDTH - 8, y + WeavingMenu.INVENTORY_Y - 13, SpellStyle.RULE);
+        renderBranch(graphics, mouseX, mouseY);
+    }
+
+    /** The anchor ring, the chosen strand's points, the tolerance around the next one, and the trace so far. */
+    private void renderView(GuiGraphics graphics, int mouseX, int mouseY) {
+        int cx = this.leftPos + VIEW_X;
+        int cy = this.topPos + VIEW_Y;
         long time = this.minecraft.level == null ? 0 : this.minecraft.level.getGameTime();
-        for (int i = 0; i < 3; i++) {
-            int offset = (i - 1) * 4;
-            int startX = x + 74;
-            int endX = x + WeavingMenu.OUTPUT_X - 4;
-            for (int px = startX; px < endX; px++) {
-                float t = (px - startX) / (float) (endX - startX);
-                int wave = Math.round((float) Math.sin(t * Math.PI * 3 + time * 0.15F + i) * 2.0F * (1.0F - t));
-                int py = threadY + Math.round(offset * (1.0F - t)) + wave;
-                graphics.fill(px, py, px + 1, py + 1, SpellStyle.withAlpha(i == 1 ? SpellStyle.ASPECT : SpellStyle.ABILITY, 0.35F + 0.5F * t));
+        ring(graphics, cx, cy, VIEW_RADIUS, SpellStyle.withAlpha(SpellStyle.RULE, 0.9F));
+        ring(graphics, cx, cy, VIEW_RADIUS - 1, SpellStyle.withAlpha(SpellStyle.BORDER, 0.35F));
+        boolean anchored = !this.menu.anchor().isEmpty();
+        int glow = anchored ? SpellStyle.ASPECT : SpellStyle.HINT;
+        float pulse = 0.35F + 0.25F * (float) Math.sin(time * 0.2F);
+        graphics.fill(cx - 3, cy - 3, cx + 3, cy + 3, SpellStyle.withAlpha(glow, anchored ? 0.4F + pulse : 0.3F));
+        graphics.fill(cx - 1, cy - 1, cx + 1, cy + 1, SpellStyle.withAlpha(glow, 0.95F));
+
+        if (holdsThread()) {
+            renderButton(graphics, mouseX, mouseY, LAY_BOX, "Lay the thread", true);
+        }
+        Optional<WeavingStatusPayload.Strand> chosen = chosen();
+        if (chosen.isEmpty()) {
+            if (!holdsThread()) {
+                graphics.drawCenteredString(this.font, "Choose a strand", cx, this.topPos + 106, SpellStyle.HINT);
+            }
+            renderTrace(graphics);
+            return;
+        }
+        WeavingStatusPayload.Strand strand = chosen.get();
+        tier = Mth.clamp(tier, 1, maxTier(strand));
+        if (!canTune(strand)) {
+            tune = -1;
+        }
+        List<Float> points = strand.points();
+        int count = points.size() / 2;
+        int reached = reached(strand);
+        float tolerance = StrandRules.tolerance(status().patternsLevel(), tier) * VIEW_RADIUS;
+        for (int i = 0; i < count; i++) {
+            int px = cx + Math.round(points.get(i * 2) * VIEW_RADIUS);
+            int py = cy + Math.round(points.get(i * 2 + 1) * VIEW_RADIUS);
+            if (i > 0) {
+                int lx = cx + Math.round(points.get(i * 2 - 2) * VIEW_RADIUS);
+                int ly = cy + Math.round(points.get(i * 2 - 1) * VIEW_RADIUS);
+                line(graphics, lx, ly, px, py, SpellStyle.withAlpha(SpellStyle.ABILITY, i <= reached ? 0.55F : 0.18F), 1);
+            }
+            boolean next = i == reached;
+            if (next) {
+                ring(graphics, px, py, Math.max(2, Math.round(tolerance)), SpellStyle.withAlpha(SpellStyle.ASPECT, 0.45F + pulse * 0.5F));
+            }
+            int colour = i < reached ? SpellStyle.ASPECT : next ? SpellStyle.TEXT : SpellStyle.ABILITY;
+            graphics.fill(px - 2, py - 2, px + 2, py + 2, colour);
+            graphics.drawString(this.font, Integer.toString(i + 1), px + 3, py - 9, SpellStyle.withAlpha(colour, 0.8F), false);
+        }
+        renderTrace(graphics);
+        if (!holdsThread()) {
+            renderButton(graphics, mouseX, mouseY, TIER_BOX, "Tier " + WeavingRules.tierName(tier), maxTier(strand) > 1);
+            String tuneLabel = restriction().map(value -> value.getSerializedName().substring(0, 1).toUpperCase()
+                    + value.getSerializedName().substring(1)).orElse("Untuned");
+            renderButton(graphics, mouseX, mouseY, TUNE_BOX, tuneLabel, canTune(strand));
+            String cost = strand.essence().get(tier - 1) + " essence · " + strand.counts().get(tier - 1) + " × "
+                    + SoulScreen.itemName(strand.material());
+            int line = 0;
+            for (FormattedCharSequence text : this.font.split(Component.literal(cost), 96)) {
+                if (line++ < 2) {
+                    graphics.drawString(this.font, text, this.leftPos + 50, this.topPos + 119 + (line - 1) * 9, SpellStyle.MUTED, false);
+                }
             }
         }
-        graphics.fill(x + 8, y + WeavingMenu.INVENTORY_Y - 14, x + LEFT_WIDTH - 8, y + WeavingMenu.INVENTORY_Y - 13, SpellStyle.RULE);
-        renderButton(graphics, mouseX, mouseY, WEAVE, "Weave", true);
-        renderBranch(graphics, mouseX, mouseY);
+    }
+
+    /** How many of the chosen strand's points the trace has passed in order, as the server will count them. */
+    private int reached(WeavingStatusPayload.Strand strand) {
+        if (trace.isEmpty()) {
+            return 0;
+        }
+        List<Float> points = strand.points();
+        float tolerance = StrandRules.tolerance(status().patternsLevel(), tier) * 1.5F;
+        int reached = 0;
+        for (float[] sample : trace) {
+            if (reached * 2 >= points.size()) {
+                break;
+            }
+            if (Math.hypot(sample[0] - points.get(reached * 2), sample[1] - points.get(reached * 2 + 1)) <= tolerance) {
+                reached++;
+            }
+        }
+        return reached;
+    }
+
+    private void renderTrace(GuiGraphics graphics) {
+        int cx = this.leftPos + VIEW_X;
+        int cy = this.topPos + VIEW_Y;
+        float alpha = tracing ? 0.95F : Math.min(0.95F, traceFade / 20.0F);
+        for (int i = 1; i < trace.size(); i++) {
+            float[] a = trace.get(i - 1);
+            float[] b = trace.get(i);
+            line(graphics, cx + Math.round(a[0] * VIEW_RADIUS), cy + Math.round(a[1] * VIEW_RADIUS),
+                    cx + Math.round(b[0] * VIEW_RADIUS), cy + Math.round(b[1] * VIEW_RADIUS), SpellStyle.withAlpha(SpellStyle.ASPECT, alpha), 2);
+        }
+    }
+
+    private static void ring(GuiGraphics graphics, int cx, int cy, int radius, int colour) {
+        int steps = Math.max(24, radius * 6);
+        for (int i = 0; i < steps; i++) {
+            double angle = Math.PI * 2 * i / steps;
+            int px = cx + (int) Math.round(Math.cos(angle) * radius);
+            int py = cy + (int) Math.round(Math.sin(angle) * radius);
+            graphics.fill(px, py, px + 1, py + 1, colour);
+        }
+    }
+
+    private static void line(GuiGraphics graphics, int x0, int y0, int x1, int y1, int colour, int width) {
+        int steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+        for (int i = 0; i <= steps; i++) {
+            float t = steps == 0 ? 0.0F : i / (float) steps;
+            int px = Math.round(x0 + (x1 - x0) * t);
+            int py = Math.round(y0 + (y1 - y0) * t);
+            graphics.fill(px, py, px + width, py + width, colour);
+        }
     }
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         graphics.drawString(this.font, this.title, 8, 7, SpellStyle.TITLE, false);
         graphics.drawString(this.font, this.playerInventoryTitle, 8, this.inventoryLabelY, SpellStyle.MUTED, false);
+        int x = RIGHT_LEFT + 8;
+        int width = this.imageWidth - RIGHT_LEFT - 16;
         String last = status().lastResult();
-        if (!last.isEmpty()) {
-            int y = 84;
-            for (FormattedCharSequence line : this.font.split(Component.literal(last), LEFT_WIDTH - 16)) {
-                if (y > WeavingMenu.INVENTORY_Y - 24) {
-                    break;
-                }
-                graphics.drawString(this.font, line, 8, y, SpellStyle.VOICE, false);
-                y += 10;
+        int y = MESSAGE_TOP;
+        graphics.fill(x, y - 4, x + width, y - 3, SpellStyle.RULE);
+        if (last.isEmpty()) {
+            last = this.menu.centre().isEmpty()
+                    ? "Lay a piece in the centre and a soul shard as its anchor. Study what a weave holds; trace what you know."
+                    : "Hold Study to learn from its weave, or trace a strand you know.";
+        }
+        for (FormattedCharSequence line : this.font.split(Component.literal(last), width)) {
+            if (y > this.imageHeight - 10) {
+                break;
             }
-        } else {
-            graphics.drawString(this.font, "Lay materials, then weave.", 8, 84, SpellStyle.HINT, false);
+            graphics.drawString(this.font, line, x, y, status().lastResult().isEmpty() ? SpellStyle.HINT : SpellStyle.VOICE, false);
+            y += 9;
         }
     }
 
@@ -123,76 +343,111 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
             graphics.drawString(this.font, "No Weaving branches are loaded.", x, y, SpellStyle.MUTED, false);
             return;
         }
-        if (status.branches().size() > 1) {
-            graphics.drawString(this.font, "‹ " + current.name() + " ›", x, y, SpellStyle.TITLE, false);
-        } else {
-            graphics.drawString(this.font, current.name(), x, y, SpellStyle.TITLE, false);
-        }
+        graphics.drawString(this.font, status.branches().size() > 1 ? "‹ " + current.name() + " ›" : current.name(), x, y, SpellStyle.TITLE, false);
         String level = "Level " + current.level() + "/" + current.maxLevel();
         graphics.drawString(this.font, level, x + width - this.font.width(level), y, SpellStyle.ASPECT, false);
-        y += 13;
+        y += 12;
         graphics.drawString(this.font, current.xp() + " XP  ·  " + status.points() + (status.points() == 1 ? " point" : " points"),
                 x, y, SpellStyle.TEXT, false);
-        y += 11;
-        int barRight = x + width;
-        graphics.fill(x, y, barRight, y + 4, SpellStyle.PANEL);
+        y += 10;
+        graphics.fill(x, y, x + width, y + 4, SpellStyle.PANEL);
         graphics.renderOutline(x, y, width, 4, SpellStyle.RULE);
         int filled = Math.round((width - 2) * status.xpTowardPoint() / (float) Math.max(1, status.xpPerPoint()));
         if (filled > 0) {
             graphics.fill(x + 1, y + 1, x + 1 + filled, y + 3, SpellStyle.ABILITY);
         }
-        y += 8;
+        y += 7;
+        int lines = 0;
         for (FormattedCharSequence line : this.font.split(Component.literal(current.next()), width)) {
-            graphics.drawString(this.font, line, x, y, SpellStyle.MUTED, false);
-            y += 10;
+            if (lines++ < 3) {
+                graphics.drawString(this.font, line, x, y, SpellStyle.MUTED, false);
+                y += 9;
+            }
         }
         renderButton(graphics, mouseX, mouseY, raiseBox(), "Raise", current.canRaise());
         renderButton(graphics, mouseX, mouseY, respecBox(), "Respec", status.canRespec());
 
-        int listY = this.topPos + PATTERN_TOP;
-        graphics.drawString(this.font, "Patterns you know", x, listY - 12, SpellStyle.ASPECT, false);
-        List<WeavingStatusPayload.Pattern> patterns = patterns();
-        for (int i = 0; i < patterns.size(); i++) {
-            WeavingStatusPayload.Pattern pattern = patterns.get(i);
-            int rowY = listY + i * PATTERN_ROW;
-            if (rowY > this.topPos + this.imageHeight - 12) {
+        int listY = this.topPos + LIST_TOP;
+        List<PieceRow> rows = pieceRows();
+        if (!rows.isEmpty()) {
+            graphics.drawString(this.font, "In this piece", x, listY, SpellStyle.ASPECT, false);
+            for (int i = 0; i < rows.size(); i++) {
+                PieceRow row = rows.get(i);
+                int rowY = listY + 12 + i * ROW;
+                boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= rowY - 1 && mouseY < rowY + ROW - 1;
+                if (hovered) {
+                    graphics.fill(x - 2, rowY - 2, x + width + 2, rowY + ROW - 2, SpellStyle.withAlpha(SpellStyle.BORDER, 0.25F));
+                }
+                if (row.lessonIndex() >= 0 && studying == row.lessonIndex() && this.minecraft.level != null) {
+                    float progress = Math.min(1.0F, (this.minecraft.level.getGameTime() - studyStart + 0.0F) / StrandRules.STUDY_TICKS);
+                    graphics.fill(x - 2, rowY + ROW - 3, x - 2 + Math.round((width + 4) * progress), rowY + ROW - 2, SpellStyle.ASPECT);
+                }
+                String action = row.strandIndex() >= 0 ? "Unravel" : "Study";
+                graphics.drawString(this.font, fit(row.label().getString(), width - this.font.width(action) - 6), x, rowY,
+                        row.strandIndex() >= 0 ? SpellStyle.ABILITY : SpellStyle.MUTED, false);
+                graphics.drawString(this.font, action, x + width - this.font.width(action), rowY,
+                        hovered ? SpellStyle.TEXT : SpellStyle.HINT, false);
+            }
+        }
+        int knownY = this.topPos + knownTop();
+        graphics.drawString(this.font, "Strands you know", x, knownY, SpellStyle.ASPECT, false);
+        List<WeavingStatusPayload.Strand> known = status.strands();
+        for (int i = 0; i < known.size(); i++) {
+            WeavingStatusPayload.Strand strand = known.get(i);
+            int rowY = knownY + 12 + i * ROW;
+            if (rowY > this.topPos + MESSAGE_TOP - 14) {
                 break;
             }
-            boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= rowY - 1 && mouseY < rowY + PATTERN_ROW - 1;
-            if (hovered) {
-                graphics.fill(x - 2, rowY - 2, x + width + 2, rowY + PATTERN_ROW - 2, SpellStyle.withAlpha(SpellStyle.BORDER, 0.25F));
+            boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= rowY - 1 && mouseY < rowY + ROW - 1;
+            boolean picked = strand.id().equals(selected);
+            if (hovered || picked) {
+                graphics.fill(x - 2, rowY - 2, x + width + 2, rowY + ROW - 2,
+                        SpellStyle.withAlpha(picked ? SpellStyle.ASPECT : SpellStyle.BORDER, picked ? 0.2F : 0.25F));
             }
-            int colour = pattern.lock().isEmpty() ? SpellStyle.TEXT : SpellStyle.HINT;
-            graphics.drawString(this.font, pattern.name(), x, rowY, colour, false);
-            String tier = SoulPages.tier(pattern.tier());
-            graphics.drawString(this.font, tier, x + width - this.font.width(tier), rowY,
-                    pattern.lock().isEmpty() ? SpellStyle.ABILITY : SpellStyle.HINT, false);
+            graphics.drawString(this.font, strand.name(), x, rowY, strand.lock().isEmpty() ? SpellStyle.TEXT : SpellStyle.HINT, false);
+            int reach = Math.max(1, Math.min(strand.maxTier(), status.tierCap()));
+            String tiers = reach == 1 ? "I" : "I-" + WeavingRules.tierName(reach);
+            graphics.drawString(this.font, tiers, x + width - this.font.width(tiers), rowY, SpellStyle.ABILITY, false);
         }
-        if (patterns.isEmpty()) {
-            graphics.drawString(this.font, "None yet.", x, listY, SpellStyle.HINT, false);
+        if (known.isEmpty()) {
+            graphics.drawString(this.font, "None yet. Study a weave.", x, knownY + 12, SpellStyle.HINT, false);
         }
     }
 
-    private void renderPatternTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+    /** {@code text} cut to {@code width} pixels, with an ellipsis if it had to be cut. */
+    private String fit(String text, int width) {
+        if (this.font.width(text) <= width) {
+            return text;
+        }
+        return this.font.plainSubstrByWidth(text, width - this.font.width("…")) + "…";
+    }
+
+    private void renderListTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
         int x = this.leftPos + RIGHT_LEFT + 8;
         int width = this.imageWidth - RIGHT_LEFT - 16;
-        List<WeavingStatusPayload.Pattern> patterns = patterns();
-        for (int i = 0; i < patterns.size(); i++) {
-            int rowY = this.topPos + PATTERN_TOP + i * PATTERN_ROW;
-            if (mouseX >= x && mouseX < x + width && mouseY >= rowY - 1 && mouseY < rowY + PATTERN_ROW - 1) {
-                WeavingStatusPayload.Pattern pattern = patterns.get(i);
+        if (mouseX < x || mouseX >= x + width) {
+            return;
+        }
+        int knownY = this.topPos + knownTop();
+        List<WeavingStatusPayload.Strand> known = status().strands();
+        for (int i = 0; i < known.size(); i++) {
+            int rowY = knownY + 12 + i * ROW;
+            if (mouseY >= rowY - 1 && mouseY < rowY + ROW - 1 && rowY <= this.topPos + MESSAGE_TOP - 14) {
+                WeavingStatusPayload.Strand strand = known.get(i);
                 List<Component> lines = new ArrayList<>();
-                lines.add(Component.literal(pattern.name()).withStyle(ChatFormatting.LIGHT_PURPLE));
-                lines.add(Component.literal(pattern.rank() + " Memory, Tier " + SoulPages.tier(pattern.tier())).withStyle(ChatFormatting.AQUA));
-                for (WeavingStatusPayload.Material material : pattern.materials()) {
-                    lines.add(Component.literal(material.count() + " × " + SoulScreen.itemName(material.item())).withStyle(ChatFormatting.GRAY));
+                lines.add(Component.literal(strand.name()).withStyle(ChatFormatting.LIGHT_PURPLE));
+                lines.add(Component.literal(strand.description()).withStyle(ChatFormatting.GRAY));
+                lines.add(Component.literal("Suits " + strand.fits()).withStyle(ChatFormatting.AQUA));
+                for (int tierIndex = 0; tierIndex < strand.maxTier(); tierIndex++) {
+                    lines.add(Component.literal("Tier " + WeavingRules.tierName(tierIndex + 1) + ": " + strand.essence().get(tierIndex)
+                            + " essence, " + strand.counts().get(tierIndex) + " × " + SoulScreen.itemName(strand.material()))
+                            .withStyle(ChatFormatting.DARK_AQUA));
                 }
-                if (!pattern.lock().isEmpty()) {
-                    lines.add(Component.literal(pattern.lock()).withStyle(ChatFormatting.RED));
+                if (!strand.lock().isEmpty()) {
+                    lines.add(Component.literal(strand.lock()).withStyle(ChatFormatting.RED));
                 }
-                if (pattern.woven() > 0) {
-                    lines.add(Component.literal("Woven " + pattern.woven() + (pattern.woven() == 1 ? " time" : " times"))
-                            .withStyle(ChatFormatting.DARK_GRAY));
+                if (strand.laid() > 0) {
+                    lines.add(Component.literal("Laid " + strand.laid() + (strand.laid() == 1 ? " time" : " times")).withStyle(ChatFormatting.DARK_GRAY));
                 }
                 graphics.renderComponentTooltip(this.font, lines, mouseX, mouseY);
                 return;
@@ -203,7 +458,7 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
     private int[] raiseBox() {
         int x = RIGHT_LEFT + 8;
         int width = (this.imageWidth - RIGHT_LEFT - 16 - 6) / 2;
-        return new int[]{x, 72, x + width, 72 + BUTTON_HEIGHT};
+        return new int[]{x, 74, x + width, 74 + BUTTON_HEIGHT};
     }
 
     private int[] respecBox() {
@@ -228,11 +483,40 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
                 && mouseY >= this.topPos + box[1] && mouseY < this.topPos + box[3];
     }
 
+    private float[] toAnchor(double mouseX, double mouseY) {
+        return new float[]{(float) ((mouseX - this.leftPos - VIEW_X) / VIEW_RADIUS), (float) ((mouseY - this.topPos - VIEW_Y) / VIEW_RADIUS)};
+    }
+
+    private boolean inView(double mouseX, double mouseY) {
+        float[] point = toAnchor(mouseX, mouseY);
+        return Math.hypot(point[0], point[1]) <= 1.15;
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         WeavingStatusPayload.Branch current = currentBranch();
-        if (inside(mouseX, mouseY, WEAVE)) {
-            press(WeavingMenu.BUTTON_WEAVE);
+        Optional<WeavingStatusPayload.Strand> chosen = chosen();
+        if (button == 0 && holdsThread() && inside(mouseX, mouseY, LAY_BOX)) {
+            press(WeavingMenu.BUTTON_LAY);
+            return true;
+        }
+        if (button == 0 && chosen.isPresent() && !holdsThread()) {
+            if (inside(mouseX, mouseY, TIER_BOX)) {
+                int max = maxTier(chosen.get());
+                tier = tier >= max ? 1 : tier + 1;
+                click();
+                return true;
+            }
+            if (canTune(chosen.get()) && inside(mouseX, mouseY, TUNE_BOX)) {
+                tune = tune + 1 >= StrandRestriction.values().length ? -1 : tune + 1;
+                click();
+                return true;
+            }
+        }
+        if (button == 0 && chosen.isPresent() && inView(mouseX, mouseY)) {
+            tracing = true;
+            trace.clear();
+            trace.add(toAnchor(mouseX, mouseY));
             return true;
         }
         if (current != null && current.canRaise() && inside(mouseX, mouseY, raiseBox())) {
@@ -243,6 +527,36 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
             press(WeavingMenu.BUTTON_RESPEC);
             return true;
         }
+        int x = this.leftPos + RIGHT_LEFT + 8;
+        int width = this.imageWidth - RIGHT_LEFT - 16;
+        if (mouseX >= x - 2 && mouseX < x + width + 2) {
+            List<PieceRow> rows = pieceRows();
+            for (int i = 0; i < rows.size(); i++) {
+                int rowY = this.topPos + LIST_TOP + 12 + i * ROW;
+                if (mouseY >= rowY - 1 && mouseY < rowY + ROW - 1) {
+                    PieceRow row = rows.get(i);
+                    if (row.strandIndex() >= 0) {
+                        press(WeavingMenu.BUTTON_UNRAVEL + row.strandIndex());
+                    } else {
+                        studying = row.lessonIndex();
+                        studyStart = this.minecraft.level == null ? 0 : this.minecraft.level.getGameTime();
+                        press(WeavingMenu.BUTTON_STUDY + row.lessonIndex());
+                    }
+                    return true;
+                }
+            }
+            int knownY = this.topPos + knownTop();
+            List<WeavingStatusPayload.Strand> known = status().strands();
+            for (int i = 0; i < known.size(); i++) {
+                int rowY = knownY + 12 + i * ROW;
+                if (mouseY >= rowY - 1 && mouseY < rowY + ROW - 1) {
+                    selected = known.get(i).id().equals(selected) ? "" : known.get(i).id();
+                    trace.clear();
+                    click();
+                    return true;
+                }
+            }
+        }
         int branches = status().branches().size();
         if (branches > 1 && mouseX >= this.leftPos + RIGHT_LEFT && mouseY >= this.topPos + 4 && mouseY < this.topPos + 18) {
             branch = (branch + 1) % branches;
@@ -252,8 +566,63 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    private void press(int id) {
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (tracing) {
+            float[] point = toAnchor(mouseX, mouseY);
+            float[] last = trace.getLast();
+            if (Math.hypot(point[0] - last[0], point[1] - last[1]) * VIEW_RADIUS >= 1.5 && trace.size() < StrandRules.TRACE_LIMIT) {
+                trace.add(point);
+            }
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (studying >= 0) {
+            // Letting go before the pattern is picked out ends the study.
+            studying = -1;
+        }
+        if (tracing && button == 0) {
+            tracing = false;
+            traceFade = 30;
+            Optional<WeavingStatusPayload.Strand> chosen = chosen();
+            if (chosen.isPresent() && trace.size() >= 3) {
+                List<Float> samples = new ArrayList<>();
+                for (float[] point : trace) {
+                    samples.add(point[0]);
+                    samples.add(point[1]);
+                }
+                PacketDistributor.sendToServer(new WeaveTracePayload(chosen.get().id(), tier,
+                        restriction().map(StrandRestriction::getSerializedName).orElse(""), samples));
+            }
+            return true;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    /** Lets the screenshot rig and tests draw a trace without a mouse. */
+    void traceForTest(List<float[]> points) {
+        trace.clear();
+        trace.addAll(points);
+        tracing = false;
+        traceFade = 400;
+    }
+
+    void selectForTest(String id, int tier, int tune) {
+        this.selected = id;
+        this.tier = tier;
+        this.tune = tune;
+    }
+
+    private void click() {
         this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+    }
+
+    private void press(int id) {
+        click();
         this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, id);
     }
 }

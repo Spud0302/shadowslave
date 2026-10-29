@@ -6,6 +6,7 @@ import dev.spud.shadowslave.ability.MasterworkAbility;
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.content.memory.MemoryContentCatalog;
 import dev.spud.shadowslave.memory.MemoryInstanceData;
+import dev.spud.shadowslave.network.payload.WeaveTracePayload;
 import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
@@ -67,24 +68,39 @@ public final class WeavingService {
 
     static void handleButton(ServerPlayer player, WeavingMenu menu, int button) {
         WeavingContent content = WeavingContent.current();
-        if (button == WeavingMenu.BUTTON_WEAVE) {
-            weave(player, menu);
-        } else if (button == WeavingMenu.BUTTON_RESPEC) {
+        if (button == WeavingMenu.BUTTON_RESPEC) {
             respec(player);
+        } else if (button == WeavingMenu.BUTTON_LAY) {
+            StrandService.layThread(player, menu);
         } else if (button >= WeavingMenu.BUTTON_RAISE && button < WeavingMenu.BUTTON_RAISE + content.branches().size()) {
             raise(player, content.branchOrder().get(button - WeavingMenu.BUTTON_RAISE));
+        } else if (button >= WeavingMenu.BUTTON_STUDY && button < WeavingMenu.BUTTON_STUDY + WeavingMenu.MAX_LISTED) {
+            StrandService.startStudy(player, menu, button - WeavingMenu.BUTTON_STUDY);
+        } else if (button >= WeavingMenu.BUTTON_STUDIED && button < WeavingMenu.BUTTON_STUDIED + WeavingMenu.MAX_LISTED) {
+            StrandService.finishStudy(player, menu, button - WeavingMenu.BUTTON_STUDIED);
+        } else if (button >= WeavingMenu.BUTTON_UNRAVEL && button < WeavingMenu.BUTTON_UNRAVEL + WeavingMenu.MAX_LISTED) {
+            StrandService.unravel(player, menu, button - WeavingMenu.BUTTON_UNRAVEL);
         }
     }
 
-    /**
-     * The table no longer makes items: Smithing patterns are forged at a
-     * Forge Hearth and Smithing Anvil. Weaving's own work (laying strands
-     * into finished items) comes in the next Weaving update.
-     */
-    public static void weave(ServerPlayer player, WeavingMenu menu) {
-        report(player, menu.materialAmounts().isEmpty()
-                ? "Weaving no longer makes items. Forge them at a Forge Hearth and Smithing Anvil."
-                : "These threads want a forge, not a loom. Lay them in a Forge Hearth's crucible instead.");
+    /** A traced weave from the table's screen. The table must be open; the server judges the trace. */
+    public static void weaveTrace(ServerPlayer player, WeaveTracePayload payload) {
+        if (!(player.containerMenu instanceof WeavingMenu menu) || !menu.stillValid(player)) {
+            return;
+        }
+        ResourceLocation id = ResourceLocation.tryParse(payload.strand());
+        Optional<StrandRestriction> restriction = java.util.Arrays.stream(StrandRestriction.values())
+                .filter(value -> value.getSerializedName().equals(payload.restriction())).findFirst();
+        if (id == null || (!payload.restriction().isEmpty() && restriction.isEmpty())) {
+            return;
+        }
+        List<Float> samples = payload.trace();
+        float[] trace = new float[Math.min(samples.size(), StrandRules.TRACE_LIMIT * 2) & ~1];
+        for (int i = 0; i < trace.length; i++) {
+            float value = samples.get(i);
+            trace[i] = Float.isFinite(value) ? net.minecraft.util.Mth.clamp(value, -2.0F, 2.0F) : 0.0F;
+        }
+        StrandService.weave(player, menu, id, payload.tier(), restriction, trace);
     }
 
     /** Forge's gifts at the hearth: Masterwork's extra Tier while it lasts, and Thrifty Hands' quicker Forging. */
@@ -161,6 +177,7 @@ public final class WeavingService {
 
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         LAST_RESULT.remove(event.getEntity().getUUID());
+        StrandService.forget(event.getEntity().getUUID());
     }
 
     public static void report(ServerPlayer player, String message) {
@@ -181,10 +198,18 @@ public final class WeavingService {
     }
 
     public static WeavingStatusPayload status(ServerPlayer player) {
-        return status(WeavingContent.current(), get(player), soulRank(player), lastResult(player));
+        WeavingContent content = WeavingContent.current();
+        List<ResourceLocation> lessons = player.containerMenu instanceof WeavingMenu menu ? StrandService.teaches(content, menu.centre()) : List.of();
+        return status(content, get(player), soulRank(player), lastResult(player), lessons);
     }
 
     static WeavingStatusPayload status(WeavingContent content, WeavingData data, Optional<SoulRank> soulRank, String lastResult) {
+        return status(content, data, soulRank, lastResult, List.of());
+    }
+
+    /** {@code lessons} are the strands the piece on an open Weaving Table teaches. */
+    static WeavingStatusPayload status(WeavingContent content, WeavingData data, Optional<SoulRank> soulRank, String lastResult,
+                                       List<ResourceLocation> lessons) {
         List<WeavingStatusPayload.Branch> branches = new ArrayList<>();
         content.branches().forEach((id, branch) -> branches.add(new WeavingStatusPayload.Branch(
                 branch.name(), WeavingRules.heldLevel(content, data, id), branch.maxLevel(), data.xp(id),
@@ -202,8 +227,31 @@ public final class WeavingService {
                         data.hint(id).stream().map(ResourceLocation::toString).toList(), recipe.hint()));
             }
         });
+        int patternsLevel = WeavingRules.heldLevel(content, data, StrandService.PATTERNS);
+        List<WeavingStatusPayload.Strand> strands = new ArrayList<>();
+        content.strands().forEach((id, strand) -> {
+            if (!data.studied().contains(id)) {
+                return;
+            }
+            List<Float> points = new ArrayList<>();
+            StrandRules.points(id, strand).forEach(point -> {
+                points.add(point.x());
+                points.add(point.y());
+            });
+            String lock = strand.minRank() != SoulRank.DORMANT && soulRank.map(rank -> rank.ordinal() < strand.minRank().ordinal()).orElse(true)
+                    ? "Needs " + WeavingRules.rankName(strand.minRank()) + " soul" : "";
+            strands.add(new WeavingStatusPayload.Strand(id.toString(), strand.name(), strand.description(),
+                    String.join(", ", strand.fits().stream().map(StrandFit::plural).toList()), strand.tunable(),
+                    strand.material().item().toString(), strand.material().counts(), strand.essence(), points, data.laid(id), lock));
+        });
+        List<WeavingStatusPayload.Lesson> table = lessons.stream()
+                .map(id -> new WeavingStatusPayload.Lesson(id.toString(), content.strand(id).map(StrandPattern::name).orElse(id.getPath()),
+                        data.studied().contains(id)))
+                .toList();
         return new WeavingStatusPayload(WeavingRules.unspent(content, data), WeavingRules.xpTowardPoint(content, data),
-                content.settings().xpPerPoint(), WeavingRules.canRespec(data), branches, patterns, hints, lastResult);
+                content.settings().xpPerPoint(), WeavingRules.canRespec(data), branches, patterns, hints, lastResult,
+                strands, table, Math.min(StrandRules.soulCap(soulRank), patternsLevel), patternsLevel,
+                WeavingRules.heldLevel(content, data, StrandService.FORGERY));
     }
 
     static String nextText(WeavingContent content, WeavingData data, ResourceLocation branch) {

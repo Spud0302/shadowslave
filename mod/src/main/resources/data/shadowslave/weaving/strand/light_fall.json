@@ -1,0 +1,38 @@
+{
+  "name": "Light Fall",
+  "description": "You land as if the ground were softer, picked out of enchanted boots.",
+  "fits": [
+    "boots"
+  ],
+  "effect": {
+    "type": "resist",
+    "values": [
+      0.3,
+      0.45,
+      0.6
+    ],
+    "damage_tag": "minecraft:is_fall"
+  },
+  "study": [
+    {
+      "enchantment": "minecraft:feather_falling"
+    },
+    {
+      "item": "minecraft:feather"
+    }
+  ],
+  "material": {
+    "item": "minecraft:feather",
+    "counts": [
+      2,
+      4,
+      8
+    ]
+  },
+  "essence": [
+    15,
+    35,
+    70
+  ],
+  "xp": 10
+}

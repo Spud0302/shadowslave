@@ -1,0 +1,35 @@
+{
+  "name": "Quick Hands",
+  "description": "The tool bites deeper and faster, picked out of an enchanted tool.",
+  "fits": [
+    "tool"
+  ],
+  "effect": {
+    "type": "attribute",
+    "values": [
+      0.15,
+      0.3,
+      0.45
+    ],
+    "attribute": "minecraft:player.block_break_speed"
+  },
+  "study": [
+    {
+      "enchantment": "minecraft:efficiency"
+    }
+  ],
+  "material": {
+    "item": "minecraft:lapis_lazuli",
+    "counts": [
+      2,
+      4,
+      8
+    ]
+  },
+  "essence": [
+    15,
+    35,
+    70
+  ],
+  "xp": 10
+}

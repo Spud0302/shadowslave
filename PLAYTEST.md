@@ -476,15 +476,62 @@ smithed piece is graded and can come out better.
    **Masterwork** lets the next billet reach one Tier higher with a wider
    mark and one grade up; Forge's innate cools billets 30% slower.
 
-The Weaving Table no longer makes items. It comes back as enchanting
-(weaving threads into finished gear) in the next update. Memories woven
-before this update are graded Fair on first use and keep their "Woven by"
-smith.
+Memories woven before Smithing are graded Fair on first use and keep their
+"Woven by" smith.
 
 Patterns are data files under `data/shadowslave/smithing/pattern/`, with
 their heat band, blow count and quench mark, so a data pack can change them.
 Operators can use `/shadowslave_weaving xp shadowslave:forging <amount>`,
 `/shadowslave_weaving learn <pattern>` and `/shadowslave_weaving reset`.
+
+## Weaving (strands)
+
+Added by claude-code, 2026-10-28. Weaving now enchants finished gear the way
+Sunny weaves: you study a weave to learn its pattern, then trace it in
+essence onto a soul-shard anchor (DESIGN, after ch. 2048 and 3024).
+
+1. **The table.** Lay a piece in the **Piece** slot, a soul shard in the
+   **Anchor** slot and the strand's material in the four small slots. The
+   right side shows your Weaving branch (cycle with the arrows), what the
+   piece holds or teaches, and the strands you know.
+2. **Study.** Anything with a weave in it teaches: a Nightmare material
+   (a Chainback Link teaches Dragging Links and Rattling Guard), a woven Memory, gear that
+   already holds strands, or an enchanted item or book (Sharpness teaches
+   Whetted Edge, Protection teaches Warding, Efficiency teaches Quick Hands,
+   Feather Falling teaches Light Fall). Hold **Study** on its row for three
+   seconds. It costs 10 essence; with too little, spare shards in the anchor
+   slot burn instead.
+3. **Trace.** Pick a strand you know. Its pattern shows as numbered points
+   around the anchor. Hold the mouse and drag through them in order; the ring
+   shows how close you need to be. A clean trace lays the strand at full
+   strength, a loose one at its score, and a wild one fizzles (the essence is
+   spent, the anchor and materials are kept). Laying a strand uses the anchor
+   shard, the materials and the essence on the cost line.
+4. **Threads and Tiers.** Vanilla gear holds one strand; forged gear holds
+   one to four by grade. Tier is capped by your soul (unranked and Dormant I,
+   Awakened II, Ascended III), your Patterns level and the anchor shard's
+   rank. Higher Tiers need a steadier hand.
+5. **Tuning** (Patterns 2). Tie a strand to a condition (only at night, only
+   when below half health, only out of sight of the sky) to make it half again as strong while
+   the condition holds. Plain attribute strands can't be tuned.
+6. **Forgery: unravel and lay.** Press **Unravel** on a strand the piece holds
+   to pull it out into a **Woven Thread** in the output slot (15 essence; it
+   keeps 75% of its potency, all of it at Forgery 2). Put the thread in a
+   material slot with a new piece in the centre and press **Lay the thread**.
+7. **The strands:** Splinter Edge (tools and weapons sometimes keep their
+   durability), Quiet Dreams (helmet, harder to see), Long Road (boots, less
+   sprint hunger), Cinder Skin (chest or legs, less fire damage), Dragging Links
+   (weapon, pulls struck foes closer), Rattling Guard (chest, softens a heavy
+   hit then rests), Borrowed Face (helmet, weak enemies hesitate), Echoing Cut
+   (weapon, a second magic hit, Awakened only and studied from a Hollow Edge),
+   Whetted Edge (+attack damage), Warding (+armour), Quick Hands (+mining
+   speed) and Light Fall (boots, less fall damage).
+8. Weaving strands gives Patterns XP; unravelling gives Forgery XP. Patterns 3
+   is the deed "Lay five Tier II strands". Gear tooltips list each strand with
+   its Tier, potency, tuning and who wove it.
+
+Strands are data files under `data/shadowslave/weaving/strand/`. Operators
+can use `/shadowslave_weaving study <strand>` to learn one directly.
 
 ## Field Guide and map
 

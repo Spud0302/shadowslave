@@ -20,12 +20,14 @@ import java.util.Optional;
 
 /**
  * Loads Weaving from data packs: {@code weaving/branch/*.json},
- * {@code smithing/pattern/*.json} and {@code weaving/rules.json}. A data pack
+ * {@code weaving/strand/*.json}, {@code smithing/pattern/*.json} and
+ * {@code weaving/rules.json}. A data pack
  * can add, change or remove branches and patterns without code.
  */
 public final class WeavingContentLoader extends SimplePreparableReloadListener<WeavingContent> {
     private static final FileToIdConverter BRANCHES = FileToIdConverter.json("weaving/branch");
     private static final FileToIdConverter RECIPES = FileToIdConverter.json("smithing/pattern");
+    private static final FileToIdConverter STRANDS = FileToIdConverter.json("weaving/strand");
     private static final ResourceLocation RULES = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "weaving/rules.json");
 
     public static void onAddReloadListeners(AddReloadListenerEvent event) {
@@ -36,16 +38,18 @@ public final class WeavingContentLoader extends SimplePreparableReloadListener<W
     protected WeavingContent prepare(ResourceManager manager, ProfilerFiller profiler) {
         Map<ResourceLocation, WeavingBranch> branches = read(manager, BRANCHES, WeavingBranch.CODEC);
         Map<ResourceLocation, WeavingRecipe> recipes = read(manager, RECIPES, WeavingRecipe.CODEC);
+        Map<ResourceLocation, StrandPattern> strands = read(manager, STRANDS, StrandPattern.CODEC);
         WeavingSettings settings = manager.getResource(RULES)
                 .flatMap(resource -> parse(RULES, resource, WeavingSettings.CODEC))
                 .orElse(WeavingSettings.DEFAULT);
-        return WeavingContent.build(settings, branches, recipes, ShadowSlaveMod.LOGGER::warn);
+        return WeavingContent.build(settings, branches, recipes, strands, ShadowSlaveMod.LOGGER::warn);
     }
 
     @Override
     protected void apply(WeavingContent content, ResourceManager manager, ProfilerFiller profiler) {
         WeavingContent.set(content);
-        ShadowSlaveMod.LOGGER.info("Loaded {} Weaving branches and {} patterns", content.branches().size(), content.recipes().size());
+        ShadowSlaveMod.LOGGER.info("Loaded {} Weaving branches, {} patterns and {} strands", content.branches().size(),
+                content.recipes().size(), content.strands().size());
     }
 
     private static <T> Map<ResourceLocation, T> read(ResourceManager manager, FileToIdConverter files, Codec<T> codec) {

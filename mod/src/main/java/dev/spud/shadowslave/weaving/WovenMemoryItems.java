@@ -25,8 +25,9 @@ import java.util.Optional;
 /**
  * Forging Memories as physical items (DESIGN): a weapon or a piece of armour
  * that names its Memory, its Rank and Tier, and who made it. They are forged
- * at the hearth and anvil now; their enchantments stay sealed until the new
- * Weaving lays strands into finished pieces.
+ * at the hearth and anvil now and carry no enchantment of their own: a
+ * Weaver lays strands into them like any other piece. One woven before
+ * Smithing keeps its old enchantment as a live strand.
  */
 public final class WovenMemoryItems {
     private WovenMemoryItems() {
@@ -72,7 +73,8 @@ public final class WovenMemoryItems {
 
     /**
      * A piece woven before Smithing existed is given a Fair grade (its stats
-     * unchanged) the first time it sits in an inventory, keeping its maker.
+     * unchanged) the first time it sits in an inventory, keeping its maker,
+     * and its old sealed enchantment becomes a live strand in its one thread.
      */
     public static void grade(ItemStack stack, Level level) {
         if (level.isClientSide || stack.has(SmithingRegistry.FORGED.get())) {
@@ -81,6 +83,21 @@ public final class WovenMemoryItems {
         MemoryInstanceData woven = stack.get(WeavingRegistry.WOVEN_MEMORY.get());
         String maker = woven == null ? "" : woven.provenance().replaceFirst("^Woven by ", "");
         SmithingService.stamp(stack, ForgedData.legacy(maker));
+        if (woven != null && !stack.has(WeavingRegistry.WOVEN_STRANDS.get())) {
+            legacyStrands(WeavingContent.current(), woven.memoryId(), maker)
+                    .ifPresent(strands -> stack.set(WeavingRegistry.WOVEN_STRANDS.get(), strands));
+        }
+    }
+
+    /** The live strand an old Memory's sealed enchantment becomes, at the Memory's Tier and full strength. */
+    static Optional<WovenStrands> legacyStrands(WeavingContent content, ResourceLocation memoryId, String maker) {
+        return profile(memoryId).flatMap(profile -> profile.enchantments().stream()
+                .map(enchantment -> content.strandFor(enchantment.id()))
+                .flatMap(Optional::stream)
+                .findFirst()
+                .map(id -> new WovenStrands(List.of(new WovenStrands.Laid(id,
+                        Math.min(profile.tier(), content.strand(id).map(StrandPattern::maxTier).orElse(1)),
+                        100, Optional.empty(), maker)))));
     }
 
     static Optional<MemoryContentCatalog.MemoryProfile> profile(ResourceLocation memoryId) {
@@ -88,18 +105,8 @@ public final class WovenMemoryItems {
     }
 
     static void describe(ResourceLocation memoryId, ItemStack stack, List<Component> tooltip) {
-        profile(memoryId).ifPresent(profile -> {
-            tooltip.add(Component.literal(WeavingRules.rankName(profile.rank()) + " Memory, Tier " + WeavingRules.tierName(profile.tier()))
-                    .withStyle(ChatFormatting.AQUA));
-            for (MemoryContentCatalog.EnchantmentProfile enchantment : profile.enchantments()) {
-                tooltip.add(Component.literal("◇ " + title(enchantment.id().getPath()) + " (sealed)")
-                        .withStyle(ChatFormatting.DARK_GRAY));
-            }
-        });
-        MemoryInstanceData woven = stack.get(WeavingRegistry.WOVEN_MEMORY.get());
-        if (woven != null) {
-            tooltip.add(Component.literal(woven.provenance()).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
-        }
+        profile(memoryId).ifPresent(profile -> tooltip.add(Component.literal(WeavingRules.rankName(profile.rank())
+                + " Memory, Tier " + WeavingRules.tierName(profile.tier())).withStyle(ChatFormatting.AQUA)));
     }
 
     /** "memory_enchantment/splinter_edge" to "Splinter Edge". */
