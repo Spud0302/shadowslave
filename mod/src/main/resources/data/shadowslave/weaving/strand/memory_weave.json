@@ -1,0 +1,16 @@
+{
+  "name": "Memory Weave",
+  "description": "The foundational set every Weaver learns first: the piece can be dismissed into your soul, summoned back from essence, and mends while it rests there.",
+  "fits": ["weapon", "tool", "helmet", "chest", "legs", "boots"],
+  "effect": {
+    "type": "memory",
+    "values": [1.0]
+  },
+  "material": {
+    "item": "minecraft:ender_pearl",
+    "counts": [1]
+  },
+  "essence": [25],
+  "starter": true,
+  "xp": 20
+}

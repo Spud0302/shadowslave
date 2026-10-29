@@ -1,9 +1,12 @@
 package dev.spud.shadowslave.smithing;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.ability.AbilityGameTest;
+import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.item.ModItems;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
+import dev.spud.shadowslave.weaving.WeavingRecipe;
 import dev.spud.shadowslave.weaving.WeavingRegistry;
 import dev.spud.shadowslave.weaving.WeavingRules;
 import dev.spud.shadowslave.weaving.WeavingService;
@@ -128,6 +131,37 @@ public final class SmithingGameTest {
             helper.assertTrue(old.get(DataComponents.MAX_DAMAGE) == null || old.getMaxDamage() == 300, "its stats unchanged");
             helper.succeed();
         });
+    }
+
+    @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room")
+    public static void emberHeatsABilletInHandAndTideQuenchesInAnyWater(GameTestHelper helper) {
+        WeavingRecipe.Forging blade = new WeavingRecipe.Forging(900, 1250, 6, true, 24);
+        ResourceLocation sword = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "iron_sword");
+        long now = helper.getLevel().getGameTime();
+
+        ServerPlayer ember = AbilityGameTest.playerWith(helper, AspectKitCatalog.EMBER);
+        ItemStack cold = new ItemStack(SmithingRegistry.BILLET_ITEM.get());
+        cold.set(SmithingRegistry.BILLET.get(), BilletData.lay(sword, "Iron Sword", blade, now, 70, 1, false, "Jack"));
+        ember.setItemInHand(InteractionHand.MAIN_HAND, cold);
+        helper.assertTrue(SmithingService.emberHeat(ember, InteractionHand.MAIN_HAND), "Ember's hands take the billet");
+        int heat = BilletItem.data(ember.getMainHandItem()).heatAt(now);
+        helper.assertTrue(heat == SmithingRules.AMBIENT + SmithingService.EMBER_RISE, "it warms by one step: " + heat);
+
+        ServerPlayer plain = player(helper);
+        plain.setItemInHand(InteractionHand.MAIN_HAND, cold.copy());
+        helper.assertFalse(SmithingService.emberHeat(plain, InteractionHand.MAIN_HAND), "anyone else needs a hearth");
+
+        ServerPlayer tide = AbilityGameTest.playerWith(helper, AspectKitCatalog.TIDE);
+        BilletData fresh = BilletData.lay(sword, "Iron Sword", blade, now, 70, 1, false, "Jack");
+        BilletData shaped = new BilletData(fresh.pattern(), fresh.name(), 1100, now, 100, 900, 1250, 6, true, 24, 70, 1,
+                6, 0, 0, 6, 0, false, false, "Jack");
+        ItemStack hot = new ItemStack(SmithingRegistry.BILLET_ITEM.get());
+        hot.set(SmithingRegistry.BILLET.get(), shaped);
+        tide.setItemInHand(InteractionHand.MAIN_HAND, hot);
+        helper.assertTrue(SmithingService.tideQuench(tide, InteractionHand.MAIN_HAND), "Tide quenches in plain water");
+        ForgedData forged = tide.getMainHandItem().get(SmithingRegistry.FORGED.get());
+        helper.assertTrue(forged != null && forged.quality() == Quality.MASTERWORK, "a perfect quench on a perfect blade: " + forged);
+        helper.succeed();
     }
 
     private static ForgeHearthBlockEntity hearth(GameTestHelper helper) {

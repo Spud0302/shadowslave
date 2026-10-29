@@ -69,6 +69,16 @@ public final class WeavingRegistry {
                     .persistent(WovenStrands.CODEC)
                     .networkSynchronized(ByteBufCodecs.fromCodec(WovenStrands.CODEC)));
 
+    /** Who a Bound Memory has bonded to. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<BoundTo>> BOUND_TO =
+            COMPONENTS.registerComponentType("bound_to", builder -> builder
+                    .persistent(BoundTo.CODEC)
+                    .networkSynchronized(ByteBufCodecs.fromCodec(BoundTo.CODEC)));
+
+    /** The Memories a player has dismissed into their soul. */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<SoulMemories>> SOUL_MEMORIES = ATTACHMENTS.register("soul_memories",
+            () -> AttachmentType.builder(() -> SoulMemories.EMPTY).serialize(SoulMemories.CODEC).copyOnDeath().build());
+
     public static final DeferredBlock<WeavingTableBlock> WEAVING_TABLE = BLOCKS.registerBlock("weaving_table",
             WeavingTableBlock::new, BlockBehaviour.Properties.ofFullCopy(Blocks.LOOM));
     public static final DeferredItem<BlockItem> WEAVING_TABLE_ITEM = ITEMS.registerSimpleBlockItem(WEAVING_TABLE);

@@ -257,7 +257,7 @@ public final class WeavingGameTest {
         WeavingContent content = WeavingContent.current();
         helper.assertTrue(content.branch(FORGING).map(WeavingBranch::maxLevel).orElse(0) == 3, "Forging has three levels");
         helper.assertTrue(content.recipes().size() == 16, "sixteen Forging patterns: " + content.recipes().size());
-        helper.assertTrue(content.strands().size() == 12, "twelve strands: " + content.strands().size());
+        helper.assertTrue(content.strands().size() == 14, "fourteen strands: " + content.strands().size());
         helper.assertTrue(content.branch(StrandService.PATTERNS).isPresent() && content.branch(StrandService.FORGERY).isPresent(),
                 "the Patterns and Forgery branches load");
         content.recipes().values().stream().filter(recipe -> recipe.memory().isPresent()).forEach(recipe -> helper.assertTrue(

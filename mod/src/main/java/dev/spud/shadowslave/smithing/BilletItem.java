@@ -6,7 +6,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -14,7 +17,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 
 import java.util.List;
 
@@ -66,6 +72,28 @@ public final class BilletItem extends Item {
         player.startUsingItem(context.getHand());
         context.getLevel().playSound(player, context.getClickedPos(), SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.PLAYERS, 0.6F, 1.6F);
         return InteractionResult.CONSUME;
+    }
+
+    /**
+     * Used in the air: Tide quenches a shaped blade in the water it points at,
+     * and Ember heats a billet in the hand. Everyone else needs the hearth and
+     * the trough.
+     */
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (!(player instanceof ServerPlayer serverPlayer) || data(stack) == null) {
+            return InteractionResultHolder.pass(stack);
+        }
+        BlockHitResult water = getPlayerPOVHitResult(level, player, ClipContext.Fluid.SOURCE_ONLY);
+        boolean wet = water.getType() == HitResult.Type.BLOCK && level.getFluidState(water.getBlockPos()).is(FluidTags.WATER);
+        if (wet && SmithingService.tideQuench(serverPlayer, hand)) {
+            return InteractionResultHolder.success(player.getItemInHand(hand));
+        }
+        if (SmithingService.emberHeat(serverPlayer, hand)) {
+            return InteractionResultHolder.success(player.getItemInHand(hand));
+        }
+        return InteractionResultHolder.pass(stack);
     }
 
     @Override

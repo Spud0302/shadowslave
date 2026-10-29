@@ -2,6 +2,8 @@ package dev.spud.shadowslave.weaving;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.ability.EssenceService;
+import dev.spud.shadowslave.ability.KitRules;
+import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.item.SoulShardItem;
 import dev.spud.shadowslave.smithing.ForgedData;
 import dev.spud.shadowslave.smithing.SmithingRegistry;
@@ -57,6 +59,31 @@ public final class StrandService {
 
     public static int forgeryLevel(ServerPlayer player) {
         return WeavingRules.heldLevel(WeavingContent.current(), WeavingService.get(player), FORGERY);
+    }
+
+    /** The share of Weaving's essence costs this player pays: Wellspring pays less. */
+    public static int essencePercent(ServerPlayer player) {
+        return KitRules.hasInnate(player, AspectKitCatalog.WELLSPRING.innateId()) ? StrandRules.WELLSPRING_PERCENT : 100;
+    }
+
+    /** A Seer sees weaves plainly: studying one costs them no essence. */
+    static boolean seer(ServerPlayer player) {
+        return KitRules.hasInnate(player, AspectKitCatalog.SEER.innateId());
+    }
+
+    static boolean knows(ServerPlayer player, ResourceLocation id) {
+        return WeavingContent.current().strand(id)
+                .map(strand -> StrandRules.knows(WeavingService.get(player).studied(), id, strand)).orElse(false);
+    }
+
+    /** Whether the piece holds a strand of {@code kind}. */
+    public static boolean holds(WeavingContent content, ItemStack stack, StrandPattern.Kind kind) {
+        for (WovenStrands.Laid laid : strands(stack).strands()) {
+            if (content.strand(laid.id()).map(strand -> strand.effect().kind() == kind).orElse(false)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static Optional<ShardRank> anchorRank(ItemStack anchor) {
@@ -149,7 +176,7 @@ public final class StrandService {
             WeavingService.report(player, "There is no such weave in this piece.");
             return false;
         }
-        if (data.studied().contains(strand)) {
+        if (StrandRules.knows(data.studied(), strand, pattern.get())) {
             WeavingService.report(player, "You already know " + pattern.get().name() + ".");
             return false;
         }
@@ -157,10 +184,11 @@ public final class StrandService {
             WeavingService.report(player, "The pattern slips away. Hold your attention on it a little longer.");
             return false;
         }
-        Optional<StrandRules.Payment> payment = StrandRules.pay(StrandRules.STUDY_ESSENCE, (int) EssenceService.current(player),
+        int cost = seer(player) ? 0 : StrandRules.discounted(StrandRules.STUDY_ESSENCE, essencePercent(player));
+        Optional<StrandRules.Payment> payment = StrandRules.pay(cost, (int) EssenceService.current(player),
                 menu.anchor().getCount(), anchorValue(menu.anchor()));
         if (payment.isEmpty()) {
-            WeavingService.report(player, "Studying a weave takes " + StrandRules.STUDY_ESSENCE
+            WeavingService.report(player, "Studying a weave takes " + cost
                     + " essence. Rest, or lay soul shards in the anchor slot to burn.");
             return false;
         }
@@ -188,7 +216,7 @@ public final class StrandService {
                                  Optional<StrandRestriction> restriction) {
         WeavingContent content = WeavingContent.current();
         Optional<StrandPattern> found = content.strand(id);
-        if (found.isEmpty() || !WeavingService.get(player).studied().contains(id)) {
+        if (found.isEmpty() || !knows(player, id)) {
             return Optional.of("You haven't studied that strand.");
         }
         StrandPattern strand = found.get();
@@ -206,6 +234,9 @@ public final class StrandService {
         }
         if (laid.size() >= threads(piece)) {
             return Optional.of("Every thread of this piece is taken. A finer forging holds more.");
+        }
+        if (strand.effect().kind() == StrandPattern.Kind.BOUND && !holds(content, piece, StrandPattern.Kind.MEMORY)) {
+            return Optional.of("Only a Memory can be Bound. Lay the Memory weave first.");
         }
         Optional<SoulRank> soul = SoulService.get(player).soulRank();
         if (strand.minRank() != SoulRank.DORMANT && soul.map(rank -> rank.ordinal() < strand.minRank().ordinal()).orElse(true)) {
@@ -253,7 +284,7 @@ public final class StrandService {
             return 0;
         }
         StrandPattern strand = content.strand(id).orElseThrow();
-        int cost = strand.essence().get(tier - 1);
+        int cost = StrandRules.discounted(strand.essence().get(tier - 1), essencePercent(player));
         // The anchor shard itself stays to hold the strand; any others in the slot can be burned.
         Optional<StrandRules.Payment> payment = StrandRules.pay(cost, (int) EssenceService.current(player),
                 menu.anchor().getCount() - 1, anchorValue(menu.anchor()));
@@ -283,6 +314,11 @@ public final class StrandService {
         StringBuilder message = new StringBuilder(judged == StrandRules.Trace.CLEAN
                 ? strand.name() + " " + WeavingRules.tierName(tier) + " holds, clean and whole."
                 : strand.name() + " " + WeavingRules.tierName(tier) + " holds, loosely, at " + potency + "%.");
+        if (strand.effect().kind() == StrandPattern.Kind.MEMORY) {
+            message.append(" It is a Memory now: dismiss it into your soul and summon it back with the Memory key.");
+        } else if (strand.effect().kind() == StrandPattern.Kind.BOUND) {
+            message.append(" It will bond to the next hand that holds it.");
+        }
         message.append(" +").append(credit.xp()).append(" Patterns XP.");
         for (String deed : credit.deeds()) {
             message.append(" Deed done: ").append(deed).append('.');
@@ -307,7 +343,12 @@ public final class StrandService {
             return false;
         }
         WovenStrands.Laid strand = laid.strands().get(index);
-        int cost = StrandRules.UNRAVEL_ESSENCE * strand.tier();
+        WeavingContent content = WeavingContent.current();
+        StrandPattern.Kind kind = content.strand(strand.id()).map(pattern -> pattern.effect().kind()).orElse(StrandPattern.Kind.ATTRIBUTE);
+        if (kind.foundational()) {
+            return unweave(player, menu, index, kind);
+        }
+        int cost = StrandRules.discounted(StrandRules.UNRAVEL_ESSENCE * strand.tier(), essencePercent(player));
         Optional<StrandRules.Payment> payment = StrandRules.pay(cost, (int) EssenceService.current(player),
                 menu.anchor().getCount(), anchorValue(menu.anchor()));
         if (payment.isEmpty()) {
@@ -329,6 +370,49 @@ public final class StrandService {
         String name = WeavingContent.current().strand(strand.id()).map(StrandPattern::name).orElse(strand.id().getPath());
         WeavingService.report(player, name + " comes loose as a Woven Thread" + (forgery >= 2 ? ", whole." : ", a little frayed."));
         player.level().playSound(null, player.blockPosition(), SoundEvents.WOOL_BREAK, SoundSource.PLAYERS, 1.0F, 0.8F);
+        return true;
+    }
+
+    /**
+     * Takes the Memory weave or Bound out of a piece. Neither comes loose as a
+     * thread: the Memory weave is simply undone, and unbinding needs an
+     * Awakened soul shard or better in the anchor slot, which it uses up. A
+     * Bound piece must be unbound before it stops being a Memory.
+     */
+    private static boolean unweave(ServerPlayer player, WeavingMenu menu, int index, StrandPattern.Kind kind) {
+        ItemStack piece = menu.centre();
+        WeavingContent content = WeavingContent.current();
+        if (kind == StrandPattern.Kind.MEMORY && holds(content, piece, StrandPattern.Kind.BOUND)) {
+            WeavingService.report(player, "Unbind it first: a Bound piece stays a Memory.");
+            return false;
+        }
+        boolean unbinding = kind == StrandPattern.Kind.BOUND;
+        if (unbinding && anchorRank(menu.anchor()).map(rank -> rank.ordinal() < ShardRank.AWAKENED.ordinal()).orElse(true)) {
+            WeavingService.report(player, "Unbinding takes an Awakened soul shard or better in the anchor slot.");
+            return false;
+        }
+        int cost = StrandRules.discounted(StrandRules.UNRAVEL_ESSENCE, essencePercent(player));
+        Optional<StrandRules.Payment> payment = StrandRules.pay(cost, (int) EssenceService.current(player),
+                menu.anchor().getCount() - (unbinding ? 1 : 0), anchorValue(menu.anchor()));
+        if (payment.isEmpty()) {
+            WeavingService.report(player, (unbinding ? "Unbinding" : "Undoing the Memory weave") + " takes " + cost + " essence.");
+            return false;
+        }
+        pay(player, menu, payment.get());
+        if (unbinding) {
+            menu.anchor().shrink(1);
+            piece.remove(WeavingRegistry.BOUND_TO.get());
+        }
+        WovenStrands rest = strands(piece).without(index);
+        if (rest.isEmpty()) {
+            piece.remove(WeavingRegistry.WOVEN_STRANDS.get());
+        } else {
+            piece.set(WeavingRegistry.WOVEN_STRANDS.get(), rest);
+        }
+        menu.table().setChanged();
+        WeavingService.set(player, WeavingService.get(player).withXp(FORGERY, UNRAVEL_XP));
+        WeavingService.report(player, unbinding ? "The bond is cut. Anyone may wield it now." : "The Memory weave comes undone. It is only a piece again.");
+        player.level().playSound(null, player.blockPosition(), SoundEvents.CHAIN_BREAK, SoundSource.PLAYERS, 1.0F, 0.8F);
         return true;
     }
 
@@ -370,10 +454,11 @@ public final class StrandService {
             WeavingService.report(player, "Every thread of this piece is taken.");
             return false;
         }
-        Optional<StrandRules.Payment> payment = StrandRules.pay(StrandRules.LAY_ESSENCE, (int) EssenceService.current(player),
+        int cost = StrandRules.discounted(StrandRules.LAY_ESSENCE, essencePercent(player));
+        Optional<StrandRules.Payment> payment = StrandRules.pay(cost, (int) EssenceService.current(player),
                 menu.anchor().getCount(), anchorValue(menu.anchor()));
         if (payment.isEmpty()) {
-            WeavingService.report(player, "Laying a thread takes " + StrandRules.LAY_ESSENCE + " essence.");
+            WeavingService.report(player, "Laying a thread takes " + cost + " essence.");
             return false;
         }
         pay(player, menu, payment.get());

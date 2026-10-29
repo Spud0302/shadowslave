@@ -533,6 +533,50 @@ essence onto a soul-shard anchor (DESIGN, after ch. 2048 and 3024).
 Strands are data files under `data/shadowslave/weaving/strand/`. Operators
 can use `/shadowslave_weaving study <strand>` to learn one directly.
 
+## Memories and Bound
+
+Added by claude-code, 2026-10-29. Weaving can turn a piece into a Memory you
+carry in your soul (DESIGN, after ch. 3024: a Memory is stored in the soul,
+rebuilt from essence, and mends itself).
+
+1. **The Memory Weave.** Every Weaver knows it from the start. Trace it like
+   any strand (25 essence, an ender pearl, a soul-shard anchor). It takes one
+   thread, so a vanilla piece that becomes a Memory has no room for anything
+   else; forged pieces have more.
+2. **Dismiss and summon.** Hold the Memory and press **G** (the Memory key):
+   it dissolves into your soul. Press **G** with it gone to summon it back into
+   your hand (5 essence; an unranked soul pays nothing). Sneak + **G** turns
+   which dismissed Memory comes next. A soul holds 3 Memories, 5 when
+   Awakened, two more each Rank after. With no woven Memory involved, **G**
+   still summons or dismisses the Ash Compass.
+3. **Mending.** A dismissed Memory mends 2% of its durability every two
+   seconds, for 1 essence each time (free for an unranked soul).
+4. **Death.** Memories you carry sink into your soul instead of dropping, so
+   you can summon them after you respawn. Memories can still be handed to
+   another player, who can then dismiss them into their own soul.
+5. **Bound** (Awakened soul). Study it from an Awakened Soul Shard. It needs a
+   piece that already holds the Memory Weave, takes another thread and an
+   Awakened Soul Shard. A Bound piece bonds to the first player who holds or
+   wears it, so a Weaver can bind a piece for a buyer. Anyone else who picks
+   it up can carry it, but it slips out of their hands or armour slots. Its
+   tooltip says whose it is.
+6. **Undoing.** At the table, **Unbind** cuts a bond (an Awakened Soul Shard
+   or better in the anchor slot, used up), and **Undo** takes the Memory Weave
+   back out once the piece is no longer Bound. Neither comes loose as a
+   thread.
+
+### Nature edges
+
+- **Wellspring** pays 75% of Weaving's essence costs (studying, weaving,
+  unravelling, laying threads, summoning).
+- **Seer** studies weaves for no essence, and looking at a creature, a player
+  or a dropped item shows the strands in what it holds and wears above the
+  hotbar.
+- **Ember** can heat a billet in the hand: use it in the air, 2 essence per
+  use, 120° each time, up to 1200°.
+- **Tide** quenches in any water: use a shaped, hot blade on a water source
+  for a perfect quench, no trough needed.
+
 ## Field Guide and map
 
 Added by claude-code, 2026-10-23. First slice: creature pages, the map, places,
