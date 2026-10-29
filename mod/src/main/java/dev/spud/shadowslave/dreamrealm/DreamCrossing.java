@@ -4,6 +4,8 @@ import dev.spud.shadowslave.awakening.DreamCandleRitual;
 import dev.spud.shadowslave.block.ModBlocks;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
+import dev.spud.shadowslave.trial.TrialService;
+import dev.spud.shadowslave.trial.TrialWorld;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -224,6 +226,8 @@ public final class DreamCrossing {
         if (dreaming.isEmpty()) {
             return false;
         }
+        // A dreamer inside a Nightmare is pulled out of it first.
+        TrialService.interrupt(player);
         setData(player, data(player).awake());
         ServerLevel bedLevel = player.server.getLevel(dreaming.get().bed().dimension());
         if (bedLevel == null) {
@@ -296,6 +300,7 @@ public final class DreamCrossing {
      */
     static void bodyDied(SleepingBodyEntity body, DamageSource cause, MinecraftServer server) {
         owner(body, server).ifPresent(player -> later(server, () -> {
+            TrialService.interrupt(player);
             player.displayClientMessage(Component.literal(Reason.BODY_KILLED.line).withStyle(ChatFormatting.RED), true);
             if (player.isChangingDimension()) {
                 // Still shielded by a crossing the client has not confirmed; the dream has them now.
@@ -389,10 +394,14 @@ public final class DreamCrossing {
         }
     }
 
-    /** Leaving the Dream Realm by any other road (a command, a portal) ends the dream where you are. */
+    /**
+     * Leaving the Dream Realm by any other road (a command, a portal) ends the
+     * dream where you are. A Nightmare is a dream within the dream: going into
+     * one keeps the dream, and its challengers come back to the Dream Realm.
+     */
     public static void onChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer player && event.getFrom().equals(DreamRealm.key(player.server))
-                && !event.getTo().equals(DreamRealm.key(player.server))) {
+                && !event.getTo().equals(DreamRealm.key(player.server)) && !event.getTo().equals(TrialWorld.key(player.server))) {
             endWithoutWaking(player);
         }
     }

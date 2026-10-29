@@ -9,6 +9,7 @@ import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
+import dev.spud.shadowslave.network.payload.NightmareAppraisalPayload;
 import dev.spud.shadowslave.network.payload.FieldGuidePinRequestPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
 import dev.spud.shadowslave.network.payload.ForewarningPayload;
@@ -84,6 +85,11 @@ public final class ClientModPayloads {
                 FieldGuideStatusPayload.TYPE,
                 FieldGuideStatusPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleFieldGuideStatus
+        );
+        registrar.playToClient(
+                NightmareAppraisalPayload.TYPE,
+                NightmareAppraisalPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleNightmareAppraisal
         );
         registrar.playToClient(
                 FieldGuideMapPayload.TYPE,

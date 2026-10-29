@@ -1,0 +1,11 @@
+{
+  "display_name": "the Ember Watch",
+  "x": 96,
+  "z": -40,
+  "weight": 45,
+  "nightmare": "shadowslave:last_vigil",
+  "ruin": "shadowslave:nightmare/ember_watch_ruin",
+  "seed_offset_x": 0,
+  "seed_offset_z": 9,
+  "lore": "Broken walls of black brick stand in the ash. Long ago a fortress kept watch here over the edge of the world."
+}

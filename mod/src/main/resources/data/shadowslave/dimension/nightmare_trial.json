@@ -1,0 +1,12 @@
+{
+  "type": "shadowslave:nightmare_trial",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "shadowslave:ashen_expanse",
+      "lakes": false,
+      "features": false,
+      "layers": []
+    }
+  }
+}
