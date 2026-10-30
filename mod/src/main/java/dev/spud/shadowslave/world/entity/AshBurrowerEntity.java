@@ -225,6 +225,13 @@ public final class AshBurrowerEntity extends NightmareCreature {
 
         @Override
         public void tick() {
+            if (burrower.silenced()) {
+                // A silenced burrower cannot stay under: it surfaces and walks.
+                if (burrower.isBurrowed()) {
+                    burrower.setBurrowed(false);
+                }
+                return;
+            }
             LivingEntity target = burrower.getTarget();
             boolean soft = isSoftGround(burrower.groundState());
             if (!burrower.isBurrowed()) {

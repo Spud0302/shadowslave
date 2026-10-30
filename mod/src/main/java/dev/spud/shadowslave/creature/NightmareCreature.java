@@ -56,6 +56,9 @@ public abstract class NightmareCreature extends Monster implements GeoEntity {
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private boolean statsApplied;
+    /** Game time until which a spoken word holds this creature still, or its special abilities quiet. Not saved. */
+    private long stunnedUntil;
+    private long silencedUntil;
 
     protected NightmareCreature(EntityType<? extends NightmareCreature> type, Level level) {
         super(type, level);
@@ -152,6 +155,31 @@ public abstract class NightmareCreature extends Monster implements GeoEntity {
         if (!this.statsApplied && !level().isClientSide) {
             applyStats();
         }
+    }
+
+    /** Holds the creature still for a while: no thinking, moving or striking (Cantor's Command Word). */
+    public void stun(int ticks) {
+        this.stunnedUntil = Math.max(this.stunnedUntil, level().getGameTime() + ticks);
+        getNavigation().stop();
+        setDeltaMovement(0.0, getDeltaMovement().y, 0.0);
+    }
+
+    public boolean stunned() {
+        return level().getGameTime() < this.stunnedUntil;
+    }
+
+    /** Quiets the creature's special abilities for a while; it still walks and bites (Cantor's Silencing Word). */
+    public void silence(int ticks) {
+        this.silencedUntil = Math.max(this.silencedUntil, level().getGameTime() + ticks);
+    }
+
+    public boolean silenced() {
+        return level().getGameTime() < this.silencedUntil;
+    }
+
+    @Override
+    protected boolean isImmobile() {
+        return super.isImmobile() || stunned();
     }
 
     @Override

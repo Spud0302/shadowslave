@@ -37,7 +37,7 @@ public final class SpawnLesserCopiesGoal extends Goal {
     @Override
     public boolean canUse() {
         LivingEntity target = creature.getTarget();
-        if (creature.creatureClass().ordinal() < CreatureClass.TYRANT.ordinal() || target == null
+        if (creature.creatureClass().ordinal() < CreatureClass.TYRANT.ordinal() || target == null || creature.silenced()
                 || creature.level().getGameTime() < readyAt) {
             return false;
         }
@@ -93,6 +93,6 @@ public final class SpawnLesserCopiesGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return windup > 0;
+        return windup > 0 && !creature.silenced();
     }
 }

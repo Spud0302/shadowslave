@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:name_tag",
+    "minecraft:book",
+    "minecraft:paper",
+    "minecraft:oak_sign",
+    "minecraft:music_disc_cat",
+    "minecraft:sculk_sensor"
+  ]
+}

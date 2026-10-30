@@ -193,7 +193,7 @@ public final class HollowMimicEntity extends NightmareCreature {
 
         @Override
         public boolean canUse() {
-            if (mimic.level().getGameTime() < readyAt || !mimic.inDarkness()) {
+            if (mimic.silenced() || mimic.level().getGameTime() < readyAt || !mimic.inDarkness()) {
                 return false;
             }
             ServerPlayer prey = prey();

@@ -15,20 +15,20 @@ class IntentionRulesTest {
 
     @Test
     void noIntentionLeavesEvenOdds() {
-        assertEquals(List.of(5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5), IntentionRules.odds(IntentionRules.apply(NO_EVIDENCE, IntentionData.empty())));
+        assertEquals(List.of(4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4), IntentionRules.odds(IntentionRules.apply(NO_EVIDENCE, IntentionData.empty())));
     }
 
     @Test
     void offeringAndLongingForOneNatureDoubleItsChance() {
         GenerationEvidence leaned = IntentionRules.apply(NO_EVIDENCE, EMBER_BOTH);
         assertEquals(4, leaned.weightFor("ember"));
-        assertEquals(List.of(10, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4), IntentionRules.odds(leaned));
+        assertEquals(List.of(9, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4), IntentionRules.odds(leaned));
     }
 
     @Test
     void splitIntentionsLeanTwoWays() {
         GenerationEvidence leaned = IntentionRules.apply(NO_EVIDENCE, new IntentionData("stone", "Iron Ingot", "return"));
-        assertEquals(List.of(4, 4, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4), IntentionRules.odds(leaned));
+        assertEquals(List.of(4, 4, 7, 7, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4), IntentionRules.odds(leaned));
     }
 
     @Test

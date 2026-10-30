@@ -52,7 +52,9 @@ public final class AbilityCastEffects {
         ANCHOR(new Color(170, 175, 190), new Color(50, 55, 70)),
         HOURGLASS(new Color(250, 225, 160), new Color(150, 110, 50)),
         HERALD(new Color(255, 200, 80), new Color(160, 30, 30)),
-        KEEPER(new Color(230, 235, 255), new Color(90, 110, 170));
+        KEEPER(new Color(230, 235, 255), new Color(90, 110, 170)),
+        FORTUNE(new Color(250, 210, 70), new Color(60, 150, 70)),
+        CANTOR(new Color(120, 230, 240), new Color(30, 90, 110));
 
         final Color start;
         final Color end;
