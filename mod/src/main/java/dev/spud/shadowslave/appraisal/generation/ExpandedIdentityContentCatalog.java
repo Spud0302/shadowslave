@@ -254,7 +254,9 @@ public final class ExpandedIdentityContentCatalog {
                         nature("fortune", "Fortune", Set.of("fortune", "luck", "gamble"), 3),
                         nature("cantor", "Cantor", Set.of("cantor", "name", "voice"), 3),
                         nature("shepherd", "Shepherd", Set.of("shepherd", "flock", "companion"), 3),
-                        nature("vessel", "Vessel", Set.of("vessel", "host", "merge"), 3)
+                        nature("vessel", "Vessel", Set.of("vessel", "host", "merge"), 3),
+                        nature("masque", "Masque", Set.of("masque", "disguise", "deceit"), 3),
+                        nature("unbroken", "Unbroken", Set.of("unbroken", "endurance", "defiance"), 3)
                 )),
                 wave.archetypes(),
                 concat(wave.abilities(), List.of(
@@ -278,7 +280,9 @@ public final class ExpandedIdentityContentCatalog {
                         ability("coin_of_fate", "Coin of Fate", Set.of("fortune"), Set.of("adaptation", "resolve"), 5),
                         ability("command_word", "Command Word", Set.of("cantor"), Set.of("control", "precision"), 5),
                         ability("rally", "Rally", Set.of("shepherd"), Set.of("mercy", "resolve"), 5),
-                        ability("echo_merge", "Echo Merge", Set.of("vessel"), Set.of("adaptation", "sacrifice"), 5)
+                        ability("echo_merge", "Echo Merge", Set.of("vessel"), Set.of("adaptation", "sacrifice"), 5),
+                        ability("borrowed_face", "Borrowed Face", Set.of("masque"), Set.of("deceit", "stealth"), 5),
+                        ability("last_stand", "Last Stand", Set.of("unbroken"), Set.of("resolve", "endurance"), 5)
                 )),
                 concat(wave.flaws(), List.of(
                         flaw("quarry_lock", "Quarry Lock", Set.of("hunt", "pursuit"),
@@ -324,7 +328,11 @@ public final class ExpandedIdentityContentCatalog {
                         flaw("lonely_soul", "Lonely Soul", Set.of("shepherd", "flock"),
                                 Set.of("physical", "conditional"), Set.of(), 3),
                         flaw("hollowed", "Hollowed", Set.of("vessel", "host"),
-                                Set.of("compulsion", "conditional"), Set.of(), 3)
+                                Set.of("compulsion", "conditional"), Set.of(), 3),
+                        flaw("hollow_reflection", "Hollow Reflection", Set.of("masque", "disguise"),
+                                Set.of("signal", "conditional"), Set.of(), 3),
+                        flaw("no_retreat", "No Retreat", Set.of("unbroken", "defiance"),
+                                Set.of("resource", "conditional"), Set.of(), 3)
                 ))
         );
     }

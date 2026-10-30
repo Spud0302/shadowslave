@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.network;
 
 import dev.spud.shadowslave.network.payload.AbilityCastPayload;
+import dev.spud.shadowslave.network.payload.DisguisePayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
@@ -37,7 +38,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
-    public static final String NETWORK_VERSION = "23";
+    public static final String NETWORK_VERSION = "24";
 
     private ModPayloads() {
     }
@@ -56,6 +57,12 @@ public final class ModPayloads {
         registrar.playToClient(
                 AbilityCastPayload.TYPE,
                 AbilityCastPayload.STREAM_CODEC,
+                (payload, context) -> {
+                }
+        );
+        registrar.playToClient(
+                DisguisePayload.TYPE,
+                DisguisePayload.STREAM_CODEC,
                 (payload, context) -> {
                 }
         );

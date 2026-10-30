@@ -79,6 +79,7 @@ public final class AbilityService {
         if (outcome != Outcome.FAILED) {
             broadcastCast(player, ability);
             CantorVoice.onAbilityUsed(player);
+            MasqueFace.onAbilityUsed(player, ability);
         }
         syncStatus(player);
         return outcome;
@@ -155,6 +156,8 @@ public final class AbilityService {
             KeeperHold.forget(player.getUUID());
             FortuneLuck.forget(player.getUUID());
             CantorVoice.forget(player.getUUID());
+            MasqueFace.forget(player.getUUID());
+            UnbrokenWill.forget(player.getUUID());
         }
     }
 

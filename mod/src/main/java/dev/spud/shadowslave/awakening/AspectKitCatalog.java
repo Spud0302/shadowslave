@@ -259,9 +259,28 @@ public final class AspectKitCatalog {
             "While merged with an Echo, your own abilities are locked; your soul can hold an Echo even while Dormant."
     );
 
+    public static final AspectKit MASQUE = new AspectKit(
+            id("generation/nature/masque"), "Masque",
+            id("kit/innate/masque_role_worn"), "Role-Worn",
+            "In a Nightmare you wear your role well: its kit comes with one more of everything, and an ending that rewards your role rewards you half again.",
+            id("generation/ability/borrowed_face"), "Borrowed Face",
+            "Take the face of the creature you look at: creatures of your rank or lower ignore you until you strike or use an ability.",
+            id("generation/flaw/hollow_reflection"), id("generation/flaw_effect/hollow_reflection"), "Hollow Reflection",
+            "Still water and glass show what you really are: beside them you glow, lose any borrowed face, and take a quarter more damage."
+    );
+    public static final AspectKit UNBROKEN = new AspectKit(
+            id("generation/nature/unbroken"), "Unbroken",
+            id("kit/innate/unbroken_weathered"), "Weathered",
+            "The longer a fight lasts, the less it hurts: each second of it turns aside a little more damage, up to three tenths.",
+            id("generation/ability/last_stand"), "Last Stand",
+            "Brace yourself: the next blow that would kill you leaves you on one heart instead. It can be braced again a few minutes after it saves you.",
+            id("generation/flaw/no_retreat"), id("generation/flaw_effect/no_retreat"), "No Retreat",
+            "Sprinting away from a hostile creature drains your essence."
+    );
+
     private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE, WARDEN, SEER, REAPER, WELLSPRING,
             FORGE, DELVE, MASON, VERDANT, WAYFARER, LULL, GLOAM, RIME, FURY, THRESHOLD, ANCHOR, HOURGLASS,
-            HERALD, KEEPER, FORTUNE, CANTOR, SHEPHERD, VESSEL);
+            HERALD, KEEPER, FORTUNE, CANTOR, SHEPHERD, VESSEL, MASQUE, UNBROKEN);
 
     private AspectKitCatalog() {
     }

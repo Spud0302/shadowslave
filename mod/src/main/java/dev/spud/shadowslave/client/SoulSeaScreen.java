@@ -77,7 +77,8 @@ public final class SoulSeaScreen extends Screen {
     @Override
     protected void init() {
         int panelWidth = Math.min(360, this.width - 32);
-        int panelHeight = Math.min(240, this.height - 40);
+        // Tall enough for four rows of longings above the Offer button.
+        int panelHeight = Math.min(276, this.height - 40);
         left = (this.width - panelWidth) / 2;
         top = (this.height - panelHeight) / 2;
         right = left + panelWidth;
