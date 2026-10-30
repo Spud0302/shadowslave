@@ -1,0 +1,32 @@
+{
+  "trigger": "kill",
+  "min_class": "tyrant",
+  "above_rank": true,
+  "alone_range": 32,
+  "chance": 0.25,
+  "priority": 5,
+  "deed": "You slew a Tyrant above your own rank, and no one stood beside you.",
+  "words": {
+    "epithet": [
+      "Lone",
+      "Unflinching",
+      "Fearless",
+      "Dauntless"
+    ],
+    "noun": [
+      "Slayer",
+      "Spear",
+      "Storm",
+      "Hunter"
+    ],
+    "place": [
+      "Tyrants",
+      "Lesser Crowns",
+      "the Broken Throne"
+    ],
+    "whole": [
+      "Tyrantsbane",
+      "Throne-Breaker"
+    ]
+  }
+}

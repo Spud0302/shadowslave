@@ -1,0 +1,33 @@
+{
+  "trigger": "appraisal",
+  "behaviour": "defiant",
+  "deed": "You slew what stood far above you and did not kneel.",
+  "words": {
+    "epithet": [
+      "Unbowed",
+      "Rising",
+      "Upstart",
+      "Stubborn",
+      "Proud",
+      "Unkneeling"
+    ],
+    "noun": [
+      "Spear",
+      "Crown",
+      "Ember",
+      "Fang",
+      "Blade",
+      "Oath"
+    ],
+    "place": [
+      "Lesser Things",
+      "the Low Places",
+      "Broken Chains",
+      "the Deep"
+    ],
+    "whole": [
+      "Giantsbane",
+      "Usurper"
+    ]
+  }
+}

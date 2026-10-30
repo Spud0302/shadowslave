@@ -1,0 +1,31 @@
+{
+  "trigger": "first",
+  "first": "kill_(great|cursed|unholy)_.*",
+  "priority": 10,
+  "deed": "No one under the Spell had slain a Great creature before you.",
+  "words": {
+    "epithet": [
+      "First",
+      "Dawn-Bright",
+      "Peerless",
+      "Fabled",
+      "Foremost"
+    ],
+    "noun": [
+      "Hunter",
+      "Light",
+      "Spear",
+      "Herald",
+      "Victor"
+    ],
+    "place": [
+      "Great Things",
+      "the Old Dark",
+      "Fallen Giants"
+    ],
+    "whole": [
+      "Firstblood",
+      "Trailblazer"
+    ]
+  }
+}

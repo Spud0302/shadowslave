@@ -1,0 +1,32 @@
+{
+  "trigger": "appraisal",
+  "deed": "You met the Nightmare as it came and did not waver.",
+  "words": {
+    "epithet": [
+      "Patient",
+      "Enduring",
+      "Even",
+      "Silver",
+      "Constant",
+      "Measured"
+    ],
+    "noun": [
+      "Stone",
+      "Oak",
+      "River",
+      "Anvil",
+      "Bell",
+      "Thread"
+    ],
+    "place": [
+      "Long Roads",
+      "Slow Years",
+      "Deep Roots",
+      "the Steady Hand"
+    ],
+    "whole": [
+      "Lodestar",
+      "Keel"
+    ]
+  }
+}

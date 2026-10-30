@@ -17,7 +17,9 @@ public enum Calling {
     /** An unclaimed Citadel stands nearby. */
     UNCLAIMED_CITADEL("A Citadel"),
     /** A long time has passed without progress; the Spell calls gently. */
-    IDLE("Stillness");
+    IDLE("Stillness"),
+    /** Someone spoke the player's True Name and sensed where they stand. */
+    NAME("Your Name");
 
     private final String title;
 

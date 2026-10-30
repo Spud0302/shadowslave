@@ -1,0 +1,33 @@
+{
+  "trigger": "appraisal",
+  "behaviour": "treachery",
+  "deed": "You turned on your own and walked out of the Nightmare all the same.",
+  "words": {
+    "epithet": [
+      "Smiling",
+      "Hollow",
+      "Twice-Sworn",
+      "Quiet",
+      "Gilded",
+      "Velvet"
+    ],
+    "noun": [
+      "Knife",
+      "Tongue",
+      "Serpent",
+      "Mask",
+      "Thorn",
+      "Viper"
+    ],
+    "place": [
+      "the Last Feast",
+      "Broken Oaths",
+      "Cold Hands",
+      "the Turned Back"
+    ],
+    "whole": [
+      "Cuckoo",
+      "Jackal"
+    ]
+  }
+}

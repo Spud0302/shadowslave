@@ -1,0 +1,33 @@
+{
+  "trigger": "appraisal",
+  "behaviour": "alone",
+  "deed": "You walked into the Nightmare alone and walked out of it alone.",
+  "words": {
+    "epithet": [
+      "Lone",
+      "Wandering",
+      "Distant",
+      "Solitary",
+      "Nameless",
+      "Far"
+    ],
+    "noun": [
+      "Wolf",
+      "Star",
+      "Road",
+      "Pilgrim",
+      "Shadow",
+      "Moon"
+    ],
+    "place": [
+      "Empty Roads",
+      "the Wilds",
+      "Many Miles",
+      "the Dark"
+    ],
+    "whole": [
+      "Wanderer",
+      "Drifter"
+    ]
+  }
+}

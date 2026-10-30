@@ -19,6 +19,10 @@
     "rank": [
       "You are the first under the Spell to rise to {what}.",
       "No one before you has risen to {what}."
+    ],
+    "true_name": [
+      "You are the first under the Spell to earn a True Name.",
+      "No one before you has been given a True Name."
     ]
   }
 }

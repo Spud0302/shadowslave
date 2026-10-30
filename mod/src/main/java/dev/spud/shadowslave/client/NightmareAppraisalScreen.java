@@ -22,16 +22,16 @@ import java.util.List;
  * the boons. Click, Space or Enter skips the typing, and again closes; long
  * appraisals scroll to follow the typing, and the mouse wheel scrolls back up.
  */
-public final class NightmareAppraisalScreen extends Screen {
+public class NightmareAppraisalScreen extends Screen {
     private static final long MS_PER_CHAR = 16;
     private static final int CHARS_PER_TICK_SOUND = 3;
     private static final int STARS = 140;
     private static final int RUNES = 18;
     private static final int LINK_DISTANCE = 46;
 
-    private static final int GRADE_COLOR = 0xFFFFD27A;
+    static final int GRADE_COLOR = 0xFFFFD27A;
 
-    private enum Kind {
+    enum Kind {
         VOICE(1.0F, 13),
         NAME(2.0F, 24),
         GRADE(2.0F, 22),
@@ -48,7 +48,7 @@ public final class NightmareAppraisalScreen extends Screen {
         }
     }
 
-    private record Line(Kind kind, String text, int color, int pauseMs) {
+    record Line(Kind kind, String text, int color, int pauseMs) {
     }
 
     private record Row(Kind kind, String text, int color) {
@@ -66,9 +66,14 @@ public final class NightmareAppraisalScreen extends Screen {
     private int maxScroll;
 
     public NightmareAppraisalScreen(NightmareAppraisalPayload appraisal) {
-        super(Component.translatable("screen.shadowslave.appraisal"));
-        this.lines = script(appraisal);
-        this.web = new SpellWeb(appraisal.nightmare().hashCode(), STARS, RUNES, LINK_DISTANCE);
+        this(Component.translatable("screen.shadowslave.appraisal"), script(appraisal), appraisal.nightmare().hashCode());
+    }
+
+    /** Any of the Spell's typed announcements over its web, such as a True Name's reveal. */
+    NightmareAppraisalScreen(Component title, List<Line> lines, int seed) {
+        super(title);
+        this.lines = lines;
+        this.web = new SpellWeb(seed, STARS, RUNES, LINK_DISTANCE);
     }
 
     static List<Line> script(NightmareAppraisalPayload appraisal) {
@@ -97,6 +102,15 @@ public final class NightmareAppraisalScreen extends Screen {
         lines.add(new Line(Kind.LABEL, "You have received:", SpellStyle.TEXT, 150));
         for (String boon : appraisal.boons()) {
             lines.add(new Line(Kind.DETAIL, boon, SpellStyle.ABILITY, 140));
+        }
+        if (!appraisal.trueName().isEmpty()) {
+            lines.add(new Line(Kind.GAP, "", 0, 0));
+            lines.add(new Line(Kind.LABEL, "You have received a True Name.", SpellStyle.TEXT, 300));
+            if (!appraisal.trueNameLine().isEmpty()) {
+                lines.add(new Line(Kind.DETAIL, "[" + appraisal.trueNameLine() + "]", SpellStyle.TEXT, 300));
+            }
+            lines.add(new Line(Kind.LABEL, "Your True Name is:", SpellStyle.TEXT, 300));
+            lines.add(new Line(Kind.GRADE, appraisal.trueName(), GRADE_COLOR, 500));
         }
         if (!appraisal.lore().isEmpty()) {
             lines.add(new Line(Kind.GAP, "", 0, 0));

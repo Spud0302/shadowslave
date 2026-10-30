@@ -8,6 +8,8 @@ import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.CallingFrequencyPayload;
 import dev.spud.shadowslave.network.payload.SpellCallingsPayload;
+import dev.spud.shadowslave.network.payload.TrueNameActionPayload;
+import dev.spud.shadowslave.network.payload.TrueNamePayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
@@ -104,6 +106,16 @@ public final class ClientModPayloads {
                 SpellCallingsPayload.TYPE,
                 SpellCallingsPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleSpellCallings
+        );
+        registrar.playToClient(
+                TrueNamePayload.TYPE,
+                TrueNamePayload.STREAM_CODEC,
+                ClientPayloadHandler::handleTrueName
+        );
+        registrar.playToServer(
+                TrueNameActionPayload.TYPE,
+                TrueNameActionPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleTrueNameAction
         );
         registrar.playToServer(
                 CallingFrequencyPayload.TYPE,

@@ -6,6 +6,7 @@ import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.NightmareAppraisalPayload;
 import dev.spud.shadowslave.network.payload.SpellCallingsPayload;
+import dev.spud.shadowslave.network.payload.TrueNamePayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
@@ -36,6 +37,13 @@ public final class ClientPayloadHandler {
 
     public static void handleSpellCallings(SpellCallingsPayload payload, IPayloadContext context) {
         ClientCallingsState.update(payload);
+    }
+
+    public static void handleTrueName(TrueNamePayload payload, IPayloadContext context) {
+        ClientTrueNameState.update(payload);
+        if (payload.reveal() && payload.named()) {
+            Minecraft.getInstance().setScreen(new TrueNameRevealScreen(payload));
+        }
     }
 
     public static void handleNightmareAppraisal(NightmareAppraisalPayload payload, IPayloadContext context) {

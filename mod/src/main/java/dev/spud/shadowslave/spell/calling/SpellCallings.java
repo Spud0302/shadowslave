@@ -17,6 +17,7 @@ import dev.spud.shadowslave.spell.SpellRecorder;
 import dev.spud.shadowslave.spell.SpellRegistry;
 import dev.spud.shadowslave.spell.SpellSettings;
 import dev.spud.shadowslave.spell.SpellWords;
+import dev.spud.shadowslave.spell.truename.TrueNames;
 import dev.spud.shadowslave.spell.voice.SpellVoices;
 import dev.spud.shadowslave.spell.voice.VoiceRequest;
 import dev.spud.shadowslave.trial.TrialData;
@@ -128,7 +129,7 @@ public final class SpellCallings {
             return;
         }
         for (SeedData.Seed seed : SeedData.get(player.serverLevel()).seeds()) {
-            if (data.seeds.contains(seed.id()) || !seed.pos().closerThan(player.blockPosition(), settings.seedRange())) {
+            if (data.seeds.contains(seed.id()) || !seed.pos().closerThan(player.blockPosition(), settings.seedRange() * TrueNames.callingReach(player))) {
                 continue;
             }
             Optional<Integer> category = seed.echoSite().flatMap(TrialContent.get()::site).map(TrialContent.get()::category);
@@ -145,7 +146,8 @@ public final class SpellCallings {
     }
 
     private static void noticeCitadels(ServerPlayer player, CallingData data, SpellSettings settings) {
-        Optional<CitadelData.Citadel> near = CitadelService.near(player.serverLevel(), player.blockPosition(), settings.citadelRange())
+        Optional<CitadelData.Citadel> near = CitadelService.near(player.serverLevel(), player.blockPosition(),
+                        Math.round(settings.citadelRange() * TrueNames.callingReach(player)))
                 .filter(citadel -> citadel.hold() != CitadelData.Hold.CLAN && !data.citadels.contains(citadel.id()));
         if (near.isEmpty()) {
             return;
@@ -186,6 +188,11 @@ public final class SpellCallings {
         if (next > 0) {
             facts.put("next_category", SpellWords.ordinal(next));
         }
+        // A bearer is closer to the mystical side (ch. 1318): the Spell's lines for them may say a little more.
+        TrueNames.nameOf(player).ifPresent(name -> {
+            facts.put("named", "yes");
+            facts.put("true_name", name);
+        });
         return facts;
     }
 
@@ -201,7 +208,8 @@ public final class SpellCallings {
             if (data.frequency == CallingFrequency.OFF) {
                 return false;
             }
-            if (data.lastCalling > 0 && now - data.lastCalling < SpellContentLoader.settings().gapTicks(data.frequency)) {
+            long gap = Math.round(SpellContentLoader.settings().gapTicks(data.frequency) * TrueNames.callingGapFactor(player));
+            if (data.lastCalling > 0 && now - data.lastCalling < gap) {
                 return false;
             }
         }

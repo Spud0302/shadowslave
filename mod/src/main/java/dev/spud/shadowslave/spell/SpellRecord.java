@@ -34,6 +34,8 @@ public final class SpellRecord extends SavedData {
     final Map<UUID, Tally> tallies = new HashMap<>();
     /** Each first, by key ("nightmare_2", "kill_fallen_demon"), and who did it. */
     final Map<String, First> firsts = new LinkedHashMap<>();
+    /** Every True Name the Spell has granted in this world, by bearer, so no two souls share one. */
+    final Map<UUID, String> trueNames = new LinkedHashMap<>();
 
     public record First(UUID player, String name, long time, String what) {
     }
@@ -197,6 +199,31 @@ public final class SpellRecord extends SavedData {
         return out;
     }
 
+    /** Whether anyone in this world already bears the name (case and spacing aside). */
+    public boolean nameTaken(String name) {
+        return bearerOf(name).isPresent();
+    }
+
+    public Optional<UUID> bearerOf(String name) {
+        return trueNames.entrySet().stream()
+                .filter(entry -> dev.spud.shadowslave.spell.truename.TrueNameBuilder.same(entry.getValue(), name))
+                .map(Map.Entry::getKey).findFirst();
+    }
+
+    public Map<UUID, String> trueNames() {
+        return Map.copyOf(trueNames);
+    }
+
+    /** Records a granted True Name, or with an empty name forgets the bearer's. */
+    public void setTrueName(UUID bearer, String name) {
+        if (name.isEmpty()) {
+            trueNames.remove(bearer);
+        } else {
+            trueNames.put(bearer, name);
+        }
+        setDirty();
+    }
+
     public int size() {
         return events.size();
     }
@@ -219,6 +246,9 @@ public final class SpellRecord extends SavedData {
             firstTags.put(key, one);
         });
         tag.put("firsts", firstTags);
+        CompoundTag nameTags = new CompoundTag();
+        trueNames.forEach((id, name) -> nameTags.putString(id.toString(), name));
+        tag.put("true_names", nameTags);
         return tag;
     }
 
@@ -240,6 +270,14 @@ public final class SpellRecord extends SavedData {
             CompoundTag one = firstTags.getCompound(key);
             if (one.hasUUID("player")) {
                 record.firsts.put(key, new First(one.getUUID("player"), one.getString("name"), one.getLong("time"), one.getString("what")));
+            }
+        }
+        CompoundTag nameTags = tag.getCompound("true_names");
+        for (String key : nameTags.getAllKeys()) {
+            try {
+                record.trueNames.put(UUID.fromString(key), nameTags.getString(key));
+            } catch (IllegalArgumentException ignored) {
+                // A malformed id is skipped rather than failing the whole record.
             }
         }
         return record;

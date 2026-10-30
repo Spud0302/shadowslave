@@ -9,6 +9,7 @@ import dev.spud.shadowslave.awakening.KitLadder;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshot;
+import dev.spud.shadowslave.network.payload.TrueNamePayload;
 import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
 import net.minecraft.resources.ResourceLocation;
 
@@ -30,7 +31,8 @@ public final class SoulPages {
         FLAW("Flaw"),
         SOUL("Soul"),
         WEAVING("Weaving"),
-        MEMORIES("Memories");
+        MEMORIES("Memories"),
+        NAME("Name");
 
         public final String label;
 
@@ -40,7 +42,9 @@ public final class SoulPages {
     }
 
     public enum Style {
-        NAME, SUBTITLE, HEADING, BODY, VOICE, ROW, METER, SPACER
+        NAME, SUBTITLE, HEADING, BODY, VOICE, ROW, METER, SPACER,
+        /** A centred line the player can click; {@code value} says what clicking it does. */
+        LINK
     }
 
     /**
@@ -63,6 +67,10 @@ public final class SoulPages {
 
         static Entry meter(String label, String value, int colour, float fill) {
             return new Entry(Style.METER, label, value, colour, "", Math.max(0.0F, Math.min(1.0F, fill)));
+        }
+
+        static Entry link(String text, String action, int colour) {
+            return new Entry(Style.LINK, text, action, colour, "", 0.0F);
         }
 
         static Entry spacer() {
@@ -97,6 +105,16 @@ public final class SoulPages {
     public static List<Entry> page(Tab tab, SoulSnapshot snapshot, AbilityStatusPayload status, float essence,
                                    List<String> keyNames, CoreStatusPayload core, WeavingStatusPayload weaving,
                                    Function<String, String> itemName) {
+        return page(tab, snapshot, status, essence, keyNames, core, weaving, itemName, TrueNamePayload.NONE, 0L);
+    }
+
+    /**
+     * @param trueName the latest True Name reading
+     * @param now      the game time, to tell which known names can be sensed again
+     */
+    public static List<Entry> page(Tab tab, SoulSnapshot snapshot, AbilityStatusPayload status, float essence,
+                                   List<String> keyNames, CoreStatusPayload core, WeavingStatusPayload weaving,
+                                   Function<String, String> itemName, TrueNamePayload trueName, long now) {
         return switch (tab) {
             case ASPECT -> aspect(snapshot);
             case ABILITIES -> abilities(snapshot, status, essence, keyNames);
@@ -104,6 +122,7 @@ public final class SoulPages {
             case SOUL -> soul(snapshot, status, essence, core);
             case WEAVING -> weaving(weaving, itemName);
             case MEMORIES -> memories(weaving.soul());
+            case NAME -> trueName(trueName, now);
         };
     }
 
@@ -301,6 +320,50 @@ public final class SoulPages {
         }
         return entries;
     }
+
+    /** What clicking a known name on the Name page does: speaks it to sense its bearer. */
+    public static final String SENSE = "sense:";
+
+    /**
+     * The Name page (ch. 9, 644, 696): the player's True Name, what it does for
+     * them and against them, and the True Names of others they have learned.
+     */
+    static List<Entry> trueName(TrueNamePayload payload, long now) {
+        List<Entry> entries = new ArrayList<>();
+        if (!payload.named()) {
+            entries.add(Entry.of(Style.VOICE, "You have no True Name.", SpellStyle.VOICE));
+            entries.add(Entry.spacer());
+            entries.add(Entry.of(Style.BODY, "The Spell grants one rarely: after an appraisal of Glorious or better, "
+                    + "or for a deed no one under the Spell has done before.", SpellStyle.MUTED));
+        } else {
+            entries.add(Entry.of(Style.NAME, payload.name(), NAME_COLOUR));
+            entries.add(Entry.of(Style.SUBTITLE, payload.shown() ? "Shown as your title" : "Hidden from others", SpellStyle.MUTED));
+            if (!payload.deedLine().isEmpty()) {
+                entries.add(Entry.of(Style.BODY, payload.deedLine(), SpellStyle.VOICE));
+            }
+            entries.add(Entry.spacer());
+            entries.add(Entry.of(Style.BODY, "Anchored Soul  ·  drains and torn shards take " + payload.drainResist() + "% less",
+                    SpellStyle.ABILITY));
+            entries.add(Entry.of(Style.BODY, "True-Name Binding  ·  sneak and use a Weaving Table with a Memory"
+                    + (payload.bindEssence() > 0 ? " (" + payload.bindEssence() + " essence)" : ""), SpellStyle.ABILITY));
+            entries.add(Entry.of(Style.BODY, "Closer to the Spell  ·  Callings come sooner and reach further", SpellStyle.ABILITY));
+            entries.add(Entry.of(Style.BODY, "H shows or hides it. Whoever knows it deals " + payload.damageBonus()
+                    + "% more damage to you and can sense you once a day.", SpellStyle.HINT));
+        }
+        if (!payload.known().isEmpty()) {
+            entries.add(Entry.spacer());
+            entries.add(Entry.of(Style.HEADING, "Names you know", SpellStyle.TEXT));
+            for (TrueNamePayload.Known known : payload.known()) {
+                boolean ready = now >= known.readyAt();
+                entries.add(Entry.link(known.name() + "  ·  " + known.bearer() + "  ·  " + (ready ? "answers" : "quiet"),
+                        SENSE + known.name(), ready ? SpellStyle.TITLE : SpellStyle.MUTED));
+            }
+            entries.add(Entry.of(Style.BODY, "Click a name to speak it and sense where its bearer stands.", SpellStyle.HINT));
+        }
+        return entries;
+    }
+
+    static final int NAME_COLOUR = 0xFFFFD27A;
 
     /** A Memory's lines when hovered on the Memories page. */
     public static List<String> memoryLines(WeavingStatusPayload.Memory memory) {

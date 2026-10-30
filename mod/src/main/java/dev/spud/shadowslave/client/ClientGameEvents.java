@@ -47,6 +47,7 @@ public final class ClientGameEvents {
     @SubscribeEvent
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         ClientSoulState.clear();
+        ClientTrueNameState.clear();
         ClientAbilityState.clear();
         ClientCoreState.clear();
         ClientWeavingState.clear();

@@ -12,7 +12,7 @@
   "key.shadowslave.toggle_echo_mode": "Toggle Echo Follow / Hold",
   "key.shadowslave.toggle_memory": "Summon / Dismiss Ash Compass",
   "screen.shadowslave.soul": "Soul Interface",
-  "screen.shadowslave.soul.tabs_hint": "Click a tab or press 1-6  \u00b7  Esc to close",
+  "screen.shadowslave.soul.tabs_hint": "Click a tab or press 1-7  \u00b7  Esc to close",
   "screen.shadowslave.soul_sea": "Soul Sea",
   "screen.shadowslave.soul_sea.hint": "Stay beside the candle  \u00b7  Esc to close",
   "screen.shadowslave.soul_sea.refine": "Points come with each rank  \u00b7  1-2 to switch pages  \u00b7  Esc to close",
@@ -93,5 +93,13 @@
   "shadowslave.configuration.section.shadowslave.client.toml": "Client",
   "shadowslave.configuration.section.shadowslave.client.toml.title": "Shadow Slave: client",
   "shadowslave.configuration.calling_frequency": "Spell Callings",
-  "shadowslave.configuration.calling_frequency.tooltip": "How often the Spell calls to you. Past Callings are kept on the Field Guide's Callings page."
+  "shadowslave.configuration.calling_frequency.tooltip": "How often the Spell calls to you. Past Callings are kept on the Field Guide's Callings page.",
+  "screen.shadowslave.true_name": "A True Name",
+  "item.shadowslave.field_note": "Field Note",
+  "item.shadowslave.field_note.tooltip_blank": "A loose page for the Field Guide's hand",
+  "item.shadowslave.field_note.tooltip_name": "A True Name is written here",
+  "item.shadowslave.field_note.tooltip_read": "Use to read it. Whoever reads it will know it",
+  "item.shadowslave.field_note.blank": "Nothing is written on this note yet.",
+  "item.shadowslave.field_note.own": "Your own True Name is written here.",
+  "item.shadowslave.field_note.known": "You already know the name written here."
 }

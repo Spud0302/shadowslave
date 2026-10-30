@@ -14,6 +14,7 @@ import dev.spud.shadowslave.spell.SpellAppraisal;
 import dev.spud.shadowslave.spell.SpellJudge;
 import dev.spud.shadowslave.spell.SpellRecord;
 import dev.spud.shadowslave.spell.SpellRecorder;
+import dev.spud.shadowslave.spell.truename.TrueNames;
 import dev.spud.shadowslave.trial.content.EchoSite;
 import dev.spud.shadowslave.trial.content.NightmarePack;
 import dev.spud.shadowslave.trial.content.TrialContent;
@@ -638,9 +639,12 @@ public final class TrialService {
             }
         }
         received.forEach((name, count) -> boons.add(count + " × " + name));
+        Optional<TrueNames.Grant> trueName = TrueNames.considerAppraisal(player, appraisal);
+        trueName.ifPresent(grant -> TrueNames.revealedByAppraisal(player));
         NightmareAppraisalPayload payload = new NightmareAppraisalPayload(instance.pack.displayName(), instance.pack.setting(),
                 ending.comment(), appraisal.deeds(), appraisal.grade().name(),
-                SpellAppraisal.comments(player, instance.pack, appraisal, before, settings), boons, instance.pack.lore());
+                SpellAppraisal.comments(player, instance.pack, appraisal, before, settings), boons, instance.pack.lore(),
+                trueName.map(TrueNames.Grant::name).orElse(""), trueName.map(TrueNames.Grant::deedLine).orElse(""));
         if (player.connection != null && player.connection.hasChannel(NightmareAppraisalPayload.TYPE)) {
             PacketDistributor.sendToPlayer(player, payload);
         }
