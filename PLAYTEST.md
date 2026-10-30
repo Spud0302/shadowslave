@@ -990,3 +990,37 @@ bound zombie` gives a finished Echo, `/shadowslave_echoes clear` empties your so
 Tuning is data: `data/shadowslave/echo/settings.json` (slots, drop chance,
 Binding level, essence and upkeep by rank), `echo/creature/*.json` per
 creature overrides, and the entity tag `shadowslave:echo/no_remnant`.
+
+### Echo Natures: Shepherd and Vessel
+
+Added by claude-code, 2026-10-30. Quick start: `/shadowslave aspect set
+shepherd` (or vessel), then `/shadowslave_echoes bound zombie`, use it to take
+it in, and press **H** to call it. `/shadowslave core fill` and
+`/shadowslave awaken <name>` give the Awakened abilities. Both Natures can hold
+one Echo even while Dormant, since a Sleeper's soul otherwise holds none.
+
+| Nature | Innate (always on) | Ability (R) | Flaw |
+| --- | --- | --- | --- |
+| Shepherd | Herdbond: your Echoes cost half the upkeep, and your soul holds one Echo while Dormant | Rally: every summoned Echo and tamed pet of yours within 32 blocks gets Speed II for 8 s and heals 30% of its health (25 essence) | Lonely Soul: with no Echo summoned, your melee hits deal 20% less |
+| Vessel | Borrowed Trait: while an Echo is out you carry a small trait of its kind (fire-proof kinds: Fire Resistance; swimmers: Water Breathing; fliers: Slow Falling; undead: Night Vision; quick kinds: Speed; other monsters: Strength; anything else: Haste) | Echo Merge: your Echo (within 16 blocks) folds into you for 10 s. You gain its attack, armour and some of its speed, and its trait rises a level (40 essence) | Hollowed: while merged you cannot use your own abilities. Also lets your soul hold one Echo while Dormant |
+
+Awakened choices: Shepherd picks **Pack Tactics** (your Echoes jump to flank
+the creature you look at, 24 blocks, and get Strength for 8 s; 35 essence) or
+**Second Bond** (always on: one Echo slot more than your rank gives). Vessel
+picks **Swap Places** (trade spots with your Echo up to 64 blocks away; 25
+essence) or **Shared Wounds** (for 20 s your Echo, within 32 blocks, takes two
+fifths of every hit you take; 30 essence).
+
+Things to try:
+
+1. Shepherd: watch the upkeep shown on the Echoes tab (key 8) next to a
+   non-Shepherd friend's. Hurt your Echo and a tamed wolf, then Rally. Punch a
+   pig with no Echo out and again with one out. Awakened: Pack Tactics on a
+   husk with two Echoes (Second Bond) or one, and check Second Bond lets you
+   take in one more Echo than your rank allows.
+2. Vessel: call a blaze, a zombie, a parrot and a cow Echo in turn and check
+   the effect icon changes. Merge with a zombie Echo: it vanishes, your armour
+   bar fills, and your ability key says Hollowed until the merge ends. Dismiss
+   the Echo mid-merge and check the merge ends cleanly. Awakened: Swap Places
+   with an Echo across a ravine, or take hits from a zombie with Shared Wounds
+   up and watch your Echo's health drop instead.

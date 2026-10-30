@@ -49,7 +49,7 @@ class AspectRollerTest {
     @Test
     void everyNatureIsReachableWithoutEvidence() {
         Map<AspectKit, Integer> counts = distribution(NO_EVIDENCE, 6000);
-        assertEquals(24, counts.size());
+        assertEquals(26, counts.size());
         counts.values().forEach(count -> assertTrue(count > 180 && count < 330, counts.toString()));
     }
 
@@ -71,7 +71,7 @@ class AspectRollerTest {
         int tide = counts.getOrDefault(AspectKitCatalog.TIDE, 0);
         // 40 of 592 weight: about 7%, against about 4% for each of the other twenty-three.
         assertTrue(tide > 330 && tide < 490, counts.toString());
-        assertEquals(24, counts.size());
+        assertEquals(26, counts.size());
     }
 
     private static Map<AspectKit, Integer> distribution(GenerationEvidence evidence, int rolls) {

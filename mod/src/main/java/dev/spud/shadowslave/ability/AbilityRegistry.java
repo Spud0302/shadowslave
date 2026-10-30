@@ -85,6 +85,11 @@ public final class AbilityRegistry {
         register(new CommandWordAbility());
         register(new SilencingWordAbility());
         register(new RallyingNameAbility());
+        register(new RallyAbility());
+        register(new PackTacticsAbility());
+        register(new EchoMergeAbility());
+        register(new SwapPlacesAbility());
+        register(new SharedWoundsAbility());
     }
 
     private AbilityRegistry() {

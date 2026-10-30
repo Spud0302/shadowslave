@@ -2,6 +2,7 @@ package dev.spud.shadowslave.echoes;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.ability.EssenceService;
+import dev.spud.shadowslave.ability.ShepherdBond;
 import dev.spud.shadowslave.network.payload.EchoStatusPayload;
 import dev.spud.shadowslave.soul.SoulService;
 import net.minecraft.ChatFormatting;
@@ -87,7 +88,7 @@ public final class EchoService {
     }
 
     public static int slots(ServerPlayer player) {
-        return EchoRules.slots(EchoContent.current().settings(), SoulService.get(player).soulRank());
+        return ShepherdBond.slots(player, EchoRules.slots(EchoContent.current().settings(), SoulService.get(player).soulRank()));
     }
 
     static Map<UUID, Summoned> summonedOf(ServerPlayer player) {
@@ -425,6 +426,16 @@ public final class EchoService {
         return entity instanceof Mob mob && mob.isAlive() ? Optional.of(mob) : Optional.empty();
     }
 
+    /** The bodies of a player's summoned Echoes that stand in the world right now. */
+    public static List<Mob> summonedBodies(ServerPlayer player) {
+        return bodies(player);
+    }
+
+    /** Sets a summoned Echo on a target, as an attack order would. */
+    public static void command(Mob echo, LivingEntity target) {
+        aim(echo, target);
+    }
+
     static List<Mob> bodies(ServerPlayer player) {
         List<Mob> bodies = new ArrayList<>();
         Map<UUID, Summoned> out = SUMMONED.get(player.getUUID());
@@ -493,7 +504,8 @@ public final class EchoService {
                 changed = true;
             }
         }
-        if (!summonedRecords.isEmpty() && !payUpkeep(player, EchoRules.upkeep(settings, summonedRecords) * TICK_INTERVAL / 20.0F)) {
+        if (!summonedRecords.isEmpty() && !payUpkeep(player,
+                EchoRules.upkeep(settings, summonedRecords) * ShepherdBond.upkeepShare(player) * TICK_INTERVAL / 20.0F)) {
             setHeld(player, held);
             dismissAll(player, true);
             tell(player, Outcome.REFUSED, "Your essence runs dry, and your Echoes slip back into your soul.");
@@ -620,7 +632,8 @@ public final class EchoService {
             echoes.add(new EchoStatusPayload.Echo(echo.name(), echo.body().entity().toString(), echo.body().rankText(),
                     echo.health(), echo.body().maxHealth(), summoned, settings.upkeep(echo.body().rank()), echo.binder()));
         }
-        return new EchoStatusPayload(slots(player), held.order().getSerializedName(), EchoRules.upkeep(settings, out), echoes,
+        return new EchoStatusPayload(slots(player), held.order().getSerializedName(),
+                EchoRules.upkeep(settings, out) * ShepherdBond.upkeepShare(player), echoes,
                 EchoBinding.preview(player));
     }
 

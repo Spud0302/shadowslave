@@ -224,7 +224,8 @@ public final class ExpandedIdentityContentCatalog {
      * the Weaving pass (Forge, Delve, Mason, Verdant) and the Dream Realm
      * Natures (Wayfarer, Lull) and the Awakening-inspired Natures (Gloam, Rime,
      * Fury, Threshold, Anchor, Hourglass) and the Citadel Natures (Herald,
-     * Keeper) and the Spell's Natures (Fortune, Cantor), their Dormant abilities and
+     * Keeper) and the Spell's Natures (Fortune, Cantor) and the Echo Natures (Shepherd,
+     * Vessel), their Dormant abilities and
      * Flaws. The Dream Candle roll draws on this; the older appraisal flows
      * keep {@link #waveOne()} so their generated identities stay stable.
      */
@@ -251,7 +252,9 @@ public final class ExpandedIdentityContentCatalog {
                         nature("herald", "Herald", Set.of("herald", "command", "banner"), 3),
                         nature("keeper", "Keeper", Set.of("keeper", "citadel", "ward"), 3),
                         nature("fortune", "Fortune", Set.of("fortune", "luck", "gamble"), 3),
-                        nature("cantor", "Cantor", Set.of("cantor", "name", "voice"), 3)
+                        nature("cantor", "Cantor", Set.of("cantor", "name", "voice"), 3),
+                        nature("shepherd", "Shepherd", Set.of("shepherd", "flock", "companion"), 3),
+                        nature("vessel", "Vessel", Set.of("vessel", "host", "merge"), 3)
                 )),
                 wave.archetypes(),
                 concat(wave.abilities(), List.of(
@@ -273,7 +276,9 @@ public final class ExpandedIdentityContentCatalog {
                         ability("war_banner", "War Banner", Set.of("herald"), Set.of("resolve", "mercy"), 5),
                         ability("sanctuary", "Sanctuary", Set.of("keeper"), Set.of("preservation", "stability"), 5),
                         ability("coin_of_fate", "Coin of Fate", Set.of("fortune"), Set.of("adaptation", "resolve"), 5),
-                        ability("command_word", "Command Word", Set.of("cantor"), Set.of("control", "precision"), 5)
+                        ability("command_word", "Command Word", Set.of("cantor"), Set.of("control", "precision"), 5),
+                        ability("rally", "Rally", Set.of("shepherd"), Set.of("mercy", "resolve"), 5),
+                        ability("echo_merge", "Echo Merge", Set.of("vessel"), Set.of("adaptation", "sacrifice"), 5)
                 )),
                 concat(wave.flaws(), List.of(
                         flaw("quarry_lock", "Quarry Lock", Set.of("hunt", "pursuit"),
@@ -315,7 +320,11 @@ public final class ExpandedIdentityContentCatalog {
                         flaw("ill_omen", "Ill Omen", Set.of("fortune", "luck"),
                                 Set.of("physical", "conditional"), Set.of(), 3),
                         flaw("spoken_self", "Spoken Self", Set.of("cantor", "voice"),
-                                Set.of("signal", "social"), Set.of(), 3)
+                                Set.of("signal", "social"), Set.of(), 3),
+                        flaw("lonely_soul", "Lonely Soul", Set.of("shepherd", "flock"),
+                                Set.of("physical", "conditional"), Set.of(), 3),
+                        flaw("hollowed", "Hollowed", Set.of("vessel", "host"),
+                                Set.of("compulsion", "conditional"), Set.of(), 3)
                 ))
         );
     }

@@ -117,6 +117,15 @@ public final class KitLadder {
     public static final AbilityVariant RALLYING_NAME = variant("rallying_name", "Rallying Name",
             "Speak the name of the ally you look at: their ailments are cleared and they run faster for a while.", "Support");
 
+    public static final AbilityVariant PACK_TACTICS = variant("pack_tactics", "Pack Tactics",
+            "Your summoned Echoes leap to flank the creature you look at, and fight harder for a while.", "Command");
+    public static final AbilityVariant SECOND_BOND = variant("second_bond", "Second Bond",
+            "Always on: your soul holds one Echo more than your rank allows.", "Passive");
+    public static final AbilityVariant SWAP_PLACES = variant("swap_places", "Swap Places",
+            "Trade places with your summoned Echo, wherever it stands nearby.", "Movement");
+    public static final AbilityVariant SHARED_WOUNDS = variant("shared_wounds", "Shared Wounds",
+            "For twenty seconds your summoned Echo takes two fifths of every blow that falls on you.", "Shelter");
+
     private static final Map<ResourceLocation, List<AbilityVariant>> AWAKENED = Map.ofEntries(
             Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(CARRY_THE_FLAME, EMBER_WARD)),
             Map.entry(AspectKitCatalog.MIST.natureId(), List.of(THROUGH_THE_HAZE, VEIL)),
@@ -141,7 +150,9 @@ public final class KitLadder {
             Map.entry(AspectKitCatalog.HERALD.natureId(), List.of(RALLY_CALL, OATH_OF_ARMS)),
             Map.entry(AspectKitCatalog.KEEPER.natureId(), List.of(BULWARK, GATEWAY_STEP)),
             Map.entry(AspectKitCatalog.FORTUNE.natureId(), List.of(TWIST_FATE, BORROWED_LUCK)),
-            Map.entry(AspectKitCatalog.CANTOR.natureId(), List.of(SILENCING_WORD, RALLYING_NAME))
+            Map.entry(AspectKitCatalog.CANTOR.natureId(), List.of(SILENCING_WORD, RALLYING_NAME)),
+            Map.entry(AspectKitCatalog.SHEPHERD.natureId(), List.of(PACK_TACTICS, SECOND_BOND)),
+            Map.entry(AspectKitCatalog.VESSEL.natureId(), List.of(SWAP_PLACES, SHARED_WOUNDS))
     );
 
     private KitLadder() {
