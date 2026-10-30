@@ -168,6 +168,17 @@ public final class ModPayloads {
                 ServerPayloadHandler::handleMemorySummon
         );
         registrar.playToServer(
+                dev.spud.shadowslave.network.payload.EchoActionPayload.TYPE,
+                dev.spud.shadowslave.network.payload.EchoActionPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleEchoAction
+        );
+        registrar.playToClient(
+                dev.spud.shadowslave.network.payload.EchoStatusPayload.TYPE,
+                dev.spud.shadowslave.network.payload.EchoStatusPayload.STREAM_CODEC,
+                (payload, context) -> {
+                }
+        );
+        registrar.playToServer(
                 StrandCreatePayload.TYPE,
                 StrandCreatePayload.STREAM_CODEC,
                 ServerPayloadHandler::handleStrandCreate

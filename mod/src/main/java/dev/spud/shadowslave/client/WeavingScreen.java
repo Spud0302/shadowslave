@@ -245,6 +245,10 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
             renderFuse(graphics, mouseX, mouseY);
             return;
         }
+        if (bindingRemnant()) {
+            renderBinding(graphics, mouseX, mouseY, time);
+            return;
+        }
         ring(graphics, cx, cy, VIEW_RADIUS, SpellStyle.withAlpha(SpellStyle.RULE, 0.9F));
         ring(graphics, cx, cy, VIEW_RADIUS - 1, SpellStyle.withAlpha(SpellStyle.BORDER, 0.35F));
         boolean anchored = !this.menu.anchor().isEmpty();
@@ -301,6 +305,55 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
                 if (line++ < 2) {
                     graphics.drawString(this.font, text, this.leftPos + 50, this.topPos + 119 + (line - 1) * 9, SpellStyle.MUTED, false);
                 }
+            }
+        }
+    }
+
+    private static final int[] BIND_BOX = {60, 102, 156, 102 + BUTTON_HEIGHT};
+
+    /** An echo remnant in the piece slot turns the view into the Binding view. */
+    private boolean bindingRemnant() {
+        return this.menu.centre().has(dev.spud.shadowslave.echoes.EchoesRegistry.REMNANT_OF.get());
+    }
+
+    /**
+     * The Binding view: the creature's echo circling the anchor, what binding
+     * it takes, and the button that binds it. The server words the needs.
+     */
+    private void renderBinding(GuiGraphics graphics, int mouseX, int mouseY, long time) {
+        int cx = this.leftPos + VIEW_X;
+        int cy = this.topPos + 42;
+        Optional<dev.spud.shadowslave.network.payload.EchoStatusPayload.Binding> binding = ClientEchoState.status().binding();
+        boolean ready = binding.map(value -> value.lock().isEmpty()).orElse(false);
+        float pulse = 0.5F + 0.5F * (float) Math.sin(time * 0.15F);
+        ring(graphics, cx, cy, 24, SpellStyle.withAlpha(SpellStyle.ASPECT, 0.35F + 0.3F * pulse));
+        ring(graphics, cx, cy, 17, SpellStyle.withAlpha(SpellStyle.ASPECT, 0.2F));
+        for (int i = 0; i < 6; i++) {
+            double angle = time * 0.06 + Math.PI * 2 * i / 6;
+            int px = cx + (int) Math.round(Math.cos(angle) * 21);
+            int py = cy + (int) Math.round(Math.sin(angle) * 21);
+            graphics.fill(px - 1, py - 1, px + 2, py + 2, SpellStyle.withAlpha(SpellStyle.ASPECT, 0.85F));
+        }
+        graphics.renderItem(this.menu.centre(), cx - 8, cy - 8);
+        if (binding.isEmpty()) {
+            graphics.drawCenteredString(this.font, "Reading the echo…", cx, this.topPos + 80, SpellStyle.HINT);
+            return;
+        }
+        var value = binding.get();
+        int x = this.leftPos + 50;
+        int right = this.leftPos + 168;
+        graphics.drawCenteredString(this.font, fit(value.name(), 118), cx, this.topPos + 70, SpellStyle.TITLE);
+        graphics.drawString(this.font, "Binding " + value.held() + "/" + value.level(), x, this.topPos + 81,
+                value.held() >= value.level() ? SpellStyle.ASPECT : SpellStyle.FLAW, false);
+        String essence = value.essence() + " essence";
+        graphics.drawString(this.font, essence, right - this.font.width(essence), this.topPos + 81, SpellStyle.MUTED, false);
+        graphics.drawString(this.font, fit("Anchor: " + value.anchor() + " shard", 118), x, this.topPos + 91, SpellStyle.MUTED, false);
+        renderButton(graphics, mouseX, mouseY, BIND_BOX, "Bind the Echo", ready);
+        int line = 0;
+        for (FormattedCharSequence text : this.font.split(Component.literal(ready ? value.rank() + " Echo. It never grows."
+                : value.lock()), 96)) {
+            if (line++ < 3) {
+                graphics.drawString(this.font, text, x, this.topPos + 119 + (line - 1) * 9, ready ? SpellStyle.HINT : SpellStyle.FLAW, false);
             }
         }
     }
@@ -615,6 +668,12 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
                 return super.mouseClicked(mouseX, mouseY, button);
             }
             fuseName.setFocused(false);
+        }
+        if (button == 0 && !fusing && bindingRemnant() && inside(mouseX, mouseY, BIND_BOX)) {
+            if (ClientEchoState.status().binding().map(value -> value.lock().isEmpty()).orElse(false)) {
+                press(WeavingMenu.BUTTON_BIND);
+            }
+            return true;
         }
         WeavingStatusPayload.Branch current = currentBranch();
         Optional<WeavingStatusPayload.Strand> chosen = chosen();

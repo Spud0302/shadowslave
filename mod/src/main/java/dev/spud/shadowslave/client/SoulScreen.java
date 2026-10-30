@@ -292,6 +292,21 @@ public final class SoulScreen extends Screen {
                 }
             }
         }
+        if (tab == SoulPages.Tab.ECHOES && button == 0) {
+            for (Link link : links) {
+                if (mouseX >= link.x0() && mouseX <= link.x1() && mouseY >= link.y0() && mouseY < link.y1()
+                        && link.action().startsWith(SoulPages.ECHO)) {
+                    int index = Integer.parseInt(link.action().substring(SoulPages.ECHO.length()));
+                    var echoes = ClientEchoState.status().held();
+                    String action = hasShiftDown() ? dev.spud.shadowslave.network.payload.EchoActionPayload.DRAW
+                            : index < echoes.size() && echoes.get(index).summoned() ? dev.spud.shadowslave.network.payload.EchoActionPayload.DISMISS
+                            : dev.spud.shadowslave.network.payload.EchoActionPayload.SUMMON;
+                    net.neoforged.neoforge.network.PacketDistributor.sendToServer(new dev.spud.shadowslave.network.payload.EchoActionPayload(action, index));
+                    this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_RESONATE, 0.8F));
+                    return true;
+                }
+            }
+        }
         if (mouseY >= top && mouseY < top + TAB_HEIGHT && mouseX >= left && mouseX < right) {
             int index = (int) ((mouseX - left) / ((right - left) / TABS.length));
             select(TABS[Math.min(TABS.length - 1, index)]);

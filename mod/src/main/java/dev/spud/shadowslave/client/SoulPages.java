@@ -32,7 +32,8 @@ public final class SoulPages {
         SOUL("Soul"),
         WEAVING("Weaving"),
         MEMORIES("Memories"),
-        NAME("Name");
+        NAME("Name"),
+        ECHOES("Echoes");
 
         public final String label;
 
@@ -123,6 +124,7 @@ public final class SoulPages {
             case WEAVING -> weaving(weaving, itemName);
             case MEMORIES -> memories(weaving.soul());
             case NAME -> trueName(trueName, now);
+            case ECHOES -> echoes(ClientEchoState.status());
         };
     }
 
@@ -318,6 +320,42 @@ public final class SoulPages {
             entries.add(Entry.of(Style.BODY, "Your Soul Sea is still. Dismiss a Memory with the Memory key and it will rest here, "
                     + "mending, until you call it back.", SpellStyle.MUTED));
         }
+        return entries;
+    }
+
+    /** What clicking an Echo's line on the Echoes page does: summons or dismisses the Echo at that index. */
+    public static final String ECHO = "echo:";
+
+    /**
+     * The Echoes page (DESIGN, after ch. 47): the soul's Echo slots, the
+     * standing order and upkeep, and each Echo with its wounds. Click an Echo's
+     * line to summon or dismiss it; shift-click to draw it out to hand over.
+     */
+    static List<Entry> echoes(dev.spud.shadowslave.network.payload.EchoStatusPayload status) {
+        List<Entry> entries = new ArrayList<>();
+        entries.add(Entry.row("Held", status.held().size() + " of " + status.slots() + (status.slots() == 1 ? " Echo" : " Echoes"),
+                SpellStyle.ASPECT));
+        entries.add(Entry.row("Order", humanize(status.order()) + (status.summoned() > 0
+                ? String.format(Locale.ROOT, "  ·  %d out, %.1f essence a second", status.summoned(), status.upkeep()) : ""),
+                SpellStyle.TEXT));
+        if (status.held().isEmpty()) {
+            entries.add(Entry.spacer());
+            entries.add(Entry.of(Style.BODY, status.slots() == 0
+                    ? "A Dormant soul can't hold an Echo. Once Awakened, yours will hold one; a Master's holds two and a Saint's three."
+                    : "Your soul holds no Echo. Slain creatures rarely leave an echo remnant; bind one at a Weaving Table "
+                    + "and use the Echo to take it in.", SpellStyle.MUTED));
+            return entries;
+        }
+        for (int i = 0; i < status.held().size(); i++) {
+            var echo = status.held().get(i);
+            entries.add(Entry.meter(echo.name(), String.format(Locale.ROOT, "%.0f/%.0f", echo.health(), echo.maxHealth()),
+                    echo.summoned() ? SpellStyle.ASPECT : SpellStyle.ABILITY, echo.maxHealth() <= 0 ? 1.0F : echo.health() / echo.maxHealth()));
+            entries.add(Entry.link(echo.rank() + "  ·  " + (echo.summoned() ? "out — click to dismiss"
+                    : String.format(Locale.ROOT, "resting — click to summon (%.1f/s)", echo.upkeep())),
+                    ECHO + i, echo.summoned() ? SpellStyle.ASPECT : SpellStyle.MUTED));
+        }
+        entries.add(Entry.of(Style.BODY, "Shift-click to draw one out to hand over  ·  Echo key calls them all  ·  hold the command key for orders",
+                SpellStyle.HINT));
         return entries;
     }
 

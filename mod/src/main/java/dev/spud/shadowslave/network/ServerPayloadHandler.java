@@ -116,6 +116,26 @@ public final class ServerPayloadHandler {
         }
     }
 
+    public static void handleEchoAction(dev.spud.shadowslave.network.payload.EchoActionPayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "Echo action");
+        if (player == null) {
+            return;
+        }
+        switch (payload.action()) {
+            case dev.spud.shadowslave.network.payload.EchoActionPayload.CALL -> dev.spud.shadowslave.echoes.EchoService.call(player);
+            case dev.spud.shadowslave.network.payload.EchoActionPayload.SUMMON -> dev.spud.shadowslave.echoes.EchoService.summon(player, payload.index());
+            case dev.spud.shadowslave.network.payload.EchoActionPayload.DISMISS -> {
+                var held = dev.spud.shadowslave.echoes.EchoService.held(player).held();
+                if (payload.index() >= 0 && payload.index() < held.size()) {
+                    dev.spud.shadowslave.echoes.EchoService.dismiss(player, held.get(payload.index()).id(), false);
+                }
+            }
+            case dev.spud.shadowslave.network.payload.EchoActionPayload.DRAW -> dev.spud.shadowslave.echoes.EchoService.drawOut(player, payload.index());
+            default -> dev.spud.shadowslave.echoes.EchoCommand.byName(payload.action())
+                    .ifPresent(command -> dev.spud.shadowslave.echoes.EchoService.order(player, command));
+        }
+    }
+
     public static void handleStrandCreate(StrandCreatePayload payload, IPayloadContext context) {
         ServerPlayer player = serverPlayer(context, "Strand create");
         if (player != null) {

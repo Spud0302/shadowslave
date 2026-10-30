@@ -72,6 +72,8 @@ public final class WeavingService {
             respec(player);
         } else if (button == WeavingMenu.BUTTON_LAY) {
             StrandService.layThread(player, menu);
+        } else if (button == WeavingMenu.BUTTON_BIND) {
+            dev.spud.shadowslave.echoes.EchoBinding.bind(player, menu);
         } else if (button >= WeavingMenu.BUTTON_RAISE && button < WeavingMenu.BUTTON_RAISE + content.branches().size()) {
             raise(player, content.branchOrder().get(button - WeavingMenu.BUTTON_RAISE));
         } else if (button >= WeavingMenu.BUTTON_STUDY && button < WeavingMenu.BUTTON_STUDY + WeavingMenu.MAX_LISTED) {
@@ -133,6 +135,14 @@ public final class WeavingService {
         report(player, content.branchName(branch) + " rises to level " + WeavingRules.heldLevel(content, next.get(), branch) + ".");
         player.level().playSound(null, player.blockPosition(), SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.6F, 1.4F);
         return true;
+    }
+
+    /** Weaving XP earned in {@code branch} for work done outside a pattern, such as binding an Echo. */
+    public static void creditXp(ServerPlayer player, ResourceLocation branch, int xp) {
+        if (xp > 0) {
+            set(player, get(player).withXp(branch, xp));
+            sync(player);
+        }
     }
 
     public static boolean respec(ServerPlayer player) {

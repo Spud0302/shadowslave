@@ -27,6 +27,8 @@ import java.util.Map;
 public class WeavingMenu extends AbstractContainerMenu {
     public static final int BUTTON_RESPEC = 1;
     public static final int BUTTON_LAY = 2;
+    /** Binding the echo remnant in the centre into an Echo. */
+    public static final int BUTTON_BIND = 3;
     /** Raising branch i is button {@code BUTTON_RAISE + i}, in {@link WeavingContent#branchOrder()} order. */
     public static final int BUTTON_RAISE = 10;
     /** Starting and finishing the study of strand i of what the centre piece teaches. */
@@ -147,6 +149,7 @@ public class WeavingMenu extends AbstractContainerMenu {
         super.slotsChanged(container);
         if (player instanceof ServerPlayer serverPlayer && serverPlayer.containerMenu == this) {
             WeavingService.sync(serverPlayer);
+            dev.spud.shadowslave.echoes.EchoService.sync(serverPlayer);
         }
     }
 
@@ -175,7 +178,8 @@ public class WeavingMenu extends AbstractContainerMenu {
                     && !moveItemStackTo(stack, FIRST_MATERIAL, OUTPUT_SLOT, false)) {
                 return ItemStack.EMPTY;
             }
-        } else if (StrandFit.of(stack).isPresent() && !this.slots.get(CENTRE_SLOT).hasItem()) {
+        } else if ((StrandFit.of(stack).isPresent() || stack.is(dev.spud.shadowslave.echoes.EchoesRegistry.ECHO_REMNANT.get()))
+                && !this.slots.get(CENTRE_SLOT).hasItem()) {
             if (!moveItemStackTo(stack, CENTRE_SLOT, CENTRE_SLOT + 1, false)) {
                 return ItemStack.EMPTY;
             }
