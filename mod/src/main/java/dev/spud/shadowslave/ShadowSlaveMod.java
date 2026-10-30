@@ -219,6 +219,7 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(dev.spud.shadowslave.echoes.EchoContentLoader::onAddReloadListeners);
         NeoForge.EVENT_BUS.addListener(dev.spud.shadowslave.echoes.EchoRemnants::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(dev.spud.shadowslave.echoes.EchoEvents::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(dev.spud.shadowslave.echoes.EchoEvents::onEntityTick);
         NeoForge.EVENT_BUS.addListener(dev.spud.shadowslave.echoes.EchoEvents::onChangeTarget);
         NeoForge.EVENT_BUS.addListener(dev.spud.shadowslave.echoes.EchoEvents::onIncomingDamage);
         NeoForge.EVENT_BUS.addListener(dev.spud.shadowslave.echoes.EchoEvents::onLivingDeath);

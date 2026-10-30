@@ -23,9 +23,9 @@ import java.util.Locale;
 public final class EchoWheelScreen extends Screen {
     static final String[] ORDERS = {"follow", "guard", "stay", "attack"};
     private static final String[] LABELS = {"Follow", "Guard", "Stay", "Attack"};
-    private static final String[] HINTS = {"Keep close; fight back", "Fight what hunts you", "Hold this spot", "What you look at"};
+    private static final String[] HINTS = {"Stay close", "Defend me", "Hold here", "My target"};
     private static final int INNER = 34;
-    private static final int OUTER = 92;
+    private static final int OUTER = 100;
     private static final int STEPS = 24;
 
     private int hovered = -2;
@@ -75,8 +75,8 @@ public final class EchoWheelScreen extends Screen {
             double mid = Math.toRadians(start + 43.0F);
             int lx = cx + (int) Math.round(Math.sin(mid) * (INNER + OUTER) / 2.0);
             int ly = cy - (int) Math.round(Math.cos(mid) * (INNER + OUTER) / 2.0);
-            graphics.drawCenteredString(this.font, LABELS[i], lx, ly - 8, over ? SpellStyle.TEXT : colour);
-            graphics.drawCenteredString(this.font, standing ? "◆ standing order" : HINTS[i], lx, ly + 4,
+            graphics.drawCenteredString(this.font, standing ? "◆ " + LABELS[i] : LABELS[i], lx, ly - 8, over ? SpellStyle.TEXT : colour);
+            graphics.drawCenteredString(this.font, HINTS[i], lx, ly + 4,
                     over ? SpellStyle.VOICE : SpellStyle.HINT);
         }
         boolean centre = hovered == -1;

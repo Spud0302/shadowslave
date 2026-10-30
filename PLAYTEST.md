@@ -901,3 +901,40 @@ Things to try:
    page (spyglass sightings and kills). Awakened: Silence an Ashen Tyrant
    before its slam, and call a poisoned friend's name. With a friend online,
    use any ability and have them open their Field Guide map.
+
+## Echoes
+
+Added by claude-code, 2026-10-30. Quick start (operators):
+`/shadowslave_echoes remnant zombie` gives an echo remnant, `/shadowslave_echoes
+bound zombie` gives a finished Echo, `/shadowslave_echoes clear` empties your soul.
+
+1. **Remnants.** Any creature you (or your Echo) kill can, rarely, leave an
+   echo remnant: a glowing item with soul flames and the line "An echo of the X
+   lingers where it fell." The chance grows with the creature's rank. Bosses,
+   villagers and a few others never leave one.
+2. **Binding.** Put the remnant in the Weaving Table's centre slot and a soul
+   shard of the creature's rank or better in the anchor slot. The table shows
+   the Echo, the Binding level and essence it needs; click **Bind the Echo**.
+   Dormant needs Binding 1, Awakened 3, Fallen 5, Corrupted 7.
+3. **Taking it in.** Use the bound Echo to take it into your soul. Slots by
+   rank: Sleeper 0, Awakened 1, Master 2, Saint 3. The Soul screen's Echoes tab
+   (key 8) lists what you hold with each Echo's health.
+4. **Calling.** Press **H** to call every Echo out of your soul (essence per
+   Echo, more for higher ranks) or send them home. While out they drain
+   essence every second; run dry and they all return. Resting Echoes heal.
+5. **Orders.** Hold **J** for the command wheel: Follow (up), Guard (right),
+   Stay (down), Attack (left, whatever you look at). Point and let go, or
+   click. The centre calls or dismisses. Check that Echoes never hit you or
+   each other, that zombies and skeletons don't burn in daylight, and that
+   your Echo's kills drop shards and loot for you.
+6. **Moves, no growth.** An Echo keeps its creature's attacks and gear (a
+   skeleton keeps its bow) and never levels.
+7. **Death.** An Echo that dies is gone for good ("X Echo is destroyed. It
+   will not return."). If you die, your summoned Echoes return to the soul.
+8. **Trading.** Shift-click an Echo on the Echoes tab to draw it out as an
+   item, then sneak and use another player while holding it to hand it over.
+   It won't lie on the ground: tossing it keeps it in your pack.
+
+Tuning is data: `data/shadowslave/echo/settings.json` (slots, drop chance,
+Binding level, essence and upkeep by rank), `echo/creature/*.json` per
+creature overrides, and the entity tag `shadowslave:echo/no_remnant`.

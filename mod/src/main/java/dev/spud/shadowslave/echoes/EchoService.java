@@ -550,7 +550,14 @@ public final class EchoService {
                     .stream().min(java.util.Comparator.comparingDouble(hunter -> hunter.distanceToSqr(mob)))
                     .ifPresent(hunter -> aim(mob, hunter));
         }
-        // Undead Echoes are soulless copies and don't catch fire in daylight; real fire and lava still burn them.
+    }
+
+    /**
+     * Undead Echoes are soulless copies and don't catch fire in daylight; real
+     * fire and lava still burn them. Runs after the body's own tick, so the
+     * sun's flame is put out before it ever shows or hurts.
+     */
+    static void shadeFromSun(Mob mob) {
         if (mob.isOnFire() && mob.isInvertedHealAndHarm() && !mob.isInLava() && mob.level().isDay()
                 && mob.level().canSeeSky(mob.blockPosition())
                 && mob.level().getBlockStatesIfLoaded(mob.getBoundingBox()).noneMatch(state -> state.is(net.minecraft.tags.BlockTags.FIRE))) {

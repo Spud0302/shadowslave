@@ -322,35 +322,37 @@ public final class WeavingScreen extends AbstractContainerScreen<WeavingMenu> {
      */
     private void renderBinding(GuiGraphics graphics, int mouseX, int mouseY, long time) {
         int cx = this.leftPos + VIEW_X;
-        int cy = this.topPos + VIEW_Y - 8;
+        int cy = this.topPos + 42;
         Optional<dev.spud.shadowslave.network.payload.EchoStatusPayload.Binding> binding = ClientEchoState.status().binding();
         boolean ready = binding.map(value -> value.lock().isEmpty()).orElse(false);
         float pulse = 0.5F + 0.5F * (float) Math.sin(time * 0.15F);
-        ring(graphics, cx, cy, 30, SpellStyle.withAlpha(SpellStyle.ASPECT, 0.35F + 0.3F * pulse));
-        ring(graphics, cx, cy, 22, SpellStyle.withAlpha(SpellStyle.ASPECT, 0.2F));
+        ring(graphics, cx, cy, 24, SpellStyle.withAlpha(SpellStyle.ASPECT, 0.35F + 0.3F * pulse));
+        ring(graphics, cx, cy, 17, SpellStyle.withAlpha(SpellStyle.ASPECT, 0.2F));
         for (int i = 0; i < 6; i++) {
             double angle = time * 0.06 + Math.PI * 2 * i / 6;
-            int px = cx + (int) Math.round(Math.cos(angle) * 26);
-            int py = cy + (int) Math.round(Math.sin(angle) * 26);
+            int px = cx + (int) Math.round(Math.cos(angle) * 21);
+            int py = cy + (int) Math.round(Math.sin(angle) * 21);
             graphics.fill(px - 1, py - 1, px + 2, py + 2, SpellStyle.withAlpha(SpellStyle.ASPECT, 0.85F));
         }
         graphics.renderItem(this.menu.centre(), cx - 8, cy - 8);
         if (binding.isEmpty()) {
-            graphics.drawCenteredString(this.font, "Reading the echo…", cx, this.topPos + 106, SpellStyle.HINT);
+            graphics.drawCenteredString(this.font, "Reading the echo…", cx, this.topPos + 80, SpellStyle.HINT);
             return;
         }
         var value = binding.get();
         int x = this.leftPos + 50;
-        graphics.drawCenteredString(this.font, fit(value.name(), 118), cx, this.topPos + 6, SpellStyle.TITLE);
-        graphics.drawString(this.font, "Binding " + value.held() + "/" + value.level(), x, this.topPos + 84,
+        int right = this.leftPos + 168;
+        graphics.drawCenteredString(this.font, fit(value.name(), 118), cx, this.topPos + 70, SpellStyle.TITLE);
+        graphics.drawString(this.font, "Binding " + value.held() + "/" + value.level(), x, this.topPos + 81,
                 value.held() >= value.level() ? SpellStyle.ASPECT : SpellStyle.FLAW, false);
-        graphics.drawString(this.font, value.essence() + " essence", x + 70, this.topPos + 84, SpellStyle.MUTED, false);
-        graphics.drawString(this.font, fit("Anchor: " + value.anchor() + " shard", 118), x, this.topPos + 93, SpellStyle.MUTED, false);
+        String essence = value.essence() + " essence";
+        graphics.drawString(this.font, essence, right - this.font.width(essence), this.topPos + 81, SpellStyle.MUTED, false);
+        graphics.drawString(this.font, fit("Anchor: " + value.anchor() + " shard", 118), x, this.topPos + 91, SpellStyle.MUTED, false);
         renderButton(graphics, mouseX, mouseY, BIND_BOX, "Bind the Echo", ready);
         int line = 0;
-        for (FormattedCharSequence text : this.font.split(Component.literal(ready ? value.rank() + " · it never grows; bind a stronger one to grow"
-                : value.lock()), 118)) {
-            if (line++ < 2) {
+        for (FormattedCharSequence text : this.font.split(Component.literal(ready ? value.rank() + " Echo. It never grows."
+                : value.lock()), 96)) {
+            if (line++ < 3) {
                 graphics.drawString(this.font, text, x, this.topPos + 119 + (line - 1) * 9, ready ? SpellStyle.HINT : SpellStyle.FLAW, false);
             }
         }

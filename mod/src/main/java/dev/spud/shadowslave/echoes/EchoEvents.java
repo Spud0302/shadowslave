@@ -27,6 +27,7 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.MobSplitEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.Iterator;
@@ -45,6 +46,12 @@ public final class EchoEvents {
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (event.getEntity() instanceof ServerPlayer player && player.tickCount % EchoService.TICK_INTERVAL == 0) {
             EchoService.tick(player);
+        }
+    }
+
+    public static void onEntityTick(EntityTickEvent.Post event) {
+        if (event.getEntity() instanceof Mob mob && !mob.level().isClientSide() && mob.getTags().contains(EchoService.BODY_TAG)) {
+            EchoService.shadeFromSun(mob);
         }
     }
 
