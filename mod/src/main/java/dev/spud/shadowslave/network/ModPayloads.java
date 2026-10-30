@@ -35,7 +35,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
-    public static final String NETWORK_VERSION = "22";
+    public static final String NETWORK_VERSION = "23";
 
     private ModPayloads() {
     }
@@ -153,6 +153,17 @@ public final class ModPayloads {
                 MemorySummonPayload.TYPE,
                 MemorySummonPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleMemorySummon
+        );
+        registrar.playToServer(
+                dev.spud.shadowslave.network.payload.EchoActionPayload.TYPE,
+                dev.spud.shadowslave.network.payload.EchoActionPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleEchoAction
+        );
+        registrar.playToClient(
+                dev.spud.shadowslave.network.payload.EchoStatusPayload.TYPE,
+                dev.spud.shadowslave.network.payload.EchoStatusPayload.STREAM_CODEC,
+                (payload, context) -> {
+                }
         );
         registrar.playToServer(
                 StrandCreatePayload.TYPE,

@@ -84,6 +84,10 @@ public final class ClientPayloadHandler {
         ClientWeavingState.update(payload);
     }
 
+    public static void handleEchoStatus(dev.spud.shadowslave.network.payload.EchoStatusPayload payload, IPayloadContext context) {
+        ClientEchoState.update(payload);
+    }
+
     public static void handleFieldGuideStatus(FieldGuideStatusPayload payload, IPayloadContext context) {
         Minecraft minecraft = Minecraft.getInstance();
         ClientFieldGuideState.update(payload);
