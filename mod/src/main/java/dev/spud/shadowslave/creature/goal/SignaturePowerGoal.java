@@ -21,7 +21,7 @@ public final class SignaturePowerGoal extends Goal {
     @Override
     public boolean canUse() {
         LivingEntity target = creature.getTarget();
-        return creature.creatureClass() == CreatureClass.DEVIL && target != null && target.isAlive()
+        return creature.creatureClass() == CreatureClass.DEVIL && target != null && target.isAlive() && !creature.silenced()
                 && creature.level().getGameTime() >= readyAt;
     }
 

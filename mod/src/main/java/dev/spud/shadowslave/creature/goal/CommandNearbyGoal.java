@@ -26,7 +26,7 @@ public final class CommandNearbyGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return creature.creatureClass().ordinal() >= CreatureClass.TYRANT.ordinal() && creature.getTarget() != null
+        return creature.creatureClass().ordinal() >= CreatureClass.TYRANT.ordinal() && creature.getTarget() != null && !creature.silenced()
                 && creature.level().getGameTime() >= nextAt;
     }
 

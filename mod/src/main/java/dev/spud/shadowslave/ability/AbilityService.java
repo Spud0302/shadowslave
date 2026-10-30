@@ -74,6 +74,7 @@ public final class AbilityService {
         };
         if (outcome != Outcome.FAILED) {
             broadcastCast(player, ability);
+            CantorVoice.onAbilityUsed(player);
         }
         syncStatus(player);
         return outcome;
@@ -148,6 +149,8 @@ public final class AbilityService {
             Stasis.forget(player.getUUID());
             HeraldCommand.forget(player.getUUID());
             KeeperHold.forget(player.getUUID());
+            FortuneLuck.forget(player.getUUID());
+            CantorVoice.forget(player.getUUID());
         }
     }
 

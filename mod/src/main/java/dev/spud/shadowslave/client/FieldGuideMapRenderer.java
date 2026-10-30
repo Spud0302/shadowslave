@@ -296,6 +296,7 @@ public final class FieldGuideMapRenderer {
             case "seed" -> 0xFF7A1020;
             case "anchor" -> 0xFF1F8FA3;
             case "citadel" -> 0xFF5B4A7A;
+            case "voice" -> 0xFF2A9D8F;
             default -> INK;
         };
     }
@@ -329,6 +330,12 @@ public final class FieldGuideMapRenderer {
                 graphics.fill(x - 1, y - 4, x + 2, y + 5, 0xFF0C2A30);
                 graphics.fill(x - 3, y, x + 4, y + 1, colour);
                 graphics.fill(x, y - 3, x + 1, y + 4, colour);
+            }
+            case "voice" -> {
+                // A Cantor's voice: a dot with two sound rings.
+                ring(graphics, x, y, 5, colour);
+                ring(graphics, x, y, 3, colour);
+                graphics.fill(x - 1, y - 1, x + 2, y + 2, 0xFF0B2E2A);
             }
             case "warning" -> {
                 graphics.fill(x - 3, y - 4, x + 4, y + 4, 0xFF2A0A08);

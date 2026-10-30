@@ -175,7 +175,7 @@ public final class ChainbackEntity extends NightmareCreature {
         @Override
         public boolean canUse() {
             LivingEntity candidate = chainback.getTarget();
-            if (candidate == null || chainback.level().getGameTime() < readyAt) {
+            if (candidate == null || chainback.silenced() || chainback.level().getGameTime() < readyAt) {
                 return false;
             }
             double distance = chainback.distanceTo(candidate);
@@ -224,7 +224,7 @@ public final class ChainbackEntity extends NightmareCreature {
 
         @Override
         public boolean canContinueToUse() {
-            return windup > 0 && target != null && target.isAlive();
+            return windup > 0 && !chainback.silenced() && target != null && target.isAlive();
         }
     }
 }

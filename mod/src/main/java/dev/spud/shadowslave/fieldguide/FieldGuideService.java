@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.fieldguide;
 
+import dev.spud.shadowslave.ability.CantorVoice;
 import dev.spud.shadowslave.ability.ForewarningService;
 import dev.spud.shadowslave.citadel.CitadelService;
 import dev.spud.shadowslave.creature.CreatureRank;
@@ -360,6 +361,19 @@ public final class FieldGuideService {
         }
     }
 
+    /** Whether every section of a creature kind's page is open (a Cantor can name only what it fully knows). */
+    public static boolean pageComplete(ServerPlayer player, ResourceLocation type) {
+        Optional<CreaturePage> page = FieldGuideContent.get().page(type);
+        Optional<FieldGuideData.Creature> entry = get(player).creature(type);
+        return page.isPresent() && entry.isPresent() && !page.get().sections().isEmpty()
+                && page.get().revealed(entry.get().sightings(), entry.get().kills()).size() == page.get().sections().size();
+    }
+
+    /** Sends the player's guide again on the next status beat, e.g. when a voice appears on their map. */
+    public static void markDirty(ServerPlayer player) {
+        tracking(player).dirty = true;
+    }
+
     public static String creatureName(ResourceLocation type) {
         return FieldGuideContent.get().page(type).map(CreaturePage::name)
                 .orElseGet(() -> BuiltInRegistries.ENTITY_TYPE.get(type).getDescription().getString());
@@ -508,6 +522,11 @@ public final class FieldGuideService {
             }
             pins.add(new FieldGuideStatusPayload.Pin(pin.kind().getSerializedName(), pin.dimension(), pin.x(), pin.z(), pin.label(),
                     detail, active, gateX, gateZ));
+        }
+        // Spoken Self: a Cantor's voice shows on everyone else's map for a moment. Not kept in the guide.
+        for (CantorVoice.Spoken spoken : CantorVoice.heard(player)) {
+            pins.add(new FieldGuideStatusPayload.Pin("voice", spoken.dimension(), spoken.x(), spoken.z(), spoken.name() + "'s voice",
+                    "A Cantor spoke here moments ago", true, 0, 0));
         }
         if (anchor.isPresent() && !anchorShown) {
             pins.add(new FieldGuideStatusPayload.Pin("anchor", realm, anchor.get().getX(), anchor.get().getZ(), "Dream Anchor",
