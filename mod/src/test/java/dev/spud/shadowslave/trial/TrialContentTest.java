@@ -8,7 +8,9 @@ import dev.spud.shadowslave.creature.CreatureRank;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.spell.SpellJudge;
 import dev.spud.shadowslave.trial.content.EchoSite;
+import dev.spud.shadowslave.trial.content.LongNightmareSettings;
 import dev.spud.shadowslave.trial.content.NightmarePack;
+import dev.spud.shadowslave.trial.content.ScarSettings;
 import dev.spud.shadowslave.trial.content.TrialSettings;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +33,30 @@ class TrialContentTest {
         EchoSite site = EchoSite.CODEC.parse(JsonOps.INSTANCE, json("dream_realm/echo_site/ember_watch.json")).getOrThrow();
         assertEquals("shadowslave:last_vigil", site.nightmare().toString());
         assertEquals(2, settings.categoryFor(site.weight()), "the Ember Watch is heavy enough for a Category 2 Seed");
+    }
+
+    @Test
+    void runESettingsAndTheBriarCloisterParse() throws Exception {
+        JsonElement file = json("nightmare_trial/settings.json");
+        ScarSettings scar = ScarSettings.IN_SETTINGS.parse(JsonOps.INSTANCE, file).getOrThrow();
+        assertEquals(ScarSettings.DEFAULT, scar);
+        assertEquals(LongNightmareSettings.DEFAULT, LongNightmareSettings.IN_SETTINGS.parse(JsonOps.INSTANCE, file).getOrThrow());
+        assertEquals(ScarSettings.DEFAULT, ScarSettings.IN_SETTINGS.parse(JsonOps.INSTANCE, JsonParser.parseString("{}")).getOrThrow(),
+                "a settings file without a scar keeps the defaults");
+        TrialSettings settings = TrialSettings.CODEC.parse(JsonOps.INSTANCE, file).getOrThrow();
+        EchoSite site = EchoSite.CODEC.parse(JsonOps.INSTANCE, json("dream_realm/echo_site/briar_cloister.json")).getOrThrow();
+        assertEquals("shadowslave:long_thorn", site.nightmare().toString());
+        assertEquals(3, settings.categoryFor(site.weight()), "the Briar Cloister is heavy enough for a Category 3 Seed");
+        assertTrue(Math.hypot(site.x(), site.z()) > 1048, "it lies past the Thornwake Basin's wobbling border");
+    }
+
+    @Test
+    void aLongRunCountsItsDays() {
+        NightmarePack.LongRun run = new NightmarePack.LongRun(600, "Day {day}.", 5, "");
+        assertEquals(1, run.dayAt(0));
+        assertEquals(1, run.dayAt(600 * 20 - 1));
+        assertEquals(2, run.dayAt(600 * 20));
+        assertEquals(4, run.dayAt(1800 * 20));
     }
 
     @Test

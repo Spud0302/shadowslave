@@ -111,5 +111,13 @@
   "item.shadowslave.bound_echo.binder": "Bound by %s",
   "item.shadowslave.bound_echo.hint": "Use it to take it into your soul. Sneak and use another player to hand it over.",
   "screen.shadowslave.echo_wheel": "Echo Orders",
-  "screen.shadowslave.echo_wheel.hint": "Point at an order and let go, or click it"
+  "screen.shadowslave.echo_wheel.hint": "Point at an order and let go, or click it",
+  "entity.shadowslave.lingering_challenger": "Lingering Challenger",
+  "entity.shadowslave.thorn_matron": "Thorn Matron",
+  "item.shadowslave.thorn_matron_spawn_egg": "Thorn Matron Spawn Egg",
+  "block.shadowslave.black_briar": "Black Briar",
+  "effect.shadowslave.nightmare_scar": "Nightmare Scar",
+  "biome.shadowslave.thornwake_basin": "Thornwake Basin",
+  "death.attack.shadowslave.black_briar": "%1$s was torn apart by black briars",
+  "death.attack.shadowslave.black_briar.player": "%1$s was torn apart by black briars while fighting %2$s"
 }

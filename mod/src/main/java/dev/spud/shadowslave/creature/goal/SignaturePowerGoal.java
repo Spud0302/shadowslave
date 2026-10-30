@@ -7,7 +7,10 @@ import net.minecraft.world.entity.ai.goal.Goal;
 
 import java.util.EnumSet;
 
-/** Devil package: tries the creature's one signature power every few seconds while it has a target. */
+/**
+ * Devil package: tries the creature's one signature power every few seconds
+ * while it has a target. A Devil raised to a Tyrant or higher keeps its power.
+ */
 public final class SignaturePowerGoal extends Goal {
     static final int COOLDOWN_TICKS = 200;
     private final NightmareCreature creature;
@@ -21,7 +24,7 @@ public final class SignaturePowerGoal extends Goal {
     @Override
     public boolean canUse() {
         LivingEntity target = creature.getTarget();
-        return creature.creatureClass() == CreatureClass.DEVIL && target != null && target.isAlive() && !creature.silenced()
+        return creature.creatureClass().ordinal() >= CreatureClass.DEVIL.ordinal() && target != null && target.isAlive() && !creature.silenced()
                 && creature.level().getGameTime() >= readyAt;
     }
 

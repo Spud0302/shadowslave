@@ -42,8 +42,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Unit;
 import net.minecraft.world.BossEvent;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -102,6 +100,13 @@ import java.util.UUID;
  *
  * <p>Inside, challengers are known only by their roles: names are hidden above
  * heads and in chat. PvP follows the server's setting.</p>
+ *
+ * <p>A Long Nightmare (its pack has {@code long}) outlives its challengers'
+ * logouts and server restarts: it is saved in {@link LongNightmareData}, its
+ * clock runs only while someone is awake inside and counts days, a challenger
+ * who logs out stays in it as a {@link LingeringChallenger}, and challenging its
+ * Seed again draws a new cohort into the same run, among whoever still lives
+ * there. Logging back in puts you back inside, where your figure stood.</p>
  */
 public final class TrialService {
     /** Marks the Tyrant of a run. */
@@ -193,7 +198,8 @@ public final class TrialService {
             refuse(player);
             return false;
         }
-        if (waking(seed.id())) {
+        Optional<TrialInstance> running = runningLong(seed.id());
+        if (gathering(seed.id()) || (waking(seed.id()) && running.isEmpty())) {
             player.displayClientMessage(Component.literal("The Seed is already waking.").withStyle(ChatFormatting.GRAY), true);
             return false;
         }
@@ -202,8 +208,14 @@ public final class TrialService {
                 Math.max(1, settings.gatherSeconds() * 20)));
         realm.playSound(null, seed.pos(), SoundEvents.SCULK_SHRIEKER_SHRIEK, SoundSource.HOSTILE, 1.5F, 0.6F);
         for (ServerPlayer near : playersNear(realm, seed.pos(), settings.joinRange() * 4.0)) {
-            spell(near, Component.literal("The Seed of " + site.get().displayName() + " stirs. It wakes in "
-                    + settings.gatherSeconds() + " seconds.").withStyle(ChatFormatting.DARK_PURPLE));
+            if (running.isPresent()) {
+                spell(near, Component.literal("The Seed of " + site.get().displayName() + " stirs. Its Nightmare has not ended: it is day "
+                        + running.get().day() + " inside. It opens in " + settings.gatherSeconds() + " seconds.")
+                        .withStyle(ChatFormatting.DARK_PURPLE));
+            } else {
+                spell(near, Component.literal("The Seed of " + site.get().displayName() + " stirs. It wakes in "
+                        + settings.gatherSeconds() + " seconds.").withStyle(ChatFormatting.DARK_PURPLE));
+            }
             spell(near, Component.literal("Everyone within " + settings.joinRange() + " blocks of it will be drawn into its Nightmare."));
         }
         return true;
@@ -213,6 +225,17 @@ public final class TrialService {
     public static boolean waking(UUID seed) {
         return GATHERINGS.stream().anyMatch(gathering -> gathering.seed.equals(seed))
                 || INSTANCES.values().stream().anyMatch(instance -> instance.seed.filter(seed::equals).isPresent());
+    }
+
+    private static boolean gathering(UUID seed) {
+        return GATHERINGS.stream().anyMatch(gathering -> gathering.seed.equals(seed));
+    }
+
+    /** The Long Nightmare a Seed holds that is still running, which a new cohort can be drawn into. */
+    public static Optional<TrialInstance> runningLong(UUID seed) {
+        return INSTANCES.values().stream()
+                .filter(instance -> instance.isLong() && !instance.over && instance.seed.filter(seed::equals).isPresent())
+                .findFirst();
     }
 
     private static void refuse(ServerPlayer player) {
@@ -291,6 +314,11 @@ public final class TrialService {
             }
             return;
         }
+        Optional<TrialInstance> running = runningLong(gathering.seed);
+        if (running.isPresent()) {
+            join(cohort, running.get());
+            return;
+        }
         begin(cohort, site.get().nightmare(), Optional.of(gathering.site), Optional.of(gathering.seed),
                 TrialContent.get().category(site.get()));
     }
@@ -325,12 +353,51 @@ public final class TrialService {
 
         TrialInstance instance = new TrialInstance(UUID.randomUUID(), nightmareId, pack.get(), site, seed, category, slot, origin);
         INSTANCES.put(instance.id, instance);
+        if (instance.isLong()) {
+            instance.lastWalked = server.overworld().getGameTime();
+            LongNightmareData.get(server).keep(instance);
+        }
         List<NightmarePack.Role> roles = assignRoles(pack.get().roles(), cohort.size(), level.getRandom());
         for (int i = 0; i < cohort.size(); i++) {
             enter(level, instance, cohort.get(i), roles.get(i), i);
         }
         ShadowSlaveMod.LOGGER.info("Nightmare {} began in slot {} with {} challengers", nightmareId, slot, cohort.size());
         return Optional.of(instance);
+    }
+
+    /**
+     * Draws a new cohort into a Long Nightmare that is still running. Those who
+     * were in it before and left unjudged keep the role the Spell gave them, if
+     * the settings say so; the rest are dealt new ones.
+     */
+    public static void join(List<ServerPlayer> cohort, TrialInstance instance) {
+        if (cohort.isEmpty() || instance.over) {
+            return;
+        }
+        MinecraftServer server = cohort.get(0).server;
+        ServerLevel level = TrialWorld.level(server);
+        if (level == null) {
+            return;
+        }
+        int living = instance.inside().size();
+        boolean keepRoles = TrialContent.get().longNightmares().rejoinKeepsRole();
+        List<ServerPlayer> newcomers = cohort.stream()
+                .filter(player -> !keepRoles || instance.member(player.getUUID()).isEmpty())
+                .toList();
+        Iterator<NightmarePack.Role> dealt = assignRoles(instance.pack.roles(), newcomers.size(), level.getRandom()).iterator();
+        for (int i = 0; i < cohort.size(); i++) {
+            ServerPlayer player = cohort.get(i);
+            NightmarePack.Role role = newcomers.contains(player) ? dealt.next() : instance.members.get(player.getUUID()).role;
+            enter(level, instance, player, role, i);
+            if (living > 0) {
+                instance.pack.longRun().ifPresent(run -> spell(player, Component.literal(
+                        run.returning().replace("{count}", Integer.toString(living))).withStyle(ChatFormatting.DARK_PURPLE)));
+            }
+        }
+        instance.lastWalked = server.overworld().getGameTime();
+        LongNightmareData.get(server).setDirty();
+        ShadowSlaveMod.LOGGER.info("{} more challengers entered the Long Nightmare {} on day {}", cohort.size(), instance.nightmareId,
+                instance.day());
     }
 
     private static int freeSlot() {
@@ -404,12 +471,18 @@ public final class TrialService {
         }
         player.refreshDisplayName();
         player.refreshTabListName();
+        if (instance.tyrantBar != null) {
+            instance.tyrantBar.addPlayer(player);
+        }
 
         level.playSound(null, arrival, SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.PLAYERS, 1.0F, 0.5F);
         title(player, Component.literal("[" + role.name() + "]").withStyle(ChatFormatting.LIGHT_PURPLE),
                 Component.literal(instance.pack.displayName()).withStyle(ChatFormatting.GRAY));
         for (String line : instance.pack.opening()) {
             spell(player, Component.literal(line).withStyle(ChatFormatting.DARK_PURPLE));
+        }
+        if (instance.isLong() && instance.day() > 1) {
+            spell(player, Component.literal("It is day " + instance.day() + " of this Nightmare.").withStyle(ChatFormatting.DARK_PURPLE));
         }
         spell(player, Component.literal("You are [" + role.name() + "]."));
         if (!role.description().isEmpty()) {
@@ -458,10 +531,38 @@ public final class TrialService {
         if (instance.over) {
             return;
         }
+        MinecraftServer server = level.getServer();
+        if (instance.isLong()) {
+            long now = server.overworld().getGameTime();
+            if (players(server, instance).isEmpty()) {
+                // Nobody awake inside: the Nightmare holds its breath, and the sleepers in it are safe.
+                if (now - instance.lastWalked > TrialContent.get().longNightmares().abandonAfterDays() * 24000L) {
+                    fade(server, instance, "Nobody has walked this Nightmare for a long time. It fades.");
+                }
+                return;
+            }
+            instance.lastWalked = now;
+        }
         instance.ticks++;
         List<NightmarePack.Event> events = instance.pack.events();
         while (instance.nextEvent < events.size() && instance.ticks >= events.get(instance.nextEvent).at() * 20) {
             fire(level, instance, events.get(instance.nextEvent++));
+        }
+        if (instance.pack.longRun().isPresent()) {
+            NightmarePack.LongRun run = instance.pack.longRun().get();
+            int day = instance.day();
+            if (day > run.fadeAfterDays()) {
+                fade(server, instance, "The Nightmare's days run out. It fades, and nobody conquered it.");
+                return;
+            }
+            if (day > instance.dayAnnounced) {
+                instance.dayAnnounced = day;
+                for (ServerPlayer player : players(server, instance)) {
+                    title(player, Component.literal("Day " + day).withStyle(ChatFormatting.LIGHT_PURPLE),
+                            Component.literal(instance.pack.displayName()).withStyle(ChatFormatting.GRAY));
+                    spell(player, Component.literal(run.dawn().replace("{day}", Integer.toString(day))).withStyle(ChatFormatting.DARK_PURPLE));
+                }
+            }
         }
         instance.pack.tyrant().ifPresent(tyrant -> {
             if (!instance.tyrantSpawned && instance.ticks >= tyrant.at() * 20) {
@@ -480,6 +581,9 @@ public final class TrialService {
                 }
             }
             checkEndings(level, instance);
+            if (instance.isLong() && !instance.over) {
+                LongNightmareData.get(server).setDirty();
+            }
         }
     }
 
@@ -590,9 +694,16 @@ public final class TrialService {
         instance.over = true;
         MinecraftServer server = level.getServer();
         TrialSettings settings = TrialContent.get().settings();
+        instance.endedWith = ending.id();
         for (TrialInstance.Member member : instance.inside()) {
             ServerPlayer player = server.getPlayerList().getPlayer(member.player);
             if (player == null) {
+                if (member.away) {
+                    // Asleep inside when it ended: they shared the ending, and hear the Spell when they return.
+                    member.away = false;
+                    member.inside = false;
+                    member.pending = true;
+                }
                 continue;
             }
             SpellJudge.Run run = run(instance, member);
@@ -642,6 +753,10 @@ public final class TrialService {
             }
         }
         received.forEach((name, count) -> boons.add(count + " × " + name));
+        if (NightmareScar.stacks(player) > 0 && TrialContent.get().scar().clearedHeals()) {
+            int left = NightmareScar.heal(player);
+            boons.add(left == 0 ? "The last scar on your soul has closed" : "A scar on your soul has closed");
+        }
         Optional<TrueNames.Grant> trueName = TrueNames.considerAppraisal(player, appraisal);
         trueName.ifPresent(grant -> TrueNames.revealedByAppraisal(player));
         NightmareAppraisalPayload payload = new NightmareAppraisalPayload(instance.pack.displayName(), instance.pack.setting(),
@@ -707,7 +822,8 @@ public final class TrialService {
             }
             return;
         }
-        if (!(event.getEntity().level() instanceof ServerLevel level) || !TrialWorld.is(level)) {
+        if (!(event.getEntity().level() instanceof ServerLevel level) || !TrialWorld.is(level)
+                || event.getEntity() instanceof LingeringChallenger) {
             return;
         }
         Optional<TrialInstance> instance = instanceAt(event.getEntity().blockPosition());
@@ -801,10 +917,18 @@ public final class TrialService {
         }
         SpellAppraisal.failed(player, instance.get().pack, TrialContent.get().settings());
         MinecraftServer server = player.server;
+        penalties(player);
+        for (ServerPlayer other : players(server, instance.get())) {
+            spell(other, Component.literal(role + " has fallen.").withStyle(ChatFormatting.DARK_RED));
+        }
+        collapseIfEmpty(server, instance.get());
+    }
+
+    /** The costs the server options add to a death in a Nightmare, on top of the revert and the lockout. */
+    private static void penalties(ServerPlayer player) {
+        MinecraftServer server = player.server;
         if (TrialRules.scar(server)) {
-            player.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 20 * 60 * 20, 0));
-            player.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 20 * 60 * 20, 0));
-            spell(player, Component.literal("The Nightmare has left a scar on your soul.").withStyle(ChatFormatting.GRAY));
+            spell(player, NightmareScar.describe(NightmareScar.cut(player)));
         }
         if ((TrialRules.hardcore(server) || TrialRules.trueDeath(server)) && RankLoss.toDormant(player)) {
             spell(player, Component.literal("Your soul has fallen back to Dormant.").withStyle(ChatFormatting.DARK_RED));
@@ -812,10 +936,6 @@ public final class TrialService {
                 DreamCrossing.wake(player, DreamCrossing.Reason.COMMAND);
             }
         }
-        for (ServerPlayer other : players(server, instance.get())) {
-            spell(other, Component.literal(role + " has fallen.").withStyle(ChatFormatting.DARK_RED));
-        }
-        collapseIfEmpty(server, instance.get());
     }
 
     /**
@@ -894,12 +1014,20 @@ public final class TrialService {
             return;
         }
         TrialInstance.Member member = instance.get().members.get(player.getUUID());
-        if (member != null) {
-            member.inside = false;
-        }
         BY_PLAYER.remove(player.getUUID());
         if (instance.get().tyrantBar != null) {
             instance.get().tyrantBar.removePlayer(player);
+        }
+        if (member != null && instance.get().isLong() && !instance.get().over && member.inside) {
+            // A Long Nightmare keeps you: a figure of you lingers where you stood until you return.
+            member.away = true;
+            member.lingerer = LingeringChallenger.leave(player.serverLevel(), player, instance.get(), member,
+                    TrialContent.get().longNightmares().lingererHealth()).getUUID();
+            LongNightmareData.get(player.server).setDirty();
+            return;
+        }
+        if (member != null) {
+            member.inside = false;
         }
         collapseIfEmpty(player.server, instance.get());
     }
@@ -912,6 +1040,22 @@ public final class TrialService {
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player) || inside(player)) {
             return;
+        }
+        Optional<TrialInstance> longRun = LongNightmareData.get(player.server).runOf(player.getUUID());
+        if (longRun.isPresent()) {
+            TrialInstance.Member member = longRun.get().members.get(player.getUUID());
+            if (member.pending) {
+                appraiseOnReturn(player, longRun.get(), member);
+                return;
+            }
+            if (member.fellAway) {
+                fellWhileAway(player, longRun.get(), member);
+                return;
+            }
+            if (member.inside && !longRun.get().over && INSTANCES.containsKey(longRun.get().id)) {
+                wakeInside(player, longRun.get(), member);
+                return;
+            }
         }
         TrialData data = TrialData.get(player.server);
         Optional<TrialData.Entry> entry = data.find(player.getUUID()).flatMap(TrialData.Record::active);
@@ -928,6 +1072,171 @@ public final class TrialService {
                 .withStyle(ChatFormatting.GRAY));
     }
 
+    // ---- Long Nightmares ------------------------------------------------------------------------------------------
+
+    /** A challenger who slept inside a Long Nightmare comes back to it, where their figure stood. */
+    private static void wakeInside(ServerPlayer player, TrialInstance instance, TrialInstance.Member member) {
+        ServerLevel level = TrialWorld.level(player.server);
+        member.away = false;
+        BY_PLAYER.put(player.getUUID(), instance.id);
+        joinTeam(player, instance);
+        if (level != null && member.lingerer != null && level.getEntity(member.lingerer) instanceof LingeringChallenger figure) {
+            move(player, level, figure.position(), figure.getYRot(), figure.getXRot());
+            player.setHealth(Math.max(1.0F, Math.min(player.getMaxHealth(),
+                    figure.getHealth() / TrialContent.get().longNightmares().lingererHealth())));
+            figure.discard();
+        }
+        member.lingerer = null;
+        if (instance.tyrantBar != null) {
+            instance.tyrantBar.addPlayer(player);
+        }
+        player.refreshDisplayName();
+        player.refreshTabListName();
+        instance.lastWalked = player.server.overworld().getGameTime();
+        LongNightmareData.get(player.server).setDirty();
+        title(player, Component.literal("[" + member.role.name() + "]").withStyle(ChatFormatting.LIGHT_PURPLE),
+                Component.literal(instance.pack.displayName() + ", day " + instance.day()).withStyle(ChatFormatting.GRAY));
+        spell(player, Component.literal("The Nightmare kept you. You are still [" + member.role.name() + "], and it is day "
+                + instance.day() + ".").withStyle(ChatFormatting.DARK_PURPLE));
+        long others = instance.inside().stream().filter(other -> other != member).count();
+        if (others > 0) {
+            spell(player, Component.literal(others + (others == 1 ? " other still lives" : " others still live") + " in here."));
+        }
+    }
+
+    /** A challenger whose lingering figure was slain while they were away has fallen, and learns it now. */
+    private static void fellWhileAway(ServerPlayer player, TrialInstance instance, TrialInstance.Member member) {
+        member.fellAway = false;
+        TrialData data = TrialData.get(player.server);
+        Optional<TrialData.Entry> entry = data.find(player.getUUID()).flatMap(TrialData.Record::active);
+        if (entry.isPresent()) {
+            PlayerSnapshot.restore(player, entry.get().snapshot());
+            leaveTeam(player, entry.get().team());
+            goHome(player, entry.get());
+        }
+        data.end(player.getUUID());
+        player.refreshDisplayName();
+        player.refreshTabListName();
+        SpellRecorder.failed(player, instance.pack.displayName());
+        spell(player, Component.literal("While you slept, the Nightmare found you. You died in it.").withStyle(ChatFormatting.DARK_RED));
+        spell(player, Component.literal("You wake as you were when you entered it. Everything you gained inside is lost."));
+        if (instance.seed.isPresent()) {
+            spell(player, Component.literal("[This Nightmare has judged you.]").withStyle(ChatFormatting.DARK_RED));
+        }
+        SpellAppraisal.failed(player, instance.pack, TrialContent.get().settings());
+        penalties(player);
+        settle(player.server, instance);
+    }
+
+    /** The Nightmare ended while this challenger slept inside it: the Spell appraises them as they return. */
+    private static void appraiseOnReturn(ServerPlayer player, TrialInstance instance, TrialInstance.Member member) {
+        member.pending = false;
+        Optional<NightmarePack.Ending> ending = instance.pack.endings().stream()
+                .filter(candidate -> candidate.id().equals(instance.endedWith)).findFirst();
+        if (ending.isEmpty()) {
+            // The pack changed under it; put them back unjudged.
+            member.inside = true;
+            putBack(player, instance);
+            settle(player.server, instance);
+            return;
+        }
+        TrialSettings settings = TrialContent.get().settings();
+        spell(player, Component.literal("While you slept, " + instance.pack.displayName() + " came to its end.")
+                .withStyle(ChatFormatting.DARK_PURPLE));
+        finish(player, instance, member, ending.get(), SpellJudge.judge(ending.get(), run(instance, member), settings), settings);
+        settle(player.server, instance);
+    }
+
+    /** Whether a lingering figure still holds a place for someone. */
+    static boolean lingers(LingeringChallenger figure, MinecraftServer server) {
+        Optional<UUID> owner = figure.owner();
+        Optional<TrialInstance> instance = figure.run().map(INSTANCES::get);
+        return owner.isPresent() && instance.isPresent() && !instance.get().over
+                && instance.get().member(owner.get())
+                .filter(member -> member.away && member.inside && figure.getUUID().equals(member.lingerer)).isPresent();
+    }
+
+    /** A lingering figure was slain: its challenger has fallen while away. */
+    static void lingererDied(LingeringChallenger figure, MinecraftServer server) {
+        if (!lingers(figure, server)) {
+            return;
+        }
+        TrialInstance instance = INSTANCES.get(figure.run().get());
+        TrialInstance.Member member = instance.members.get(figure.owner().get());
+        member.away = false;
+        member.inside = false;
+        member.lingerer = null;
+        member.fellAway = true;
+        instance.falls++;
+        instance.seed.ifPresent(seed -> TrialData.get(server).judge(member.player, seed));
+        for (ServerPlayer other : players(server, instance)) {
+            spell(other, Component.literal("[" + member.role.name() + "] has fallen.").withStyle(ChatFormatting.DARK_RED));
+        }
+        LongNightmareData.get(server).setDirty();
+        collapseIfEmpty(server, instance);
+    }
+
+    /**
+     * A Long Nightmare fades without an ending: its days ran out, or nobody
+     * walked it for too long. Everyone awake inside is put back unjudged; the
+     * sleepers are put back when they return.
+     */
+    static void fade(MinecraftServer server, TrialInstance instance, String line) {
+        for (TrialInstance.Member member : instance.inside()) {
+            ServerPlayer player = server.getPlayerList().getPlayer(member.player);
+            if (player != null && !member.away) {
+                interrupt(player, line);
+            } else {
+                member.inside = false;
+                member.away = false;
+            }
+        }
+        ShadowSlaveMod.LOGGER.info("The Long Nightmare {} faded on day {}", instance.nightmareId, instance.day());
+        collapse(server, instance);
+    }
+
+    /** Forgets a finished Long Nightmare once nobody is owed anything from it. */
+    private static void settle(MinecraftServer server, TrialInstance instance) {
+        if (instance.over && instance.members.values().stream().noneMatch(member -> member.pending || member.fellAway)) {
+            LongNightmareData.get(server).forget(instance);
+        } else {
+            LongNightmareData.get(server).setDirty();
+        }
+    }
+
+    /** Brings the Long Nightmares saved with the world back to life. */
+    public static void onServerStarted(net.neoforged.neoforge.event.server.ServerStartedEvent event) {
+        MinecraftServer server = event.getServer();
+        LongNightmareData data = LongNightmareData.get(server);
+        for (TrialInstance instance : data.runs()) {
+            if (instance.over) {
+                continue;
+            }
+            for (TrialInstance.Member member : instance.members.values()) {
+                if (member.inside) {
+                    // Everyone inside is asleep until they log in again, whether or not they got to leave a figure.
+                    member.away = true;
+                }
+            }
+            if (instance.tyrantSpawned && !instance.tyrantSlain && instance.pack.tyrant().isPresent()) {
+                instance.tyrantBar = new ServerBossEvent(Component.literal(instance.pack.tyrant().get().name()),
+                        BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.NOTCHED_10);
+            }
+            INSTANCES.put(instance.id, instance);
+        }
+        if (!INSTANCES.isEmpty()) {
+            ShadowSlaveMod.LOGGER.info("{} Long Nightmares carry on", INSTANCES.size());
+        }
+    }
+
+    /** Runs live only as long as their server; a Long Nightmare comes back from its saved data. */
+    public static void onServerStopped(net.neoforged.neoforge.event.server.ServerStoppedEvent event) {
+        INSTANCES.clear();
+        BY_PLAYER.clear();
+        GATHERINGS.clear();
+        MOVING.clear();
+    }
+
     /** Leaving the Nightmare dimension any other way (a command, a portal) pulls you out. */
     public static void onChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer player && !MOVING.contains(player.getUUID()) && inside(player)
@@ -940,8 +1249,11 @@ public final class TrialService {
     public static void abort(MinecraftServer server, TrialInstance instance) {
         for (TrialInstance.Member member : instance.inside()) {
             ServerPlayer player = server.getPlayerList().getPlayer(member.player);
-            if (player != null) {
+            if (player != null && !member.away) {
                 interrupt(player, "The Nightmare dissolves around you.");
+            } else {
+                member.inside = false;
+                member.away = false;
             }
         }
         collapse(server, instance);
@@ -961,6 +1273,9 @@ public final class TrialService {
 
     private static void teardown(MinecraftServer server, TrialInstance instance) {
         INSTANCES.remove(instance.id);
+        if (instance.isLong()) {
+            settle(server, instance);
+        }
         instance.members.keySet().forEach(player -> BY_PLAYER.remove(player, instance.id));
         if (instance.tyrantBar != null) {
             instance.tyrantBar.removeAllPlayers();
@@ -1027,11 +1342,11 @@ public final class TrialService {
 
     // ---- helpers -------------------------------------------------------------------------------------------------
 
-    /** The challengers of a run who are online and inside. */
+    /** The challengers of a run who are online, inside and awake (not asleep in a Long Nightmare). */
     static List<ServerPlayer> players(MinecraftServer server, TrialInstance instance) {
         List<ServerPlayer> players = new ArrayList<>();
         for (TrialInstance.Member member : instance.inside()) {
-            ServerPlayer player = server.getPlayerList().getPlayer(member.player);
+            ServerPlayer player = member.away ? null : server.getPlayerList().getPlayer(member.player);
             if (player != null) {
                 players.add(player);
             }

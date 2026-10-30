@@ -45,6 +45,8 @@ public final class ModItems {
             properties -> new DeferredSpawnEggItem(NightmareCreatureEntities.HOLLOW_MIMIC, 0xd9d2c3, 0x141218, properties));
     public static final DeferredItem<DeferredSpawnEggItem> ASHEN_TYRANT_SPAWN_EGG = ITEMS.registerItem("ashen_tyrant_spawn_egg",
             properties -> new DeferredSpawnEggItem(NightmareCreatureEntities.ASHEN_TYRANT, 0x26201e, 0xff7a2a, properties));
+    public static final DeferredItem<DeferredSpawnEggItem> THORN_MATRON_SPAWN_EGG = ITEMS.registerItem("thorn_matron_spawn_egg",
+            properties -> new DeferredSpawnEggItem(NightmareCreatureEntities.THORN_MATRON, 0x24291f, 0xd6243a, properties));
 
     private ModItems() {
     }
@@ -83,6 +85,7 @@ public final class ModItems {
             event.accept(CHAINBACK_SPAWN_EGG);
             event.accept(HOLLOW_MIMIC_SPAWN_EGG);
             event.accept(ASHEN_TYRANT_SPAWN_EGG);
+            event.accept(THORN_MATRON_SPAWN_EGG);
         }
     }
 }

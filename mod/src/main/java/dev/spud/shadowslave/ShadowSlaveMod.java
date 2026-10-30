@@ -112,6 +112,7 @@ public final class ShadowSlaveMod {
         dev.spud.shadowslave.echoes.EchoesRegistry.register(modEventBus);
         SmithingRegistry.register(modEventBus);
         DreamRealmRegistry.register(modEventBus);
+        dev.spud.shadowslave.trial.TrialRegistry.register(modEventBus);
         FieldGuideRegistry.register(modEventBus);
         CitadelRegistry.register(modEventBus);
         SpellRegistry.register(modEventBus);
@@ -269,9 +270,12 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onChangedDimension);
         NeoForge.EVENT_BUS.addListener(SeedService::onServerTick);
+        NeoForge.EVENT_BUS.addListener(dev.spud.shadowslave.dreamrealm.DreamRealmCreatures::onServerTick);
         NeoForge.EVENT_BUS.addListener(TrialContentLoader::onAddReloadListeners);
         NeoForge.EVENT_BUS.addListener(TrialCommands::register);
         NeoForge.EVENT_BUS.addListener(TrialService::onServerTick);
+        NeoForge.EVENT_BUS.addListener(TrialService::onServerStarted);
+        NeoForge.EVENT_BUS.addListener(TrialService::onServerStopped);
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, TrialService::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(TrialService::onPlayerLoggedOut);
         NeoForge.EVENT_BUS.addListener(TrialService::onChangedDimension);

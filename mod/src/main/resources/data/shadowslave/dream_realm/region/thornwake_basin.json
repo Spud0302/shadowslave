@@ -1,0 +1,41 @@
+{
+  "display_name": "The Thornwake Basin",
+  "min_distance": 1000,
+  "seed_forecast": {
+    "2": 25,
+    "3": 75
+  },
+  "cleanse_loot": "shadowslave:dream_realm/seed_cleanse/thornwake_basin",
+  "danger": "fallen",
+  "arrival": "Black briars choke a sunken basin. Something red blooms in the dark between them.",
+  "creatures": [
+    {
+      "entity": "shadowslave:ash_burrower",
+      "rank": "awakened",
+      "class": "beast",
+      "weight": 4,
+      "min": 2,
+      "max": 3
+    },
+    {
+      "entity": "shadowslave:chainback",
+      "rank": "awakened",
+      "class": "monster",
+      "weight": 3,
+      "min": 1,
+      "max": 2
+    },
+    {
+      "entity": "shadowslave:hollow_mimic",
+      "rank": "awakened",
+      "class": "demon",
+      "weight": 2
+    },
+    {
+      "entity": "shadowslave:thorn_matron",
+      "rank": "fallen",
+      "class": "devil",
+      "weight": 1
+    }
+  ]
+}

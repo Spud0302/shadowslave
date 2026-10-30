@@ -34,6 +34,43 @@ class DreamRealmContentTest {
     }
 
     @Test
+    void theThornwakeBasinIsDeeperAndTheDimensionAgrees() throws Exception {
+        DreamRegion basin = DreamRegion.CODEC.parse(JsonOps.INSTANCE, json("dream_realm/region/thornwake_basin.json")).getOrThrow();
+        assertEquals(1000, basin.minDistance());
+        assertTrue(basin.seedForecast().odds().getOrDefault(3, 0) > 50, "most of the basin's Seeds are Category 3");
+        assertTrue(basin.creatures().stream().anyMatch(roamer -> roamer.entity().getPath().equals("thorn_matron")),
+                "the Thorn Matron roams it");
+        assertTrue(DreamRegion.CODEC.parse(JsonOps.INSTANCE, json("dream_realm/region/ashen_expanse.json")).getOrThrow()
+                .creatures().isEmpty(), "the Ashen Expanse stays quiet");
+        // The biome rings in the dimension must start where the regions do, or the ground and the Seeds disagree.
+        var rings = json("dimension/dream_realm.json").getAsJsonObject().getAsJsonObject("generator")
+                .getAsJsonObject("biome_source").getAsJsonArray("rings");
+        boolean found = false;
+        for (var ring : rings) {
+            var object = ring.getAsJsonObject();
+            if (object.get("biome").getAsString().equals("shadowslave:thornwake_basin")) {
+                assertEquals(basin.minDistance(), object.get("min_distance").getAsInt());
+                found = true;
+            }
+        }
+        assertTrue(found, "the basin has a biome ring");
+        RoamingSettings roaming = RoamingSettings.CODEC.parse(JsonOps.INSTANCE, json("dream_realm/roaming.json")).getOrThrow();
+        assertTrue(roaming.minDistance() < roaming.maxDistance());
+    }
+
+    @Test
+    void regionBordersWobbleButStayClose() {
+        for (int angle = 0; angle < 360; angle += 7) {
+            double radians = Math.toRadians(angle);
+            int x = (int) Math.round(Math.cos(radians) * 1000);
+            int z = (int) Math.round(Math.sin(radians) * 1000);
+            double distance = DreamRealm.regionDistance(x, z);
+            assertTrue(Math.abs(distance - Math.hypot(x, z)) <= 30.01, "the border wobbles at most 3% out there");
+        }
+        assertEquals(0.0, DreamRealm.regionDistance(0, 0), 0.001);
+    }
+
+    @Test
     void badForecastsAreRejected() {
         var json = JsonParser.parseString("{\"display_name\":\"x\",\"seed_forecast\":{\"1\":50,\"2\":40},\"cleanse_loot\":\"a:b\"}");
         assertTrue(DreamRegion.CODEC.parse(JsonOps.INSTANCE, json).error().isPresent(), "odds must add to 100");

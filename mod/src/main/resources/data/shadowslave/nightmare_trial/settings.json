@@ -21,5 +21,7 @@
     {"name": "Glorious", "min": 170},
     {"name": "Impossible", "min": 300}
   ],
-  "failed_grade": "Failed"
+  "failed_grade": "Failed",
+  "scar": {"minutes": 30, "max_stacks": 3, "health_per_stack": 2.0, "damage_per_stack": 0.05, "cleared_heals": true},
+  "long_nightmares": {"abandon_after_days": 30, "lingerer_health": 1.0, "rejoin_keeps_role": true}
 }

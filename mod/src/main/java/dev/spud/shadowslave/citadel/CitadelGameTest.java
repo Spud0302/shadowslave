@@ -35,7 +35,8 @@ public final class CitadelGameTest {
     @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room", timeoutTicks = 200)
     public static void aCitadelWakesHeldByAGuardianOfItsRegionsRank(GameTestHelper helper) {
         ServerLevel realm = realm(helper);
-        BlockPos centre = new BlockPos(4000, 100, 4000);
+        // Inside the Ashen Expanse: past 1000 blocks out the Thornwake Basin begins, a Fallen region.
+        BlockPos centre = new BlockPos(-700, 100, -300);
         CitadelData.Citadel citadel = raise(realm, centre);
         ready(helper, realm, centre, () -> {
             helper.assertTrue(realm.getBlockState(citadel.gateway()).is(CitadelRegistry.GATEWAY.get()), "the Gateway stands on the dais");

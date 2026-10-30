@@ -1,0 +1,10 @@
+{
+ "variants": {
+  "withering=false": {
+   "model": "shadowslave:block/black_briar"
+  },
+  "withering=true": {
+   "model": "shadowslave:block/black_briar"
+  }
+ }
+}

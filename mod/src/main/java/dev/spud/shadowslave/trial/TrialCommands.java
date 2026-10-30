@@ -100,9 +100,18 @@ public final class TrialCommands {
         TrialData.Record record = TrialData.get(source.getServer()).record(player.getUUID());
         Optional<TrialInstance> instance = TrialService.instanceOf(player);
         source.sendSuccess(() -> Component.literal(instance
-                .map(found -> "In the Nightmare " + found.pack().displayName() + ", " + found.ticks() / 20 + " s in, as ["
+                .map(found -> "In the Nightmare " + found.pack().displayName() + ", "
+                        + (found.isLong() ? "day " + found.day() : found.ticks() / 20 + " s in") + ", as ["
                         + found.member(player.getUUID()).map(member -> member.role().name()).orElse("?") + "].")
                 .orElse("Not in a Nightmare.")), false);
+        if (instance.isEmpty()) {
+            LongNightmareData.get(source.getServer()).runOf(player.getUUID()).ifPresent(run -> source.sendSuccess(() -> Component.literal(
+                    "Asleep inside the Long Nightmare " + run.pack().displayName() + ", day " + run.day() + "."), false));
+        }
+        int scars = NightmareScar.stacks(player);
+        if (scars > 0) {
+            source.sendSuccess(() -> Component.literal("Nightmare Scars: " + scars), false);
+        }
         for (int category = 1; category <= 5; category++) {
             int clears = record.clears(category);
             if (clears > 0) {

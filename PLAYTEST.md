@@ -481,7 +481,7 @@ Dream Realm, then `/shadowslave trial site shadowslave:ember_watch visit` and
    shows the requirement).
 
 Server options (game rules, all off): `shadowslaveNightmareScar` (a death
-inside leaves 20 minutes of weakness and mining fatigue),
+inside leaves a Nightmare Scar, see "Long Nightmares" below),
 `shadowslaveNightmareTrueDeath` (a death inside costs a rank; today that means
 Awakened back to Dormant), `shadowslaveNightmareHardcore` (a death inside drops
 you all the way back to Dormant) and `shadowslaveFirstNightmare` (Awakening also needs a cleared
@@ -494,6 +494,59 @@ Content is data: Nightmares in `data/shadowslave/nightmare_trial/nightmare/`,
 echo sites in `data/shadowslave/dream_realm/echo_site/`, tuning (weights to
 Category, gather time, kill points, grades) in
 `data/shadowslave/nightmare_trial/settings.json`, boons as `gift` loot tables.
+
+### Long Nightmares, the Thornwake Basin and the Nightmare Scar
+
+Run E adds a deeper region, a Category 3 Nightmare that lasts for days, and the
+Scar. Quick start: Awaken, cross into the Dream Realm, then
+`/shadowslave trial site shadowslave:briar_cloister visit` and `... grow`, or
+`/shadowslave trial start shadowslave:long_thorn 3` to skip the walk.
+
+1. **The Thornwake Basin.** About 1000 blocks from the Dream Realm's centre
+   the ash gives way to a sunken basin of mud and black briars. Its border
+   wobbles a little, so it is not a perfect circle. Its Seeds are mostly
+   Category 3 and things of the Fallen rank walk there: Ash Burrowers,
+   Chainbacks, Hollow Mimics and now and then a Thorn Matron roam in from the
+   dark. A Warding Candle keeps roamers from appearing near it, and
+   `/gamerule shadowslaveDreamCreatures false` turns roaming off. The Ashen
+   Expanse stays as quiet as it was. Worlds made before this keep the chunks
+   they already generated; the basin appears only in new ground.
+2. **Black briars.** Walking through them hurts. Axes and swords cut them
+   fast, fire burns them, and they drop nothing.
+3. **The Thorn Matron.** A Fallen Devil. When she sees you she raises her arms
+   and a ring of briars grows around you two blocks high (those wither away
+   after about 15 seconds). She takes double damage from fire and her lash
+   slows you.
+4. **The Briar Cloister and The Long Thorn.** The cloister ruin sits in the
+   basin (around x 900, z 640) with its Seed in the cleared heart of the old
+   garden. Its Nightmare is The Long Thorn: the cloister in the season the
+   briars came. Roles: Cloister Novice, Thornwarden, Brazier Keeper, Penitent
+   Captive. Endings: light the three braziers (from day 2), slay the Thorn
+   Mother in the garden, or outlast three days.
+5. **Long Nightmares.** The Long Thorn is a Long Nightmare. Its days are ten
+   minutes each, with a "Day N" title at each dawn, and it fades after five
+   days without an ending. Things to try:
+   - Log out inside. A figure of you, named with your role, stays where you
+     stood. Log back in and you wake in its place, at its health.
+   - Have a friend kill your figure while you are away (or let a creature do
+     it). When you log in, the Spell tells you that you died in your sleep and
+     you are reverted and judged as if you had died.
+   - While nobody is awake inside, the Nightmare's clock stops.
+   - Let a second group use the same Seed while the first is still inside. They
+     join the same run on whatever day it is. Someone who left and comes back
+     keeps their old role.
+   - Finish it while a cohort-mate is logged out. They are appraised when
+     they next log in.
+   - Restart the server mid-run. The run, its clock and its sleepers survive.
+6. **The Nightmare Scar** (still off by default: `/gamerule
+   shadowslaveNightmareScar true`). A death inside a Nightmare leaves a scar:
+   minus one heart and 5% damage per scar, up to three, closing after 30
+   minutes. Conquering a Nightmare closes one early.
+
+Tuning lives in `data/shadowslave/nightmare_trial/settings.json` (`scar` and
+`long_nightmares` blocks), the pack's own `long` block (day length, fade,
+dawn line), `data/shadowslave/dream_realm/roaming.json` and each region's
+`creatures` list.
 
 ### Nightmare Natures: Masque and Unbroken
 

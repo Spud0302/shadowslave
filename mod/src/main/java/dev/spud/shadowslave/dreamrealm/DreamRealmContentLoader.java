@@ -26,6 +26,7 @@ import java.util.Optional;
 public final class DreamRealmContentLoader extends SimplePreparableReloadListener<DreamRealmContent> {
     private static final FileToIdConverter REGIONS = FileToIdConverter.json("dream_realm/region");
     private static final ResourceLocation SEEDS = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "dream_realm/seeds.json");
+    private static final ResourceLocation ROAMING = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "dream_realm/roaming.json");
 
     public static void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(new DreamRealmContentLoader());
@@ -39,7 +40,10 @@ public final class DreamRealmContentLoader extends SimplePreparableReloadListene
         DreamSeedSettings seeds = manager.getResource(SEEDS)
                 .flatMap(resource -> parse(SEEDS, resource, DreamSeedSettings.CODEC))
                 .orElse(DreamSeedSettings.DEFAULT);
-        return new DreamRealmContent(seeds, regions);
+        RoamingSettings roaming = manager.getResource(ROAMING)
+                .flatMap(resource -> parse(ROAMING, resource, RoamingSettings.CODEC))
+                .orElse(RoamingSettings.DEFAULT);
+        return new DreamRealmContent(seeds, roaming, regions);
     }
 
     @Override

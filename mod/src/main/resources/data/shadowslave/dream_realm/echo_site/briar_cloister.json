@@ -1,0 +1,11 @@
+{
+  "display_name": "the Briar Cloister",
+  "x": 900,
+  "z": 640,
+  "weight": 75,
+  "nightmare": "shadowslave:long_thorn",
+  "ruin": "shadowslave:nightmare/briar_cloister_ruin",
+  "seed_offset_x": 0,
+  "seed_offset_z": 0,
+  "lore": "Broken cloister walls stand in a sea of black briars. Long ago someone kept a garden here, and the garden won."
+}

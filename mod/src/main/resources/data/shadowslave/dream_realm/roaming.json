@@ -1,0 +1,9 @@
+{
+  "interval": 200,
+  "chance": 0.35,
+  "cap": 6,
+  "cap_range": 64,
+  "min_distance": 24,
+  "max_distance": 48,
+  "candle_ward": 32
+}

@@ -27,6 +27,9 @@ public final class DreamRealmRules {
     /** Whether an Awakened dreamer's body stays asleep in the waking world, where it can be hurt. */
     public static final GameRules.Key<GameRules.BooleanValue> SLEEPING_BODY = GameRules.register(
             "shadowslaveSleepingBody", GameRules.Category.PLAYER, GameRules.BooleanValue.create(true));
+    /** Whether Nightmare Creatures roam the Dream Realm's regions that list them, around dreamers. */
+    public static final GameRules.Key<GameRules.BooleanValue> CREATURES = GameRules.register(
+            "shadowslaveDreamCreatures", GameRules.Category.SPAWNING, GameRules.BooleanValue.create(true));
     /** How many Overworld blocks one Dream Realm block stands for, like the Nether's 8. */
     public static final GameRules.Key<GameRules.IntegerValue> RATIO = GameRules.register(
             "shadowslaveDreamRatio", GameRules.Category.MISC, GameRules.IntegerValue.create(8));
@@ -47,6 +50,10 @@ public final class DreamRealmRules {
 
     public static boolean seeds(MinecraftServer server) {
         return rules(server).getBoolean(SEEDS);
+    }
+
+    public static boolean creatures(MinecraftServer server) {
+        return rules(server).getBoolean(CREATURES);
     }
 
     public static boolean seedsOptIn(MinecraftServer server) {
