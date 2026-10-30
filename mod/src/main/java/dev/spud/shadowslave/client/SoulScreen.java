@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.network.payload.MemorySummonPayload;
+import dev.spud.shadowslave.network.payload.TrueNameActionPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshot;
 import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
 import net.minecraft.client.gui.GuiGraphics;
@@ -30,6 +31,13 @@ public final class SoulScreen extends Screen {
     private int top;
     private int right;
     private int bottom;
+    /** Clickable lines laid out by the last render, such as the Name page's known names. */
+    private final List<Link> links = new java.util.ArrayList<>();
+    private int hoverX;
+    private int hoverY;
+
+    private record Link(int x0, int y0, int x1, int y1, String action) {
+    }
 
     public SoulScreen(SoulSnapshot snapshot) {
         super(Component.translatable("screen.shadowslave.soul"));
@@ -61,7 +69,9 @@ public final class SoulScreen extends Screen {
         long now = this.minecraft.level == null ? 0 : this.minecraft.level.getGameTime();
         List<SoulPages.Entry> entries = SoulPages.page(tab, snapshot, ClientAbilityState.status(),
                 ClientAbilityState.essence(now, partialTick), ClientKeyMappings.abilityKeyNames(),
-                ClientCoreState.status(), ClientWeavingState.status(), SoulScreen::itemName);
+                ClientCoreState.status(), ClientWeavingState.status(), SoulScreen::itemName, ClientTrueNameState.latest(), now);
+        hoverX = mouseX;
+        hoverY = mouseY;
         renderEntries(graphics, entries);
         if (tab == SoulPages.Tab.MEMORIES) {
             renderSea(graphics, mouseX, mouseY, now + partialTick);
@@ -180,6 +190,7 @@ public final class SoulScreen extends Screen {
     }
 
     private void renderEntries(GuiGraphics graphics, List<SoulPages.Entry> entries) {
+        links.clear();
         int centre = (left + right) / 2;
         int textWidth = right - left - 32;
         int y = top + TAB_HEIGHT + 12;
@@ -242,6 +253,16 @@ public final class SoulScreen extends Screen {
                     graphics.drawString(this.font, entry.value(), barRight + 8, y, entry.colour(), false);
                     y += 16;
                 }
+                case LINK -> {
+                    int width = this.font.width(entry.text());
+                    links.add(new Link(centre - width / 2 - 4, y - 2, centre + width / 2 + 4, y + 10, entry.value()));
+                    boolean hovered = hoverX >= centre - width / 2 - 4 && hoverX <= centre + width / 2 + 4 && hoverY >= y - 2 && hoverY < y + 10;
+                    if (hovered) {
+                        graphics.fill(centre - width / 2 - 4, y - 2, centre + width / 2 + 4, y + 10, SpellStyle.withAlpha(entry.colour(), 0.18F));
+                    }
+                    graphics.drawCenteredString(this.font, entry.text(), centre, y, entry.colour());
+                    y += 14;
+                }
                 case SPACER -> y += 6;
             }
         }
@@ -256,6 +277,17 @@ public final class SoulScreen extends Screen {
                 if (Math.abs(mouseX - places[i][0]) <= 11 && Math.abs(mouseY - places[i][1]) <= 11) {
                     net.neoforged.neoforge.network.PacketDistributor.sendToServer(new MemorySummonPayload(i));
                     this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_CHIME, 1.0F));
+                    return true;
+                }
+            }
+        }
+        if (tab == SoulPages.Tab.NAME && button == 0) {
+            for (Link link : links) {
+                if (mouseX >= link.x0() && mouseX <= link.x1() && mouseY >= link.y0() && mouseY < link.y1()
+                        && link.action().startsWith(SoulPages.SENSE)) {
+                    net.neoforged.neoforge.network.PacketDistributor.sendToServer(new TrueNameActionPayload(
+                            TrueNameActionPayload.SENSE, link.action().substring(SoulPages.SENSE.length())));
+                    this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_RESONATE, 0.8F));
                     return true;
                 }
             }
@@ -277,6 +309,11 @@ public final class SoulScreen extends Screen {
         if (keyCode == GLFW.GLFW_KEY_TAB || keyCode == GLFW.GLFW_KEY_RIGHT || keyCode == GLFW.GLFW_KEY_LEFT) {
             boolean back = keyCode == GLFW.GLFW_KEY_LEFT || (modifiers & GLFW.GLFW_MOD_SHIFT) != 0;
             select(TABS[Math.floorMod(tab.ordinal() + (back ? -1 : 1), TABS.length)]);
+            return true;
+        }
+        if (tab == SoulPages.Tab.NAME && keyCode == GLFW.GLFW_KEY_H && ClientTrueNameState.latest().named()) {
+            net.neoforged.neoforge.network.PacketDistributor.sendToServer(new TrueNameActionPayload(TrueNameActionPayload.TOGGLE_SHOWN, ""));
+            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 0.7F));
             return true;
         }
         if (ClientKeyMappings.OPEN_SOUL.matches(keyCode, scanCode)) {

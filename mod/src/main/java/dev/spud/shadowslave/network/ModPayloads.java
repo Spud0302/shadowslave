@@ -27,13 +27,15 @@ import dev.spud.shadowslave.network.payload.MemoryKeyPayload;
 import dev.spud.shadowslave.network.payload.MemorySummonPayload;
 import dev.spud.shadowslave.network.payload.StrandCreatePayload;
 import dev.spud.shadowslave.network.payload.WeaveTracePayload;
+import dev.spud.shadowslave.network.payload.TrueNameActionPayload;
+import dev.spud.shadowslave.network.payload.TrueNamePayload;
 import dev.spud.shadowslave.network.payload.WeavingStatusPayload;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
-    public static final String NETWORK_VERSION = "21";
+    public static final String NETWORK_VERSION = "22";
 
     private ModPayloads() {
     }
@@ -120,6 +122,17 @@ public final class ModPayloads {
                 SpellCallingsPayload.STREAM_CODEC,
                 (payload, context) -> {
                 }
+        );
+        registrar.playToClient(
+                TrueNamePayload.TYPE,
+                TrueNamePayload.STREAM_CODEC,
+                (payload, context) -> {
+                }
+        );
+        registrar.playToServer(
+                TrueNameActionPayload.TYPE,
+                TrueNameActionPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleTrueNameAction
         );
         registrar.playToServer(
                 CallingFrequencyPayload.TYPE,

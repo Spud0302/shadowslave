@@ -3,32 +3,43 @@
     "core_nearly_full": [
       "Your soul core is nearly saturated. Change is close.",
       "The core strains against its limit. Soon it will hold no more.",
-      {"text": "Your core is nearly full. The candle waits for you.", "when": {"rank": "Dormant"}}
+      {"text": "Your core is nearly full. The candle waits for you.", "when": {"rank": "Dormant"}},
+      {"text": "{true_name}, your core is nearly saturated. The threads around you pull tighter.", "when": {"named": "yes"}}
     ],
     "core_full": [
       "Your soul core is saturated. It can hold no more as it is.",
       {"text": "Your core is saturated. Light the candle, and Awaken.", "when": {"rank": "Dormant"}},
-      {"text": "Your core is saturated. A Nightmare of the {next_category} Category is all that stands between you and Ascension.", "when": {"rank": "Awakened"}}
+      {"text": "Your core is saturated. A Nightmare of the {next_category} Category is all that stands between you and Ascension.", "when": {"rank": "Awakened"}},
+      {"text": "{true_name}, your core is saturated. The Spell is waiting to see what you do with it.", "when": {"named": "yes"}}
     ],
     "seed_next_category": [
       "A Seed of the {category} Category grows nearby. It has been waiting for you.",
       "Something stirs in the dream near you: a Nightmare of the {category} Category.",
-      "The Seed nearby calls to a soul of your rank. Answer it, or do not."
+      "The Seed nearby calls to a soul of your rank. Answer it, or do not.",
+      {"text": "{true_name}. A Seed of the {category} Category grows nearby, and it has heard of you.", "when": {"named": "yes"}}
     ],
     "new_region": [
       "{region}. Few have come this far.",
       "You have entered {region}. The threads here are thinner.",
-      "You have entered {region}. Things of the {danger} rank walk here."
+      "You have entered {region}. Things of the {danger} rank walk here.",
+      {"text": "{region}. The threads here know your name, {true_name}.", "when": {"named": "yes"}}
     ],
     "unclaimed_citadel": [
       "A Citadel stands nearby with no master: {citadel}.",
       "{citadel} waits for someone to claim it.",
-      {"text": "{citadel} has lost its Guardian. Its Gateway lies open.", "when": {"hold": "conquered"}}
+      {"text": "{citadel} has lost its Guardian. Its Gateway lies open.", "when": {"hold": "conquered"}},
+      {"text": "{citadel} stands without a master. A bearer of a True Name could hold it.", "when": {"named": "yes"}}
     ],
     "idle": [
       "The Spell is patient. It is also watching.",
       "Your soul is still. The Dream Realm is not.",
-      "Your next step will not take itself."
+      "Your next step will not take itself.",
+      {"text": "{true_name}. Names fade when no one adds to them.", "when": {"named": "yes"}}
+    ],
+    "name_spoken": [
+      "Someone has spoken your True Name. They know where you stand.",
+      "Your True Name was spoken. For a moment, someone felt where you are.",
+      {"text": "{true_name}. Someone has called on it, and it answered with your place in the world.", "when": {"named": "yes"}}
     ]
   }
 }

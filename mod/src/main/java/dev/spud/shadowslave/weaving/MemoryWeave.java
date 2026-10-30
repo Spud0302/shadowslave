@@ -44,8 +44,10 @@ public final class MemoryWeave {
         return !stack.isEmpty() && StrandService.holds(WeavingContent.current(), stack, StrandPattern.Kind.MEMORY);
     }
 
+    /** Bound by the Bound pattern, or by its owner's True Name woven into it. */
     public static boolean isBound(ItemStack stack) {
-        return !stack.isEmpty() && StrandService.holds(WeavingContent.current(), stack, StrandPattern.Kind.BOUND);
+        return !stack.isEmpty() && (stack.has(WeavingRegistry.NAME_WOVEN.get())
+                || StrandService.holds(WeavingContent.current(), stack, StrandPattern.Kind.BOUND));
     }
 
     /** Whether {@code player} may wield or wear the piece: anyone, unless it is Bound to someone else. */

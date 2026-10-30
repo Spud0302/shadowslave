@@ -538,6 +538,53 @@ per grade, behaviour, memory and Calling; variants can require facts with a
 `when` map), Callings tuning in `data/shadowslave/spell/settings.json`, and
 the grade ladder and scoring in `data/shadowslave/nightmare_trial/settings.json`.
 
+## True Names
+
+Added by claude-code, 2026-10-30 (Run B of the lore doc's run backlog). A
+True Name is a rare honorary name the Spell grants (ch. 9). Everything is
+decided by game code; the voice only picks the form a name takes.
+
+1. **Earning one.** A conquered Nightmare judged Glorious has a 35% chance to
+   grant a name, and "the impossible" always does. The name is built from
+   word lists for how you played (treachery, protecting others, recklessness,
+   fighting above your rank, mercy, going alone, steadfast). Two deeds outside
+   Nightmares also grant one: being the first under the Spell to slay a Great
+   (or worse) creature, and a 25% chance when you slay a Tyrant above your own
+   rank with no other player within 32 blocks. No two players share a name.
+   A name from an appraisal shows on the appraisal screen; a name for a deed
+   opens its own reveal screen (once you are out of any Nightmare).
+2. **Name page.** The Soul screen has a seventh tab, Name (key 7): your name,
+   whether it shows, what it was granted for and what it does, and the names
+   you know. Press H there to show or hide your name.
+3. **Anchored Soul.** Wither damage, essence drains and the shard torn from
+   your core by a PvP kill take half as much from you.
+4. **True-Name Binding.** Sneak and use a Weaving Table with a Memory in hand
+   (or `/shadowslave truename bind`) to bind it with your name for 40 essence.
+   It counts as Bound and answers only to you, with no Bound pattern needed.
+5. **Closer to the Spell.** Your Callings can come twice as often, reach 1.5x
+   as far for Seeds and Citadels, and some lines address you by name.
+6. **Secrecy.** Your name is hidden by default. Showing it puts it after your
+   name in chat and the tab list, and everyone who reads it learns it
+   (including players who join while it shows). Hiding it again does not make
+   anyone forget. Anyone who knows your name deals 10% more damage to you, and
+   once a day can speak it to sense where you are: a direction and distance
+   (or "far away" in another world) with a line of soul fire, while you feel
+   your name spoken as a Calling. Speak a known name from the Name page by
+   clicking it, or with `/shadowslave truename sense <name>`.
+7. **Passing names on.** `/shadowslave truename reveal <player>` speaks yours
+   to a player within 8 blocks. Holding paper, `/shadowslave truename write`
+   writes yours (or `write <name>` one you know) onto a Field Note; whoever
+   uses the note learns the name, and its tooltip never shows it.
+
+Operators: `/shadowslave truename grant <player> [deed]`, `forget <player>`
+and `names`. Content is data: `data/shadowslave/true_name/settings.json`
+(chances, drain resistance, damage edge, sense cooldown, Calling boost,
+binding cost) and `true_name/deed/<id>.json` (trigger and word lists); the
+name forms and the Spell's lines are in `spell_voice/true_name.json`.
+
+Not yet: holding a Citadel against a raid alone (raids are Run C), Corruption
+resistance, and Aspects that give power over a named bearer.
+
 ## Smithing (forge, hammer, quench)
 
 Gear and Memories are now made by hand at a smithy. Anyone can smith,

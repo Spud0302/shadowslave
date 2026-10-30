@@ -1,0 +1,11 @@
+{
+  "grade_chance": {"Glorious": 0.35, "Impossible": 1.0},
+  "drain_resist": 0.5,
+  "known_damage_bonus": 0.1,
+  "sense_cooldown_ticks": 24000,
+  "reveal_range": 8,
+  "calling_gap_factor": 0.5,
+  "calling_reach": 1.5,
+  "bind_essence": 40,
+  "name_attempts": 12
+}

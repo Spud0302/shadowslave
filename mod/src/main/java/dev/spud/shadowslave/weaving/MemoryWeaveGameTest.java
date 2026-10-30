@@ -160,7 +160,7 @@ public final class MemoryWeaveGameTest {
     }
 
     /** A piece laid with the Memory weave, and Bound (unbonded) if asked. */
-    static ItemStack memory(ItemStack stack, boolean bound) {
+    public static ItemStack memory(ItemStack stack, boolean bound) {
         List<WovenStrands.Laid> laid = new ArrayList<>();
         laid.add(new WovenStrands.Laid(MemoryWeave.MEMORY_WEAVE, 1, 100, Optional.empty(), "Jack"));
         if (bound) {

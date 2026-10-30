@@ -1,0 +1,33 @@
+{
+  "trigger": "appraisal",
+  "behaviour": "merciful",
+  "deed": "You conquered a Nightmare without taking a single life.",
+  "words": {
+    "epithet": [
+      "Gentle",
+      "Still",
+      "Silent",
+      "Open-Handed",
+      "Soft",
+      "Merciful"
+    ],
+    "noun": [
+      "Rain",
+      "Snow",
+      "Hand",
+      "Dove",
+      "Lily",
+      "Mist"
+    ],
+    "place": [
+      "Unspilled Blood",
+      "Quiet Waters",
+      "Spared Lives",
+      "the Morning"
+    ],
+    "whole": [
+      "Lullaby",
+      "Dewfall"
+    ]
+  }
+}

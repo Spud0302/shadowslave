@@ -1,6 +1,8 @@
 package dev.spud.shadowslave.network;
 
 import dev.spud.shadowslave.network.payload.CallingFrequencyPayload;
+import dev.spud.shadowslave.network.payload.TrueNameActionPayload;
+import dev.spud.shadowslave.spell.truename.TrueNames;
 import dev.spud.shadowslave.spell.calling.CallingFrequency;
 import dev.spud.shadowslave.spell.calling.SpellCallings;
 import dev.spud.shadowslave.ability.AbilityService;
@@ -68,6 +70,19 @@ public final class ServerPayloadHandler {
         ServerPlayer player = serverPlayer(context, "Calling frequency");
         if (player != null) {
             SpellCallings.setFrequency(player, CallingFrequency.byOrdinal(payload.frequency()));
+        }
+    }
+
+    public static void handleTrueNameAction(TrueNameActionPayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "True Name");
+        if (player == null) {
+            return;
+        }
+        switch (payload.action()) {
+            case TrueNameActionPayload.TOGGLE_SHOWN -> TrueNames.setShown(player, !TrueNames.data(player).shown());
+            case TrueNameActionPayload.SENSE -> TrueNames.sense(player, payload.name());
+            default -> {
+            }
         }
     }
 

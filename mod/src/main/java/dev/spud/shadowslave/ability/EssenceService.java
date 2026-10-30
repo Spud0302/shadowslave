@@ -112,6 +112,18 @@ public final class EssenceService {
         player.setData(ModAttachments.ESSENCE, new EssenceData(current(player)).spend(amount));
     }
 
+    /**
+     * Drains essence out of a player against their will (another's ability, a
+     * creature's touch). An Anchored Soul gives up less. Returns what was taken.
+     */
+    public static float drain(ServerPlayer player, float amount) {
+        float taken = Math.min(current(player), amount * dev.spud.shadowslave.spell.truename.TrueNames.drainFactor(player));
+        if (taken > 0) {
+            player.setData(ModAttachments.ESSENCE, new EssenceData(current(player) - taken));
+        }
+        return taken;
+    }
+
     /** Adds essence, never past the pool's size; kills, drains and gifts use this. */
     public static void gain(ServerPlayer player, float amount) {
         int capacity = capacity(player);

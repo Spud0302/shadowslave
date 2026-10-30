@@ -4,6 +4,7 @@ import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshot;
+import dev.spud.shadowslave.network.payload.TrueNamePayload;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -86,5 +87,24 @@ class SoulPagesTest {
                     SoulPages.page(tab, none, AbilityStatusPayload.NONE, 0.0F, List.of("R"), CoreStatusPayload.NONE).get(0).text());
         }
         assertEquals("Status", SoulPages.page(SoulPages.Tab.SOUL, none, AbilityStatusPayload.NONE, 0.0F, List.of("R"), CoreStatusPayload.NONE).get(0).text());
+    }
+
+    @Test
+    void namePageShowsTheNameItsEffectsAndTheNamesYouKnow() {
+        assertEquals("You have no True Name.", texts(SoulPages.trueName(TrueNamePayload.NONE, 0L)).get(0));
+        TrueNamePayload payload = new TrueNamePayload("Lone Wolf", "You walked into the Nightmare alone.", "", false, 50, 10, 40,
+                List.of(new TrueNamePayload.Known("Smiling Knife", "Alex", 0L), new TrueNamePayload.Known("Iron Hearth", "Sam", 5000L)),
+                false);
+        List<SoulPages.Entry> entries = SoulPages.trueName(payload, 1000L);
+        List<String> texts = texts(entries);
+        assertEquals("Lone Wolf", texts.get(0));
+        assertEquals("Hidden from others", texts.get(1));
+        assertTrue(texts.stream().anyMatch(text -> text.startsWith("Anchored Soul") && text.contains("50%")));
+        assertTrue(texts.stream().anyMatch(text -> text.contains("10% more damage")));
+        List<SoulPages.Entry> links = entries.stream().filter(entry -> entry.style() == SoulPages.Style.LINK).toList();
+        assertEquals(2, links.size());
+        assertEquals(SoulPages.SENSE + "Smiling Knife", links.get(0).value());
+        assertTrue(links.get(0).text().endsWith("answers"), "sensed long ago, so it answers");
+        assertTrue(links.get(1).text().endsWith("quiet"), "sensed today, so it is quiet");
     }
 }

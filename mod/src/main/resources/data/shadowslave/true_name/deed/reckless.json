@@ -1,0 +1,33 @@
+{
+  "trigger": "appraisal",
+  "behaviour": "reckless",
+  "deed": "You danced at the edge of death and would not step back from it.",
+  "words": {
+    "epithet": [
+      "Laughing",
+      "Burning",
+      "Restless",
+      "Wild",
+      "Headlong",
+      "Bright"
+    ],
+    "noun": [
+      "Storm",
+      "Comet",
+      "Flame",
+      "Gale",
+      "Torrent",
+      "Spark"
+    ],
+    "place": [
+      "the Edge",
+      "Thin Ice",
+      "Falling Stars",
+      "the Ashes"
+    ],
+    "whole": [
+      "Wildfire",
+      "Firebrand"
+    ]
+  }
+}

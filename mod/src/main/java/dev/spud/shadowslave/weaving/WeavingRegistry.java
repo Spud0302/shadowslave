@@ -23,6 +23,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.core.Holder;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Unit;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.common.SimpleTier;
@@ -74,6 +76,12 @@ public final class WeavingRegistry {
             COMPONENTS.registerComponentType("bound_to", builder -> builder
                     .persistent(BoundTo.CODEC)
                     .networkSynchronized(ByteBufCodecs.fromCodec(BoundTo.CODEC)));
+
+    /** A Memory its owner bound by weaving their True Name into it (ch. 696), instead of the Bound pattern. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> NAME_WOVEN =
+            COMPONENTS.registerComponentType("name_woven", builder -> builder
+                    .persistent(Unit.CODEC)
+                    .networkSynchronized(StreamCodec.unit(Unit.INSTANCE)));
 
     /** The Memories a player has dismissed into their soul. */
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<SoulMemories>> SOUL_MEMORIES = ATTACHMENTS.register("soul_memories",

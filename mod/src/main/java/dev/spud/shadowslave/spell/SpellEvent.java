@@ -39,7 +39,13 @@ public record SpellEvent(long time, Kind kind, Optional<UUID> player, String nam
         /** A player's soul rose a rank. */
         RANK_UP,
         /** The first time anyone under the Spell did something. */
-        FIRST;
+        FIRST,
+        /** The Spell granted a player a True Name. */
+        TRUE_NAME,
+        /** A player learned another's True Name. */
+        NAME_LEARNED,
+        /** A player spoke a True Name they know and sensed where its bearer stood. */
+        NAME_SENSED;
 
         public String id() {
             return name().toLowerCase(Locale.ROOT);

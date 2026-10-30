@@ -67,6 +67,9 @@ import dev.spud.shadowslave.spell.SpellContentLoader;
 import dev.spud.shadowslave.spell.SpellRecorder;
 import dev.spud.shadowslave.spell.SpellRegistry;
 import dev.spud.shadowslave.spell.calling.SpellCallings;
+import dev.spud.shadowslave.spell.truename.TrueNameBinding;
+import dev.spud.shadowslave.spell.truename.TrueNameCommands;
+import dev.spud.shadowslave.spell.truename.TrueNames;
 import dev.spud.shadowslave.trial.TrialService;
 import dev.spud.shadowslave.trial.content.TrialContentLoader;
 import dev.spud.shadowslave.weaving.WeavingCommands;
@@ -249,6 +252,14 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(EventPriority.LOW, SpellRecorder::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(SpellCallings::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(SpellCallings::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(TrueNameCommands::register);
+        NeoForge.EVENT_BUS.addListener(TrueNames::onIncomingDamage);
+        // Runs before the Nightmares' role names, which replace the whole name inside a Nightmare.
+        NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, TrueNames::onNameFormat);
+        NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, TrueNames::onTabListNameFormat);
+        NeoForge.EVENT_BUS.addListener(TrueNames::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(TrueNames::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(TrueNameBinding::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(TrialService::onDamaged);
         LOGGER.info("Shadow Slave Java core is loading");
     }

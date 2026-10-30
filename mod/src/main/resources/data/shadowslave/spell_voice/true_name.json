@@ -1,0 +1,23 @@
+{
+  "lines": {
+    "name": [
+      "{epithet} {noun}",
+      "{noun} of {place}",
+      "{whole}"
+    ],
+    "granted": [
+      "You have received a True Name. Your True Name is {true_name}.",
+      "The Spell names you. Your True Name is {true_name}. Guard it.",
+      {"text": "No one under the Spell had done it before you. Your True Name is {true_name}.", "when": {"deed": "first_great"}}
+    ],
+    "reveal": [
+      "The Spell does not hand out names lightly.",
+      "Few souls draw the Spell's eye like this.",
+      "Something you did has been written into the threads."
+    ],
+    "learned": [
+      "You know a True Name now: {true_name}.",
+      "A True Name settles into your memory: {true_name}. You will not forget it."
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "trigger": "appraisal",
+  "behaviour": "protector",
+  "deed": "You stood between your cohort and death, again and again.",
+  "words": {
+    "epithet": [
+      "Unbending",
+      "Watchful",
+      "Iron",
+      "Patient",
+      "Kindled",
+      "Sheltering"
+    ],
+    "noun": [
+      "Shield",
+      "Wall",
+      "Lantern",
+      "Bulwark",
+      "Warden",
+      "Hearth"
+    ],
+    "place": [
+      "the Long Night",
+      "Many Hands",
+      "the Held Line",
+      "the Last Gate"
+    ],
+    "whole": [
+      "Bastion",
+      "Keystone"
+    ]
+  }
+}

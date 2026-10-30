@@ -4,6 +4,7 @@ import dev.spud.shadowslave.creature.NightmareCreature;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.core.CoreService;
 import dev.spud.shadowslave.spell.calling.SpellCallings;
+import dev.spud.shadowslave.spell.truename.TrueNames;
 import dev.spud.shadowslave.trial.content.TrialSettings;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.MinecraftServer;
@@ -67,6 +68,7 @@ public final class SpellRecorder {
         }
         String what = SpellWords.withArticle(creature.rank().displayName() + " " + creature.creatureClass().displayName());
         first(killer, "kill_" + kind.replace(' ', '_'), what, "kill", "slay " + what);
+        TrueNames.considerKill(killer, creature, SpellJudge.aboveRank(creature.rank(), CoreService.rank(killer)));
     }
 
     // ---- Nightmares ----------------------------------------------------------------------------------------------
@@ -143,6 +145,7 @@ public final class SpellRecorder {
         record.firsts.put(key, new SpellRecord.First(player.getUUID(), player.getGameProfile().getName(), time, deed));
         record(player.server, SpellEvent.Kind.FIRST, Optional.of(player), key, deed);
         SpellWords.tell(player, "first", voiceKey, Map.of("what", what, "rank", rankName(player)), ChatFormatting.GOLD);
+        TrueNames.considerFirst(player, key);
         return true;
     }
 

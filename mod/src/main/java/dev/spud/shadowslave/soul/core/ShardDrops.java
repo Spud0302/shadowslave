@@ -6,6 +6,7 @@ import dev.spud.shadowslave.item.ModDataComponents;
 import dev.spud.shadowslave.item.ModItems;
 import dev.spud.shadowslave.item.ShardContents;
 import dev.spud.shadowslave.soul.SoulRank;
+import dev.spud.shadowslave.spell.truename.TrueNames;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -142,7 +143,8 @@ public final class ShardDrops {
         }
         Optional<SoulRank> rank = CoreService.rank(victim);
         Optional<ShardRank> shardRank = rank.flatMap(ShardRank::ofSoulRank);
-        int loss = CoreRules.pvpLoss(CoreService.saturation(victim));
+        // An Anchored Soul (a True Name, ch. 644) gives up less of itself.
+        int loss = Math.round(CoreRules.pvpLoss(CoreService.saturation(victim)) * TrueNames.drainFactor(victim));
         if (shardRank.isEmpty() || loss <= 0) {
             return ItemStack.EMPTY;
         }

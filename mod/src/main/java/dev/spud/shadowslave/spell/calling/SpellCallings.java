@@ -18,6 +18,7 @@ import dev.spud.shadowslave.spell.SpellRecorder;
 import dev.spud.shadowslave.spell.SpellRegistry;
 import dev.spud.shadowslave.spell.SpellSettings;
 import dev.spud.shadowslave.spell.SpellWords;
+import dev.spud.shadowslave.spell.truename.TrueNames;
 import dev.spud.shadowslave.spell.voice.SpellVoices;
 import dev.spud.shadowslave.spell.voice.VoiceRequest;
 import dev.spud.shadowslave.trial.TrialData;
@@ -129,7 +130,7 @@ public final class SpellCallings {
             return;
         }
         for (SeedData.Seed seed : SeedData.get(player.serverLevel()).seeds()) {
-            if (data.seeds.contains(seed.id()) || !seed.pos().closerThan(player.blockPosition(), settings.seedRange())) {
+            if (data.seeds.contains(seed.id()) || !seed.pos().closerThan(player.blockPosition(), settings.seedRange() * TrueNames.callingReach(player))) {
                 continue;
             }
             Optional<Integer> category = seed.echoSite().flatMap(TrialContent.get()::site).map(TrialContent.get()::category);
@@ -146,7 +147,8 @@ public final class SpellCallings {
     }
 
     private static void noticeCitadels(ServerPlayer player, CallingData data, SpellSettings settings) {
-        Optional<CitadelData.Citadel> near = CitadelService.near(player.serverLevel(), player.blockPosition(), settings.citadelRange())
+        Optional<CitadelData.Citadel> near = CitadelService.near(player.serverLevel(), player.blockPosition(),
+                        Math.round(settings.citadelRange() * TrueNames.callingReach(player)))
                 .filter(citadel -> citadel.hold() != CitadelData.Hold.CLAN && !data.citadels.contains(citadel.id()));
         if (near.isEmpty()) {
             return;
@@ -187,6 +189,11 @@ public final class SpellCallings {
         if (next > 0) {
             facts.put("next_category", SpellWords.ordinal(next));
         }
+        // A bearer is closer to the mystical side (ch. 1318): the Spell's lines for them may say a little more.
+        TrueNames.nameOf(player).ifPresent(name -> {
+            facts.put("named", "yes");
+            facts.put("true_name", name);
+        });
         return facts;
     }
 
@@ -229,7 +236,7 @@ public final class SpellCallings {
 
     /** The least time between two Callings for this player: their chosen gap, halved for an Attuned Cantor. */
     public static long gapTicks(ServerPlayer player, CallingFrequency frequency) {
-        long gap = SpellContentLoader.settings().gapTicks(frequency);
+        long gap = Math.round(SpellContentLoader.settings().gapTicks(frequency) * TrueNames.callingGapFactor(player));
         return CantorVoice.attuned(player) ? Math.round(gap * CantorVoice.ATTUNED_GAP) : gap;
     }
 

@@ -61,7 +61,11 @@ public final class WeavingClientEvents {
         }
         lines.add(Component.literal("Memory · " + ClientKeyMappings.TOGGLE_MEMORY.getTranslatedKeyMessage().getString()
                 + " to dismiss or summon").withStyle(ChatFormatting.LIGHT_PURPLE));
-        if (strands.strands().stream().anyMatch(laid -> laid.id().equals(MemoryWeave.BOUND))) {
+        if (stack.has(WeavingRegistry.NAME_WOVEN.get())) {
+            BoundTo bond = stack.get(WeavingRegistry.BOUND_TO.get());
+            lines.add(Component.literal("Bound by a True Name" + (bond == null ? "" : " · answers only to " + bond.name()))
+                    .withStyle(ChatFormatting.GOLD));
+        } else if (strands.strands().stream().anyMatch(laid -> laid.id().equals(MemoryWeave.BOUND))) {
             BoundTo bond = stack.get(WeavingRegistry.BOUND_TO.get());
             lines.add(Component.literal(bond == null ? "Bound · bonds to the next hand that holds it" : "Bound to " + bond.name())
                     .withStyle(ChatFormatting.GOLD));
