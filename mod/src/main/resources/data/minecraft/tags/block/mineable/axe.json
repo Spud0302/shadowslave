@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "shadowslave:quench_trough"
+    "shadowslave:quench_trough",
+    "shadowslave:black_briar"
   ]
 }

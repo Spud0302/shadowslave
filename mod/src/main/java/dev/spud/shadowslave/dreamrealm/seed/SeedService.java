@@ -222,6 +222,10 @@ public final class SeedService {
                 seeds.remove();
                 continue;
             }
+            if (TrialService.waking(seed.id)) {
+                // A Seed holds still while its Nightmare runs, however long that is.
+                continue;
+            }
             seed.growth += points;
             showStage(realm, seed, settings);
             if (seed.grownTicks() >= settings.growthTicks() && bloom(realm, seed)) {

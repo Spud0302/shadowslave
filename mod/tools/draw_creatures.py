@@ -52,6 +52,11 @@ MATERIALS = {
     "rift_core": ((235, 215, 255), "rift", False),
     "rift_edge": ((46, 18, 70), "cracks", False),
     "rift_shard": ((24, 14, 34), "shard", False),
+    "bark": ((62, 44, 38), "cracks", False),
+    "bark_pale": ((150, 132, 116), "mask", False),
+    "briar": ((36, 42, 34), "thorns", False),
+    "thorn": ((200, 182, 156), "bone", False),
+    "bloom": ((214, 36, 58), "petal", True),
 }
 
 SHADE = {"up": 1.12, "down": 0.62, "north": 1.0, "south": 0.82, "east": 0.9, "west": 0.9}
@@ -276,6 +281,53 @@ def ashen_tyrant():
             box([9, 5, -4.5], [1, 3, 1], "claw"),
             box([11, 5, -4.5], [1, 3, 1], "claw"),
             box([13, 5, -4.5], [1, 3, 1], "claw"),
+        ]),
+    ]
+    return mirror(b)
+
+
+def thorn_matron():
+    """Thorn Matron: a tall bark-skinned mother of briars, a bloom where her heart should be."""
+    b = [
+        bone("root", [0, 0, 0]),
+        bone("skirt", [0, 14, 0], parent="root", cubes=[
+            box([-6, 2, -5], [12, 12, 10], "briar"),
+            box([-5, 0, -4], [10, 2, 8], "bark"),
+            box([-7, 0, -6], [2, 6, 2], "briar", rotation=[0, 0, 25], pivot=[-6, 2, -5]),
+            box([5, 0, -6], [2, 6, 2], "briar", rotation=[0, 0, -25], pivot=[6, 2, -5]),
+            box([-1, 0, 4], [2, 7, 4], "briar", rotation=[-30, 0, 0], pivot=[0, 4, 5]),
+        ]),
+        bone("body", [0, 14, 0], parent="root", cubes=[
+            box([-4.5, 14, -3], [9, 14, 6], "bark"),
+            box([-5, 24, -3.5], [10, 4, 7], "briar", 0.3),
+            box([-1.5, 19, -3.6], [3, 3, 1], "bloom"),
+            box([-2.5, 18, -3.3], [5, 5, 1], "briar"),
+            box([-4, 27, 2], [1, 6, 1], "thorn", rotation=[-35, 0, 20], pivot=[-3.5, 27, 2.5]),
+            box([3, 27, 2], [1, 6, 1], "thorn", rotation=[-35, 0, -20], pivot=[3.5, 27, 2.5]),
+            box([-0.5, 25, 2.5], [1, 5, 1], "thorn", rotation=[-50, 0, 0], pivot=[0, 25, 3]),
+        ]),
+        bone("head", [0, 28, 0], parent="body", cubes=[
+            box([-3, 28, -3.5], [6, 8, 6], "bark_pale", front="matron_face"),
+            box([-3.5, 35, -4], [7, 2, 7], "briar"),
+        ]),
+        bone("crown", [0, 37, 0], parent="head", cubes=[
+            box([-0.5, 36, -2], [1, 7, 1], "thorn", rotation=[-10, 0, 0], pivot=[0, 36, -1.5]),
+            box([-3, 36, -2], [1, 6, 1], "thorn", rotation=[-10, 0, 25], pivot=[-2.5, 36, -1.5]),
+            box([2, 36, -2], [1, 6, 1], "thorn", rotation=[-10, 0, -25], pivot=[2.5, 36, -1.5]),
+            box([-3.5, 36, 1], [1, 5, 1], "thorn", rotation=[20, 0, 35], pivot=[-3, 36, 1.5]),
+            box([2.5, 36, 1], [1, 5, 1], "thorn", rotation=[20, 0, -35], pivot=[3, 36, 1.5]),
+            box([-1, 36.5, -4.2], [2, 2, 1], "bloom"),
+        ]),
+        bone("left_arm", [5.5, 26, 0], parent="body", cubes=[
+            box([4.5, 13, -1.5], [3, 13, 3], "briar"),
+            box([4.2, 22, -1.8], [3.6, 4, 3.6], "bark"),
+            box([7, 18, -0.5], [1, 3, 1], "thorn", rotation=[0, 0, -40], pivot=[7, 18, 0]),
+        ]),
+        bone("left_hand", [6, 13, 0], parent="left_arm", cubes=[
+            box([4.5, 9, -1.5], [3, 4, 3], "bark"),
+            box([4.5, 1, -2], [1, 8, 1], "thorn"),
+            box([6.5, 0, -2], [1, 9, 1], "thorn"),
+            box([5.5, 2, 0.5], [1, 7, 1], "thorn"),
         ]),
     ]
     return mirror(b)
@@ -524,6 +576,42 @@ def ashen_tyrant_anims():
     }
 
 
+def thorn_matron_anims():
+    L = 4.0
+    W = 1.6
+    return {
+        "idle": anim(L, True, {
+            "body": {"rotation": lambda t: [wave(t, L, 2), wave(t, L, 3, 0.2, 0.5), 0]},
+            "head": {"rotation": lambda t: [wave(t, L, 4, 0.1), wave(t, L, 12, 0, 0.5), wave(t, L, 5, 0.3)]},
+            "crown": {"rotation": lambda t: [wave(t, L, 3, 0.5), 0, 0]},
+            "left_arm": {"rotation": lambda t: [wave(t, L, 4, 0.2), 0, -6 + wave(t, L, 3)]},
+            "right_arm": {"rotation": lambda t: [wave(t, L, 4, 0.7), 0, 6 - wave(t, L, 3)]},
+            "left_hand": {"rotation": lambda t: [wave(t, L, 10, 0, 2), 0, 0]},
+            "right_hand": {"rotation": lambda t: [wave(t, L, 10, 0.5, 2), 0, 0]},
+            "skirt": {"rotation": lambda t: [0, wave(t, L, 4), 0]},
+        }),
+        "walk": anim(W, True, {
+            "skirt": {"rotation": lambda t: [wave(t, W, 6), wave(t, W, 8, 0.25), 0],
+                      "position": lambda t: [0, abs(wave(t, W, 0.6)), 0]},
+            "body": {"rotation": lambda t: [10, wave(t, W, 6), wave(t, W, 3)]},
+            "left_arm": {"rotation": lambda t: [wave(t, W, 18, 0.5), 0, -6]},
+            "right_arm": {"rotation": lambda t: [wave(t, W, 18), 0, 6]},
+            "head": {"rotation": lambda t: [-6, -wave(t, W, 6), 0]},
+        }, samples=10),
+        "lash": anim_keys(0.6, {
+            "right_arm": {"rotation": keys([(0, [0, 0, 0]), (0.22, [-160, 0, 20]), (0.36, [-10, -20, -10]),
+                                            (0.6, [0, 0, 0])])},
+            "body": {"rotation": keys([(0, [0, 0, 0]), (0.22, [-10, -15, 0]), (0.36, [18, 15, 0]), (0.6, [0, 0, 0])])},
+        }),
+        "grow": anim_keys(1.4, {
+            "left_arm": {"rotation": keys([(0, [0, 0, 0]), (0.5, [-100, 0, -50]), (0.9, [-20, 0, -30]), (1.4, [0, 0, 0])])},
+            "right_arm": {"rotation": keys([(0, [0, 0, 0]), (0.5, [-100, 0, 50]), (0.9, [-20, 0, 30]), (1.4, [0, 0, 0])])},
+            "body": {"rotation": keys([(0, [0, 0, 0]), (0.5, [-18, 0, 0]), (0.9, [25, 0, 0]), (1.4, [0, 0, 0])])},
+            "head": {"rotation": keys([(0, [0, 0, 0]), (0.5, [-25, 0, 0]), (0.9, [15, 0, 0]), (1.4, [0, 0, 0])])},
+        }),
+    }
+
+
 def gate_rift_anims():
     L = 4.0
     shards = {}
@@ -670,6 +758,18 @@ class Painter:
                         c = mix(c, (150, 70, 240), 0.7)
                     if edge:
                         c = mul(c, 1.4)
+                elif pattern == "thorns":
+                    # tangled stems with pale thorn points
+                    if (i + 2 * j) % 5 == 0 or (2 * i - j) % 7 == 0:
+                        c = mul(c, 1.35)
+                    if r.random() < 0.07:
+                        c = MATERIALS["thorn"][0]
+                    elif edge:
+                        c = mul(c, 0.8)
+                elif pattern == "petal":
+                    centre = (0 < i < w - 1 and 0 < j < h - 1) or w <= 2 or h <= 2
+                    c = mix(base, (255, 150, 160), 0.55 if centre else 0.0)
+                    glow = True
                 elif pattern == "smooth":
                     pass
                 if c is None:
@@ -722,6 +822,21 @@ def overlay_tyrant_face(p, x0, y0, w, h):
         p.px(x0 + i, y0 + 1, mul(MATERIALS["ash"][0], 0.6))
 
 
+def overlay_matron_face(p, x0, y0, w, h):
+    eye = (255, 70, 90)
+    dark = (24, 14, 16)
+    # two thin slanted eyes that glow, a long split for a mouth, and bark grain
+    for i, j in ((1, 3), (2, 3), (2, 2)):
+        p.px(x0 + i, y0 + j, eye, glow=True)
+        p.px(x0 + w - 1 - i, y0 + j, eye, glow=True)
+    for j in range(5, h - 1):
+        p.px(x0 + w // 2, y0 + j, dark)
+    for j in range(h):
+        if j % 3 == 0:
+            p.px(x0, y0 + j, mul(MATERIALS["bark_pale"][0], 0.7))
+            p.px(x0 + w - 1, y0 + j, mul(MATERIALS["bark_pale"][0], 0.7))
+
+
 def overlay_snout(p, x0, y0, w, h):
     p.px(x0 + 1, y0 + 1, (20, 16, 14))
     p.px(x0 + w - 2, y0 + 1, (20, 16, 14))
@@ -741,6 +856,7 @@ OVERLAYS = {
     "tyrant_chest": ("ember_seam", overlay_tyrant_chest),
     "tyrant_face": ("ash", overlay_tyrant_face),
     "snout": ("ash", overlay_snout),
+    "matron_face": ("bark_pale", overlay_matron_face),
     "chainback_face": ("iron_plate", overlay_chainback_face),
 }
 
@@ -831,6 +947,7 @@ CREATURES = {
     "chainback": (chainback, chainback_anims, 128, 12),
     "hollow_mimic": (hollow_mimic, hollow_mimic_anims, 64, 13),
     "ashen_tyrant": (ashen_tyrant, ashen_tyrant_anims, 128, 14),
+    "thorn_matron": (thorn_matron, thorn_matron_anims, 64, 17),
     # Not a creature: the tear a Gate opens. Drawn the same way.
     "gate_rift": (gate_rift, gate_rift_anims, 64, 15),
 }

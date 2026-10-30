@@ -32,12 +32,43 @@ import java.util.Set;
  *   <li>{@code tyrant}: the Nightmare's ruler, with extra health per extra challenger.</li>
  *   <li>{@code endings}: the hidden ways out. The first one met ends the Nightmare.</li>
  *   <li>{@code comments} and {@code boons}: the appraisal's comment and boon loot table per grade.</li>
+ *   <li>{@code long}: makes it a Long Nightmare (Jack, 2026-10-29): the run survives logouts
+ *       and restarts, its clock counts days, and later cohorts join the challengers still inside.</li>
  * </ul>
  */
 public record NightmarePack(String displayName, String setting, ResourceLocation structure, String arrival,
                             Map<String, BlockPos> points, List<String> opening, List<Role> roles, List<Event> events,
                             Optional<Tyrant> tyrant, List<Ending> endings, Map<String, String> comments,
-                            Map<String, ResourceLocation> boons, String lore) {
+                            Map<String, ResourceLocation> boons, String lore, Optional<LongRun> longRun) {
+
+    /**
+     * A Long Nightmare's clock (DESIGN, after the novel's current arc, where a
+     * Saint is shown still alive inside one). {@code day_seconds} is the length
+     * of one of its days on its own clock; {@code dawn} is what the Spell says
+     * as each new day begins ({@code {day}} is the day's number); after
+     * {@code fade_after_days} of its days with no ending met, it fades and
+     * whoever is inside wakes as they entered. {@code returning} greets a
+     * cohort that comes into a run others are still inside ({@code {count}} is
+     * how many of those still live).
+     */
+    public record LongRun(int daySeconds, String dawn, int fadeAfterDays, String returning) {
+        public static final Codec<LongRun> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.intRange(60, 24 * 3600).optionalFieldOf("day_seconds", 600).forGetter(LongRun::daySeconds),
+                Codec.STRING.optionalFieldOf("dawn", "Day {day} begins.").forGetter(LongRun::dawn),
+                Codec.intRange(1, 1000).optionalFieldOf("fade_after_days", 10).forGetter(LongRun::fadeAfterDays),
+                Codec.STRING.optionalFieldOf("returning", "Others came before you. {count} of them still live here.")
+                        .forGetter(LongRun::returning)
+        ).apply(instance, LongRun::new));
+
+        /** The day a clock reading falls in, from 1. */
+        public int dayAt(int ticks) {
+            return 1 + ticks / (daySeconds * 20);
+        }
+    }
+
+    public boolean isLong() {
+        return longRun.isPresent();
+    }
 
     public record Role(String id, String name, int weight, int min, String description, List<ItemStack> kit) {
         public static final Codec<Role> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -152,7 +183,8 @@ public record NightmarePack(String displayName, String setting, ResourceLocation
             Ending.CODEC.listOf(1, 32).fieldOf("endings").forGetter(NightmarePack::endings),
             Codec.unboundedMap(Codec.STRING, Codec.STRING).optionalFieldOf("comments", Map.of()).forGetter(NightmarePack::comments),
             Codec.unboundedMap(Codec.STRING, ResourceLocation.CODEC).optionalFieldOf("boons", Map.of()).forGetter(NightmarePack::boons),
-            Codec.STRING.optionalFieldOf("lore", "").forGetter(NightmarePack::lore)
+            Codec.STRING.optionalFieldOf("lore", "").forGetter(NightmarePack::lore),
+            LongRun.CODEC.optionalFieldOf("long").forGetter(NightmarePack::longRun)
     ).apply(instance, NightmarePack::new)).validate(NightmarePack::check);
 
     public NightmarePack {

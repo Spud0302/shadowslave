@@ -226,7 +226,8 @@ public final class CitadelLifeGameTest {
     @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room", timeoutTicks = 200)
     public static void holdingARaidPaysEachDefenderAndTheSpellRemembers(GameTestHelper helper) {
         ServerLevel realm = CitadelGameTest.realm(helper);
-        BlockPos centre = new BlockPos(6500, 100, 4000);
+        // Inside the Ashen Expanse, so the shards it pays are Dormant ones.
+        BlockPos centre = new BlockPos(-700, 100, 300);
         CitadelData.Citadel citadel = CitadelGameTest.raise(realm, centre);
         CitadelGameTest.ready(helper, realm, centre, () -> {
             ServerPlayer founder = claimant(helper, realm, citadel);

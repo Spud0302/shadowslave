@@ -1,0 +1,160 @@
+{
+  "display_name": "The Long Thorn",
+  "setting": "The Briar Cloister, in the season the briars came",
+  "structure": "shadowslave:nightmare/long_thorn",
+  "arrival": "arrival",
+  "points": {
+    "arrival": [30, 4, 46],
+    "brazier_bell": [30, 20, 13],
+    "brazier_west": [12, 16, 28],
+    "brazier_east": [48, 16, 28],
+    "briar_north": [30, 4, 3],
+    "briar_east": [57, 4, 30],
+    "briar_west": [3, 4, 30],
+    "briar_south": [30, 4, 57],
+    "garden": [30, 4, 30]
+  },
+  "opening": [
+    "Prepare for your Third Nightmare.",
+    "The Cloister has tended its garden for three hundred years. This season, the garden tends back."
+  ],
+  "long": {
+    "day_seconds": 600,
+    "fade_after_days": 5,
+    "dawn": "Day {day} in the Cloister. The briars are closer than they were.",
+    "returning": "Others walked the Cloister before you. {count} of them still live here."
+  },
+  "roles": [
+    {
+      "id": "cloister_novice",
+      "name": "Cloister Novice",
+      "weight": 4,
+      "description": "A novice of the Briar Cloister, sworn to the garden. The garden has stopped listening.",
+      "kit": [{"id": "minecraft:bread", "count": 4}, {"id": "minecraft:iron_axe", "count": 1}]
+    },
+    {
+      "id": "thornwarden",
+      "name": "Thornwarden",
+      "weight": 2,
+      "min": 1,
+      "description": "Sworn to keep the Cloister's walls against whatever grows outside them.",
+      "kit": [{"id": "minecraft:iron_sword", "count": 1}, {"id": "minecraft:shield", "count": 1}, {"id": "minecraft:chainmail_chestplate", "count": 1}]
+    },
+    {
+      "id": "brazier_keeper",
+      "name": "Brazier Keeper",
+      "weight": 2,
+      "min": 1,
+      "description": "Keeper of the three braziers. The old rule says the briars fear them. Nobody has tested it.",
+      "kit": [{"id": "minecraft:flint_and_steel", "count": 1}, {"id": "minecraft:fire_charge", "count": 3}]
+    },
+    {
+      "id": "penitent_captive",
+      "name": "Penitent Captive",
+      "weight": 1,
+      "description": "Brought here in chains to repent. You will have a long time to do it.",
+      "kit": [{"id": "minecraft:golden_apple", "count": 1}]
+    }
+  ],
+  "events": [
+    {
+      "at": 40,
+      "spell": "The briars outside the walls shiver. Something moves beneath them.",
+      "spawns": [
+        {"entity": "shadowslave:ash_burrower", "rank": "awakened", "class": "beast", "count": 2, "per_member": 1, "point": "briar_north"}
+      ]
+    },
+    {
+      "at": 240,
+      "spell": "Heavy things push through the thorns to the east.",
+      "spawns": [
+        {"entity": "shadowslave:chainback", "rank": "awakened", "class": "monster", "count": 1, "per_member": 1, "point": "briar_east"},
+        {"entity": "shadowslave:ash_burrower", "rank": "awakened", "class": "beast", "count": 2, "point": "briar_west"}
+      ]
+    },
+    {
+      "at": 660,
+      "spell": "A novice who never came back stands at the south gate, asking to be let in.",
+      "spawns": [
+        {"entity": "shadowslave:hollow_mimic", "rank": "awakened", "class": "demon", "count": 1, "per_member": 1, "point": "briar_south"},
+        {"entity": "shadowslave:chainback", "rank": "awakened", "class": "monster", "count": 1, "point": "briar_west"}
+      ]
+    },
+    {
+      "at": 900,
+      "spell": "The briars climb the walls. They have brought a gardener of their own.",
+      "spawns": [
+        {"entity": "shadowslave:thorn_matron", "rank": "fallen", "class": "devil", "count": 1, "point": "briar_east"},
+        {"entity": "shadowslave:ash_burrower", "rank": "awakened", "class": "beast", "count": 2, "per_member": 1, "point": "briar_north"}
+      ]
+    },
+    {
+      "at": 1320,
+      "spell": "The third day. The Cloister is more garden than cloister now.",
+      "spawns": [
+        {"entity": "shadowslave:chainback", "rank": "fallen", "class": "monster", "count": 1, "per_member": 1, "point": "briar_south"},
+        {"entity": "shadowslave:hollow_mimic", "rank": "awakened", "class": "demon", "count": 1, "point": "briar_west"},
+        {"entity": "shadowslave:ash_burrower", "rank": "awakened", "class": "beast", "count": 3, "per_member": 1, "point": "briar_east"}
+      ]
+    }
+  ],
+  "tyrant": {
+    "at": 1000,
+    "entity": "shadowslave:thorn_matron",
+    "rank": "fallen",
+    "class": "tyrant",
+    "point": "garden",
+    "name": "The Thorn Mother",
+    "spell": "The garden at the heart of the Cloister opens. The Thorn Mother walks out of it.",
+    "health_per_member": 0.5
+  },
+  "endings": [
+    {
+      "id": "burn_root",
+      "kind": "light",
+      "after": 600,
+      "points": ["brazier_bell", "brazier_west", "brazier_east"],
+      "score": 110,
+      "deed": "You lit the three braziers, and the briars burned back to the root.",
+      "comment": "The Cloister burned its own garden to live. It was enough, that season.",
+      "role": "brazier_keeper",
+      "role_score": 25,
+      "role_deed": "A Brazier Keeper lit the old fires, as the rule said they must."
+    },
+    {
+      "id": "mother",
+      "kind": "slay_tyrant",
+      "score": 90,
+      "deed": "You cut down the Thorn Mother in her own garden.",
+      "comment": "Without their mother, the briars withered. The Cloister tended a quieter garden after.",
+      "role": "thornwarden",
+      "role_score": 20,
+      "role_deed": "A Thornwarden held the walls, as was their oath."
+    },
+    {
+      "id": "outlast",
+      "kind": "survive",
+      "after": 1800,
+      "score": 35,
+      "deed": "You lived through three days in the briars.",
+      "comment": "The season turned and the briars slept. The Cloister did not wake with them.",
+      "role": "penitent_captive",
+      "role_score": 20,
+      "role_deed": "A Penitent Captive endured, which was all that was asked of them."
+    }
+  ],
+  "comments": {
+    "Poor": "Poor. You lived. The briars hardly noticed you.",
+    "Adequate": "Adequate. The Cloister would have thanked you, had it lasted.",
+    "Good": "Good. Few walk out of the briars on their own feet.",
+    "Excellent": "Excellent. The garden will remember the shape of you.",
+    "Glorious": "Glorious. The Spell will remember this season."
+  },
+  "boons": {
+    "Poor": "shadowslave:nightmare_trial/long_thorn/poor",
+    "Good": "shadowslave:nightmare_trial/long_thorn/good",
+    "Excellent": "shadowslave:nightmare_trial/long_thorn/excellent",
+    "Glorious": "shadowslave:nightmare_trial/long_thorn/glorious"
+  },
+  "lore": "The Briar Cloister tended its garden at the bottom of the Thornwake Basin for three hundred years, until the season the briars came. It took them three days to swallow it. Its walls still stand among the thorns."
+}

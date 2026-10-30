@@ -40,6 +40,13 @@ public final class DreamRealmRegistry {
             DeferredRegister.create(Registries.POINT_OF_INTEREST_TYPE, ShadowSlaveMod.MOD_ID);
     private static final DeferredRegister<AttachmentType<?>> ATTACHMENTS =
             DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, ShadowSlaveMod.MOD_ID);
+    private static final DeferredRegister<com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.biome.BiomeSource>>
+            BIOME_SOURCES = DeferredRegister.create(Registries.BIOME_SOURCE, ShadowSlaveMod.MOD_ID);
+
+    /** The Dream Realm's ring biome source, so each region has its own ground and sky. */
+    public static final DeferredHolder<com.mojang.serialization.MapCodec<? extends net.minecraft.world.level.biome.BiomeSource>,
+            com.mojang.serialization.MapCodec<DreamRingsBiomeSource>> DREAM_RINGS =
+            BIOME_SOURCES.register("dream_rings", () -> DreamRingsBiomeSource.CODEC);
 
     /** Dying with your sleeping body: "Steve's dream was severed". */
     public static final ResourceKey<DamageType> SEVERED_DREAM = ResourceKey.create(Registries.DAMAGE_TYPE,
@@ -79,6 +86,7 @@ public final class DreamRealmRegistry {
         ENTITY_TYPES.register(modEventBus);
         POI_TYPES.register(modEventBus);
         ATTACHMENTS.register(modEventBus);
+        BIOME_SOURCES.register(modEventBus);
         modEventBus.addListener(DreamRealmRegistry::createAttributes);
     }
 

@@ -3,12 +3,14 @@ package dev.spud.shadowslave.dreamrealm;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.spud.shadowslave.creature.CreatureClass;
 import dev.spud.shadowslave.creature.CreatureRank;
 import dev.spud.shadowslave.gate.GateCategory;
 import dev.spud.shadowslave.gate.GateForecast;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,9 +22,29 @@ import java.util.Optional;
  * and hold harder Seeds: a Seed takes its Category forecast from the region it
  * grows in, and cleansing it pays out {@code cleanse_loot}. {@code danger}
  * is the rank the Field Guide rates the region at before anything is seen there.
+ * {@code creatures} are the Nightmare Creatures that roam it around dreamers
+ * (see {@link DreamRealmCreatures}); a region without any is quiet between Gates.
  */
 public record DreamRegion(String displayName, int minDistance, int maxDistance, GateForecast seedForecast,
-                          ResourceLocation cleanseLoot, String arrival, Optional<CreatureRank> danger) {
+                          ResourceLocation cleanseLoot, String arrival, Optional<CreatureRank> danger,
+                          List<Roamer> creatures) {
+    /**
+     * A creature that roams a region, at a Rank and Class (each defaulting to the
+     * creature's own), coming in groups of {@code min} to {@code max}, picked by {@code weight}.
+     */
+    public record Roamer(ResourceLocation entity, Optional<CreatureRank> rank, Optional<CreatureClass> creatureClass,
+                         int weight, int min, int max) {
+        public static final Codec<Roamer> CODEC = RecordCodecBuilder.<Roamer>create(instance -> instance.group(
+                ResourceLocation.CODEC.fieldOf("entity").forGetter(Roamer::entity),
+                CreatureRank.CODEC.optionalFieldOf("rank").forGetter(Roamer::rank),
+                CreatureClass.CODEC.optionalFieldOf("class").forGetter(Roamer::creatureClass),
+                Codec.intRange(1, 1000).optionalFieldOf("weight", 1).forGetter(Roamer::weight),
+                Codec.intRange(1, 16).optionalFieldOf("min", 1).forGetter(Roamer::min),
+                Codec.intRange(1, 16).optionalFieldOf("max", 1).forGetter(Roamer::max)
+        ).apply(instance, Roamer::new)).validate(roamer -> roamer.min <= roamer.max
+                ? DataResult.success(roamer) : DataResult.error(() -> "min must not be above max"));
+    }
+
     private static final Codec<GateForecast> FORECAST_CODEC = Codec.unboundedMap(Codec.STRING, Codec.intRange(1, 100))
             .comapFlatMap(DreamRegion::forecast, forecast -> {
                 Map<String, Integer> odds = new LinkedHashMap<>();
@@ -37,14 +59,19 @@ public record DreamRegion(String displayName, int minDistance, int maxDistance, 
             FORECAST_CODEC.fieldOf("seed_forecast").forGetter(DreamRegion::seedForecast),
             ResourceLocation.CODEC.fieldOf("cleanse_loot").forGetter(DreamRegion::cleanseLoot),
             Codec.STRING.optionalFieldOf("arrival", "").forGetter(DreamRegion::arrival),
-            CreatureRank.CODEC.optionalFieldOf("danger").forGetter(DreamRegion::danger)
+            CreatureRank.CODEC.optionalFieldOf("danger").forGetter(DreamRegion::danger),
+            Roamer.CODEC.listOf().optionalFieldOf("creatures", List.of()).forGetter(DreamRegion::creatures)
     ).apply(instance, DreamRegion::new)).validate(region -> region.minDistance < region.maxDistance
             ? DataResult.success(region)
             : DataResult.error(() -> "min_distance must be below max_distance"));
 
     public DreamRegion(String displayName, int minDistance, int maxDistance, GateForecast seedForecast,
                        ResourceLocation cleanseLoot, String arrival) {
-        this(displayName, minDistance, maxDistance, seedForecast, cleanseLoot, arrival, Optional.empty());
+        this(displayName, minDistance, maxDistance, seedForecast, cleanseLoot, arrival, Optional.empty(), List.of());
+    }
+
+    public DreamRegion {
+        creatures = List.copyOf(creatures);
     }
 
     /**

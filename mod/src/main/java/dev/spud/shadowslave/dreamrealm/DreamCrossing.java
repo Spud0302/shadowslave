@@ -394,7 +394,8 @@ public final class DreamCrossing {
     }
 
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player && data(player).isDreaming()) {
+        // A challenger who comes back into a Long Nightmare stays in the dream: the Nightmare kept them.
+        if (event.getEntity() instanceof ServerPlayer player && data(player).isDreaming() && !TrialService.inside(player)) {
             wake(player, Reason.RETURNED);
         }
     }

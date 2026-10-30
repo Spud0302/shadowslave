@@ -65,6 +65,15 @@ public final class NightmareCreatureEntities {
                     .build(registryName.toString())
     );
 
+    public static final Supplier<EntityType<ThornMatronEntity>> THORN_MATRON = ENTITY_TYPES.register(
+            "thorn_matron",
+            registryName -> EntityType.Builder.of(ThornMatronEntity::new, MobCategory.MONSTER)
+                    .sized(1.0F, 2.8F)
+                    .eyeHeight(2.3F)
+                    .clientTrackingRange(10)
+                    .build(registryName.toString())
+    );
+
     /** The visible tear of a Gate; presentation only, the Gate itself lives in GateData. */
     public static final Supplier<EntityType<GateRiftEntity>> GATE_RIFT = ENTITY_TYPES.register(
             "gate_rift",
@@ -102,6 +111,9 @@ public final class NightmareCreatureEntities {
         event.put(ASHEN_TYRANT.get(), NightmareCreature.attributes(AshenTyrantEntity.STATS)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.9)
                 .add(Attributes.STEP_HEIGHT, 1.1).build());
+        event.put(THORN_MATRON.get(), NightmareCreature.attributes(ThornMatronEntity.STATS)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.7)
+                .add(Attributes.FOLLOW_RANGE, 36.0).build());
         event.put(DROWNED_LISTENER.get(), Drowned.createAttributes().build());
     }
 }

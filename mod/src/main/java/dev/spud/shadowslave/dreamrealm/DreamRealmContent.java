@@ -8,14 +8,18 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * The Dream Realm as data packs describe it: its regions and the Seed
- * tuning. {@link DreamRealmContentLoader} replaces it on every reload.
+ * The Dream Realm as data packs describe it: its regions, the Seed
+ * tuning and how creatures roam. {@link DreamRealmContentLoader} replaces it on every reload.
  */
-public record DreamRealmContent(DreamSeedSettings seeds, Map<ResourceLocation, DreamRegion> regions) {
+public record DreamRealmContent(DreamSeedSettings seeds, RoamingSettings roaming, Map<ResourceLocation, DreamRegion> regions) {
     private static volatile DreamRealmContent current = new DreamRealmContent(DreamSeedSettings.DEFAULT, Map.of());
 
     public DreamRealmContent {
         regions = Map.copyOf(regions);
+    }
+
+    public DreamRealmContent(DreamSeedSettings seeds, Map<ResourceLocation, DreamRegion> regions) {
+        this(seeds, RoamingSettings.DEFAULT, regions);
     }
 
     public static DreamRealmContent get() {

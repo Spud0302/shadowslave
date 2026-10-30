@@ -52,6 +52,23 @@ public final class DreamRealm {
 
     /** Horizontal distance from the Dream Realm's centre, which decides the region. */
     public static double distanceFromCentre(BlockPos realm) {
-        return Math.sqrt((double) realm.getX() * realm.getX() + (double) realm.getZ() * realm.getZ());
+        return regionDistance(realm.getX(), realm.getZ());
+    }
+
+    /**
+     * How far out a column counts for regions and their biomes: its distance
+     * from the centre, give or take a slow wobble around the circle, so the
+     * border between two regions winds instead of running as a perfect ring.
+     * {@link DreamRingsBiomeSource} paints biomes by the same measure, so a
+     * region's ground and its name always agree.
+     */
+    public static double regionDistance(double x, double z) {
+        double distance = Math.sqrt(x * x + z * z);
+        if (distance < 1.0) {
+            return distance;
+        }
+        double angle = Math.atan2(z, x);
+        double wobble = 0.6 * Math.sin(angle * 5.0 + 0.7) + 0.4 * Math.sin(angle * 11.0 + 2.1);
+        return distance + wobble * Math.min(48.0, distance * 0.03);
     }
 }
