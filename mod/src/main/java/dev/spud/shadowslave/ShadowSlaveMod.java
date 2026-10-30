@@ -25,6 +25,8 @@ import dev.spud.shadowslave.awakening.SoulSeaService;
 import dev.spud.shadowslave.block.ModBlocks;
 import dev.spud.shadowslave.citadel.CitadelCommands;
 import dev.spud.shadowslave.citadel.CitadelContentLoader;
+import dev.spud.shadowslave.citadel.CitadelLife;
+import dev.spud.shadowslave.citadel.CitadelRaids;
 import dev.spud.shadowslave.citadel.CitadelRegistry;
 import dev.spud.shadowslave.citadel.CitadelService;
 import dev.spud.shadowslave.clan.ClanCommands;
@@ -112,6 +114,7 @@ public final class ShadowSlaveMod {
         SeedService.bootstrap();
         TrialRules.bootstrap();
         CitadelService.bootstrap();
+        CitadelRaids.bootstrap();
 
         if (physicalSide == Dist.DEDICATED_SERVER) {
             modEventBus.addListener(ModPayloads::registerDedicatedServer);
@@ -245,6 +248,10 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(CitadelService::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(CitadelService::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(CitadelService::onPlayerLoggedOut);
+        NeoForge.EVENT_BUS.addListener(CitadelLife::onServerTick);
+        NeoForge.EVENT_BUS.addListener(CitadelLife::onFinalizeSpawn);
+        NeoForge.EVENT_BUS.addListener(CitadelLife::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(CitadelLife::onPlayerLoggedOut);
         NeoForge.EVENT_BUS.addListener(ClanCommands::register);
         NeoForge.EVENT_BUS.addListener(ClanService::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(SpellContentLoader::onAddReloadListeners);

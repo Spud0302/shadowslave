@@ -23,6 +23,10 @@
     "true_name": [
       "You are the first under the Spell to earn a True Name.",
       "No one before you has been given a True Name."
+    ],
+    "citadel_raid": [
+      "You are the first under the Spell to hold a Citadel against a raid.",
+      "No Citadel had been held against the dream before {what}."
     ]
   }
 }

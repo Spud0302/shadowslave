@@ -1,0 +1,68 @@
+{
+  "name": "Archive",
+  "description": "The Field Guide board reaches members far away.",
+  "order": 3,
+  "base": {
+    "remote_seconds": 0,
+    "waking": 0
+  },
+  "tiers": [
+    {
+      "cost": [
+        {
+          "item": "shadowslave:dormant_soul_shard",
+          "count": 8
+        },
+        {
+          "item": "minecraft:book",
+          "count": 16
+        }
+      ],
+      "values": {
+        "remote_seconds": 600
+      },
+      "summary": "Members anywhere in the Dream Realm share with the board every 10 minutes."
+    },
+    {
+      "cost": [
+        {
+          "item": "shadowslave:dormant_soul_shard",
+          "count": 16
+        },
+        {
+          "item": "minecraft:bookshelf",
+          "count": 8
+        },
+        {
+          "item": "minecraft:amethyst_shard",
+          "count": 4
+        }
+      ],
+      "values": {
+        "remote_seconds": 180
+      },
+      "summary": "Every 3 minutes, anywhere in the Dream Realm."
+    },
+    {
+      "cost": [
+        {
+          "item": "shadowslave:awakened_soul_shard",
+          "count": 8
+        },
+        {
+          "item": "minecraft:diamond",
+          "count": 4
+        },
+        {
+          "item": "minecraft:lectern",
+          "count": 1
+        }
+      ],
+      "values": {
+        "remote_seconds": 60,
+        "waking": 1
+      },
+      "summary": "Every minute, even in the waking world."
+    }
+  ]
+}

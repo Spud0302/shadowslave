@@ -1,0 +1,71 @@
+{
+  "name": "Wards",
+  "description": "Keeps hostile spawns away and rings for strangers.",
+  "order": 0,
+  "fails_at": "hungry",
+  "base": {
+    "radius": 0,
+    "alarm": 0,
+    "mark": 0
+  },
+  "tiers": [
+    {
+      "cost": [
+        {
+          "item": "shadowslave:dormant_soul_shard",
+          "count": 8
+        },
+        {
+          "tag": "minecraft:stone_bricks",
+          "count": 32
+        }
+      ],
+      "values": {
+        "radius": 24,
+        "alarm": 1
+      },
+      "summary": "No hostile spawns within 24 blocks; an alarm rings for strangers."
+    },
+    {
+      "cost": [
+        {
+          "item": "shadowslave:dormant_soul_shard",
+          "count": 16
+        },
+        {
+          "item": "minecraft:iron_ingot",
+          "count": 8
+        },
+        {
+          "item": "minecraft:amethyst_shard",
+          "count": 4
+        }
+      ],
+      "values": {
+        "radius": 36
+      },
+      "summary": "No hostile spawns within 36 blocks; the alarm rings."
+    },
+    {
+      "cost": [
+        {
+          "item": "shadowslave:awakened_soul_shard",
+          "count": 8
+        },
+        {
+          "item": "minecraft:gold_ingot",
+          "count": 4
+        },
+        {
+          "item": "minecraft:diamond",
+          "count": 2
+        }
+      ],
+      "values": {
+        "radius": 48,
+        "mark": 1
+      },
+      "summary": "No hostile spawns within 48 blocks; strangers are marked with a glow."
+    }
+  ]
+}

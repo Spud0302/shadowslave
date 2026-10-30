@@ -1,6 +1,8 @@
 package dev.spud.shadowslave.network;
 
 import dev.spud.shadowslave.network.payload.CallingFrequencyPayload;
+import dev.spud.shadowslave.citadel.CitadelLife;
+import dev.spud.shadowslave.network.payload.GatewayActionPayload;
 import dev.spud.shadowslave.network.payload.TrueNameActionPayload;
 import dev.spud.shadowslave.spell.truename.TrueNames;
 import dev.spud.shadowslave.spell.calling.CallingFrequency;
@@ -70,6 +72,13 @@ public final class ServerPayloadHandler {
         ServerPlayer player = serverPlayer(context, "Calling frequency");
         if (player != null) {
             SpellCallings.setFrequency(player, CallingFrequency.byOrdinal(payload.frequency()));
+        }
+    }
+
+    public static void handleGatewayAction(GatewayActionPayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "Gateway");
+        if (player != null) {
+            CitadelLife.handle(player, payload);
         }
     }
 

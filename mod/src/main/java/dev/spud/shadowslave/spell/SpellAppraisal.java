@@ -41,6 +41,14 @@ public final class SpellAppraisal {
         if (!memory.isEmpty()) {
             SpellVoices.say(VoiceRequest.of("appraisal_memory", memory, facts, seed)).ifPresent(lines::add);
         }
+        if (before.map(SpellRecord.Tally::raidsUnrecalled).orElse(0) > 0) {
+            // Credit for the Citadels they held between Nightmares (Run C).
+            facts.put("raids", Integer.toString(before.get().raidsUnrecalled()));
+            SpellVoices.say(VoiceRequest.of("appraisal_memory", before.get().raidsUnrecalled() == 1 ? "held_citadel" : "held_citadels",
+                    facts, seed)).ifPresent(lines::add);
+            SpellRecord.get(player.server).tally(player.getUUID()).recallRaids();
+            SpellRecord.get(player.server).setDirty();
+        }
         return lines;
     }
 

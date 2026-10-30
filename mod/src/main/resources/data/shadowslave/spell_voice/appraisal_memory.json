@@ -39,6 +39,13 @@
     "again_fled": [
       "Again, you flee.",
       "You leave another Nightmare unfinished."
+    ],
+    "held_citadel": [
+      "Between Nightmares, you held a Citadel against the dream. The Spell saw it.",
+      "You defended a Citadel since your last Nightmare. That, too, is remembered."
+    ],
+    "held_citadels": [
+      "Between Nightmares, you held a Citadel against {raids} raids. The Spell saw each one."
     ]
   }
 }

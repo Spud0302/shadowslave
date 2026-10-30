@@ -1,0 +1,75 @@
+{
+  "name": "Workshops",
+  "description": "A Forge Hearth and a Weaving Table in the courtyard.",
+  "order": 1,
+  "fails_at": "starving",
+  "base": {
+    "forge_score": 0,
+    "weave_essence_percent": 100
+  },
+  "tiers": [
+    {
+      "cost": [
+        {
+          "item": "shadowslave:dormant_soul_shard",
+          "count": 8
+        },
+        {
+          "tag": "minecraft:logs",
+          "count": 32
+        },
+        {
+          "item": "minecraft:iron_ingot",
+          "count": 16
+        }
+      ],
+      "values": {
+        "forge_score": 4,
+        "weave_essence_percent": 90
+      },
+      "summary": "Hearth and table raised; +4 forging score, Weaving at 90% essence on your land."
+    },
+    {
+      "cost": [
+        {
+          "item": "shadowslave:dormant_soul_shard",
+          "count": 16
+        },
+        {
+          "item": "minecraft:gold_ingot",
+          "count": 8
+        },
+        {
+          "item": "minecraft:bricks",
+          "count": 32
+        }
+      ],
+      "values": {
+        "forge_score": 8,
+        "weave_essence_percent": 80
+      },
+      "summary": "+8 forging score, Weaving at 80% essence on your land."
+    },
+    {
+      "cost": [
+        {
+          "item": "shadowslave:awakened_soul_shard",
+          "count": 8
+        },
+        {
+          "item": "minecraft:diamond",
+          "count": 4
+        },
+        {
+          "item": "minecraft:amethyst_shard",
+          "count": 16
+        }
+      ],
+      "values": {
+        "forge_score": 12,
+        "weave_essence_percent": 70
+      },
+      "summary": "+12 forging score, Weaving at 70% essence on your land."
+    }
+  ]
+}

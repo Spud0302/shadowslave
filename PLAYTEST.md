@@ -840,14 +840,66 @@ raise one in front of you (operators).
    and logged Gates, Seeds, warnings and Citadels. Your own named places stay
    yours. The chat line says what you learned.
 
-Not in this slice: upkeep, upgrades, Gateway links, raids, PvP sieges and the
-Sovereign Domain.
+PvP sieges and the Sovereign Domain are not built yet.
 
 Tuning is data: `data/shadowslave/citadel/settings.json` (Guardian, guard
 radius, claim window, visit and log range, clan name length, Citadel names),
 `data/shadowslave/worldgen/structure/citadel.json` (size, slope, block
 palette) and `worldgen/structure_set/citadels.json` (spacing). Operators:
 `/shadowslave citadel status|build|list|conquer`.
+
+### Citadel life: upkeep, upgrades and raids
+
+Added by claude-code, 2026-10-30 (Run C). Quick start in the Dream Realm:
+`/shadowslave citadel build`, `/shadowslave citadel conquer`, use the
+Gateway to claim it, then use it again.
+
+1. **The Gateway screen.** A member who uses their clan's Gateway (with an
+   empty hand) opens it over the Spell's web: the provisions meter, any raid,
+   how many are anchored, the Gateway Links, and the six upgrades with what
+   the next tier costs (green: you carry it; red: you don't).
+2. **Upkeep.** The Gateway eats 40 provisions a day plus 20 per clan member.
+   A fresh claim holds 3 days; it holds up to 14. Feed it by holding soul
+   shards (10/40/160/640 by rank) or materials (gems 8, ingots 4, coal 2,
+   logs 1) and using the Gateway: it eats only what it has room for.
+3. **Neglect.** At no provisions the Gateway is **Hungry** (the wards drop),
+   after 2 days **Starving** (the workshops go cold), after 5 days
+   **Forsaken** (the Guardian's echo no longer fights raiders). The Citadel
+   is never lost; one meal sets it back to Fed. The clan hears each change.
+   Upgrades can only be built while it is Fed.
+4. **Upgrades** (three tiers each, paid from your inventory; creative builds free):
+   - *Wards*: no hostile mobs spawn within 24/36/48 blocks; a stranger
+     inside rings a bell and tells the clan; at III they glow.
+   - *Workshops*: raises a Forge Hearth, Smithing Anvil, Quench Trough and
+     Weaving Table in the courtyard; forging on clan land scores +4/8/12,
+     Weaving there costs 90/80/70% essence.
+   - *Hall*: 4 members can anchor before it's built, then 8/16/32. A full
+     Hall turns new anchors away.
+   - *Archive*: members share with the board from anywhere in the Dream
+     Realm every 10/3/1 minutes; at III even in the waking world.
+   - *Lanterns*: lantern posts on a ring 18/26/34 blocks out, and the board
+     charts 3/5/8 chunks around the Citadel.
+   - *Gateway Links*: travel to your clan's other Citadels from the screen
+     for 60/40/20 essence a trip.
+5. **Raids.** A Nightmare Seed that blooms within 96 blocks of a claimed
+   Citadel opens its Gate there, in the Dream Realm, at the region's
+   Category, instead of in the waking world. Every member online gets a
+   Calling and a chat line with the coordinates. The waves march on the
+   Gateway; the Guardian's echo strikes raiders within 16 blocks every 3
+   seconds while the Gateway isn't Forsaken.
+   - *Held*: slay the Gate's Guardian. Each member who came within 64 blocks
+     gets 2 soul shards per Category (the Citadel's rank), the Spell's record
+     counts it (your next appraisal recalls it), and a lone defender has a
+     30% chance at a True Name ("held a Citadel alone").
+   - *Lost*: raiders stand at the Gateway for 60 raider-seconds, or nobody
+     answers for 20 minutes. Two built upgrades are damaged (they work one
+     tier lower) and a quarter of the provisions spoil. Repair them on the
+     screen for half the tier's cost. The Citadel stays yours.
+
+Tuning is data: `data/shadowslave/citadel/upkeep.json`, `raid.json` and
+`upgrade/<id>.json`. Operators, at a claimed Citadel:
+`/shadowslave citadel feed <days>`, `starve <days>`,
+`upgrade <id> <tier>`, `raid <category>`, `raid lose`.
 
 ### Citadel Natures: Herald and Keeper
 

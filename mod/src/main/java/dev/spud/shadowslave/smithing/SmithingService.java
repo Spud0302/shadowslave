@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.smithing;
 
+import dev.spud.shadowslave.citadel.CitadelLife;
 import dev.spud.shadowslave.ability.EssenceService;
 import dev.spud.shadowslave.ability.KitRules;
 import dev.spud.shadowslave.ability.MasterworkAbility;
@@ -355,7 +356,8 @@ public final class SmithingService {
             tell(player, "This pattern is no longer known to the world. The billet cools to scrap.");
             return new ItemStack(Items.IRON_NUGGET, 3);
         }
-        int score = SmithingRules.score(billet, quench);
+        // A Citadel's Workshops steady the hand of a smith forging on the clan's land (Run C).
+        int score = Math.min(100, SmithingRules.score(billet, quench) + CitadelLife.forgeBonus(player));
         Quality quality = SmithingRules.grade(score, billet.masterwork(), cracked);
         Item item = BuiltInRegistries.ITEM.get(recipe.result());
         ItemStack stack = new ItemStack(item == Items.AIR ? Items.BARRIER : item);

@@ -136,6 +136,16 @@ public final class TrueNames {
                 .ifPresent(deed -> grant(player, deed.getKey().getPath(), deed.getValue(), true));
     }
 
+    /** A Citadel held against a raid that may be an extraordinary deed (held by one defender alone). */
+    public static void considerRaid(ServerPlayer player, boolean alone) {
+        if (data(player).named() || TrialService.inside(player)) {
+            return;
+        }
+        TrueNameContent.get().best(deed -> deed.matchesRaid(alone))
+                .filter(deed -> player.getRandom().nextFloat() < deed.getValue().chance())
+                .ifPresent(deed -> grant(player, deed.getKey().getPath(), deed.getValue(), true));
+    }
+
     /** No other player stands within {@code range} of this one. */
     static boolean alone(ServerPlayer player, int range) {
         if (range <= 0) {

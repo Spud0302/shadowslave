@@ -17,7 +17,9 @@ public enum GateTrigger implements StringRepresentable {
     /** A Nightmare Seed in the Dream Realm bloomed; the Gate opens at the matching Overworld spot. */
     SEED_BLOOM("seed_bloom"),
     /** A player challenged a Nightmare Seed before it bloomed; the Gate opens at the Seed. */
-    SEED_CLEANSE("seed_cleanse");
+    SEED_CLEANSE("seed_cleanse"),
+    /** A Nightmare Seed bloomed near a clan's Citadel; the Gate opens at the Seed and its waves raid the Citadel. */
+    CITADEL_RAID("citadel_raid");
 
     private final String serializedName;
 

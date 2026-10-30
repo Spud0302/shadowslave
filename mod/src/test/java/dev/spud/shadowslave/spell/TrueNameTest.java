@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TrueNameTest {
     private static final List<String> DEEDS = List.of("treachery", "protector", "reckless", "defiant", "merciful", "alone",
-            "steadfast", "first_great", "tyrant_alone");
+            "steadfast", "first_great", "tyrant_alone", "citadel_alone");
 
     @Test
     void everyBehaviourTheJudgeReadsHasADeed() throws Exception {
@@ -54,6 +54,12 @@ class TrueNameTest {
         assertFalse(tyrant.matchesKill(CreatureRank.AWAKENED, CreatureClass.TYRANT, true, false), "someone stood beside them");
         assertFalse(tyrant.matchesKill(CreatureRank.AWAKENED, CreatureClass.TYRANT, false, true), "not above their rank");
         assertFalse(tyrant.matchesKill(CreatureRank.GREAT, CreatureClass.DEVIL, true, true), "a Devil is not a Tyrant");
+
+        TrueNameDeed raid = deed("citadel_alone");
+        assertTrue(raid.matchesRaid(true), "a Citadel held alone");
+        assertFalse(raid.matchesRaid(false), "held with others beside them");
+        assertFalse(raid.matchesKill(CreatureRank.AWAKENED, CreatureClass.TYRANT, true, true));
+        assertFalse(tyrant.matchesRaid(true), "a kill deed never answers a raid");
     }
 
     @Test

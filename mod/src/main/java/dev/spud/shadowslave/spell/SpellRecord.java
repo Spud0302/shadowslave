@@ -50,6 +50,9 @@ public final class SpellRecord extends SavedData {
         int fled;
         int deaths;
         int citadels;
+        /** Raids on a Citadel they helped hold, and how many of those an appraisal has already recalled. */
+        int raidsHeld;
+        int raidsRecalled;
         /** Recent appraisal grades, oldest first. */
         final List<String> grades = new ArrayList<>();
         /** Recent behaviours the Judge read in their appraisals, oldest first. */
@@ -87,6 +90,23 @@ public final class SpellRecord extends SavedData {
 
         public int citadels() {
             return citadels;
+        }
+
+        public int raidsHeld() {
+            return raidsHeld;
+        }
+
+        /** Raids they held that no appraisal has recalled yet. */
+        public int raidsUnrecalled() {
+            return Math.max(0, raidsHeld - raidsRecalled);
+        }
+
+        public void heldRaid() {
+            raidsHeld++;
+        }
+
+        public void recallRaids() {
+            raidsRecalled = raidsHeld;
         }
 
         public List<String> grades() {
@@ -132,6 +152,8 @@ public final class SpellRecord extends SavedData {
             tag.putInt("fled", fled);
             tag.putInt("deaths", deaths);
             tag.putInt("citadels", citadels);
+            tag.putInt("raids_held", raidsHeld);
+            tag.putInt("raids_recalled", raidsRecalled);
             tag.put("grades", strings(grades));
             tag.put("behaviours", strings(behaviours));
             tag.putString("last_outcome", lastOutcome);
@@ -150,6 +172,8 @@ public final class SpellRecord extends SavedData {
             tally.fled = tag.getInt("fled");
             tally.deaths = tag.getInt("deaths");
             tally.citadels = tag.getInt("citadels");
+            tally.raidsHeld = tag.getInt("raids_held");
+            tally.raidsRecalled = tag.getInt("raids_recalled");
             readStrings(tag.getList("grades", Tag.TAG_STRING), tally.grades);
             readStrings(tag.getList("behaviours", Tag.TAG_STRING), tally.behaviours);
             tally.lastOutcome = tag.getString("last_outcome");

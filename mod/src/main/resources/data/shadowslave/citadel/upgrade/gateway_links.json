@@ -1,0 +1,66 @@
+{
+  "name": "Gateway Links",
+  "description": "Instant travel to your clan's other Citadels.",
+  "order": 5,
+  "base": {
+    "essence": 0
+  },
+  "tiers": [
+    {
+      "cost": [
+        {
+          "item": "shadowslave:dormant_soul_shard",
+          "count": 16
+        },
+        {
+          "item": "minecraft:ender_pearl",
+          "count": 8
+        },
+        {
+          "item": "minecraft:amethyst_shard",
+          "count": 4
+        }
+      ],
+      "values": {
+        "essence": 60
+      },
+      "summary": "Travel to your clan's Citadels for 60 essence a trip."
+    },
+    {
+      "cost": [
+        {
+          "item": "shadowslave:awakened_soul_shard",
+          "count": 8
+        },
+        {
+          "item": "minecraft:ender_pearl",
+          "count": 8
+        },
+        {
+          "item": "minecraft:gold_ingot",
+          "count": 4
+        }
+      ],
+      "values": {
+        "essence": 40
+      },
+      "summary": "40 essence a trip."
+    },
+    {
+      "cost": [
+        {
+          "item": "shadowslave:fallen_soul_shard",
+          "count": 4
+        },
+        {
+          "item": "minecraft:diamond",
+          "count": 4
+        }
+      ],
+      "values": {
+        "essence": 20
+      },
+      "summary": "20 essence a trip."
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.weaving;
 
+import dev.spud.shadowslave.citadel.CitadelLife;
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.ability.EssenceService;
 import dev.spud.shadowslave.ability.KitRules;
@@ -64,7 +65,9 @@ public final class StrandService {
 
     /** The share of Weaving's essence costs this player pays: Wellspring pays less. */
     public static int essencePercent(ServerPlayer player) {
-        return KitRules.hasInnate(player, AspectKitCatalog.WELLSPRING.innateId()) ? StrandRules.WELLSPRING_PERCENT : 100;
+        int own = KitRules.hasInnate(player, AspectKitCatalog.WELLSPRING.innateId()) ? StrandRules.WELLSPRING_PERCENT : 100;
+        // A Citadel's Workshops spare a Weaver's essence on the clan's land (Run C).
+        return own * CitadelLife.weaveEssencePercent(player) / 100;
     }
 
     /** A Seer sees weaves plainly: studying one costs them no essence. */
