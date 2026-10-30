@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:gold_nugget",
+    "minecraft:gold_block",
+    "minecraft:raw_gold",
+    "minecraft:golden_carrot",
+    "minecraft:emerald_block",
+    "minecraft:sunflower"
+  ]
+}

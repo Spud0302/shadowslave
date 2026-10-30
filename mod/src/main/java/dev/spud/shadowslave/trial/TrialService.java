@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.trial;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.ability.FortuneLuck;
 import dev.spud.shadowslave.creature.CreatureClass;
 import dev.spud.shadowslave.creature.CreatureRank;
 import dev.spud.shadowslave.creature.NightmareCreature;
@@ -679,8 +680,10 @@ public final class TrialService {
         LootParams params = new LootParams.Builder(player.serverLevel())
                 .withParameter(LootContextParams.ORIGIN, player.position())
                 .withParameter(LootContextParams.THIS_ENTITY, player)
+                .withLuck(player.getLuck())
                 .create(LootContextParamSets.GIFT);
-        return table.getRandomItems(params);
+        // Fortune's Favoured sometimes draws one boon more from a second roll.
+        return FortuneLuck.boons(player, table.getRandomItems(params), () -> table.getRandomItems(params));
     }
 
     // ---- falling and leaving -------------------------------------------------------------------------------------

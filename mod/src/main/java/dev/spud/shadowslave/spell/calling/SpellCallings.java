@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.spell.calling;
 
+import dev.spud.shadowslave.ability.CantorVoice;
 import dev.spud.shadowslave.attachment.ModAttachments;
 import dev.spud.shadowslave.awakening.AspectKit;
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
@@ -201,13 +202,21 @@ public final class SpellCallings {
             if (data.frequency == CallingFrequency.OFF) {
                 return false;
             }
-            if (data.lastCalling > 0 && now - data.lastCalling < SpellContentLoader.settings().gapTicks(data.frequency)) {
+            if (data.lastCalling > 0 && now - data.lastCalling < gapTicks(player, data.frequency)) {
                 return false;
             }
         }
-        Optional<String> line = SpellVoices.say(VoiceRequest.of("calling", key, facts, player.getRandom().nextLong()));
+        long seed = player.getRandom().nextLong();
+        Optional<String> line = SpellVoices.say(VoiceRequest.of("calling", key, facts, seed));
         if (line.isEmpty()) {
             return false;
+        }
+        if (CantorVoice.attuned(player)) {
+            // Attuned: the Spell says a little more to a Cantor.
+            Optional<String> more = SpellVoices.say(VoiceRequest.of("calling_attuned", key, facts, seed));
+            if (more.isPresent()) {
+                line = Optional.of(line.get() + " " + more.get());
+            }
         }
         long day = player.server.overworld().getDayTime() / 24000L + 1;
         CallingData.Entry entry = new CallingData.Entry(calling.id(), line.get(), day);
@@ -216,6 +225,12 @@ public final class SpellCallings {
         player.serverLevel().playSound(null, player.blockPosition(), SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.PLAYERS, 0.5F, 1.4F);
         send(player, List.of(entry), true);
         return true;
+    }
+
+    /** The least time between two Callings for this player: their chosen gap, halved for an Attuned Cantor. */
+    public static long gapTicks(ServerPlayer player, CallingFrequency frequency) {
+        long gap = SpellContentLoader.settings().gapTicks(frequency);
+        return CantorVoice.attuned(player) ? Math.round(gap * CantorVoice.ATTUNED_GAP) : gap;
     }
 
     public static void setFrequency(ServerPlayer player, CallingFrequency frequency) {

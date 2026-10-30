@@ -35,7 +35,7 @@ public final class AmbushLungeGoal extends Goal {
     @Override
     public boolean canUse() {
         LivingEntity target = creature.getTarget();
-        if (creature.creatureClass() != CreatureClass.MONSTER || target == null || !creature.onGround()
+        if (creature.creatureClass() != CreatureClass.MONSTER || target == null || !creature.onGround() || creature.silenced()
                 || creature.level().getGameTime() < readyAt) {
             return false;
         }
@@ -67,6 +67,6 @@ public final class AmbushLungeGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return creature.level().getGameTime() >= readyAt && creature.getTarget() != null && creature.getTarget().isAlive();
+        return !creature.silenced() && creature.level().getGameTime() >= readyAt && creature.getTarget() != null && creature.getTarget().isAlive();
     }
 }

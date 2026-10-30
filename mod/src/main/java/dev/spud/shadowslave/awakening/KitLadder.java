@@ -108,6 +108,15 @@ public final class KitLadder {
     public static final AbilityVariant GATEWAY_STEP = variant("gateway_step", "Gateway Step",
             "At a lit Dream Candle, step straight through to your clan's Citadel Gateway.", "Movement");
 
+    public static final AbilityVariant TWIST_FATE = variant("twist_fate", "Twist Fate",
+            "For twenty seconds, the next attack aimed at you has an even chance to miss.", "Defense");
+    public static final AbilityVariant BORROWED_LUCK = variant("borrowed_luck", "Borrowed Luck",
+            "Mark the creature you look at: if it dies within thirty seconds, it drops twice as much.", "Utility");
+    public static final AbilityVariant SILENCING_WORD = variant("silencing_word", "Silencing Word",
+            "Speak to the Nightmare Creature you look at: for five seconds it cannot use its special abilities.", "Control");
+    public static final AbilityVariant RALLYING_NAME = variant("rallying_name", "Rallying Name",
+            "Speak the name of the ally you look at: their ailments are cleared and they run faster for a while.", "Support");
+
     private static final Map<ResourceLocation, List<AbilityVariant>> AWAKENED = Map.ofEntries(
             Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(CARRY_THE_FLAME, EMBER_WARD)),
             Map.entry(AspectKitCatalog.MIST.natureId(), List.of(THROUGH_THE_HAZE, VEIL)),
@@ -130,7 +139,9 @@ public final class KitLadder {
             Map.entry(AspectKitCatalog.ANCHOR.natureId(), List.of(CRUSH, GRAVITY_WELL)),
             Map.entry(AspectKitCatalog.HOURGLASS.natureId(), List.of(REWIND, STILL_MOMENT)),
             Map.entry(AspectKitCatalog.HERALD.natureId(), List.of(RALLY_CALL, OATH_OF_ARMS)),
-            Map.entry(AspectKitCatalog.KEEPER.natureId(), List.of(BULWARK, GATEWAY_STEP))
+            Map.entry(AspectKitCatalog.KEEPER.natureId(), List.of(BULWARK, GATEWAY_STEP)),
+            Map.entry(AspectKitCatalog.FORTUNE.natureId(), List.of(TWIST_FATE, BORROWED_LUCK)),
+            Map.entry(AspectKitCatalog.CANTOR.natureId(), List.of(SILENCING_WORD, RALLYING_NAME))
     );
 
     private KitLadder() {

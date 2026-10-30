@@ -68,9 +68,9 @@ Added by claude-code, 2026-10-22.
 
 You can only roll once. Operators can reroll with `/shadowslave aspect reroll`
 (optionally followed by player names), and `/shadowslave reset` clears the Soul
-entirely. The roll picks one of twenty-two Natures (Ember, Mist, Stone, Tide, Warden,
+entirely. The roll picks one of twenty-four Natures (Ember, Mist, Stone, Tide, Warden,
 Seer, Reaper, Wellspring, Forge, Delve, Mason, Verdant, Wayfarer, Lull, Gloam,
-Rime, Fury, Threshold, Anchor, Hourglass, Herald, Keeper), nudged slightly by how you played beforehand (lighting
+Rime, Fury, Threshold, Anchor, Hourglass, Herald, Keeper, Fortune, Cantor), nudged slightly by how you played beforehand (lighting
 and smelting, sneaking, mining, swimming nudge the first four). Operators can
 pick a Nature outright with `/shadowslave aspect set <nature>`. Press R to use
 your Aspect's ability. Abilities have no cooldowns: each one spends **essence**
@@ -122,10 +122,13 @@ bundle, an oak or iron door; Anchor: a lodestone, chain, heavy core, iron bars,
 pointed dripstone, slime balls; Hourglass: sand, red sand, glass, a repeater,
 comparator, daylight detector; Herald: a white, red, blue or yellow banner, a
 golden helmet, an emerald, a book and quill; Keeper: a shield, a respawn anchor,
-crying obsidian, an iron chestplate, a cobblestone wall, an iron trapdoor; the
+crying obsidian, an iron chestplate, a cobblestone wall, an iron trapdoor;
+Fortune: a gold nugget, gold block, raw gold, golden carrot, emerald block,
+sunflower; Cantor: a name tag, book, paper, oak sign, the "cat" music disc, a
+sculk sensor; the
 full lists are the `data/shadowslave/tags/item/intention/` tags). The Soul Sea
 shows the odds under each longing: offering and longing for the same Nature
-takes it from about 4.5% to 10%, never certain. Then sleep beside the candle; the roll uses the intention once.
+takes it from about 4% to 9%, never certain. Then sleep beside the candle; the roll uses the intention once.
 
 **Meditation and Awakening.** Sneak and use a lit Dream Candle (with anything
 in hand) to meditate: the **Soul Sea** opens, showing your Soul Rank, your core
@@ -196,6 +199,10 @@ a blow is loaded, and the charge fades after 6 seconds.
 | Herald | Oath of Arms (35) | Bind the ally you look at (16 blocks) for 20 s: half of every blow on them falls on you instead |
 | Keeper | Bulwark (50) | A 7-block dome for 10 s: you and your allies inside take half harm, and arrows and other projectiles from outside fly back at the edge. You can fight out of it |
 | Keeper | Gateway Step (50) | Standing by a lit Dream Candle, step straight to the Gateway of your clan's nearest Citadel. From the waking world it is a crossing: your body sleeps where you stood |
+| Fortune | Twist Fate (35) | For 20 s, the next attack aimed at you has an even chance to miss. That one attack spends the ward, hit or miss |
+| Fortune | Borrowed Luck (30) | Mark the creature you look at (20 blocks). If it dies within 30 s, by anyone's hand, it drops twice as much and gives twice the experience |
+| Cantor | Silencing Word (35) | The Nightmare Creature you look at (20 blocks) cannot use its special abilities for 5 s (no slam, chain pull, burrow, borrowed voice, lunge or summons). It still walks and bites |
+| Cantor | Rallying Name (30) | Clear every harmful effect (and fire) from the ally you look at (24 blocks) and give them Speed II for 8 s |
 
 ### The newer Natures: Warden, Seer, Reaper, Wellspring
 
@@ -823,3 +830,27 @@ Things to try:
    Awakened: Bulwark near skeletons and watch the arrows turn back. Light a
    Dream Candle at home, Gateway Step to your Citadel, then wake with an empty
    hand on a lit Candle to return.
+
+### The Spell's Natures: Fortune and Cantor
+
+Added by claude-code, 2026-10-30. Quick start: `/shadowslave aspect set
+fortune` (or cantor), then `/shadowslave core fill` and `/shadowslave awaken
+<name>` for the Awakened abilities above.
+
+| Nature | Innate (always on) | Ability (R) | Flaw |
+| --- | --- | --- | --- |
+| Fortune | Favoured: +1 Luck (better chest and fishing loot), each stack a creature you kill drops has a 20% chance of one more, and a cleared Nightmare has a 25% chance to grant one more boon | Coin of Fate: for 10 s your next hit lands for double damage (heads) or half (tails), even odds (20 essence) | Ill Omen: three lucky breaks within 2 minutes (a heads, a Twist Fate miss, a bonus drop or boon, a Borrowed Luck payout) bring a small mishap: a stumble, a slipping grip, or spilled essence |
+| Cantor | Attuned: the Spell's Callings can come twice as often as your frequency setting allows, and each adds a second line | Command Word: speak the name of the Nightmare Creature you look at (20 blocks) and it cannot move or act for 3 s. Only works on kinds whose Field Guide page you have completed (30 essence) | Spoken Self: each ability you use shows where you stood on every other player's Field Guide map for 10 s, labelled with your name |
+
+Things to try:
+
+1. Fortune: flip the Coin of Fate and hit a zombie a few times to see heads
+   and tails. Kill a handful of cows and compare drops with a friend who is
+   not Fortune. Awakened: raise Twist Fate near a skeleton, and mark a
+   creature with Borrowed Luck before killing it. Keep getting lucky and wait
+   for the Ill Omen mishap.
+2. Cantor: with Callings on Often, notice the extra line on each Calling. Try
+   Command Word on a Chainback before and after completing its Field Guide
+   page (spyglass sightings and kills). Awakened: Silence an Ashen Tyrant
+   before its slam, and call a poisoned friend's name. With a friend online,
+   use any ability and have them open their Field Guide map.

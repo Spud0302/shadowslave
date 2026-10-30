@@ -222,10 +222,28 @@ public final class AspectKitCatalog {
             id("generation/flaw/homebound"), id("generation/flaw_effect/homebound"), "Homebound",
             "Away from your clan's land, your essence pool holds a third less."
     );
+    public static final AspectKit FORTUNE = new AspectKit(
+            id("generation/nature/fortune"), "Fortune",
+            id("kit/innate/fortune_favoured"), "Favoured",
+            "Loot and Memory rolls fall a little better for you.",
+            id("generation/ability/coin_of_fate"), "Coin of Fate",
+            "Flip the coin: your next hit does either double or half damage.",
+            id("generation/flaw/ill_omen"), id("generation/flaw_effect/ill_omen"), "Ill Omen",
+            "After a lucky streak, a small mishap follows."
+    );
+    public static final AspectKit CANTOR = new AspectKit(
+            id("generation/nature/cantor"), "Cantor",
+            id("kit/innate/cantor_attuned"), "Attuned",
+            "The Spell's Callings come to you more often, and say a little more.",
+            id("generation/ability/command_word"), "Command Word",
+            "Speak the name of a creature whose Field Guide page you have completed, and it is stunned for a moment.",
+            id("generation/flaw/spoken_self"), id("generation/flaw_effect/spoken_self"), "Spoken Self",
+            "When you use an ability, other players' Field Guide maps show where you stand for a moment."
+    );
 
     private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE, WARDEN, SEER, REAPER, WELLSPRING,
             FORGE, DELVE, MASON, VERDANT, WAYFARER, LULL, GLOAM, RIME, FURY, THRESHOLD, ANCHOR, HOURGLASS,
-            HERALD, KEEPER);
+            HERALD, KEEPER, FORTUNE, CANTOR);
 
     private AspectKitCatalog() {
     }

@@ -198,7 +198,7 @@ public final class AshenTyrantEntity extends NightmareCreature {
         @Override
         public boolean canUse() {
             LivingEntity target = tyrant.getTarget();
-            return !tyrant.isLesser() && target != null && tyrant.onGround()
+            return !tyrant.isLesser() && !tyrant.silenced() && target != null && tyrant.onGround()
                     && tyrant.level().getGameTime() >= readyAt && tyrant.distanceTo(target) < RADIUS;
         }
 
@@ -251,7 +251,7 @@ public final class AshenTyrantEntity extends NightmareCreature {
 
         @Override
         public boolean canContinueToUse() {
-            return windup > 0;
+            return windup > 0 && !tyrant.silenced();
         }
     }
 }

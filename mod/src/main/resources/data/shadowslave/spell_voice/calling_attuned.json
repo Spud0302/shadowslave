@@ -1,0 +1,28 @@
+{
+  "lines": {
+    "core_nearly_full": [
+      "The threads around your soul pull taut, Cantor. Listen for where they lead.",
+      {"text": "Light the candle soon. The name the Spell will give you is already on its tongue.", "when": {"rank": "Dormant"}}
+    ],
+    "core_full": [
+      "Your soul hums at the edge of its rank. The Spell hears it.",
+      {"text": "Seek the {next_category} Category. The Spell will not say it louder than this.", "when": {"rank": "Awakened"}}
+    ],
+    "seed_next_category": [
+      "Follow the thread that sounds lowest. The Seed lies under it.",
+      "Its Guardian has a name too. Learn it before you enter."
+    ],
+    "new_region": [
+      "Every creature here has a name. Learn them, and they will answer.",
+      "The stars over {region} are older than its walls."
+    ],
+    "unclaimed_citadel": [
+      "Its Gateway still remembers the last voice that held it.",
+      "A clan that claims it will be heard across the Dream Realm."
+    ],
+    "idle": [
+      "Even a Cantor must sing to be heard.",
+      "The Spell keeps your name close. It would like to say it again."
+    ]
+  }
+}

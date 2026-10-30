@@ -79,6 +79,12 @@ public final class AbilityRegistry {
         register(new SanctuaryAbility());
         register(new BulwarkAbility());
         register(new GatewayStepAbility());
+        register(new CoinOfFateAbility());
+        register(new TwistFateAbility());
+        register(new BorrowedLuckAbility());
+        register(new CommandWordAbility());
+        register(new SilencingWordAbility());
+        register(new RallyingNameAbility());
     }
 
     private AbilityRegistry() {
