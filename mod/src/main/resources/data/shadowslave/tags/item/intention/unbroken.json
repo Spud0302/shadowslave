@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:totem_of_undying",
+    "minecraft:turtle_helmet",
+    "minecraft:chainmail_chestplate",
+    "minecraft:bone_block",
+    "minecraft:cooked_beef"
+  ]
+}

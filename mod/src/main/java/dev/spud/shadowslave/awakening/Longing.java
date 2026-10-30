@@ -34,7 +34,9 @@ public enum Longing {
     GAMBLE("Gamble", "fortune", "Fortune"),
     NAME("Name", "cantor", "Cantor"),
     TEND("Tend", "shepherd", "Shepherd"),
-    BECOME("Become", "vessel", "Vessel");
+    BECOME("Become", "vessel", "Vessel"),
+    MASK("Mask", "masque", "Masque"),
+    WITHSTAND("Withstand", "unbroken", "Unbroken");
 
     private final String label;
     private final String evidenceTag;

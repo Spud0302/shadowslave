@@ -495,6 +495,42 @@ echo sites in `data/shadowslave/dream_realm/echo_site/`, tuning (weights to
 Category, gather time, kill points, grades) in
 `data/shadowslave/nightmare_trial/settings.json`, boons as `gift` loot tables.
 
+### Nightmare Natures: Masque and Unbroken
+
+Added by claude-code, 2026-10-30. Quick start: `/shadowslave aspect set masque`
+(or unbroken), then `/shadowslave core fill` and `/shadowslave awaken <name>`
+for the Awakened abilities. Masque's innate only shows inside a Nightmare (see
+above to start The Last Vigil).
+
+| Nature | Innate (always on) | Ability (R) | Flaw |
+| --- | --- | --- | --- |
+| Masque | Role-Worn: in a Nightmare your role kit comes with one more of everything, and an ending that rewards your role gives half as much again | Borrowed Face: look at a creature (24 blocks) and wear its face for a minute. Others see you as that creature, and creatures of your rank or lower ignore you until you strike or use another ability (25 essence) | Hollow Reflection: still water or glass within 2 blocks reveals you. You glow, lose the face and take a quarter more damage while revealed |
+| Unbroken | Weathered: each second of a fight turns aside 2% more damage, up to 30%. A fight ends 6 s after the last blow | Last Stand: brace (30 essence). The next killing blow leaves you on 1 heart with Resistance II for 3 s, then your will rests for 3 minutes | No Retreat: sprinting away from a hostile within 12 blocks drains 3 essence a second |
+
+Awakened choices: Masque picks **Mirror Swap** (trade places with the creature
+or player you look at, 24 blocks; 30 essence) or **Stolen Voice** (throw a
+creature's own call to the spot you look at; every creature of that kind
+nearby forgets its target and goes there for 8 s; 30 essence). Unbroken picks
+**Grit** (plant your feet for 10 s: each hit you take where you stand hardens
+you 10% more against the next, up to 50%, and stepping away ends it; 30
+essence) or **Defiance** (every hostile within 16 blocks must target you and
+cannot turn away for 8 s, and you get Resistance I; 30 essence).
+
+Things to try:
+
+1. Masque: wear a zombie's face in front of a friend and check they see a
+   zombie walking. Walk past zombies and skeletons (they ignore you), then hit
+   one (they all turn). Step next to a pond or a glass pane while disguised.
+   Mirror Swap with a skeleton across a gap, or with a friend. Stolen Voice
+   at night beside a few husks and watch them walk to the spot. Inside The
+   Last Vigil, count your kit and compare your appraisal with a non-Masque.
+2. Unbroken: let a zombie chip at you and watch damage taken fall over a
+   long fight. Brace Last Stand, let a group of zombies or a long fall kill you, and
+   check you are left on 1 heart and the ability says it is mending. Sprint
+   away from a creeper and watch essence drain; walk away and it doesn't.
+   Grit in a crowd, then step off. Defiance with a friend nearby: the mobs
+   chasing them should turn to you.
+
 ## The Spell's memory, judgement and voice
 
 Added by claude-code, 2026-10-29 (Run A of the lore doc's run backlog). No AI

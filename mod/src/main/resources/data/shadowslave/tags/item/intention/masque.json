@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:piglin_head",
+    "minecraft:painting",
+    "minecraft:leather_helmet",
+    "minecraft:item_frame",
+    "minecraft:white_dye"
+  ]
+}
