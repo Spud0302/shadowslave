@@ -1,0 +1,23 @@
+{
+  "values": [
+    "minecraft:creeper",
+    "minecraft:ender_dragon",
+    "minecraft:wither",
+    "minecraft:warden",
+    "minecraft:elder_guardian",
+    "minecraft:piglin",
+    "minecraft:piglin_brute",
+    "minecraft:hoglin",
+    "minecraft:zoglin",
+    "minecraft:breeze",
+    "minecraft:goat",
+    "minecraft:evoker",
+    "minecraft:illusioner",
+    "minecraft:vex",
+    "minecraft:phantom",
+    "minecraft:shulker",
+    "minecraft:villager",
+    "minecraft:wandering_trader",
+    "minecraft:allay"
+  ]
+}

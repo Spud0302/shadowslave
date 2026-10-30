@@ -2,6 +2,7 @@ package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
+import dev.spud.shadowslave.network.payload.EchoActionPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayload;
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoRequestPayload;
@@ -37,8 +38,19 @@ public final class ClientGameEvents {
         // Sneak with the Memory key to turn which dismissed Memory answers next.
         consume(ClientKeyMappings.TOGGLE_MEMORY,
                 new MemoryKeyPayload(minecraft.player != null && minecraft.player.isShiftKeyDown()), minecraft);
-        consume(ClientKeyMappings.TOGGLE_ECHO, ToggleAshBurrowerEchoRequestPayload.INSTANCE, minecraft);
-        consume(ClientKeyMappings.TOGGLE_ECHO_MODE, ToggleAshBurrowerEchoModeRequestPayload.INSTANCE, minecraft);
+        // Echoes bound at the Weaving Table answer the Echo keys; a soul with none keeps the older Ash Burrower Echo on them.
+        boolean echoes = !ClientEchoState.status().held().isEmpty();
+        consume(ClientKeyMappings.TOGGLE_ECHO, echoes ? EchoActionPayload.of(EchoActionPayload.CALL)
+                : ToggleAshBurrowerEchoRequestPayload.INSTANCE, minecraft);
+        if (echoes) {
+            while (ClientKeyMappings.TOGGLE_ECHO_MODE.consumeClick()) {
+                if (minecraft.player != null && minecraft.screen == null) {
+                    minecraft.setScreen(new EchoWheelScreen());
+                }
+            }
+        } else {
+            consume(ClientKeyMappings.TOGGLE_ECHO_MODE, ToggleAshBurrowerEchoModeRequestPayload.INSTANCE, minecraft);
+        }
         if (minecraft.level != null && ClientAbilityState.consumeReadyCue(minecraft.level.getGameTime())) {
             minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_CHIME, 1.4F, 0.6F));
         }
@@ -51,6 +63,7 @@ public final class ClientGameEvents {
         ClientAbilityState.clear();
         ClientCoreState.clear();
         ClientWeavingState.clear();
+        ClientEchoState.clear();
         ClientFieldGuideState.clear();
         ClientCallingsState.reset();
     }
