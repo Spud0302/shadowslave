@@ -1,0 +1,42 @@
+{
+  "base_per_day": 40,
+  "per_member_per_day": 20,
+  "capacity_days": 14,
+  "claim_days": 3,
+  "starving_days": 2,
+  "forsaken_days": 5,
+  "feed": [
+    {
+      "item": "shadowslave:dormant_soul_shard",
+      "points": 10
+    },
+    {
+      "item": "shadowslave:awakened_soul_shard",
+      "points": 40
+    },
+    {
+      "item": "shadowslave:fallen_soul_shard",
+      "points": 160
+    },
+    {
+      "item": "shadowslave:corrupted_soul_shard",
+      "points": 640
+    },
+    {
+      "tag": "c:gems",
+      "points": 8
+    },
+    {
+      "tag": "c:ingots",
+      "points": 4
+    },
+    {
+      "tag": "minecraft:coals",
+      "points": 2
+    },
+    {
+      "tag": "minecraft:logs",
+      "points": 1
+    }
+  ]
+}

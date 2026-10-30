@@ -29,7 +29,7 @@ import java.util.regex.PatternSyntaxException;
  * @param minRank    kill: the least rank the creature must have
  * @param minClass   kill: the least class the creature must have
  * @param aboveRank  kill: the creature must stand above the slayer's own rank
- * @param aloneRange kill: no other player may stand this close; 0 to not ask
+ * @param aloneRange kill: no other player may stand this close; raid: above 0 asks for a lone defender; 0 to not ask
  * @param chance     the chance the Spell answers the deed when it is done (an appraisal's grade chance comes on top)
  * @param priority   when several deeds answer one moment, the highest wins
  * @param deed       the line the Spell says the name was granted for
@@ -45,7 +45,9 @@ public record TrueNameDeed(Trigger trigger, String behaviour, String first, Opti
         /** A server first, by its key in the Spell's record. */
         FIRST,
         /** Slaying a Nightmare Creature outside a Nightmare. */
-        KILL;
+        KILL,
+        /** Holding a Citadel against a raid; {@code alone_range} above 0 asks that one defender held it alone. */
+        RAID;
 
         public static final Codec<Trigger> CODEC = StringRepresentable.fromEnum(Trigger::values);
 
@@ -92,6 +94,11 @@ public record TrueNameDeed(Trigger trigger, String behaviour, String first, Opti
                 && minClass.map(least -> creatureClass.ordinal() >= least.ordinal()).orElse(true)
                 && (!aboveRank || above)
                 && (aloneRange <= 0 || alone);
+    }
+
+    /** Whether holding a Citadel against a raid answers this deed, given whether one defender held it alone. */
+    public boolean matchesRaid(boolean alone) {
+        return trigger == Trigger.RAID && (aloneRange <= 0 || alone);
     }
 
     /** Whether an appraisal that read {@code behaviourId} answers this deed. */

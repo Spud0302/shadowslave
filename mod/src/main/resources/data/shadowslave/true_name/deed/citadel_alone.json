@@ -1,0 +1,30 @@
+{
+  "trigger": "raid",
+  "alone_range": 1,
+  "chance": 0.3,
+  "priority": 5,
+  "deed": "You held a Citadel against the dream, and no one stood beside you.",
+  "words": {
+    "epithet": [
+      "Lone",
+      "Last",
+      "Unyielding",
+      "Steadfast"
+    ],
+    "noun": [
+      "Wall",
+      "Bastion",
+      "Sentinel",
+      "Gatekeeper"
+    ],
+    "place": [
+      "the Gate",
+      "the Last Wall",
+      "Ashen Walls"
+    ],
+    "whole": [
+      "Wallkeeper",
+      "Gateholder"
+    ]
+  }
+}

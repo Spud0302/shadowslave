@@ -34,6 +34,10 @@ public record SpellEvent(long time, Kind kind, Optional<UUID> player, String nam
         SEED_FLED,
         CITADEL_CLAIMED,
         CITADEL_LOST,
+        /** A Seed bloomed near a Citadel and raided it, or the raid was lost. */
+        CITADEL_RAIDED,
+        /** A player helped hold a Citadel against a raid. */
+        CITADEL_DEFENDED,
         /** A player's death in the waking world or the Dream Realm. */
         DEATH,
         /** A player's soul rose a rank. */

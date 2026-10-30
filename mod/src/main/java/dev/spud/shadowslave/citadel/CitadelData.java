@@ -12,8 +12,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /** Every Citadel the Dream Realm has woken, saved with it, keyed by its Gateway. */
@@ -49,6 +54,20 @@ public final class CitadelData extends SavedData {
         UUID conquerorClan;
         long conqueredAt;
         UUID clan;
+        /** What the Gateway has left to eat (Run C upkeep). */
+        double provisions;
+        /** How long it has had nothing to eat. */
+        long hungryTicks;
+        /** The stage of neglect last announced to the clan. */
+        Neglect stage = Neglect.FED;
+        /** Built tier of each upgrade, by id. */
+        final Map<String, Integer> tiers = new LinkedHashMap<>();
+        /** Upgrades a lost raid damaged; each works a tier lower until repaired. */
+        final Set<String> damaged = new LinkedHashSet<>();
+        /** Members anchored to this Gateway, as far as it knows; the Hall limits how many. */
+        final Set<UUID> anchored = new LinkedHashSet<>();
+        /** The raid under way, if a Seed has bloomed at its walls. */
+        Raid raid;
 
         Citadel(UUID id, BlockPos gateway, String name, CreatureRank rank) {
             this.id = id;
@@ -86,6 +105,30 @@ public final class CitadelData extends SavedData {
             return Optional.ofNullable(guardian);
         }
 
+        public double provisions() {
+            return provisions;
+        }
+
+        public long hungryTicks() {
+            return hungryTicks;
+        }
+
+        public int tier(String upgrade) {
+            return tiers.getOrDefault(upgrade, 0);
+        }
+
+        public boolean damaged(String upgrade) {
+            return damaged.contains(upgrade);
+        }
+
+        public Set<UUID> anchored() {
+            return Set.copyOf(anchored);
+        }
+
+        public Optional<Raid> raid() {
+            return Optional.ofNullable(raid);
+        }
+
         CompoundTag save() {
             CompoundTag tag = new CompoundTag();
             tag.putUUID("id", id);
@@ -107,6 +150,21 @@ public final class CitadelData extends SavedData {
             if (clan != null) {
                 tag.putUUID("clan", clan);
             }
+            tag.putDouble("provisions", provisions);
+            tag.putLong("hungry_ticks", hungryTicks);
+            tag.putString("stage", stage.getSerializedName());
+            CompoundTag built = new CompoundTag();
+            tiers.forEach(built::putInt);
+            tag.put("tiers", built);
+            ListTag broken = new ListTag();
+            damaged.forEach(id -> broken.add(net.minecraft.nbt.StringTag.valueOf(id)));
+            tag.put("damaged", broken);
+            ListTag anchors = new ListTag();
+            anchored.forEach(id -> anchors.add(NbtUtils.createUUID(id)));
+            tag.put("anchored", anchors);
+            if (raid != null) {
+                tag.put("raid", raid.save());
+            }
             return tag;
         }
 
@@ -126,7 +184,96 @@ public final class CitadelData extends SavedData {
             citadel.conquerorClan = tag.hasUUID("conqueror_clan") ? tag.getUUID("conqueror_clan") : null;
             citadel.conqueredAt = tag.getLong("conquered_at");
             citadel.clan = tag.hasUUID("clan") ? tag.getUUID("clan") : null;
+            citadel.provisions = tag.getDouble("provisions");
+            citadel.hungryTicks = tag.getLong("hungry_ticks");
+            for (Neglect stage : Neglect.values()) {
+                if (stage.getSerializedName().equals(tag.getString("stage"))) {
+                    citadel.stage = stage;
+                }
+            }
+            CompoundTag built = tag.getCompound("tiers");
+            for (String id : built.getAllKeys()) {
+                citadel.tiers.put(id, built.getInt(id));
+            }
+            for (Tag id : tag.getList("damaged", Tag.TAG_STRING)) {
+                citadel.damaged.add(id.getAsString());
+            }
+            for (Tag id : tag.getList("anchored", Tag.TAG_INT_ARRAY)) {
+                citadel.anchored.add(NbtUtils.loadUUID(id));
+            }
+            citadel.raid = tag.contains("raid", Tag.TAG_COMPOUND) ? Raid.load(tag.getCompound("raid")) : null;
             return citadel;
+        }
+    }
+
+    /**
+     * A raid on a Citadel (DESIGN, Run C): the Gate a Seed opened at its walls,
+     * when it began, how far the breach has filled, and every member who came
+     * to defend it.
+     */
+    public static final class Raid {
+        final UUID gate;
+        final long startedAt;
+        final int category;
+        int breach;
+        /** When a defender last stood near; a raid nobody answers for long is lost. */
+        long lastDefended;
+        /** Set once the raid is lost, so the closing Gate is not read as held. */
+        boolean lost;
+        /** Ticks since the echo last struck; not saved. */
+        int echoCooldown;
+        final Set<UUID> defenders = new HashSet<>();
+
+        Raid(UUID gate, long startedAt, int category) {
+            this.gate = gate;
+            this.startedAt = startedAt;
+            this.category = category;
+            this.lastDefended = startedAt;
+        }
+
+        public UUID gate() {
+            return gate;
+        }
+
+        public long startedAt() {
+            return startedAt;
+        }
+
+        public int category() {
+            return category;
+        }
+
+        public int breach() {
+            return breach;
+        }
+
+        public Set<UUID> defenders() {
+            return Set.copyOf(defenders);
+        }
+
+        CompoundTag save() {
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID("gate", gate);
+            tag.putLong("started_at", startedAt);
+            tag.putInt("category", category);
+            tag.putInt("breach", breach);
+            tag.putBoolean("lost", lost);
+            tag.putLong("last_defended", lastDefended);
+            ListTag list = new ListTag();
+            defenders.forEach(id -> list.add(NbtUtils.createUUID(id)));
+            tag.put("defenders", list);
+            return tag;
+        }
+
+        static Raid load(CompoundTag tag) {
+            Raid raid = new Raid(tag.getUUID("gate"), tag.getLong("started_at"), tag.getInt("category"));
+            raid.breach = tag.getInt("breach");
+            raid.lost = tag.getBoolean("lost");
+            raid.lastDefended = tag.contains("last_defended") ? tag.getLong("last_defended") : raid.startedAt;
+            for (Tag id : tag.getList("defenders", Tag.TAG_INT_ARRAY)) {
+                raid.defenders.add(NbtUtils.loadUUID(id));
+            }
+            return raid;
         }
     }
 

@@ -1,0 +1,70 @@
+{
+  "name": "Hall",
+  "description": "Room for more members to anchor here.",
+  "order": 2,
+  "base": {
+    "anchors": 4
+  },
+  "tiers": [
+    {
+      "cost": [
+        {
+          "item": "shadowslave:dormant_soul_shard",
+          "count": 8
+        },
+        {
+          "tag": "minecraft:stone_bricks",
+          "count": 64
+        },
+        {
+          "tag": "minecraft:planks",
+          "count": 32
+        }
+      ],
+      "values": {
+        "anchors": 8
+      },
+      "summary": "8 members can anchor here."
+    },
+    {
+      "cost": [
+        {
+          "item": "shadowslave:dormant_soul_shard",
+          "count": 16
+        },
+        {
+          "item": "minecraft:iron_ingot",
+          "count": 16
+        },
+        {
+          "item": "minecraft:glass",
+          "count": 32
+        }
+      ],
+      "values": {
+        "anchors": 16
+      },
+      "summary": "16 members can anchor here."
+    },
+    {
+      "cost": [
+        {
+          "item": "shadowslave:awakened_soul_shard",
+          "count": 8
+        },
+        {
+          "item": "minecraft:deepslate_bricks",
+          "count": 64
+        },
+        {
+          "item": "minecraft:gold_ingot",
+          "count": 8
+        }
+      ],
+      "values": {
+        "anchors": 32
+      },
+      "summary": "32 members can anchor here."
+    }
+  ]
+}

@@ -40,6 +40,11 @@
       "Someone has spoken your True Name. They know where you stand.",
       "Your True Name was spoken. For a moment, someone felt where you are.",
       {"text": "{true_name}. Someone has called on it, and it answered with your place in the world.", "when": {"named": "yes"}}
+    ],
+    "citadel_raid": [
+      "{citadel} is under attack. A Seed of the {category} Category has bloomed at its walls.",
+      "The dream comes for {citadel}. Its Gateway will not hold itself.",
+      {"text": "{true_name}. {citadel} is under attack, and the Spell wants to see who answers.", "when": {"named": "yes"}}
     ]
   }
 }

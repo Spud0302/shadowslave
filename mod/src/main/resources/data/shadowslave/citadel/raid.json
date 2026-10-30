@@ -1,0 +1,15 @@
+{
+  "radius": 96,
+  "defend_radius": 64,
+  "breach_radius": 5,
+  "breach_limit": 60,
+  "unanswered_minutes": 20,
+  "damaged": 2,
+  "provisions_lost": 0.25,
+  "shards_per_category": 2,
+  "echo_radius": 16,
+  "echo_seconds": 3,
+  "echo_damage": 4.0,
+  "echo_fails_at": "forsaken",
+  "repair_share": 0.5
+}

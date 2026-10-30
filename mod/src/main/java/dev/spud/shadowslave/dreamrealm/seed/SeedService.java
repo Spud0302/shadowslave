@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.dreamrealm.seed;
 
+import dev.spud.shadowslave.citadel.CitadelRaids;
 import dev.spud.shadowslave.dreamrealm.DreamCrossing;
 import dev.spud.shadowslave.dreamrealm.DreamRealm;
 import dev.spud.shadowslave.dreamrealm.DreamRealmContent;
@@ -54,7 +55,8 @@ import java.util.UUID;
  * in-game days. A player can cleanse one early by fighting at the Seed, for
  * loot that is richer the younger the Seed. A Seed left alone blooms: its Gate
  * opens through {@link GateService#open} at the matching Overworld spot,
- * unless a lit Dream Candle there wards it, and then the Seed withers.
+ * unless a lit Dream Candle there wards it, and then the Seed withers. A Seed
+ * that blooms near a claimed Citadel raids it instead ({@link CitadelRaids}).
  */
 public final class SeedService {
     /** How often Seeds grow and are checked for blooming. */
@@ -249,6 +251,20 @@ public final class SeedService {
      */
     public static boolean bloom(ServerLevel realm, SeedData.Seed seed) {
         MinecraftServer server = realm.getServer();
+        DreamSeedSettings seeds = DreamRealmContent.get().seeds();
+        // A Seed blooming at the walls of a claimed Citadel raids it instead (Run C).
+        Optional<Boolean> raid = CitadelRaids.bloomNear(realm, seed, forecast(seed));
+        if (raid.isPresent()) {
+            if (!raid.get()) {
+                seed.growth = (seeds.growthTicks() - RETRY_TICKS) * SeedData.POINTS_PER_TICK;
+                return false;
+            }
+            realm.removeBlock(seed.pos, false);
+            realm.playSound(null, seed.pos, SoundEvents.WITHER_SPAWN, SoundSource.HOSTILE, 1.0F, 1.4F);
+            realm.sendParticles(ParticleTypes.SCULK_SOUL, seed.pos.getX() + 0.5, seed.pos.getY() + 0.8, seed.pos.getZ() + 0.5,
+                    30, 0.4, 0.6, 0.4, 0.08);
+            return true;
+        }
         ServerLevel overworld = server.overworld();
         BlockPos column = DreamRealm.toOverworld(seed.pos, DreamRealmRules.ratio(server));
         overworld.getChunk(column);
@@ -308,7 +324,7 @@ public final class SeedService {
                 40, 0.3, 0.4, 0.3, 0.02);
     }
 
-    static GateForecast forecast(SeedData.Seed seed) {
+    public static GateForecast forecast(SeedData.Seed seed) {
         Optional<Integer> echoCategory = seed.echoSite().flatMap(TrialContent.get()::site).map(TrialContent.get()::category);
         if (echoCategory.isPresent()) {
             return GateForecast.certain(echoCategory.get());

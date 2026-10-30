@@ -52,7 +52,9 @@ import java.util.UUID;
  * to claim the Citadel for your clan (a clan of one if you have none).
  * Members anchor to its Gateway, so they arrive there when they dream, and
  * share their Field Guides with the clan's board whenever they visit
- * (CANON, ch. 877). Upkeep, upgrades, Gateway links and raids come later.
+ * (CANON, ch. 877). A member who uses the Gateway feeds it what they hold,
+ * or opens its screen for upkeep, upgrades and links ({@link CitadelLife});
+ * raids are in {@link CitadelRaids}.
  */
 public final class CitadelService {
     static final String CITADEL_TAG = "shadowslave_citadel";
@@ -74,6 +76,8 @@ public final class CitadelService {
                     citadel.conqueror = null;
                     citadel.conquerorClan = null;
                     citadel.conqueredAt = 0;
+                    citadel.raid = null;
+                    citadel.anchored.clear();
                     showState(level, citadel);
                     SpellRecorder.citadelLost(server, citadel.name, clan);
                 });
@@ -347,10 +351,20 @@ public final class CitadelService {
                             + clan.map(ClanData.Clan::name).orElse("of another") + ".").withStyle(ChatFormatting.GRAY), true);
                     return;
                 }
-                if (!isAnchoredHere(player, citadel)) {
-                    anchor(player, citadel);
+                if (CitadelLife.feedFromHand(player, citadel)) {
+                    return;
                 }
-                visit(player, citadel, clan.get(), true);
+                String message = "";
+                if (!isAnchoredHere(player, citadel)) {
+                    if (CitadelLife.hasRoom(player, citadel)) {
+                        anchor(player, citadel);
+                    } else {
+                        message = "The Hall of " + citadel.name + " has room for " + CitadelLife.anchorSlots(citadel)
+                                + " anchors, and all are taken. Build up its Hall.";
+                    }
+                }
+                visit(player, citadel, clan.get(), false);
+                CitadelLife.open(player, citadel, message);
             }
         }
     }
@@ -375,6 +389,7 @@ public final class CitadelService {
         ClanData.Clan clan = ClanService.ensureClan(player);
         citadel.hold = CitadelData.Hold.CLAN;
         citadel.clan = clan.id();
+        CitadelLife.claimed(player.server, citadel);
         CitadelData.get(level).setDirty();
         showState(level, citadel);
         level.playSound(null, citadel.gateway, SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 0.8F, 1.2F);
@@ -399,6 +414,7 @@ public final class CitadelService {
     /** Makes a claimed Citadel's Gateway a member's Dream Anchor (CANON, ch. 23: Awakened anchor to a Gateway). */
     public static void anchor(ServerPlayer player, CitadelData.Citadel citadel) {
         DreamCrossing.anchorAt(player, citadel.gateway);
+        citadel.anchored.add(player.getUUID());
         DreamCrossing.spell(player, Component.literal("You are anchored to " + citadel.name
                 + ". When you dream, you will arrive at its Gateway.").withStyle(ChatFormatting.LIGHT_PURPLE));
     }

@@ -1,0 +1,70 @@
+{
+  "name": "Lanterns",
+  "description": "Lantern posts around the walls and a wider map.",
+  "order": 4,
+  "base": {
+    "ring": 0,
+    "reveal_chunks": 0
+  },
+  "tiers": [
+    {
+      "cost": [
+        {
+          "item": "shadowslave:dormant_soul_shard",
+          "count": 8
+        },
+        {
+          "item": "minecraft:soul_lantern",
+          "count": 8
+        }
+      ],
+      "values": {
+        "ring": 18,
+        "reveal_chunks": 3
+      },
+      "summary": "A ring of lanterns 18 blocks out; the board charts 3 chunks around."
+    },
+    {
+      "cost": [
+        {
+          "item": "shadowslave:dormant_soul_shard",
+          "count": 16
+        },
+        {
+          "item": "minecraft:soul_lantern",
+          "count": 16
+        },
+        {
+          "item": "minecraft:iron_ingot",
+          "count": 8
+        }
+      ],
+      "values": {
+        "ring": 26,
+        "reveal_chunks": 5
+      },
+      "summary": "Lanterns 26 blocks out; the board charts 5 chunks around."
+    },
+    {
+      "cost": [
+        {
+          "item": "shadowslave:awakened_soul_shard",
+          "count": 8
+        },
+        {
+          "item": "minecraft:soul_lantern",
+          "count": 24
+        },
+        {
+          "item": "minecraft:gold_ingot",
+          "count": 4
+        }
+      ],
+      "values": {
+        "ring": 34,
+        "reveal_chunks": 8
+      },
+      "summary": "Lanterns 34 blocks out; the board charts 8 chunks around."
+    }
+  ]
+}

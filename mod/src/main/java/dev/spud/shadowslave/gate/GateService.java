@@ -126,6 +126,10 @@ public final class GateService {
         CLOSE_LISTENERS.add(listener);
     }
 
+    public static Optional<GateEvent> byId(ServerLevel level, UUID id) {
+        return GateData.get(level).gates.stream().filter(gate -> gate.id.equals(id)).findFirst();
+    }
+
     public static Optional<GateEvent> nearest(ServerLevel level, BlockPos pos) {
         return GateData.get(level).gates.stream()
                 .min((a, b) -> Double.compare(a.center.distSqr(pos), b.center.distSqr(pos)));
@@ -240,7 +244,7 @@ public final class GateService {
         int seconds = (left + 19) / 20;
         bar.setColor(BossEvent.BossBarColor.PURPLE);
         bar.setProgress(left / (float) GateEvent.WARNING_TICKS);
-        bar.setName(Component.literal("Nightmare Gate · opens in " + seconds + "s · " + (gate.foreseen ? "Category " + gate.category + " (foreseen)" : gate.forecast.describeLikeliest())));
+        bar.setName(Component.literal(label(gate) + " · opens in " + seconds + "s · " + (gate.foreseen ? "Category " + gate.category + " (foreseen)" : gate.forecast.describeLikeliest())));
         if (left % 20 == 0 && (seconds == 20 || seconds == 10 || seconds <= 5) && seconds > 0) {
             for (ServerPlayer player : near) {
                 player.displayClientMessage(Component.literal("The Gate opens in " + seconds + "...")
@@ -279,7 +283,7 @@ public final class GateService {
         List<List<GateCategory.Spawn>> waves = GateCategory.waves(gate.category);
         bar.setColor(BossEvent.BossBarColor.RED);
         bar.setProgress(1.0F - (float) gate.wave / waves.size());
-        bar.setName(Component.literal("Nightmare Gate · Category " + gate.category + " · wave "
+        bar.setName(Component.literal(label(gate) + " · Category " + gate.category + " · wave "
                 + Math.max(1, gate.wave) + " of " + waves.size()));
         if (gate.wave < waves.size()) {
             if (--gate.nextWaveIn <= 0) {
@@ -304,6 +308,11 @@ public final class GateService {
                 spell(player, Component.literal("The Gate Guardian emerges.").withStyle(ChatFormatting.DARK_RED));
             }
         }
+    }
+
+    /** What the Gate's bar calls it: a raid on a Citadel reads as one. */
+    private static String label(GateEvent gate) {
+        return gate.trigger == GateTrigger.CITADEL_RAID ? "Citadel Raid" : "Nightmare Gate";
     }
 
     private static void spawnGuardian(ServerLevel level, GateEvent gate) {

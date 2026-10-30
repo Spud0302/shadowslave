@@ -19,7 +19,9 @@ public enum Calling {
     /** A long time has passed without progress; the Spell calls gently. */
     IDLE("Stillness"),
     /** Someone spoke the player's True Name and sensed where they stand. */
-    NAME("Your Name");
+    NAME("Your Name"),
+    /** A Seed bloomed at the walls of their clan's Citadel and raids it. */
+    CITADEL_RAID("A Raid");
 
     private final String title;
 
