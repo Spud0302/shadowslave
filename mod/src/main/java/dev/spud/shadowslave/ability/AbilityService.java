@@ -57,6 +57,10 @@ public final class AbilityService {
             return Outcome.NO_ABILITY;
         }
 
+        if (VesselBond.hollowed(player)) {
+            feedback(player, "Hollowed: your own abilities are locked while you carry your Echo.", ChatFormatting.GRAY);
+            return Outcome.FAILED;
+        }
         AspectAbility ability = AbilityRegistry.get(held.get(slot)).orElseThrow();
         int cost = costFor(player, ability);
         if (!ability.primed(player) && !EssenceService.covers(player, cost)) {

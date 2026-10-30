@@ -240,10 +240,28 @@ public final class AspectKitCatalog {
             id("generation/flaw/spoken_self"), id("generation/flaw_effect/spoken_self"), "Spoken Self",
             "When you use an ability, other players' Field Guide maps show where you stand for a moment."
     );
+    public static final AspectKit SHEPHERD = new AspectKit(
+            id("generation/nature/shepherd"), "Shepherd",
+            id("kit/innate/shepherd_herdbond"), "Herdbond",
+            "Your Echoes cost half the upkeep, and your soul can hold an Echo even while Dormant.",
+            id("generation/ability/rally"), "Rally",
+            "Call your flock: your summoned Echoes and your pets run faster and mend for a moment.",
+            id("generation/flaw/lonely_soul"), id("generation/flaw_effect/lonely_soul"), "Lonely Soul",
+            "With no Echo summoned, your blows land a fifth weaker."
+    );
+    public static final AspectKit VESSEL = new AspectKit(
+            id("generation/nature/vessel"), "Vessel",
+            id("kit/innate/vessel_borrowed_trait"), "Borrowed Trait",
+            "While an Echo of yours is summoned, you take on a small trait of its kind.",
+            id("generation/ability/echo_merge"), "Echo Merge",
+            "Fuse with your summoned Echo for ten seconds: its strength, hide and speed become yours.",
+            id("generation/flaw/hollowed"), id("generation/flaw_effect/hollowed"), "Hollowed",
+            "While merged with an Echo, your own abilities are locked; your soul can hold an Echo even while Dormant."
+    );
 
     private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE, WARDEN, SEER, REAPER, WELLSPRING,
             FORGE, DELVE, MASON, VERDANT, WAYFARER, LULL, GLOAM, RIME, FURY, THRESHOLD, ANCHOR, HOURGLASS,
-            HERALD, KEEPER, FORTUNE, CANTOR);
+            HERALD, KEEPER, FORTUNE, CANTOR, SHEPHERD, VESSEL);
 
     private AspectKitCatalog() {
     }

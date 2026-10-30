@@ -27,12 +27,14 @@ final class AbilityIcons {
                     "ground_slam", "second_wind",
                     "pocket", "doorway", "banish", "shift_weight", "crush", "gravity_well", "stasis", "rewind", "still_moment",
                     "war_banner", "rally_call", "oath_of_arms", "sanctuary", "bulwark", "gateway_step",
-                    "coin_of_fate", "twist_fate", "borrowed_luck", "command_word", "silencing_word", "rallying_name"),
+                    "coin_of_fate", "twist_fate", "borrowed_luck", "command_word", "silencing_word", "rallying_name",
+                    "rally", "pack_tactics", "second_bond", "echo_merge", "swap_places", "shared_wounds"),
             List.of("cold_ash", "borrowed_breath", "stone_sleep", "tidal_debt",
                     "quarry_lock", "clouded_eyes", "hunger", "brimming_vessel",
                     "cold_hearth", "open_sky", "far_from_home", "rootbound", "wanderlust", "insomnia",
                     "sunstruck", "thin_blood", "red_haze", "unmoored", "leaden", "borrowed_time",
-                    "burden_of_command", "homebound", "ill_omen", "spoken_self"));
+                    "burden_of_command", "homebound", "ill_omen", "spoken_self",
+                    "lonely_soul", "hollowed"));
 
     private AbilityIcons() {
     }

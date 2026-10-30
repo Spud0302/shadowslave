@@ -54,7 +54,9 @@ public final class AbilityCastEffects {
         HERALD(new Color(255, 200, 80), new Color(160, 30, 30)),
         KEEPER(new Color(230, 235, 255), new Color(90, 110, 170)),
         FORTUNE(new Color(250, 210, 70), new Color(60, 150, 70)),
-        CANTOR(new Color(120, 230, 240), new Color(30, 90, 110));
+        CANTOR(new Color(120, 230, 240), new Color(30, 90, 110)),
+        SHEPHERD(new Color(180, 240, 200), new Color(40, 120, 90)),
+        VESSEL(new Color(190, 140, 255), new Color(40, 140, 170));
 
         final Color start;
         final Color end;

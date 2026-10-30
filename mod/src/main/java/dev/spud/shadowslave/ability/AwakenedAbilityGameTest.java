@@ -47,6 +47,10 @@ public final class AwakenedAbilityGameTest {
             List<AbilityVariant> variants = KitLadder.variants(kit.natureId(), SoulRank.AWAKENED);
             helper.assertTrue(variants.size() == 2, kit.natureName() + " has " + variants.size());
             for (AbilityVariant variant : variants) {
+                if (variant.role().equals("Passive")) {
+                    // Always on, like Second Bond: nothing to press, so nothing to register.
+                    continue;
+                }
                 helper.assertTrue(AbilityRegistry.isActivatable(variant.abilityId()), variant.name() + " is not registered");
             }
         }

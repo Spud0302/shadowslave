@@ -32,7 +32,9 @@ public enum Longing {
     RALLY("Rally", "herald", "Herald"),
     GUARD("Guard", "keeper", "Keeper"),
     GAMBLE("Gamble", "fortune", "Fortune"),
-    NAME("Name", "cantor", "Cantor");
+    NAME("Name", "cantor", "Cantor"),
+    TEND("Tend", "shepherd", "Shepherd"),
+    BECOME("Become", "vessel", "Vessel");
 
     private final String label;
     private final String evidenceTag;
