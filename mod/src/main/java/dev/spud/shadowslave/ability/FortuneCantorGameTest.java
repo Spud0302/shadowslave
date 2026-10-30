@@ -212,10 +212,13 @@ public final class FortuneCantorGameTest {
         helper.assertTrue(FieldGuideService.status(other, false).pins().stream()
                 .anyMatch(pin -> pin.kind().equals("voice") && pin.x() == cantor.getBlockX() && pin.z() == cantor.getBlockZ()),
                 "the other player's map shows the Cantor");
-        helper.assertTrue(FieldGuideService.status(cantor, false).pins().stream().noneMatch(pin -> pin.kind().equals("voice")),
+        // Only this Cantor's voice is checked: other Cantor tests may be running in the same batch.
+        helper.assertTrue(FieldGuideService.status(cantor, false).pins().stream().noneMatch(pin -> pin.kind().equals("voice")
+                        && pin.x() == cantor.getBlockX() && pin.z() == cantor.getBlockZ()),
                 "not on the Cantor's own");
         CantorVoice.forget(cantor.getUUID());
-        helper.assertTrue(FieldGuideService.status(other, false).pins().stream().noneMatch(pin -> pin.kind().equals("voice")),
+        helper.assertTrue(FieldGuideService.status(other, false).pins().stream().noneMatch(pin -> pin.kind().equals("voice")
+                        && pin.x() == cantor.getBlockX() && pin.z() == cantor.getBlockZ()),
                 "and the voice fades");
         helper.succeed();
     }
