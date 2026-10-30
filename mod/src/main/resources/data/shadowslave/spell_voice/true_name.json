@@ -8,7 +8,7 @@
     "granted": [
       "You have received a True Name. Your True Name is {true_name}.",
       "The Spell names you. Your True Name is {true_name}. Guard it.",
-      {"text": "The Spell has watched a {nature} soul do what few have done. Your True Name is {true_name}.", "when": {"deed": "first_great"}}
+      {"text": "No one under the Spell had done it before you. Your True Name is {true_name}.", "when": {"deed": "first_great"}}
     ],
     "reveal": [
       "The Spell does not hand out names lightly.",
