@@ -3,6 +3,7 @@ package dev.spud.shadowslave.client;
 import dev.spud.shadowslave.network.ModPayloads;
 import dev.spud.shadowslave.network.ServerPayloadHandler;
 import dev.spud.shadowslave.network.payload.AbilityCastPayload;
+import dev.spud.shadowslave.network.payload.DisguisePayload;
 import dev.spud.shadowslave.network.payload.AbilityStatusPayload;
 import dev.spud.shadowslave.network.payload.AspectRevealPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
@@ -53,6 +54,11 @@ public final class ClientModPayloads {
                 AbilityCastPayload.TYPE,
                 AbilityCastPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleAbilityCast
+        );
+        registrar.playToClient(
+                DisguisePayload.TYPE,
+                DisguisePayload.STREAM_CODEC,
+                (payload, context) -> ClientDisguises.set(payload.entityId(), payload.entityType())
         );
         registrar.playToClient(
                 AbilityStatusPayload.TYPE,

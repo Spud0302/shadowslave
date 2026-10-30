@@ -396,7 +396,7 @@ public final class TrialService {
 
         BlockPos arrival = instance.at(instance.pack.arrival()).offset(index % 3 - 1, 0, index / 3);
         move(player, level, Vec3.atBottomCenterOf(arrival), 180.0F, 0.0F);
-        for (ItemStack stack : role.kit()) {
+        for (ItemStack stack : dev.spud.shadowslave.ability.MasqueFace.roleKit(player, role.kit())) {
             ItemStack bound = bind(stack.copy());
             if (!player.getInventory().add(bound)) {
                 player.drop(bound, false);
@@ -595,7 +595,9 @@ public final class TrialService {
             if (player == null) {
                 continue;
             }
-            SpellJudge.Judgement judgement = SpellJudge.judge(ending, run(instance, member), settings);
+            SpellJudge.Run run = run(instance, member);
+            SpellJudge.Judgement judgement = dev.spud.shadowslave.ability.MasqueFace.trusted(player, ending, run,
+                    SpellJudge.judge(ending, run, settings), settings);
             finish(player, instance, member, ending, judgement, settings);
         }
         instance.seed.ifPresent(seed -> SeedService.realm(server).ifPresent(realm -> SeedService.spend(realm, seed)));

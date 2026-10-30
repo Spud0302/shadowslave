@@ -126,6 +126,15 @@ public final class KitLadder {
     public static final AbilityVariant SHARED_WOUNDS = variant("shared_wounds", "Shared Wounds",
             "For twenty seconds your summoned Echo takes two fifths of every blow that falls on you.", "Shelter");
 
+    public static final AbilityVariant MIRROR_SWAP = variant("mirror_swap", "Mirror Swap",
+            "Trade places with the creature or player you look at.", "Movement");
+    public static final AbilityVariant STOLEN_VOICE = variant("stolen_voice", "Stolen Voice",
+            "Throw a creature's own call to the spot you look at: its kind nearby forget what they hunt and go to it.", "Control");
+    public static final AbilityVariant GRIT = variant("grit", "Grit",
+            "Plant your feet for ten seconds: every blow you take where you stand hardens you against the next.", "Defense");
+    public static final AbilityVariant DEFIANCE = variant("defiance", "Defiance",
+            "Dare every creature nearby to fight you: they turn on you and cannot turn away for eight seconds.", "Command");
+
     private static final Map<ResourceLocation, List<AbilityVariant>> AWAKENED = Map.ofEntries(
             Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(CARRY_THE_FLAME, EMBER_WARD)),
             Map.entry(AspectKitCatalog.MIST.natureId(), List.of(THROUGH_THE_HAZE, VEIL)),
@@ -152,7 +161,9 @@ public final class KitLadder {
             Map.entry(AspectKitCatalog.FORTUNE.natureId(), List.of(TWIST_FATE, BORROWED_LUCK)),
             Map.entry(AspectKitCatalog.CANTOR.natureId(), List.of(SILENCING_WORD, RALLYING_NAME)),
             Map.entry(AspectKitCatalog.SHEPHERD.natureId(), List.of(PACK_TACTICS, SECOND_BOND)),
-            Map.entry(AspectKitCatalog.VESSEL.natureId(), List.of(SWAP_PLACES, SHARED_WOUNDS))
+            Map.entry(AspectKitCatalog.VESSEL.natureId(), List.of(SWAP_PLACES, SHARED_WOUNDS)),
+            Map.entry(AspectKitCatalog.MASQUE.natureId(), List.of(MIRROR_SWAP, STOLEN_VOICE)),
+            Map.entry(AspectKitCatalog.UNBROKEN.natureId(), List.of(GRIT, DEFIANCE))
     );
 
     private KitLadder() {

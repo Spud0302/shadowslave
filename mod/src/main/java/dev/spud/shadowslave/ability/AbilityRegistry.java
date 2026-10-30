@@ -90,6 +90,12 @@ public final class AbilityRegistry {
         register(new EchoMergeAbility());
         register(new SwapPlacesAbility());
         register(new SharedWoundsAbility());
+        register(new BorrowedFaceAbility());
+        register(new MirrorSwapAbility());
+        register(new StolenVoiceAbility());
+        register(new LastStandAbility());
+        register(new GritAbility());
+        register(new DefianceAbility());
     }
 
     private AbilityRegistry() {
