@@ -296,6 +296,7 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(CitadelContentLoader::onAddReloadListeners);
         NeoForge.EVENT_BUS.addListener(CitadelCommands::register);
         NeoForge.EVENT_BUS.addListener(CitadelService::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(dev.spud.shadowslave.citadel.NpcCitadels::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(CitadelService::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(CitadelService::onPlayerLoggedOut);
         NeoForge.EVENT_BUS.addListener(CitadelLife::onServerTick);

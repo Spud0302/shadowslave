@@ -11,6 +11,8 @@ import dev.spud.shadowslave.dreamrealm.DreamRealm;
 import dev.spud.shadowslave.dreamrealm.DreamRealmContent;
 import dev.spud.shadowslave.dreamrealm.DreamRegion;
 import dev.spud.shadowslave.fieldguide.FieldGuideData;
+import dev.spud.shadowslave.soul.SoulRank;
+import dev.spud.shadowslave.soul.SoulService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -54,7 +56,11 @@ import java.util.UUID;
  * share their Field Guides with the clan's board whenever they visit
  * (CANON, ch. 877). A member who uses the Gateway feeds it what they hold,
  * or opens its screen for upkeep, upgrades and links ({@link CitadelLife});
- * raids are in {@link CitadelRaids}.
+ * raids are in {@link CitadelRaids}. Generated Citadels may wake held by an
+ * NPC clan or fallen ({@link NpcCitadels}). Anyone may conquer a Citadel, but
+ * only a Saint binds one (CANON, ch. 1074, 1802; Jack 2026-10-31: binding
+ * wipes the old owner and writes the Citadel to the Saint's clan); below
+ * that rank a conquered Gateway only holds anchors.
  */
 public final class CitadelService {
     static final String CITADEL_TAG = "shadowslave_citadel";
@@ -190,15 +196,27 @@ public final class CitadelService {
 
     /** Wakes the Citadel behind a Gateway if this is its first tick, then keeps it as its record says. */
     static void tickGateway(ServerLevel level, BlockPos gateway) {
-        CitadelData.Citadel citadel = at(level, gateway).orElseGet(() -> wake(level, gateway));
+        CitadelData.Citadel citadel = at(level, gateway).orElseGet(() -> wakeGenerated(level, gateway));
         showState(level, citadel);
         if (citadel.hold == CitadelData.Hold.GUARDIAN) {
             keepGuardian(level, citadel);
+        } else if (citadel.hold == CitadelData.Hold.NPC) {
+            NpcCitadels.tick(level, citadel);
         }
     }
 
     /** Records a Citadel for a Gateway and posts its Guardian. */
     public static CitadelData.Citadel wake(ServerLevel level, BlockPos gateway) {
+        return wake(level, gateway, NpcCitadels.Kind.WILD);
+    }
+
+    /** Wakes a Citadel world generation raised, as the world seed has it: held, wild or fallen. */
+    static CitadelData.Citadel wakeGenerated(ServerLevel level, BlockPos gateway) {
+        return wake(level, gateway, NpcCitadels.roll(level, gateway));
+    }
+
+    /** Records a Citadel for a Gateway as {@code kind}: a wild one gets its Guardian, a held one its NPC clan. */
+    public static CitadelData.Citadel wake(ServerLevel level, BlockPos gateway, NpcCitadels.Kind kind) {
         CitadelData data = CitadelData.get(level);
         Optional<CitadelData.Citadel> existing = data.at(gateway);
         if (existing.isPresent()) {
@@ -211,7 +229,12 @@ public final class CitadelService {
         CitadelData.Citadel citadel = new CitadelData.Citadel(UUID.randomUUID(), gateway, name, rank);
         data.citadels.add(citadel);
         data.setDirty();
-        spawnGuardian(level, citadel);
+        switch (kind) {
+            case WILD -> spawnGuardian(level, citadel);
+            case HELD -> NpcCitadels.hold(level, citadel);
+            case FALLEN -> NpcCitadels.fall(level, citadel);
+        }
+        showState(level, citadel);
         return citadel;
     }
 
@@ -329,21 +352,22 @@ public final class CitadelService {
     /** A player uses a Gateway: learn who holds it, claim it, or anchor to it and share the board. */
     public static void useGateway(ServerPlayer player, BlockPos gateway) {
         ServerLevel level = player.serverLevel();
-        CitadelData.Citadel citadel = at(level, gateway).orElseGet(() -> wake(level, gateway));
+        CitadelData.Citadel citadel = at(level, gateway).orElseGet(() -> wakeGenerated(level, gateway));
         switch (citadel.hold) {
             case GUARDIAN -> {
                 Entity guardian = citadel.guardian == null ? null : level.getEntity(citadel.guardian);
                 if (level.getDifficulty() == Difficulty.PEACEFUL && guardian == null) {
                     // With the world at peace no Guardian stands; the Gateway yields to whoever reaches it.
                     conquer(level, citadel, Optional.of(player));
-                    claim(player, citadel);
+                    claimOrAnchor(player, citadel);
                     return;
                 }
                 player.displayClientMessage(Component.literal("The Gateway is sealed. A " + citadel.rank.displayName() + " "
                         + settings().guardianClass().displayName() + " still holds " + citadel.name + ".")
                         .withStyle(ChatFormatting.DARK_RED), true);
             }
-            case CONQUERED -> claim(player, citadel);
+            case CONQUERED -> claimOrAnchor(player, citadel);
+            case NPC -> NpcCitadels.useGateway(player, citadel);
             case CLAN -> {
                 Optional<ClanData.Clan> clan = Optional.ofNullable(citadel.clan).flatMap(id -> ClanService.byId(player.server, id));
                 if (clan.isEmpty() || !clan.get().has(player.getUUID())) {
@@ -373,10 +397,46 @@ public final class CitadelService {
         }
     }
 
-    /** Claims an open Gateway for the player's clan, founding a clan of one if they have none. */
+    /** Whether the player's soul is strong enough to bind a Citadel's Gateway (a Saint, unless a server lowers it). */
+    public static boolean canBind(ServerPlayer player) {
+        SoulRank needed = settings().claimRank();
+        return SoulService.get(player).soulRank().filter(rank -> rank.compareTo(needed) >= 0).isPresent();
+    }
+
+    /** A Saint binds an open Gateway; anyone else may only anchor to it. */
+    static void claimOrAnchor(ServerPlayer player, CitadelData.Citadel citadel) {
+        if (canBind(player)) {
+            claim(player, citadel);
+            return;
+        }
+        if (!isAnchoredHere(player, citadel)) {
+            anchor(player, citadel);
+        }
+        player.displayClientMessage(Component.literal("Only a " + rankName(settings().claimRank()) + " can bind the Gateway of "
+                + citadel.name + ". Until one does, it holds anyone's anchor and belongs to nobody.").withStyle(ChatFormatting.GRAY), false);
+    }
+
+    static String rankName(SoulRank rank) {
+        return switch (rank) {
+            case DORMANT -> "Sleeper";
+            case AWAKENED -> "Awakened";
+            case ASCENDED -> "Master";
+            case TRANSCENDENT -> "Saint";
+            case SUPREME -> "Sovereign";
+            case SACRED -> "Sacred";
+            case DIVINE -> "Divine";
+        };
+    }
+
+    /** Claims an open Gateway for the player's clan, founding a clan of one if they have none; only a Saint may. */
     public static boolean claim(ServerPlayer player, CitadelData.Citadel citadel) {
         ServerLevel level = DreamRealm.level(player.server);
         if (level == null) {
+            return false;
+        }
+        if (!canBind(player)) {
+            player.displayClientMessage(Component.literal("Only a " + rankName(settings().claimRank()) + " can bind the Gateway of "
+                    + citadel.name + ".").withStyle(ChatFormatting.GRAY), true);
             return false;
         }
         long priority = settings().claimPrioritySeconds() * 20L;
@@ -429,9 +489,18 @@ public final class CitadelService {
      * Citadel their clan holds. Used by the Dream Realm when they arrive.
      */
     public static boolean welcomes(ServerPlayer player, ServerLevel realm, BlockPos gateway) {
-        return at(realm, gateway).filter(citadel -> citadel.hold == CitadelData.Hold.CLAN && citadel.clan != null)
-                .flatMap(citadel -> ClanService.byId(player.server, citadel.clan))
-                .filter(clan -> clan.has(player.getUUID())).isPresent();
+        Optional<CitadelData.Citadel> citadel = at(realm, gateway);
+        if (citadel.isEmpty()) {
+            return false;
+        }
+        return switch (citadel.get().hold) {
+            case GUARDIAN -> false;
+            // An open Gateway belongs to nobody and holds anyone's anchor (CANON, ch. 752).
+            case CONQUERED -> true;
+            case NPC -> NpcCitadels.welcomes(player, citadel.get());
+            case CLAN -> citadel.get().clan != null && ClanService.byId(player.server, citadel.get().clan)
+                    .filter(clan -> clan.has(player.getUUID())).isPresent();
+        };
     }
 
     public static Optional<String> nameAt(ServerLevel realm, BlockPos gateway) {
@@ -514,6 +583,8 @@ public final class CitadelService {
         return switch (citadel.get().hold) {
             case GUARDIAN -> "Held by a " + citadel.get().rank.displayName() + " Guardian";
             case CONQUERED -> "Conquered, its Gateway unclaimed";
+            case NPC -> "Held by " + NpcCitadels.clanOf(server, citadel.get()).map(clan -> clan.name() + ", sworn to " + clan.greatClan())
+                    .orElse("an NPC clan");
             case CLAN -> "Held by " + Optional.ofNullable(citadel.get().clan).flatMap(clan -> ClanService.byId(server, clan))
                     .map(ClanData.Clan::name).orElse("a clan");
         };

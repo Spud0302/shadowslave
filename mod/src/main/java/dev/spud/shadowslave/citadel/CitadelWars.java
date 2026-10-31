@@ -579,10 +579,23 @@ public final class CitadelWars {
         data.wars.remove(war);
         data.truces.add(new WarData.Truce(winners.id(), losers.id(), now + CitadelWarSettings.hours(settings().truceDays() * 24)));
         data.setDirty();
-        seat.clan = winners.id();
-        seat.hold = CitadelData.Hold.CLAN;
+        // Only a Saint rewrites a Gateway to a new clan (Jack 2026-10-31); without one at the seat it falls open.
+        boolean bound = realm.getPlayers(player -> winners.has(player.getUUID()) && player.blockPosition().closerThan(seat.gateway, 48))
+                .stream().anyMatch(CitadelService::canBind);
         seat.linkCut = false;
-        CitadelLife.claimed(server, seat);
+        if (bound) {
+            seat.clan = winners.id();
+            seat.hold = CitadelData.Hold.CLAN;
+            CitadelLife.claimed(server, seat);
+        } else {
+            seat.clan = null;
+            seat.hold = CitadelData.Hold.CONQUERED;
+            // The winners keep first claim for a while, so their Saint can come.
+            seat.conqueror = winners.leader();
+            seat.conquerorClan = winners.id();
+            seat.conqueredAt = realm.getGameTime();
+            seat.anchored.clear();
+        }
         CitadelData.get(realm).setDirty();
         CitadelService.showState(realm, seat);
         showAnchor(realm, seat);
@@ -597,7 +610,10 @@ public final class CitadelWars {
                 seat.gateway.getZ() + 0.5, 120, 0.8, 1.2, 0.8, 0.06);
         String truce = span(CitadelWarSettings.hours(settings().truceDays() * 24));
         call(server, winners, "war_won", losers.name(), seat.name,
-                winners.name() + " has taken " + seat.name + ", the seat of " + losers.name() + ". The war is won, and it is yours with all it built. A truce holds for " + truce + ".");
+                winners.name() + " has taken " + seat.name + ", the seat of " + losers.name() + ". The war is won" + (bound
+                        ? ", and it is yours with all it built."
+                        : ", but no Saint of yours stood there to bind it: its Gateway lies open to the first Saint who reaches it.")
+                        + " A truce holds for " + truce + ".");
         call(server, losers, "war_lost", winners.name(), seat.name,
                 winners.name() + " has taken " + seat.name + ". The war is lost. " + (next.isPresent()
                         ? next.get().name + " stands as your seat for now; name another at its Gateway with /clan seat."
@@ -606,7 +622,7 @@ public final class CitadelWars {
             boolean won = winners.has(player.getUUID());
             DreamCrossing.title(player, Component.literal(won ? "Seat Taken" : "The Seat Falls")
                             .withStyle(won ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.DARK_RED),
-                    Component.literal(seat.name + " belongs to " + winners.name()).withStyle(ChatFormatting.GRAY));
+                    Component.literal(bound ? seat.name + " belongs to " + winners.name() : seat.name + " lies open").withStyle(ChatFormatting.GRAY));
         }
     }
 

@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.creature.CreatureClass;
+import dev.spud.shadowslave.soul.SoulRank;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
@@ -23,13 +24,14 @@ import java.util.List;
  * @param landRadius            how far from its Gateway a claimed Citadel's land reaches (Keeper)
  * @param clanNameMax           longest clan name allowed
  * @param names                 names a Citadel can be known by; each takes one, fixed by where it stands
+ * @param claimRank             the Soul Rank needed to bind a Citadel's Gateway (CANON, ch. 1074, 1802: Saints bind Citadels)
  */
 public record CitadelSettings(ResourceLocation guardian, CreatureClass guardianClass, int guardRadius, int guardianReturnSeconds,
                               int claimPrioritySeconds, int visitRadius, int logRange, int landRadius, int clanNameMax,
-                              List<String> names) {
+                              List<String> names, SoulRank claimRank) {
     public static final CitadelSettings DEFAULT = new CitadelSettings(
             ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "ashen_tyrant"), CreatureClass.TYRANT, 14, 10, 300, 24, 96, 48, 24,
-            List.of("Ashen Hold", "Greywatch", "Cinder Keep", "Hollow Bastion", "Duskwall", "Grey Spire"));
+            List.of("Ashen Hold", "Greywatch", "Cinder Keep", "Hollow Bastion", "Duskwall", "Grey Spire"), SoulRank.TRANSCENDENT);
 
     public static final Codec<CitadelSettings> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.optionalFieldOf("guardian", DEFAULT.guardian).forGetter(CitadelSettings::guardian),
@@ -41,6 +43,7 @@ public record CitadelSettings(ResourceLocation guardian, CreatureClass guardianC
             Codec.intRange(0, 512).optionalFieldOf("log_range", DEFAULT.logRange).forGetter(CitadelSettings::logRange),
             Codec.intRange(4, 512).optionalFieldOf("land_radius", DEFAULT.landRadius).forGetter(CitadelSettings::landRadius),
             Codec.intRange(3, 48).optionalFieldOf("clan_name_max", DEFAULT.clanNameMax).forGetter(CitadelSettings::clanNameMax),
-            Codec.STRING.listOf(1, 256).optionalFieldOf("names", DEFAULT.names).forGetter(CitadelSettings::names)
+            Codec.STRING.listOf(1, 256).optionalFieldOf("names", DEFAULT.names).forGetter(CitadelSettings::names),
+            SoulRank.CODEC.optionalFieldOf("claim_rank", DEFAULT.claimRank).forGetter(CitadelSettings::claimRank)
     ).apply(instance, CitadelSettings::new));
 }
