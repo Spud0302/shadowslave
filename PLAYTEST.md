@@ -1030,7 +1030,8 @@ raise one in front of you (operators).
 3. **Conquering.** Kill the Guardian: "Citadel Conquered" shows and the
    Gateway opens (violet). For the first 5 minutes only the slayer (or their
    clan) may claim it; after that anyone can.
-4. **Claiming.** Use the open Gateway. If you have no clan you become a clan
+4. **Claiming.** Only a Saint can claim (see "NPC Citadels and the Saint's
+   claim" below); anyone else anchors to the open Gateway instead. As a Saint, use the open Gateway. If you have no clan you become a clan
    of one ("<name>'s clan"). The Gateway turns pale blue and becomes your
    Dream Anchor, so the next time you dream you arrive beside it. Lit Dream
    Candles on the dais wake you as usual.
@@ -1156,6 +1157,57 @@ announced assaults for fixed daily hours (UTC) when seats may be channelled.
 Operators: `/shadowslave citadel war skip <hours>` moves the war clock ahead,
 `war tick` runs one second of war, `war cut` cuts the nearest claimed
 Citadel's anchor, `war end <clan>` ends a clan's wars.
+
+### NPC Citadels and the Saint's claim
+
+Added by claude-code, 2026-10-31 (slice one of NPC Citadels, Jack's picks).
+Quick start, operators: `/shadowslave citadel build held` (or `wild`,
+`fallen`) raises one in front of you.
+
+1. **Three kinds.** Each generated Citadel wakes as one of three, fixed by
+   the world seed and where it stands. *Held*: an NPC clan holds it, its
+   colours hang either side of the gate and its Gateway is bound (pale blue).
+   *Wild*: today's Citadel, sealed under its Guardian. *Fallen*: a ruin, its
+   Gateway open, a few of the region's creatures prowling the courtyard. In
+   the inner ring (the Ashen Expanse, within 1000 blocks) half are held; out
+   past it most are wild.
+2. **NPC clans.** Each is a Lesser Legacy Clan (a name such as "Clan
+   Ashveil"), sworn to one of three Great Clans (The Pale Crown, House of
+   Embers, The Iron Vigil), led by a Saint lord who holds an Aspect. One clan
+   holds up to 3 Citadels near each other.
+3. **Its people.** Come within 96 blocks and they stand at their posts: the
+   Saint lord on the dais behind the Gateway, guards on the four towers and
+   inside the gate (iron, a sword and shield, a tunic in the clan's colour),
+   a trader and residents about the courtyard. Walk away and they are only a
+   count again. At most 40 stand at once; the rest are counted.
+4. **Talking and trading.** Use anyone to hear them; the lord names their
+   Aspect and Great Clan. The trader deals in Dormant Soul Shards (food,
+   arrows, soul lanterns and shields for shards; iron, leather and coal for
+   shards).
+5. **Standing.** Stranger, Known (10), Trusted (30), Sworn (60). Trading
+   (+1) and slaying Nightmare Creatures on the clan's land (+1 per rank step)
+   raise it. Striking one of its people costs 5, killing one 25. Below zero
+   you are Hostile: guards attack on sight and its Gateway lets your anchor
+   go. A slain guard or resident is replaced every 20 minutes.
+6. **Anchoring.** Anyone the clan is not set against may anchor to a held
+   Gateway. Anyone may anchor to an open (conquered or fallen) Gateway too;
+   it belongs to nobody.
+7. **The Saint's claim.** Anyone may slay a Guardian, but only a Saint can
+   bind a Gateway and claim the Citadel (ch. 1074, 1802). Binding writes it
+   to the Saint's clan and lets go every other anchor. In a war, a seat taken
+   with no Saint of the winners within 48 blocks falls open instead, and the
+   winners keep first claim for 5 minutes so their Saint can bind it. Ranking
+   up past Awakened is not built yet (it is the next thread), so until then
+   no new Citadel can be claimed; Citadels claimed before this stay held.
+
+Not yet: NPC clans growing, expanding and making war by themselves (the
+world simulation), contracts and petitions, residents you manage, and
+visible town growth and outposts. Those are the next slices.
+
+Tuning is data: `data/shadowslave/citadel/npc.json` (the mix per ring, the
+40-at-once cap, presence radius, starting guards and residents, regrow time,
+standing steps, clan, people and Nature names) and `claim_rank` in
+`citadel/settings.json` (default `transcendent`, the Saint).
 
 ### Citadel Natures: Herald and Keeper
 

@@ -27,6 +27,30 @@ class CitadelDataFilesTest {
         assertEquals("shadowslave:ashen_tyrant", settings.guardian().toString());
         assertTrue(settings.guardRadius() >= 4);
         assertFalse(settings.names().isEmpty());
+        assertEquals(dev.spud.shadowslave.soul.SoulRank.TRANSCENDENT, settings.claimRank(), "only a Saint binds a Citadel (Jack 2026-10-31)");
+    }
+
+    @Test
+    void npcCitadelsParse() throws IOException {
+        NpcCitadelSettings npc = NpcCitadelSettings.CODEC.parse(JsonOps.INSTANCE, json("citadel/npc.json")).getOrThrow();
+        assertTrue(npc.maxPresent() >= 1);
+        assertEquals(3, npc.greatClans().size(), "three Great Clans");
+        assertTrue(npc.standing().known() < npc.standing().trusted() && npc.standing().trusted() < npc.standing().sworn());
+        assertTrue(npc.inner().held() > npc.outer().held(), "held Citadels crowd the inner ring");
+    }
+
+    @Test
+    void theMixPicksByWeight() {
+        NpcCitadelSettings.Mix mix = new NpcCitadelSettings.Mix(50, 35, 15);
+        assertEquals(NpcCitadels.Kind.HELD, mix.pick(0.0));
+        assertEquals(NpcCitadels.Kind.HELD, mix.pick(0.49));
+        assertEquals(NpcCitadels.Kind.WILD, mix.pick(0.5));
+        assertEquals(NpcCitadels.Kind.WILD, mix.pick(0.84));
+        assertEquals(NpcCitadels.Kind.FALLEN, mix.pick(0.86));
+        assertEquals(NpcCitadels.Kind.WILD, new NpcCitadelSettings.Mix(0, 0, 0).pick(0.3), "an empty mix leaves Citadels wild");
+        double roll = NpcCitadels.chance(42L, new net.minecraft.core.BlockPos(100, 70, -300), 7);
+        assertEquals(roll, NpcCitadels.chance(42L, new net.minecraft.core.BlockPos(100, 70, -300), 7), "the seed fixes the roll");
+        assertTrue(roll >= 0 && roll < 1);
     }
 
     @Test

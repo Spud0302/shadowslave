@@ -495,8 +495,8 @@ public final class CitadelService {
         }
         return switch (citadel.get().hold) {
             case GUARDIAN -> false;
-            // An open Gateway belongs to nobody and holds anyone's anchor (CANON, ch. 752).
-            case CONQUERED -> true;
+            // An open Gateway belongs to nobody and holds the anchor of anyone who used it since it fell open (CANON, ch. 752).
+            case CONQUERED -> citadel.get().anchored.contains(player.getUUID());
             case NPC -> NpcCitadels.welcomes(player, citadel.get());
             case CLAN -> citadel.get().clan != null && ClanService.byId(player.server, citadel.get().clan)
                     .filter(clan -> clan.has(player.getUUID())).isPresent();
