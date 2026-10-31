@@ -16,7 +16,9 @@ import dev.spud.shadowslave.network.payload.TrueNamePayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
+import dev.spud.shadowslave.network.payload.FieldGuidePathPayload;
 import dev.spud.shadowslave.network.payload.NightmareAppraisalPayload;
+import dev.spud.shadowslave.network.payload.FieldGuideCopyRequestPayload;
 import dev.spud.shadowslave.network.payload.FieldGuidePinRequestPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
 import dev.spud.shadowslave.network.payload.ForewarningPayload;
@@ -111,6 +113,11 @@ public final class ClientModPayloads {
                 ClientPayloadHandler::handleFieldGuideMap
         );
         registrar.playToClient(
+                FieldGuidePathPayload.TYPE,
+                FieldGuidePathPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleFieldGuidePaths
+        );
+        registrar.playToClient(
                 SpellCallingsPayload.TYPE,
                 SpellCallingsPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleSpellCallings
@@ -174,6 +181,11 @@ public final class ClientModPayloads {
                 FieldGuidePinRequestPayload.TYPE,
                 FieldGuidePinRequestPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleFieldGuidePin
+        );
+        registrar.playToServer(
+                FieldGuideCopyRequestPayload.TYPE,
+                FieldGuideCopyRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleFieldGuideCopy
         );
         registrar.playToServer(
                 AwakenRequestPayload.TYPE,

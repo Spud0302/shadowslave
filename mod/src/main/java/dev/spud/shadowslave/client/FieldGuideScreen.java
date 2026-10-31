@@ -2,6 +2,7 @@ package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.creature.CreatureRank;
 import dev.spud.shadowslave.dreamrealm.DreamRealm;
+import dev.spud.shadowslave.network.payload.FieldGuideCopyRequestPayload;
 import dev.spud.shadowslave.network.payload.FieldGuidePinRequestPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
 import net.minecraft.client.gui.GuiGraphics;
@@ -25,7 +26,9 @@ import java.util.Set;
  * The Field Guide: a parchment book with four tabs. Creatures lists every
  * page the player has started and shows only what they have learned. Map is
  * the waking world, filled in only where they have been, with toggleable
- * layers. Dream Realm is the same map of the Dream Realm, where each Seed
+ * layers, a Trace switch for recording paths, and a Copy tool that puts a
+ * chart, paths, danger marks or a marked place of an area onto a Field Note.
+ * Dream Realm is the same map of the Dream Realm, where each Seed
  * pin also says where its Gate would open in the waking world. Callings keeps
  * every Calling the Spell has made to the player, newest first, with how often
  * they want them.
@@ -66,6 +69,12 @@ public class FieldGuideScreen extends Screen {
     private int pendingX;
     private int pendingZ;
     private boolean pending;
+    /** Copy tool: choosing an area ({@code copying}), then choosing what to copy from it ({@code copyPending}). */
+    private boolean copying;
+    private boolean copyPending;
+    private int copyX;
+    private int copyZ;
+    private FieldGuideStatusPayload.Pin copyPin;
 
     public FieldGuideScreen() {
         super(Component.literal("Field Guide"));
@@ -126,8 +135,11 @@ public class FieldGuideScreen extends Screen {
         if (pending) {
             drawPinPrompt(graphics, mouseX, mouseY);
         }
+        if (copyPending && isMap()) {
+            drawCopyPrompt(graphics, mouseX, mouseY);
+        }
         super.render(graphics, mouseX, mouseY, partialTick);
-        if (isMap() && !pending) {
+        if (isMap() && !pending && !copyPending && !copying) {
             drawMapTooltip(graphics, mouseX, mouseY);
         }
     }
@@ -201,13 +213,31 @@ public class FieldGuideScreen extends Screen {
         graphics.drawString(font, creatures.size() + (creatures.size() == 1 ? " page" : " pages"),
                 left + 10, top() + HEIGHT - 16, INK_MUTED, false);
         drawPage(graphics, creatures.get(selected));
+        drawButton(graphics, copyPageButton(), "Copy page", mouseX, mouseY, INK);
+    }
+
+    /** The Creatures tab's copy button, bottom right: {x, y, w, h}. */
+    private int[] copyPageButton() {
+        int w = font.width("Copy page") + 12;
+        return new int[]{left() + WIDTH - 8 - w, top() + HEIGHT - 21, w, 14};
+    }
+
+    private void drawButton(GuiGraphics graphics, int[] box, String label, int mouseX, int mouseY, int colour) {
+        boolean hover = inBox(box, mouseX, mouseY);
+        graphics.fill(box[0], box[1], box[0] + box[2], box[1] + box[3], hover ? 0xFFF3EAD3 : PAGE_SHADE);
+        graphics.renderOutline(box[0], box[1], box[2], box[3], INK_MUTED);
+        graphics.drawString(font, label, box[0] + (box[2] - font.width(label)) / 2, box[1] + (box[3] - 8) / 2, colour, false);
+    }
+
+    private static boolean inBox(int[] box, double mouseX, double mouseY) {
+        return mouseX >= box[0] && mouseX < box[0] + box[2] && mouseY >= box[1] && mouseY < box[1] + box[3];
     }
 
     private void drawPage(GuiGraphics graphics, FieldGuideStatusPayload.Creature creature) {
         int x = left() + 118;
         int w = WIDTH - 128;
         int top = top() + 24;
-        int bottom = top() + HEIGHT - 8;
+        int bottom = top() + HEIGHT - 24;
         graphics.enableScissor(x - 2, top, x + w + 2, bottom);
         int y = top + 2 - pageScroll;
         graphics.drawString(font, Component.literal(creature.name()).withStyle(style -> style.withBold(true)), x, y, INK, false);
@@ -386,6 +416,11 @@ public class FieldGuideScreen extends Screen {
         if (ClientFieldGuideState.shown(ClientFieldGuideState.Layer.DANGER)) {
             FieldGuideMapRenderer.drawDanger(graphics, dimension, view, status);
         }
+        if (ClientFieldGuideState.shown(ClientFieldGuideState.Layer.PATHS)) {
+            graphics.enableScissor(view.left(), view.top(), view.left() + view.width(), view.top() + view.height());
+            FieldGuideMapRenderer.drawPaths(graphics, dimension, view);
+            graphics.disableScissor();
+        }
         graphics.enableScissor(view.left(), view.top(), view.left() + view.width(), view.top() + view.height());
         for (Marker marker : markers(dimension, view)) {
             marker.draw(graphics);
@@ -396,6 +431,11 @@ public class FieldGuideScreen extends Screen {
         }
         if (pending) {
             FieldGuideMapRenderer.drawPin(graphics, "place", view.screenX(pendingX), view.screenY(pendingZ), true);
+        }
+        if (copyPending) {
+            drawCopyArea(graphics, view, copyX, copyZ, 0xFF8E2B2B);
+        } else if (copying && view.contains(mouseX, mouseY)) {
+            drawCopyArea(graphics, view, (int) Math.floor(view.blockX(mouseX)), (int) Math.floor(view.blockZ(mouseY)), 0xC08E2B2B);
         }
         graphics.disableScissor();
         graphics.renderOutline(view.left() - 1, view.top() - 1, view.width() + 2, view.height() + 2, INK_MUTED);
@@ -411,6 +451,7 @@ public class FieldGuideScreen extends Screen {
             }
         }
         drawZoomButtons(graphics, view, mouseX, mouseY);
+        drawMapTools(graphics, mouseX, mouseY);
         if (ClientFieldGuideState.shown(ClientFieldGuideState.Layer.DANGER)) {
             drawLegend(graphics, view, dimension, status);
         }
@@ -500,6 +541,7 @@ public class FieldGuideScreen extends Screen {
             case PINS -> FieldGuideMapRenderer.pinColour("place", true);
             case GATES -> FieldGuideMapRenderer.pinColour("gate", true);
             case DANGER -> 0xFF000000 | FieldGuideMapRenderer.dangerColour(1);
+            case PATHS -> FieldGuideMapRenderer.PATH_ROAD;
             case CREATURES -> INK;
             case THREATS -> 0xFFB3261E;
         };
@@ -516,6 +558,130 @@ public class FieldGuideScreen extends Screen {
             x += w + 4;
         }
         return null;
+    }
+
+    // Map tools: Trace and Copy
+
+    private String traceLabel() {
+        return ClientFieldGuideState.status().tracing() ? "Trace: on" : "Trace: off";
+    }
+
+    /** The Trace switch, top left of the map: {x, y, w, h}. */
+    private int[] traceButton() {
+        FieldGuideMapRenderer.View view = view();
+        return new int[]{view.left() + 4, view.top() + 4, font.width("Trace: off") + 12, 13};
+    }
+
+    /** The Copy tool's switch, beside Trace: {x, y, w, h}. */
+    private int[] copyButton() {
+        int[] trace = traceButton();
+        return new int[]{trace[0] + trace[2] + 3, trace[1], font.width("Copy area") + 12, 13};
+    }
+
+    private void drawMapTools(GuiGraphics graphics, int mouseX, int mouseY) {
+        drawButton(graphics, traceButton(), traceLabel(), mouseX, mouseY,
+                ClientFieldGuideState.status().tracing() ? ACCENT : INK);
+        int[] copy = copyButton();
+        if (copying || copyPending) {
+            graphics.fill(copy[0], copy[1], copy[0] + copy[2], copy[1] + copy[3], ACCENT);
+            graphics.drawString(font, "Copy area", copy[0] + 6, copy[1] + 3, PAGE, false);
+        } else {
+            drawButton(graphics, copy, "Copy area", mouseX, mouseY, INK);
+        }
+        if (copying && !copyPending) {
+            String hint = "Click the middle of the area to copy";
+            graphics.fill(copy[0] + copy[2] + 3, copy[1], copy[0] + copy[2] + 9 + font.width(hint), copy[1] + 13, 0xE0EADFC2);
+            graphics.drawString(font, hint, copy[0] + copy[2] + 6, copy[1] + 3, INK_MUTED, false);
+        }
+    }
+
+    /** The square a chart, path or danger note would cover, centred on a block. */
+    private void drawCopyArea(GuiGraphics graphics, FieldGuideMapRenderer.View view, int x, int z, int colour) {
+        int reach = ClientFieldGuideState.status().chartRadius() * 16 + 8;
+        int left = view.screenX(x - reach);
+        int top = view.screenY(z - reach);
+        int right = view.screenX(x + reach);
+        int bottom = view.screenY(z + reach);
+        graphics.fill(left, top, right, bottom, colour & 0x18FFFFFF);
+        for (int i = left; i < right; i += 4) {
+            graphics.fill(i, top, Math.min(i + 2, right), top + 1, colour);
+            graphics.fill(i, bottom - 1, Math.min(i + 2, right), bottom, colour);
+        }
+        for (int i = top; i < bottom; i += 4) {
+            graphics.fill(left, i, left + 1, Math.min(i + 2, bottom), colour);
+            graphics.fill(right - 1, i, right, Math.min(i + 2, bottom), colour);
+        }
+    }
+
+    private List<String> copyChoices() {
+        List<String> choices = new ArrayList<>(List.of("Chart", "Paths", "Danger"));
+        if (copyPin != null) {
+            choices.add("Place");
+        }
+        choices.add("x");
+        return choices;
+    }
+
+    private int copyPromptWidth() {
+        int w = 8;
+        for (String label : copyChoices()) {
+            w += font.width(label) + 14;
+        }
+        return Math.max(w, font.width(copyCostLine()) + 12);
+    }
+
+    private String copyCostLine() {
+        String cost = ClientFieldGuideState.status().copyCost();
+        return "Copy onto a Field Note" + (cost.isEmpty() ? "" : " (each: " + cost + ")");
+    }
+
+    private void drawCopyPrompt(GuiGraphics graphics, int mouseX, int mouseY) {
+        FieldGuideMapRenderer.View view = view();
+        int w = copyPromptWidth();
+        int x = view.left() + (view.width() - w) / 2;
+        int y = view.top() + view.height() - 38;
+        graphics.fill(x, y, x + w, y + 34, 0xF0EADFC2);
+        graphics.renderOutline(x, y, w, 34, INK_MUTED);
+        graphics.drawString(font, copyCostLine(), x + 6, y + 4, INK, false);
+        int bx = x + 4;
+        for (String label : copyChoices()) {
+            int bw = font.width(label) + 10;
+            drawButton(graphics, new int[]{bx, y + 16, bw, 14}, label, mouseX, mouseY, label.equals("x") ? INK_MUTED : INK);
+            bx += bw + 4;
+        }
+    }
+
+    private String copyChoiceAt(double mouseX, double mouseY) {
+        FieldGuideMapRenderer.View view = view();
+        int w = copyPromptWidth();
+        int bx = view.left() + (view.width() - w) / 2 + 4;
+        int y = view.top() + view.height() - 38 + 16;
+        for (String label : copyChoices()) {
+            int bw = font.width(label) + 10;
+            if (mouseX >= bx && mouseX < bx + bw && mouseY >= y && mouseY < y + 14) {
+                return label;
+            }
+            bx += bw + 4;
+        }
+        return null;
+    }
+
+    private void finishCopy(String choice) {
+        if (choice != null && !choice.equals("x")) {
+            String kind = switch (choice) {
+                case "Chart" -> "chart";
+                case "Paths" -> "path";
+                case "Danger" -> "danger";
+                default -> "place";
+            };
+            int x = kind.equals("place") ? copyPin.x() : copyX;
+            int z = kind.equals("place") ? copyPin.z() : copyZ;
+            PacketDistributor.sendToServer(new FieldGuideCopyRequestPayload(kind, "", mapDimension(), x, z));
+            click();
+        }
+        copyPending = false;
+        copying = false;
+        copyPin = null;
     }
 
     /** Something drawn on the map that can be hovered. */
@@ -690,11 +856,18 @@ public class FieldGuideScreen extends Screen {
             if (clickedTab != tab) {
                 tab = clickedTab;
                 finishPin(null);
+                finishCopy(null);
                 click();
             }
             return true;
         }
         if (tab == Tab.CREATURES) {
+            if (!creatures().isEmpty() && inBox(copyPageButton(), mouseX, mouseY)) {
+                FieldGuideStatusPayload.Creature creature = creatures().get(Math.max(0, Math.min(selected, creatures().size() - 1)));
+                PacketDistributor.sendToServer(new FieldGuideCopyRequestPayload("creature", creature.id(), "", 0, 0));
+                click();
+                return true;
+            }
             int top = top() + 26;
             if (mouseX >= left() + 6 && mouseX < left() + 104) {
                 int index = (int) Math.floor((mouseY - top + 2) / 14);
@@ -716,6 +889,33 @@ public class FieldGuideScreen extends Screen {
                 return true;
             }
             return super.mouseClicked(mouseX, mouseY, button);
+        }
+        if (copyPending) {
+            String choice = copyChoiceAt(mouseX, mouseY);
+            finishCopy(choice);
+            return true;
+        }
+        if (inBox(traceButton(), mouseX, mouseY)) {
+            PacketDistributor.sendToServer(new FieldGuidePinRequestPayload(FieldGuidePinRequestPayload.TRACE, mapDimension(), 0, 0, ""));
+            click();
+            return true;
+        }
+        if (inBox(copyButton(), mouseX, mouseY)) {
+            copying = !copying;
+            finishPin(null);
+            click();
+            return true;
+        }
+        if (copying && view().contains(mouseX, mouseY)) {
+            FieldGuideMapRenderer.View view = view();
+            copyX = (int) Math.floor(view.blockX(mouseX));
+            copyZ = (int) Math.floor(view.blockZ(mouseY));
+            Marker marker = markerAt(mouseX, mouseY);
+            copyPin = marker != null && marker.pin() != null && !marker.pin().kind().equals("voice")
+                    && !marker.kind().equals("threat") ? marker.pin() : null;
+            copyPending = true;
+            click();
+            return true;
         }
         if (pending) {
             String choice = promptButtonAt(mouseX, mouseY);
@@ -808,6 +1008,10 @@ public class FieldGuideScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if ((copying || copyPending) && keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            finishCopy(null);
+            return true;
+        }
         if (pending) {
             if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
                 finishPin(FieldGuidePinRequestPayload.PLACE);

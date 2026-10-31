@@ -51,6 +51,7 @@ import dev.spud.shadowslave.echo.EchoCommands;
 import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.fieldguide.FieldGuideContentLoader;
 import dev.spud.shadowslave.fieldguide.FieldGuideRegistry;
+import dev.spud.shadowslave.fieldguide.FieldGuideRules;
 import dev.spud.shadowslave.fieldguide.FieldGuideService;
 import dev.spud.shadowslave.gate.GateCommands;
 import dev.spud.shadowslave.gate.GateRegistry;
@@ -118,6 +119,7 @@ public final class ShadowSlaveMod {
         CitadelRegistry.register(modEventBus);
         SpellRegistry.register(modEventBus);
         DreamRealmRules.bootstrap();
+        FieldGuideRules.bootstrap();
         SeedService.bootstrap();
         TrialRules.bootstrap();
         CitadelService.bootstrap();

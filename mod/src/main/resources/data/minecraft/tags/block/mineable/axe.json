@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "shadowslave:quench_trough",
-    "shadowslave:black_briar"
+    "shadowslave:black_briar",
+    "shadowslave:field_board"
   ]
 }

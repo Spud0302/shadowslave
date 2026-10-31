@@ -68,7 +68,8 @@ class PlayerKeybindControlsIntegrationTest {
                 "ServerPayloadHandler::handleToggleAshBurrowerEchoMode",
                 "ServerPayloadHandler::handleCallingFrequency",
                 "ServerPayloadHandler::handleTrueNameAction",
-                "ServerPayloadHandler::handleGatewayAction"
+                "ServerPayloadHandler::handleGatewayAction",
+                "ServerPayloadHandler::handleFieldGuideCopy"
         }) {
             assertTrue(dedicatedRegistration.contains(handler));
             assertTrue(clientRegistration.contains(handler));

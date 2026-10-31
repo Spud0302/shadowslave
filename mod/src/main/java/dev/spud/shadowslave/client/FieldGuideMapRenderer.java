@@ -4,7 +4,9 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.math.Axis;
 import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.creature.CreatureRank;
+import dev.spud.shadowslave.fieldguide.DangerRating;
 import dev.spud.shadowslave.fieldguide.FieldGuideData;
+import dev.spud.shadowslave.network.payload.FieldGuidePathPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -281,6 +283,58 @@ public final class FieldGuideMapRenderer {
             }
         }
         graphics.disableScissor();
+    }
+
+    // Paths
+
+    public static final int PATH_FAINT = 0x9A3B2A1A;
+    public static final int PATH_ROAD = 0xFFC98A3A;
+    private static final int PATH_ROAD_EDGE = 0xFF5A3410;
+
+    /**
+     * Traced paths: a route in the guide is a faint inked trail, and an
+     * established path is drawn as a bright road with a dark edge, so roads
+     * that formed on their own stand out from one player's wanderings.
+     */
+    public static void drawPaths(GuiGraphics graphics, String dimension, View view) {
+        Map<Long, Byte> cells = ClientFieldGuideState.paths(dimension);
+        if (cells.isEmpty()) {
+            return;
+        }
+        int cell = ClientFieldGuideState.pathCell();
+        float size = cell * view.pixelsPerBlock();
+        double minX = view.blockX(view.left()) - cell;
+        double maxX = view.blockX(view.left() + view.width()) + cell;
+        double minZ = view.blockZ(view.top()) - cell;
+        double maxZ = view.blockZ(view.top() + view.height()) + cell;
+        java.util.List<int[]> roads = new java.util.ArrayList<>();
+        for (Map.Entry<Long, Byte> entry : cells.entrySet()) {
+            int bx = DangerRating.keyX(entry.getKey()) * cell;
+            int bz = DangerRating.keyZ(entry.getKey()) * cell;
+            if (bx < minX || bx > maxX || bz < minZ || bz > maxZ) {
+                continue;
+            }
+            int x0 = view.screenX(bx);
+            int y0 = view.screenY(bz);
+            int x1 = Math.max(x0 + 1, view.screenX(bx + cell));
+            int y1 = Math.max(y0 + 1, view.screenY(bz + cell));
+            if (entry.getValue() == FieldGuidePathPayload.ESTABLISHED) {
+                roads.add(new int[]{x0, y0, x1, y1});
+            } else if (size >= 3) {
+                // A dotted trail: the middle of each cell, so a line of cells reads as a line of ink dots.
+                int inset = Math.max(1, (int) (size / 3));
+                graphics.fill(x0 + inset, y0 + inset, Math.max(x0 + inset + 1, x1 - inset), Math.max(y0 + inset + 1, y1 - inset), PATH_FAINT);
+            } else {
+                graphics.fill(x0, y0, x1, y1, PATH_FAINT);
+            }
+        }
+        int edge = size >= 2 ? 1 : 0;
+        for (int[] road : roads) {
+            graphics.fill(road[0] - edge, road[1] - edge, road[2] + edge, road[3] + edge, PATH_ROAD_EDGE);
+        }
+        for (int[] road : roads) {
+            graphics.fill(road[0], road[1], road[2], road[3], PATH_ROAD);
+        }
     }
 
     // Markers
