@@ -9,7 +9,8 @@ import net.minecraft.server.MinecraftServer;
  * ({@code /gamerule shadowslaveDreamSeeds false}). Agreed with Jack on
  * 2026-10-23: natural Seeds on, off or opt-in; Seed growth speed; block
  * damage inside the Dream Realm; whether a sleeping body stays behind; and
- * the coordinate ratio.
+ * the coordinate ratio. Added 2026-10-31: whether a slain body leaves its
+ * dreamer Lost, and the wait before a dreamer can wake.
  */
 public final class DreamRealmRules {
     /** Whether Nightmare Seeds grow on their own near Awakened players in the Dream Realm. */
@@ -27,6 +28,22 @@ public final class DreamRealmRules {
     /** Whether an Awakened dreamer's body stays asleep in the waking world, where it can be hurt. */
     public static final GameRules.Key<GameRules.BooleanValue> SLEEPING_BODY = GameRules.register(
             "shadowslaveSleepingBody", GameRules.Category.PLAYER, GameRules.BooleanValue.create(true));
+    /**
+     * Whether a dreamer whose sleeping body is killed becomes Lost, stranded in
+     * the Dream Realm until they rise to Ascended and their body is remade
+     * (CANON, ch. 360, 435 and 1230; Jack, 2026-10-31). Off, the old rule
+     * holds: the dreamer dies where they stand in the Dream Realm.
+     */
+    public static final GameRules.Key<GameRules.BooleanValue> LOST = GameRules.register(
+            "shadowslaveLostDreamers", GameRules.Category.PLAYER, GameRules.BooleanValue.create(true));
+    /**
+     * Seconds a dreamer must spend in the Dream Realm after arriving before a
+     * lit Dream Candle or their clan's Gateway lets them wake (CANON: a Gateway
+     * makes the Awakened wait about ten hours, ch. 398; Jack, 2026-10-31).
+     * A hurt body still pulls them out at once.
+     */
+    public static final GameRules.Key<GameRules.IntegerValue> WAKE_WAIT = GameRules.register(
+            "shadowslaveDreamWakeWait", GameRules.Category.PLAYER, GameRules.IntegerValue.create(300));
     /** Whether Nightmare Creatures roam the Dream Realm's regions that list them, around dreamers. */
     public static final GameRules.Key<GameRules.BooleanValue> CREATURES = GameRules.register(
             "shadowslaveDreamCreatures", GameRules.Category.SPAWNING, GameRules.BooleanValue.create(true));
@@ -70,6 +87,15 @@ public final class DreamRealmRules {
 
     public static boolean sleepingBody(MinecraftServer server) {
         return rules(server).getBoolean(SLEEPING_BODY);
+    }
+
+    public static boolean lost(MinecraftServer server) {
+        return rules(server).getBoolean(LOST);
+    }
+
+    /** The wait after arriving before a Candle or Gateway wakes a dreamer, in ticks. */
+    public static long wakeWaitTicks(MinecraftServer server) {
+        return Math.max(0, rules(server).getInt(WAKE_WAIT)) * 20L;
     }
 
     public static int ratio(MinecraftServer server) {

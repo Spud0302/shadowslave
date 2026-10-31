@@ -10,7 +10,8 @@ import java.util.Map;
  * (DESIGN, Run B; every number is "for now").
  *
  * @param gradeChance      the chance a conquered Nightmare grants a True Name, by grade; grades not named grant none
- *                         (the chance only opens at Glorious, per the Spell Callings section)
+ *                         (only Glorious, the top grade: Sunny ch. 15, Nephis ch. 161 and 1259)
+ * @param impossibleChance the chance instead when the appraisal also said "You have achieved the impossible!"
  * @param drainResist      the share of soul and essence drains an Anchored Soul shrugs off
  * @param knownDamageBonus extra damage, as a share, from anyone who knows the bearer's True Name
  * @param senseCooldown    ticks before one knower can sense the same bearer again (one in-game day)
@@ -20,14 +21,16 @@ import java.util.Map;
  * @param bindEssence      essence it takes to weave your True Name into a Memory
  * @param nameAttempts     tries at a name nobody else bears before the Spell gives up for now
  */
-public record TrueNameSettings(Map<String, Float> gradeChance, float drainResist, float knownDamageBonus, int senseCooldown,
-                               int revealRange, float callingGapFactor, float callingReach, int bindEssence, int nameAttempts) {
-    public static final TrueNameSettings DEFAULT = new TrueNameSettings(Map.of("Glorious", 0.35F, "Impossible", 1.0F),
+public record TrueNameSettings(Map<String, Float> gradeChance, float impossibleChance, float drainResist, float knownDamageBonus,
+                               int senseCooldown, int revealRange, float callingGapFactor, float callingReach, int bindEssence, int nameAttempts) {
+    public static final TrueNameSettings DEFAULT = new TrueNameSettings(Map.of("Glorious", 0.35F), 1.0F,
             0.5F, 0.1F, 24000, 8, 0.5F, 1.5F, 40, 12);
 
     public static final Codec<TrueNameSettings> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.unboundedMap(Codec.STRING, Codec.floatRange(0.0F, 1.0F)).optionalFieldOf("grade_chance", DEFAULT.gradeChance)
                     .forGetter(TrueNameSettings::gradeChance),
+            Codec.floatRange(0.0F, 1.0F).optionalFieldOf("impossible_chance", DEFAULT.impossibleChance)
+                    .forGetter(TrueNameSettings::impossibleChance),
             Codec.floatRange(0.0F, 1.0F).optionalFieldOf("drain_resist", DEFAULT.drainResist).forGetter(TrueNameSettings::drainResist),
             Codec.floatRange(0.0F, 4.0F).optionalFieldOf("known_damage_bonus", DEFAULT.knownDamageBonus)
                     .forGetter(TrueNameSettings::knownDamageBonus),
@@ -48,5 +51,11 @@ public record TrueNameSettings(Map<String, Float> gradeChance, float drainResist
     /** The chance a grade grants a True Name; 0 for a grade the settings do not name. */
     public float chanceFor(String grade) {
         return gradeChance.getOrDefault(grade, 0.0F);
+    }
+
+    /** The chance for a judged run: the impossible raises its grade's chance, never opens one a grade lacks. */
+    public float chanceFor(String grade, boolean impossible) {
+        float chance = chanceFor(grade);
+        return chance > 0.0F && impossible ? Math.max(chance, impossibleChance) : chance;
     }
 }

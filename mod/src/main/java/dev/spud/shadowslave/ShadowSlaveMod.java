@@ -286,6 +286,10 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onPlayerLoggedOut);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onChangedDimension);
+        NeoForge.EVENT_BUS.addListener(DreamCrossing::onPlayerRespawn);
+        NeoForge.EVENT_BUS.addListener(DreamCrossing::onPlayerTickLost);
+        NeoForge.EVENT_BUS.addListener(DreamCrossing::onCanSleep);
+        NeoForge.EVENT_BUS.addListener(DreamCrossing::onCanContinueSleeping);
         NeoForge.EVENT_BUS.addListener(SeedService::onServerTick);
         NeoForge.EVENT_BUS.addListener(dev.spud.shadowslave.dreamrealm.DreamRealmCreatures::onServerTick);
         NeoForge.EVENT_BUS.addListener(TrialContentLoader::onAddReloadListeners);
