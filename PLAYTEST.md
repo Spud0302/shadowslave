@@ -1157,6 +1157,40 @@ Operators: `/shadowslave citadel war skip <hours>` moves the war clock ahead,
 `war tick` runs one second of war, `war cut` cuts the nearest claimed
 Citadel's anchor, `war end <clan>` ends a clan's wars.
 
+### War Natures: Saboteur and Standard
+
+Added by claude-code, 2026-10-31. Quick start: `/shadowslave aspect set saboteur`
+(or standard), then `/shadowslave core fill` and `/shadowslave awaken <name>`
+for the Awakened choices. Both work anywhere; their war parts need two clans
+at war (see Clan wars above for the operator commands that skip the notice).
+
+| Nature | Innate (always on) | Ability (R) | Flaw |
+| --- | --- | --- | --- |
+| Saboteur | Line Sense: other clans' Link Anchors and Gateways within 48 blocks show to you alone as sparks (flames for an enemy's), with a line saying where | Undermine: a charge on the block you look at (6 blocks) goes after 10 s. In the wild it cracks the blocks around it (not obsidian or harder). At an enemy's Link Anchor it cuts the supply line; on an enemy Citadel's land it damages one upgrade (sharing the raid cooldown). A member of that clan within 4 blocks stamps it out; out of war the Spell holds the ground (30 essence) | Marked: after you cut an enemy's anchor or damage their upgrades you glow for 30 s |
+| Standard | Under the Colours: your clan, Echoes and tamed creatures within 8 blocks of you take a tenth less damage | Plant the Standard: a purple banner for 2 minutes that wards everyone of yours near it, you included. Within 12 blocks of a Gateway being channelled it adds a second a second to your clan's channel, or takes one away from the enemy's. Anyone can strike it down (30 essence) | Oathbound: while your side fights near your banner, standing more than 12 blocks from it gives you Weakness |
+
+Awakened choices: Saboteur picks **Cut the Lines** (always on: your strikes on
+a Link Anchor count double and your charges burn in 5 s) or **False Trail**
+(for a minute your steps add nothing to the shared established paths, a false
+trail of footprints runs 24 blocks where you look and becomes an established
+path, and creatures hunting you follow it for 8 s; 30 essence). Standard picks
+**Hold the Line** (always on: no one of yours near your banner is knocked back)
+or **Last Rally** (always on: when your banner falls or is furled, everyone of
+yours near it heals four hearts and gains Absorption).
+
+Things to try:
+
+1. Saboteur: set a charge on a stone wall and watch it burn and crack. Walk
+   near another clan's Citadel in the Dream Realm and look for the sparks over
+   its Link Anchor. At war, undermine their anchor, with and without one of
+   them standing on it, and check the Glowing. Awakened: time a strike with
+   Cut the Lines, or lay a False Trail with a zombie chasing you.
+2. Standard: let a tamed wolf take hits next to you and away from you. Plant
+   the Standard and walk off while your wolf fights near it (Oathbound). At an
+   assault, plant it by the Gateway on either side and watch the channel
+   count. Awakened: get hit by a skeleton near the banner (Hold the Line), or
+   break your own banner after a fight (Last Rally).
+
 ### Citadel Natures: Herald and Keeper
 
 Added by claude-code, 2026-10-29. Quick start: `/shadowslave aspect set

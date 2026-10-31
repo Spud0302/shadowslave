@@ -20,6 +20,20 @@ public final class KitRules {
         return hasFlaw(SoulIdentityService.get(player), flawEffectId);
     }
 
+    /** A player on the server by id, mock players in game tests included, or null. */
+    public static ServerPlayer online(net.minecraft.server.MinecraftServer server, java.util.UUID id) {
+        ServerPlayer player = server.getPlayerList().getPlayer(id);
+        if (player != null) {
+            return player;
+        }
+        for (net.minecraft.server.level.ServerLevel level : server.getAllLevels()) {
+            if (level.getPlayerByUUID(id) instanceof ServerPlayer found) {
+                return found;
+            }
+        }
+        return null;
+    }
+
     static boolean hasFlaw(SoulIdentityData identity, ResourceLocation flawEffectId) {
         return identity.flaw().map(flaw -> flaw.effectId().equals(flawEffectId)).orElse(false);
     }

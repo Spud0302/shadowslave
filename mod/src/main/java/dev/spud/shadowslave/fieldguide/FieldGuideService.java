@@ -322,6 +322,26 @@ public final class FieldGuideService {
         }
     }
 
+    /**
+     * Lays a false trail (Saboteur's False Trail) from one spot to another: the
+     * cells between are walked as often as an established path needs, so they
+     * brighten in every guide that shares paths and knows them.
+     */
+    public static void layFalseTrail(ServerPlayer player, net.minecraft.world.phys.Vec3 from, net.minecraft.world.phys.Vec3 to) {
+        FieldGuideSettings.PathSettings rules = settings().paths();
+        String dimension = dimension(player.level());
+        int fromX = Math.floorDiv((int) Math.floor(from.x), rules.cell());
+        int fromZ = Math.floorDiv((int) Math.floor(from.z), rules.cell());
+        int toX = Math.floorDiv((int) Math.floor(to.x), rules.cell());
+        int toZ = Math.floorDiv((int) Math.floor(to.z), rules.cell());
+        EstablishedPaths paths = EstablishedPaths.get(player.server);
+        for (long cell : line(fromX, fromZ, toX, toZ)) {
+            while (paths.walks(dimension, cell) < rules.establishedWalks()) {
+                paths.add(dimension, cell);
+            }
+        }
+    }
+
     /** The path cells on a line from one cell to the next, not counting the first (Bresenham). */
     static List<Long> line(int x0, int z0, int x1, int z1) {
         List<Long> cells = new ArrayList<>();
@@ -358,7 +378,8 @@ public final class FieldGuideService {
         tracking.walked.put(cell, now);
         boolean wasEstablished = established(player.server, data, dimension, cell);
         int walks = data.walk(dimension, cell, rules.maxCells());
-        if (walks <= rules.walksPerPlayer()) {
+        if (walks <= rules.walksPerPlayer() && !dev.spud.shadowslave.ability.SaboteurCraft.hidden(player)) {
+            // A Saboteur on a False Trail walks without adding to anyone's established paths.
             EstablishedPaths.get(player.server).add(dimension, cell);
         }
         boolean nowEstablished = established(player.server, data, dimension, cell);
