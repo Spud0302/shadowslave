@@ -69,6 +69,8 @@ public final class LongNightmareGameTest {
         ServerLevel nightmare = (ServerLevel) player.level();
         TrialService.skip(nightmare, instance, 5);
         TrialInstance.Member member = instance.member(player.getUUID()).orElseThrow();
+        // A mock player loads no chunks around itself; load the one it stands in so the figure left there is findable.
+        nightmare.getChunk(player.blockPosition());
 
         TrialService.onPlayerLoggedOut(new PlayerEvent.PlayerLoggedOutEvent(player));
         helper.assertTrue(member.away() && member.inside(), "logging out leaves them asleep inside");
