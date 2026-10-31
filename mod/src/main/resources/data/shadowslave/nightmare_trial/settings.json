@@ -18,9 +18,14 @@
     {"name": "Adequate", "min": 40},
     {"name": "Good", "min": 80},
     {"name": "Excellent", "min": 120},
-    {"name": "Glorious", "min": 170},
-    {"name": "Impossible", "min": 300}
+    {"name": "Glorious", "min": 170}
   ],
+  "appraisal": {
+    "kill_weight": 0.0,
+    "impossible_min": 210,
+    "impossible_line": "You have achieved the impossible!",
+    "acclaim": {"Excellent": "Your achievements are remarkable!"}
+  },
   "failed_grade": "Failed",
   "scar": {"minutes": 30, "max_stacks": 3, "health_per_stack": 2.0, "damage_per_stack": 0.05, "cleared_heals": true},
   "long_nightmares": {"abandon_after_days": 30, "lingerer_health": 1.0, "rejoin_keeps_role": true},
@@ -28,6 +33,8 @@
     "nightmares": ["shadowslave:chain_road"],
     "bloom": ["The Seed the Spell planted in you blooms.", "You are no longer in your bed."],
     "stirs": "The Seed the Spell planted in you stirs. Sleep beside a lit Dream Candle to face your First Nightmare.",
-    "withered": "The Seed in you withers, and grows again. It will bloom the next time you sleep beside a lit Dream Candle."
+    "withered": "The Seed in you withers. It will grow again, but not for some days.",
+    "quiet_days": 3,
+    "quiet": "The Seed in you is quiet. It will stir again in {time}."
   }
 }

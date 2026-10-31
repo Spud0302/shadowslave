@@ -58,7 +58,9 @@ public final class AbilityCastEffects {
         SHEPHERD(new Color(180, 240, 200), new Color(40, 120, 90)),
         VESSEL(new Color(190, 140, 255), new Color(40, 140, 170)),
         MASQUE(new Color(235, 225, 245), new Color(110, 60, 160)),
-        UNBROKEN(new Color(230, 90, 60), new Color(90, 70, 60));
+        UNBROKEN(new Color(230, 90, 60), new Color(90, 70, 60)),
+        SABOTEUR(new Color(255, 170, 60), new Color(70, 50, 40)),
+        STANDARD(new Color(200, 120, 255), new Color(240, 200, 90));
 
         final Color start;
         final Color end;

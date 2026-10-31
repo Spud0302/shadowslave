@@ -136,6 +136,15 @@ public final class KitLadder {
     public static final AbilityVariant DEFIANCE = variant("defiance", "Defiance",
             "Dare every creature nearby to fight you: they turn on you and cannot turn away for eight seconds.", "Command");
 
+    public static final AbilityVariant CUT_THE_LINES = variant("cut_the_lines", "Cut the Lines",
+            "Always on: you cut a Link Anchor twice as fast, and your Undermine charges burn in half the time.", "Passive");
+    public static final AbilityVariant FALSE_TRAIL = variant("false_trail", "False Trail",
+            "For a minute your steps leave no path on anyone's map, and a false trail runs off where you look; creatures hunting you follow it.", "Stealth");
+    public static final AbilityVariant HOLD_THE_LINE = variant("hold_the_line", "Hold the Line",
+            "Always on: you and your allies near your planted banner cannot be knocked back.", "Passive");
+    public static final AbilityVariant LAST_RALLY = variant("last_rally", "Last Rally",
+            "Always on: when your banner falls or is furled, you and your allies near it are healed four hearts.", "Passive");
+
     public static final AbilityVariant FIRESTORM = master("firestorm", "Firestorm",
             "Fire rains on the spot you look at for four seconds, burning every hostile beneath it again and again.", "Force");
     public static final AbilityVariant PHOENIX_RITE = master("phoenix_rite", "Phoenix Rite",
@@ -190,7 +199,9 @@ public final class KitLadder {
             Map.entry(AspectKitCatalog.SHEPHERD.natureId(), List.of(PACK_TACTICS, SECOND_BOND)),
             Map.entry(AspectKitCatalog.VESSEL.natureId(), List.of(SWAP_PLACES, SHARED_WOUNDS)),
             Map.entry(AspectKitCatalog.MASQUE.natureId(), List.of(MIRROR_SWAP, STOLEN_VOICE)),
-            Map.entry(AspectKitCatalog.UNBROKEN.natureId(), List.of(GRIT, DEFIANCE))
+            Map.entry(AspectKitCatalog.UNBROKEN.natureId(), List.of(GRIT, DEFIANCE)),
+            Map.entry(AspectKitCatalog.SABOTEUR.natureId(), List.of(CUT_THE_LINES, FALSE_TRAIL)),
+            Map.entry(AspectKitCatalog.STANDARD.natureId(), List.of(HOLD_THE_LINE, LAST_RALLY))
     );
 
     // Ascended (Master): a third ability, two to choose from, as at Awakening (ch. 744: Sunny's Shadow

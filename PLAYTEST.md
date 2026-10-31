@@ -467,8 +467,9 @@ status` and `/shadowslave gate close`.
 
 Added by claude-code, 2026-10-23. First slice: one region, the Ashen Expanse.
 Quick start: `/shadowslave aspect set ember`, `/shadowslave core fill`,
-`/shadowslave awaken <name>`, then sleep at night in a bed with a lit Dream
-Candle beside it.
+`/shadowslave awaken <name>`, then sleep in a bed with a lit Dream Candle
+beside it, at any hour (2026-10-31: there is no night-only rule; monsters
+nearby still keep you up).
 
 1. **Crossing.** Once you have Awakened, sleeping beside a lit Dream Candle
    takes you to the Dream Realm after about three seconds instead of skipping
@@ -477,17 +478,30 @@ Candle beside it.
    you: that is your **Dream Anchor**, and every later crossing arrives there.
    Light another Dream Candle in the Dream Realm to move it.
 2. **Waking.** Use a lit Dream Candle in the Dream Realm with an empty hand
-   (sneaking still meditates). You wake in your bed. Dying there also ends the
-   dream; you respawn as usual. Logging out wakes you on the next login.
+   (sneaking still meditates), or sneak-use your clan's Citadel Gateway with an
+   empty hand. Either only lets you through after a wait from when you arrived
+   (5 minutes; `/gamerule shadowslaveDreamWakeWait <seconds>`, after ch. 398),
+   and says how long is left. `/shadowslave dream` shows it too. You wake in
+   your bed. Dying there also ends the dream; you respawn as usual. Logging
+   out wakes you on the next login.
 3. **Your sleeping body.** Your body stays asleep in the bed (Awakened only;
-   Masters cross whole later). Hostile mobs nearby walk over to it. If it is
-   hurt you are pulled back awake with its wounds; if it dies, you die where
-   you stand in the Dream Realm. Its chunk stays loaded while you dream.
-4. **Nightmare Seeds.** While an Awakened player walks the Dream Realm, Seeds
+   Ascended cross whole, body and all). Hostile mobs nearby walk over to it. If
+   it is hurt you are pulled back awake at once with its wounds. Its chunk stays
+   loaded while you dream.
+4. **Lost** (2026-10-31, `/gamerule shadowslaveLostDreamers`, on). If your
+   sleeping body is killed, you become one of the **Lost** (ch. 360, 435): a
+   red title says so and you stay in the Dream Realm. Candles and Gateways will
+   not wake you, logging out and in keeps you there, and dying brings you back
+   at your Dream Anchor. Conquer your Second Nightmare and rise to Ascended and
+   your body is remade ("Found"); from then on you cross whole and wake as
+   usual. Rising to Ascended is being built in its own thread; until then an
+   operator frees a Lost player with `/shadowslave dream wake <player>`. With
+   the rule off, the old rule holds: you die where you stand in the Dream Realm.
+5. **Nightmare Seeds.** While an Awakened player walks the Dream Realm, Seeds
    take root 24 to 64 blocks away now and then (the action bar says so). Use
    one to read it: region, Category forecast, growth stage (1 to 4) and time
    to bloom (3 in-game days at normal speed).
-5. **Cleansing.** Sneak-use a Seed to challenge it: a Gate opens at the Seed
+6. **Cleansing.** Sneak-use a Seed to challenge it: a Gate opens at the Seed
    in the Dream Realm. Kill its Guardian and the Seed is cleansed and drops
    its region's loot, rolled 3 times at stage 1, 2 times at stages 2 and 3,
    once at stage 4.
@@ -634,8 +648,9 @@ face what grows from it alone.
 4. **Conquered.** The Spell appraises you as for any Nightmare, then tells you
    to meditate at your Dream Candle, where you Awaken as before.
 5. **Fallen.** A death reverts you to how you went to bed, like any Nightmare.
-   No Seed judges you: the one inside you grows back, and blooms again the next
-   time you sleep beside the candle.
+   No Seed judges you, but the one inside you goes quiet for 3 in-game days
+   (`quiet_days` in the settings). Sleeping by the candle before then tells you
+   how long is left; after that it blooms again the next time you sleep there.
 6. **Breach** (`/gamerule shadowslaveFirstNightmareBreach true`, also off). As
    in the novel, dying in your First Nightmare lets something out: a Dormant
    Ash Burrower appears beside you when you wake.
@@ -697,12 +712,16 @@ interface a later optional module can sit in front of.
    Citadel, first to Awaken) gets a gold line from the Spell.
    `/shadowslave spell record` shows the Spell's record of you and
    `/shadowslave spell firsts` the server's firsts.
-2. **The Judge.** Appraisals now grade on a longer ladder: Poor, Adequate,
-   Good, Excellent, Glorious, and "You have achieved the impossible" at the
-   rare top. A death inside is judged Failed. What counts: the ending and your
-   role's fate, each kill (rank points times soul cores), unique kills and
-   kills above your own rank, going alone or in a small cohort, cohort
-   members lost, and striking your own (a heavy penalty).
+2. **The Judge.** Appraisals grade Poor, Adequate, Good, Excellent and
+   Glorious. A death inside is judged Failed. Since 2026-10-31 the grade
+   measures how far your run strayed from the Nightmare's **fated ending**,
+   which the Spell never tells you (ch. 744): reaching the fated ending is worth
+   nothing by itself, changing it is worth a lot, and more when a lowly role (a
+   slave) changed it. Your role's part in the ending, going alone or in a small
+   cohort, cohort members lost and striking your own still count. Kills are
+   listed but do not count. Before the grade the Spell may comment: "Your
+   achievements are remarkable!" on Excellent, and "You have achieved the
+   impossible!" on the best Glorious runs (ch. 15, 743).
 3. **Commentary.** Under the grade the Spell says how you played (treachery,
    protecting others, recklessness, fighting above your rank, mercy, going
    alone, or steadfast) and what it remembers of you ("Again, you flee.",
@@ -732,8 +751,9 @@ Added by claude-code, 2026-10-30 (Run B of the lore doc's run backlog). A
 True Name is a rare honorary name the Spell grants (ch. 9). Everything is
 decided by game code; the voice only picks the form a name takes.
 
-1. **Earning one.** A conquered Nightmare judged Glorious has a 35% chance to
-   grant a name, and "the impossible" always does. The name is built from
+1. **Earning one.** Only a conquered Nightmare judged Glorious can grant a
+   name: a 35% chance, or always when the Spell also said "You have achieved
+   the impossible!". The name is built from
    word lists for how you played (treachery, protecting others, recklessness,
    fighting above your rank, mercy, going alone, steadfast). Two deeds outside
    Nightmares also grant one: being the first under the Spell to slay a Great
@@ -1187,6 +1207,40 @@ announced assaults for fixed daily hours (UTC) when seats may be channelled.
 Operators: `/shadowslave citadel war skip <hours>` moves the war clock ahead,
 `war tick` runs one second of war, `war cut` cuts the nearest claimed
 Citadel's anchor, `war end <clan>` ends a clan's wars.
+
+### War Natures: Saboteur and Standard
+
+Added by claude-code, 2026-10-31. Quick start: `/shadowslave aspect set saboteur`
+(or standard), then `/shadowslave core fill` and `/shadowslave awaken <name>`
+for the Awakened choices. Both work anywhere; their war parts need two clans
+at war (see Clan wars above for the operator commands that skip the notice).
+
+| Nature | Innate (always on) | Ability (R) | Flaw |
+| --- | --- | --- | --- |
+| Saboteur | Line Sense: other clans' Link Anchors and Gateways within 48 blocks show to you alone as sparks (flames for an enemy's), with a line saying where | Undermine: a charge on the block you look at (6 blocks) goes after 10 s. In the wild it cracks the blocks around it (not obsidian or harder). At an enemy's Link Anchor it cuts the supply line; on an enemy Citadel's land it damages one upgrade (sharing the raid cooldown). A member of that clan within 4 blocks stamps it out; out of war the Spell holds the ground (30 essence) | Marked: after you cut an enemy's anchor or damage their upgrades you glow for 30 s |
+| Standard | Under the Colours: your clan, Echoes and tamed creatures within 8 blocks of you take a tenth less damage | Plant the Standard: a purple banner for 2 minutes that wards everyone of yours near it, you included. Within 12 blocks of a Gateway being channelled it adds a second a second to your clan's channel, or takes one away from the enemy's. Anyone can strike it down (30 essence) | Oathbound: while your side fights near your banner, standing more than 12 blocks from it gives you Weakness |
+
+Awakened choices: Saboteur picks **Cut the Lines** (always on: your strikes on
+a Link Anchor count double and your charges burn in 5 s) or **False Trail**
+(for a minute your steps add nothing to the shared established paths, a false
+trail of footprints runs 24 blocks where you look and becomes an established
+path, and creatures hunting you follow it for 8 s; 30 essence). Standard picks
+**Hold the Line** (always on: no one of yours near your banner is knocked back)
+or **Last Rally** (always on: when your banner falls or is furled, everyone of
+yours near it heals four hearts and gains Absorption).
+
+Things to try:
+
+1. Saboteur: set a charge on a stone wall and watch it burn and crack. Walk
+   near another clan's Citadel in the Dream Realm and look for the sparks over
+   its Link Anchor. At war, undermine their anchor, with and without one of
+   them standing on it, and check the Glowing. Awakened: time a strike with
+   Cut the Lines, or lay a False Trail with a zombie chasing you.
+2. Standard: let a tamed wolf take hits next to you and away from you. Plant
+   the Standard and walk off while your wolf fights near it (Oathbound). At an
+   assault, plant it by the Gateway on either side and watch the channel
+   count. Awakened: get hit by a skeleton near the banner (Hold the Line), or
+   break your own banner after a fight (Last Rally).
 
 ### Citadel Natures: Herald and Keeper
 

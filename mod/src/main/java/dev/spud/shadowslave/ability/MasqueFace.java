@@ -104,7 +104,8 @@ public final class MasqueFace {
         int score = judgement.score() + Math.round(ending.roleScore() * ROLE_SCORE_SHARE);
         List<String> deeds = new ArrayList<>(judgement.deeds());
         deeds.add("You wore your role so well that the Nightmare believed it.");
-        return new SpellJudge.Judgement(deeds, score, settings.gradeFor(score), judgement.behaviour());
+        return SpellJudge.Judgement.of(deeds, score, judgement.behaviour(), settings,
+                dev.spud.shadowslave.trial.content.TrialContent.get().appraisal());
     }
 
     // ---- Borrowed Face -------------------------------------------------------------------------------------------

@@ -326,7 +326,10 @@ public final class CitadelService {
 
     // The Gateway
 
-    /** A player uses a Gateway: learn who holds it, claim it, or anchor to it and share the board. */
+    /**
+     * A player uses a Gateway: learn who holds it, claim it, or anchor to it and
+     * share the board. Sneaking with an empty hand at their own clan's Gateway wakes a dreamer.
+     */
     public static void useGateway(ServerPlayer player, BlockPos gateway) {
         ServerLevel level = player.serverLevel();
         CitadelData.Citadel citadel = at(level, gateway).orElseGet(() -> wake(level, gateway));
@@ -353,6 +356,11 @@ public final class CitadelService {
                             + clan.map(ClanData.Clan::name).orElse("of another") + (enemy ? ", your enemy"
                             + (CitadelWars.isSeat(player.server, citadel) ? ". It is their seat: take it in an assault" : "") : "") + ".")
                             .withStyle(enemy ? ChatFormatting.DARK_RED : ChatFormatting.GRAY), true);
+                    return;
+                }
+                if (player.isShiftKeyDown() && player.getMainHandItem().isEmpty()
+                        && DreamCrossing.tryWake(player, DreamCrossing.Reason.GATEWAY)) {
+                    // Awakened return to the waking world through a Citadel's Gateway (ch. 398).
                     return;
                 }
                 if (CitadelLife.feedFromHand(player, citadel)) {

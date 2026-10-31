@@ -66,6 +66,8 @@ public final class TrialData extends SavedData {
         final Set<UUID> judgedBy = new HashSet<>();
         final Map<Integer, Integer> clears = new LinkedHashMap<>();
         final Map<ResourceLocation, String> bestGrades = new LinkedHashMap<>();
+        /** The game time before which the Seed inside a fallen carrier stays quiet. */
+        long seedQuietUntil;
 
         public Optional<Entry> active() {
             return Optional.ofNullable(active);
@@ -103,6 +105,9 @@ public final class TrialData extends SavedData {
             CompoundTag grades = new CompoundTag();
             bestGrades.forEach((id, grade) -> grades.putString(id.toString(), grade));
             tag.put("best_grades", grades);
+            if (seedQuietUntil > 0) {
+                tag.putLong("seed_quiet_until", seedQuietUntil);
+            }
             return tag;
         }
 
@@ -122,6 +127,7 @@ public final class TrialData extends SavedData {
                     // A hand-edited save; skip the bad key.
                 }
             }
+            record.seedQuietUntil = tag.getLong("seed_quiet_until");
             CompoundTag grades = tag.getCompound("best_grades");
             for (String key : grades.getAllKeys()) {
                 ResourceLocation id = ResourceLocation.tryParse(key);
@@ -155,6 +161,16 @@ public final class TrialData extends SavedData {
         setDirty();
     }
 
+    void quietSeed(UUID player, long until) {
+        record(player).seedQuietUntil = until;
+        setDirty();
+    }
+
+    /** The game time until which this player's inner Seed stays quiet; 0 if it is not. */
+    public long seedQuietUntil(UUID player) {
+        return find(player).map(record -> record.seedQuietUntil).orElse(0L);
+    }
+
     void judge(UUID player, UUID seed) {
         record(player).judgedBy.add(seed);
         setDirty();
@@ -173,6 +189,7 @@ public final class TrialData extends SavedData {
             record.judgedBy.clear();
             record.clears.clear();
             record.bestGrades.clear();
+            record.seedQuietUntil = 0;
         });
         setDirty();
     }
