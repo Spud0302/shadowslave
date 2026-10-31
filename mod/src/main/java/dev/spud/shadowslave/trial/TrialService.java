@@ -679,6 +679,8 @@ public final class TrialService {
             case SLAY_TYRANT -> instance.tyrantSlain;
             case SURVIVE -> !instance.inside().isEmpty();
             case LIGHT -> ending.points().stream().allMatch(point -> lit(level.getBlockState(instance.at(point))));
+            case REACH -> players(level.getServer(), instance).stream().anyMatch(player -> ending.points().stream()
+                    .anyMatch(point -> player.position().closerThan(Vec3.atBottomCenterOf(instance.at(point)), ending.radius())));
         };
     }
 
@@ -739,7 +741,9 @@ public final class TrialService {
         player.refreshTabListName();
 
         List<String> boons = new ArrayList<>();
-        if (instance.category >= 2) {
+        if (instance.first) {
+            boons.add("The right to Awaken: your First Nightmare conquered");
+        } else if (instance.category >= 2) {
             boons.add("The right to Ascend: a Category " + instance.category + " Nightmare conquered");
         } else {
             boons.add("A Category " + instance.category + " Nightmare conquered");
@@ -768,6 +772,10 @@ public final class TrialService {
         }
         spell(player, Component.literal("The Nightmare is over. " + instance.pack.displayName() + ": " + appraisal.grade().name() + ".")
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
+        if (instance.first) {
+            spell(player, Component.literal("Your First Nightmare is conquered. Meditate beside a lit Dream Candle to Awaken.")
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
+        }
         player.serverLevel().playSound(null, player.blockPosition(), SoundEvents.BEACON_POWER_SELECT, SoundSource.PLAYERS, 1.0F, 0.7F);
         ShadowSlaveMod.LOGGER.info("{} conquered {} ({}, score {})", player.getScoreboardName(), instance.nightmareId,
                 appraisal.grade().name(), appraisal.score());
@@ -918,6 +926,9 @@ public final class TrialService {
         SpellAppraisal.failed(player, instance.get().pack, TrialContent.get().settings());
         MinecraftServer server = player.server;
         penalties(player);
+        if (instance.get().first) {
+            FirstNightmare.fell(player, instance.get().pack);
+        }
         for (ServerPlayer other : players(server, instance.get())) {
             spell(other, Component.literal(role + " has fallen.").withStyle(ChatFormatting.DARK_RED));
         }

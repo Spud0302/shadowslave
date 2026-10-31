@@ -1,4 +1,4 @@
-"""Builds the hand-made structures for the Nightmares "The Last Vigil" and "The Long Thorn".
+"""Builds the hand-made structures for the Nightmares "The Last Vigil", "The Long Thorn" and "The Chain Road".
 
 Usage: python3 mod/tools/build_nightmare_structures.py [data/shadowslave directory]
 Writes structure/nightmare/last_vigil.nbt (the Ember Watch as it stood, the
@@ -10,12 +10,13 @@ as the same place.
 It also writes structure/nightmare/long_thorn.nbt (the Briar Cloister in the
 season the briars came, a Category 3 Long Nightmare) and
 structure/nightmare/briar_cloister_ruin.nbt (the cloister today, swallowed by
-black briar in the Thornwake Basin). Edit the layout below and rerun; no
-third-party packages.
+black briar in the Thornwake Basin), and structure/nightmare/chain_road.nbt
+(the road to the Ember Watch while it was being built, the First Nightmare).
+Edit the layout below and rerun; no third-party packages.
 
 The point names used by data/shadowslave/nightmare_trial/nightmare/last_vigil.json
 (arrival, lamps, breaches) are listed in POINTS, and those of long_thorn.json in
-CLOISTER_POINTS; both must match the layout.
+CLOISTER_POINTS, and those of chain_road.json in ROAD_POINTS; all must match the layout.
 """
 import gzip
 import random
@@ -593,6 +594,142 @@ def cloister_ruin(rng):
     return b
 
 
+# ---- The Chain Road (the First Nightmare) --------------------------------------------------------------------------
+
+ROAD_LO, ROAD_HI = 28, 32  # the road's width, running south to north
+CLIFF_WEST, CLIFF_EAST = 6, 54  # the pass's walls rise outside these
+GATE_TOWERS = ((21, 3), (35, 3))  # corners of the unfinished gate's two towers, each 5 by 6
+GATE_TOP = FLOOR + 12
+
+# Points of data/shadowslave/nightmare_trial/nightmare/chain_road.json, in structure coordinates.
+ROAD_POINTS = {
+    "arrival": (30, FLOOR + 1, 50),
+    "caravan": (30, FLOOR + 1, 46),
+    "line_end": (30, FLOOR + 1, 58),
+    "dune_west": (12, FLOOR + 1, 38),
+    "dune_east": (48, FLOOR + 1, 28),
+    "dune_south": (44, FLOOR + 1, 54),
+    "pass_north": (30, FLOOR + 1, 17),
+    "watch_gate": (30, FLOOR + 1, 6),
+}
+
+
+def road_cliff_height(x, z, rng):
+    """How high the pass's walls stand here: rising away from the road, ragged at the top."""
+    if x <= CLIFF_WEST:
+        depth = CLIFF_WEST - x
+    elif x >= CLIFF_EAST:
+        depth = x - CLIFF_EAST
+    else:
+        return 0
+    ridge = (3, 5, 6, 4, 2, 4, 7, 5, 3, 4, 6, 3)[(z // 5) % 12]  # the skyline rises and falls along the pass
+    return 3 + depth + ridge + (depth * ridge) // 3 + rng.randint(-1, 1)
+
+
+def chain_road(rng):
+    """The road to the Ember Watch while it was still being built: a slave line halted in the ash, the gate unfinished."""
+    b = Build(FLOOR + 18)
+    b.box(0, 0, 0, SIZE - 1, FLOOR - 1, SIZE - 1, lambda x, y, z: "minecraft:deepslate" if y < 2 else "minecraft:tuff")
+    for x in range(SIZE):
+        for z in range(SIZE):
+            if ROAD_LO <= x <= ROAD_HI:
+                worn = rng.random()
+                b.set(x, FLOOR, z, "minecraft:cobblestone" if worn < 0.45 else
+                      ("minecraft:gravel" if worn < 0.75 else "minecraft:andesite"))
+            else:
+                b.set(x, FLOOR, z, ash(rng))
+            for y in range(FLOOR + 1, FLOOR + 1 + road_cliff_height(x, z, rng)):
+                b.set(x, y, z, rng.choices(["minecraft:tuff", "minecraft:basalt[axis=y]", "minecraft:deepslate",
+                                            "minecraft:smooth_basalt"], [4, 3, 2, 1])[0])
+    # Ash drifts on either side of the road, never on it.
+    for _ in range(26):
+        cx, cz = rng.randrange(CLIFF_WEST + 2, CLIFF_EAST - 1), rng.randrange(2, SIZE - 2)
+        if ROAD_LO - 3 <= cx <= ROAD_HI + 3:
+            continue
+        for dx in range(-3, 4):
+            for dz in range(-3, 4):
+                x, z = cx + dx, cz + dz
+                if ROAD_LO - 1 <= x <= ROAD_HI + 1 or not CLIFF_WEST < x < CLIFF_EAST:
+                    continue
+                if dx * dx + dz * dz <= 9 and rng.random() < 0.8:
+                    b.set(x, FLOOR + 1, z, rng.choice(["minecraft:light_gray_concrete_powder", "minecraft:gravel"]))
+                    if dx * dx + dz * dz <= 2 and rng.random() < 0.6:
+                        b.set(x, FLOOR + 2, z, "minecraft:light_gray_concrete_powder")
+    # Stones that fell from the walls and dead scrub.
+    for _ in range(70):
+        x, z = rng.randrange(CLIFF_WEST + 1, CLIFF_EAST), rng.randrange(SIZE)
+        if ROAD_LO <= x <= ROAD_HI or b.get(x, FLOOR + 1, z) is not None:
+            continue
+        b.set(x, FLOOR + 1, z, rng.choice(["minecraft:dead_bush", "minecraft:cobbled_deepslate", "minecraft:tuff",
+                                           "minecraft:dead_bush", "minecraft:bone_block[axis=y]"]))
+
+    # The slave line, halted: two wagons, the long chain they were all bound to, a fire that went out.
+    for wx, wz in ((26, 43), (32, 49)):
+        b.box(wx, FLOOR + 1, wz, wx + 2, FLOOR + 1, wz + 4, "minecraft:spruce_planks")
+        b.box(wx, FLOOR + 2, wz, wx + 2, FLOOR + 2, wz + 4,
+              lambda x, y, z: "minecraft:spruce_fence[east=false,north=false,south=false,waterlogged=false,west=false]"
+              if (x - wx) in (0, 2) and (z - wz) in (0, 4) else None)
+        for z in (wz, wz + 4):
+            b.set(wx - 1, FLOOR + 1, z, "minecraft:stripped_spruce_log[axis=x]")
+            b.set(wx + 3, FLOOR + 1, z, "minecraft:stripped_spruce_log[axis=x]")
+        b.set(wx + 1, FLOOR + 2, wz + 2, "minecraft:barrel[facing=up,open=false]")
+        b.set(wx + 1, FLOOR + 2, wz + 1, "minecraft:cobbled_deepslate")
+        b.set(wx + 1, FLOOR + 2, wz + 3, "minecraft:cobbled_deepslate")
+    b.blocks = {pos: state for pos, state in b.blocks.items() if state is not None}
+    # The wagon on the right has lost a wheel and leans into the ash.
+    b.set(35, FLOOR + 1, 53, "minecraft:air")
+    b.set(35, FLOOR + 1, 54, "minecraft:spruce_trapdoor[facing=north,half=bottom,open=false,powered=false,waterlogged=false]")
+    for z in range(36, 59):
+        if z % 4 == 0:
+            b.set(29, FLOOR + 1, z, "minecraft:iron_bars[east=false,north=false,south=false,waterlogged=false,west=false]")
+        elif rng.random() < 0.85:
+            b.set(29, FLOOR + 1, z, "minecraft:chain[axis=z,waterlogged=false]")
+    b.set(31, FLOOR + 1, 40, "minecraft:campfire[facing=north,lit=false,signal_fire=false,waterlogged=false]")
+    for x, z in ((24, 41), (36, 44), (25, 52)):
+        b.set(x, FLOOR + 1, z, "minecraft:skeleton_skull[rotation=%d]" % rng.randrange(16))
+
+    # Halfway: a waystone with a lantern, the last light before the pass.
+    b.box(33, FLOOR + 1, 30, 33, FLOOR + 3, 30, "minecraft:chiseled_stone_bricks")
+    b.set(33, FLOOR + 4, 30, "minecraft:lantern[hanging=false,waterlogged=false]")
+    b.set(27, FLOOR + 1, 30, "minecraft:mossy_cobblestone_wall[east=none,north=none,south=none,up=true,waterlogged=false,west=none]")
+
+    # North: the Watch's gate, half built, scaffolding on one tower, its lanterns lit for the line.
+    for tx, tz in GATE_TOWERS:
+        for x in range(tx, tx + 5):
+            for z in range(tz, tz + 6):
+                top = GATE_TOP if tx < 30 else GATE_TOP - 4 - (x + z) % 3
+                for y in range(FLOOR + 1, top + 1):
+                    b.set(x, y, z, brick(rng))
+    for x in range(26, 35):
+        for z in range(4, 8):
+            for y in (FLOOR + 7, FLOOR + 8):
+                if 27 <= x <= 33 or y == FLOOR + 8:
+                    b.set(x, y, z, brick(rng) if x < 31 or y == FLOOR + 7 else "minecraft:air")
+    for y in range(FLOOR + 1, GATE_TOP - 1):
+        b.set(40, y, 10, "minecraft:scaffolding[bottom=false,distance=0,waterlogged=false]")
+        b.set(40, y, 9, "minecraft:scaffolding[bottom=false,distance=0,waterlogged=false]")
+    for x, z in ((26, 9), (34, 9)):
+        b.set(x, FLOOR + 1, z, "minecraft:spruce_fence[east=false,north=false,south=false,waterlogged=false,west=false]")
+        b.set(x, FLOOR + 2, z, "minecraft:spruce_fence[east=false,north=false,south=false,waterlogged=false,west=false]")
+        b.set(x, FLOOR + 3, z, "minecraft:lantern[hanging=false,waterlogged=false]")
+    for x, z in ((15, 8), (16, 8), (15, 9), (44, 12), (45, 12)):
+        for y in range(FLOOR + 1, FLOOR + 1 + rng.randint(1, 2)):
+            b.set(x, y, z, "minecraft:polished_deepslate")
+    # A crane over the stone pile.
+    for y in range(FLOOR + 1, FLOOR + 9):
+        b.set(17, y, 12, "minecraft:dark_oak_log[axis=y]")
+    for x in range(17, 21):
+        b.set(x, FLOOR + 9, 12, "minecraft:dark_oak_log[axis=x]")
+    for y in range(FLOOR + 5, FLOOR + 9):
+        b.set(20, y, 12, "minecraft:chain[axis=y,waterlogged=false]")
+    b.set(20, FLOOR + 4, 12, "minecraft:cobbled_deepslate")
+    # The road beyond the gate is still bare ground.
+    for z in range(0, 4):
+        for x in range(ROAD_LO, ROAD_HI + 1):
+            b.set(x, FLOOR, z, "minecraft:coarse_dirt")
+    return b
+
+
 def main():
     structures = DATA / "structure" / "nightmare"
     past(random.Random(4242)).save(structures / "last_vigil.nbt", air_above=lambda x, z: FLOOR + 1)
@@ -605,6 +742,9 @@ def main():
                                        else 10 ** 6)
     cloister_ruin(random.Random(2626)).save(structures / "briar_cloister_ruin.nbt", air_above=cloister_footprint)
     for name, point in CLOISTER_POINTS.items():
+        print(f"  {name}: {list(point)}")
+    chain_road(random.Random(1101)).save(structures / "chain_road.nbt", air_above=lambda x, z: FLOOR + 1)
+    for name, point in ROAD_POINTS.items():
         print(f"  {name}: {list(point)}")
 
 

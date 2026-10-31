@@ -484,11 +484,11 @@ Server options (game rules, all off): `shadowslaveNightmareScar` (a death
 inside leaves a Nightmare Scar, see "Long Nightmares" below),
 `shadowslaveNightmareTrueDeath` (a death inside costs a rank; today that means
 Awakened back to Dormant), `shadowslaveNightmareHardcore` (a death inside drops
-you all the way back to Dormant) and `shadowslaveFirstNightmare` (Awakening also needs a cleared
-Category 1 Nightmare). PvP inside follows the server's PvP setting.
+you all the way back to Dormant) and `shadowslaveFirstNightmare` (Awakening also needs
+your First Nightmare conquered, see "The First Nightmare" below). PvP inside follows the server's PvP setting.
 Anyone can run `/shadowslave trial status`. Operators: `/shadowslave trial
 sites`, `site <id> visit|grow`, `start <nightmare> [category] [players]`,
-`skip <seconds>`, `end <ending>`, `abort` and `forget <player>`.
+`first [player]`, `skip <seconds>`, `end <ending>`, `abort` and `forget <player>`.
 
 Content is data: Nightmares in `data/shadowslave/nightmare_trial/nightmare/`,
 echo sites in `data/shadowslave/dream_realm/echo_site/`, tuning (weights to
@@ -547,6 +547,42 @@ Tuning lives in `data/shadowslave/nightmare_trial/settings.json` (`scar` and
 `long_nightmares` blocks), the pack's own `long` block (day length, fade,
 dawn line), `data/shadowslave/dream_realm/roaming.json` and each region's
 `creatures` list.
+
+### The First Nightmare (server option, off by default)
+
+With `/gamerule shadowslaveFirstNightmare true`, a full core is no longer
+enough to Awaken: the Seed the Spell planted in you has to bloom first, and you
+face what grows from it alone.
+
+1. **The Seed stirs.** Roll your Aspect and fill your Dormant core. When it
+   saturates, the Spell tells you the Seed in you stirs. The Soul Sea (sneak-use
+   a lit Dream Candle) now lists "Conquer your First Nightmare" under Awakening.
+2. **It blooms.** Sleep in a bed with a lit Dream Candle beside it. A few
+   seconds in, you leave your bed and wake inside your First Nightmare, alone,
+   as Category 1. Nobody else is drawn in, even if they sleep beside you.
+3. **The Chain Road.** The road to the Ember Watch, years before The Last
+   Vigil, while slaves were still carrying its stones across the ash. The Spell
+   makes you a **Road Slave** (most often) or an **Ash Pilgrim**. Ash Burrowers
+   rise from the drifts, a Chainback waits in the pass, and after two and a half
+   minutes the Grey Drover (a Dormant Tyrant) walks back up the line looking for
+   you. Hidden endings: slay the Drover (a Road Slave's fate), reach the
+   unfinished gate of the Watch at the north end from two minutes in (an Ash
+   Pilgrim's fate), or live seven minutes.
+4. **Conquered.** The Spell appraises you as for any Nightmare, then tells you
+   to meditate at your Dream Candle, where you Awaken as before.
+5. **Fallen.** A death reverts you to how you went to bed, like any Nightmare.
+   No Seed judges you: the one inside you grows back, and blooms again the next
+   time you sleep beside the candle.
+6. **Breach** (`/gamerule shadowslaveFirstNightmareBreach true`, also off). As
+   in the novel, dying in your First Nightmare lets something out: a Dormant
+   Ash Burrower appears beside you when you wake.
+
+Operators can start one at once with `/shadowslave trial first [player]`,
+whatever the rule or the player's rank. The list of First Nightmares and the
+Spell's lines are in the `first_nightmare` block of
+`data/shadowslave/nightmare_trial/settings.json`; a pack's `breach` names what
+follows a fallen carrier out. Packs can also use a new `reach` ending (stand
+within `radius` blocks of a point).
 
 ### Nightmare Natures: Masque and Unbroken
 

@@ -1,0 +1,209 @@
+{
+  "display_name": "The Chain Road",
+  "setting": "The road to the Ember Watch, in the years its stones were still being carried",
+  "structure": "shadowslave:nightmare/chain_road",
+  "arrival": "arrival",
+  "points": {
+    "arrival": [
+      30,
+      4,
+      50
+    ],
+    "caravan": [
+      30,
+      4,
+      46
+    ],
+    "line_end": [
+      30,
+      4,
+      58
+    ],
+    "dune_west": [
+      12,
+      4,
+      38
+    ],
+    "dune_east": [
+      48,
+      4,
+      28
+    ],
+    "dune_south": [
+      44,
+      4,
+      54
+    ],
+    "pass_north": [
+      30,
+      4,
+      17
+    ],
+    "watch_gate": [
+      30,
+      4,
+      6
+    ]
+  },
+  "opening": [
+    "Prepare for your First Nightmare.",
+    "The line of slaves has stopped in the ash. Far to the north, the lanterns of an unfinished gate are burning."
+  ],
+  "roles": [
+    {
+      "id": "road_slave",
+      "name": "Road Slave",
+      "weight": 3,
+      "description": "One of a line of slaves marched across the ash to raise the Watch. Your chain has come loose. Nobody has noticed yet.",
+      "kit": [
+        {
+          "id": "minecraft:bread",
+          "count": 2
+        },
+        {
+          "id": "minecraft:stone_shovel",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "ash_pilgrim",
+      "name": "Ash Pilgrim",
+      "weight": 1,
+      "description": "You walked beside the slave line, to see the Watch rise at the edge of the world.",
+      "kit": [
+        {
+          "id": "minecraft:bread",
+          "count": 3
+        },
+        {
+          "id": "minecraft:torch",
+          "count": 4
+        },
+        {
+          "id": "minecraft:wooden_sword",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "at": 15,
+      "spell": "The overseers are gone. Something moves under the ash beside the road.",
+      "spawns": [
+        {
+          "entity": "shadowslave:ash_burrower",
+          "rank": "dormant",
+          "class": "beast",
+          "count": 2,
+          "point": "dune_west"
+        }
+      ]
+    },
+    {
+      "at": 60,
+      "spell": "The wind turns. Grey shapes surface from the drifts.",
+      "spawns": [
+        {
+          "entity": "shadowslave:ash_burrower",
+          "rank": "dormant",
+          "class": "beast",
+          "count": 2,
+          "point": "dune_east"
+        }
+      ]
+    },
+    {
+      "at": 75,
+      "spell": "Chains rattle in the pass. Something heavy waits on the road to the gate.",
+      "spawns": [
+        {
+          "entity": "shadowslave:chainback",
+          "rank": "dormant",
+          "class": "monster",
+          "count": 1,
+          "point": "pass_north"
+        }
+      ]
+    },
+    {
+      "at": 240,
+      "spell": "The ash stirs everywhere at once.",
+      "spawns": [
+        {
+          "entity": "shadowslave:ash_burrower",
+          "rank": "dormant",
+          "class": "beast",
+          "count": 3,
+          "point": "dune_south"
+        }
+      ]
+    }
+  ],
+  "tyrant": {
+    "at": 150,
+    "entity": "shadowslave:ashen_tyrant",
+    "rank": "dormant",
+    "class": "tyrant",
+    "point": "line_end",
+    "name": "The Grey Drover",
+    "spell": "The Grey Drover walks back up the line, counting its slaves. It has found one missing.",
+    "health_per_member": 0.0
+  },
+  "endings": [
+    {
+      "id": "drover",
+      "kind": "slay_tyrant",
+      "score": 110,
+      "deed": "You slew the Grey Drover on the Chain Road.",
+      "comment": "The Drover fell, and the line was free. Nobody who built the Watch ever learned why.",
+      "role": "road_slave",
+      "role_score": 30,
+      "role_deed": "A Road Slave broke the one who drove them, as was their fate."
+    },
+    {
+      "id": "gate",
+      "kind": "reach",
+      "after": 120,
+      "points": [
+        "watch_gate"
+      ],
+      "radius": 3,
+      "score": 70,
+      "deed": "You reached the gate of the Ember Watch.",
+      "comment": "You came through the pass alive. The Watch would stand for a thousand years; you saw its first night.",
+      "role": "ash_pilgrim",
+      "role_score": 25,
+      "role_deed": "An Ash Pilgrim reached the Watch, as they had set out to."
+    },
+    {
+      "id": "dawn",
+      "kind": "survive",
+      "after": 420,
+      "score": 25,
+      "deed": "You lived until the line moved on.",
+      "comment": "The overseers came back at dawn and the line moved on. You only endured."
+    }
+  ],
+  "comments": {
+    "Poor": "Poor. You survived, and the Spell will Awaken you. That is all.",
+    "Adequate": "Adequate. Many who walk the Chain Road do worse.",
+    "Good": "Good. You walked the ash like someone who means to keep walking.",
+    "Excellent": "Excellent. Few slaves ever stood up on the Chain Road.",
+    "Glorious": "Glorious. The Spell will remember the slave who would not stay chained."
+  },
+  "boons": {
+    "Poor": "shadowslave:nightmare_trial/chain_road/poor",
+    "Good": "shadowslave:nightmare_trial/chain_road/good",
+    "Excellent": "shadowslave:nightmare_trial/chain_road/excellent",
+    "Glorious": "shadowslave:nightmare_trial/chain_road/glorious"
+  },
+  "lore": "Before the Ember Watch had lamps, its stones were carried across the Ashen Expanse by lines of slaves on the Chain Road. Few of them saw it finished. The road itself is gone under the ash.",
+  "breach": {
+    "entity": "shadowslave:ash_burrower",
+    "rank": "dormant",
+    "class": "beast",
+    "spell": "Something followed you out of your Nightmare. The ash on the floor is moving."
+  }
+}

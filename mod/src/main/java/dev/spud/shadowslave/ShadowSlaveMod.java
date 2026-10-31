@@ -262,6 +262,7 @@ public final class ShadowSlaveMod {
         NeoForge.EVENT_BUS.addListener(DreamRealmContentLoader::onAddReloadListeners);
         NeoForge.EVENT_BUS.addListener(DreamCommands::register);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(dev.spud.shadowslave.trial.FirstNightmare::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(DreamCrossing::onRightClickBlock);
         // Ahead of the Dream Realm's own login hook: a challenger is put back where they entered before they wake.
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, TrialService::onPlayerLoggedIn);

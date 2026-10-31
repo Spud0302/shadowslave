@@ -2,6 +2,7 @@ package dev.spud.shadowslave.awakening;
 
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.core.CoreService;
+import dev.spud.shadowslave.trial.FirstNightmare;
 import dev.spud.shadowslave.trial.TrialData;
 import dev.spud.shadowslave.trial.TrialRules;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,8 +14,8 @@ import java.util.Optional;
 
 /**
  * The requirement for reaching each rank (DESIGN). Awakening needs a saturated
- * core; with the First Nightmare switched on it also needs a conquered
- * Category 1 Nightmare. Every rank after that needs a saturated core and the
+ * core; with the First Nightmare switched on it also needs the First
+ * Nightmare conquered. Every rank after that needs a saturated core and the
  * next Category's Nightmare conquered (Jack, 2026-10-29; ch. 17 and 459: the
  * Second Nightmare makes a Master, the Third a Saint).
  */
@@ -51,6 +52,20 @@ public final class RankUpRequirements {
         };
     }
 
+    /** The First Nightmare conquered: born from the Seed inside the carrier, and faced alone (ch. 1, 23). */
+    public static final RankUpRequirement FIRST_NIGHTMARE_CONQUERED = new RankUpRequirement() {
+        @Override
+        public boolean met(ServerPlayer player) {
+            return FirstNightmare.conquered(player);
+        }
+
+        @Override
+        public String describe(ServerPlayer player) {
+            return met(player) ? "You have conquered your First Nightmare."
+                    : "Conquer your First Nightmare: sleep beside a lit Dream Candle.";
+        }
+    };
+
     /** Every one of {@code parts}. */
     public static RankUpRequirement allOf(RankUpRequirement... parts) {
         return new RankUpRequirement() {
@@ -78,9 +93,9 @@ public final class RankUpRequirements {
         };
     }
 
-    /** A saturated core, and, if the server switched the First Nightmare on, a conquered Category 1 Nightmare. */
+    /** A saturated core, and, if the server switched the First Nightmare on, the First Nightmare conquered. */
     public static final RankUpRequirement AWAKENING = new RankUpRequirement() {
-        private final RankUpRequirement withFirstNightmare = allOf(SATURATED_CORE, nightmareConquered(1));
+        private final RankUpRequirement withFirstNightmare = allOf(SATURATED_CORE, FIRST_NIGHTMARE_CONQUERED);
 
         @Override
         public boolean met(ServerPlayer player) {

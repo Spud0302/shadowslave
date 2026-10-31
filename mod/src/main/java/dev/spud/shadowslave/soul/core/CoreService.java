@@ -73,6 +73,7 @@ public final class CoreService {
         if (after >= limit) {
             player.sendSystemMessage(Component.literal("Your core is saturated. It can hold no more at this Rank.")
                     .withStyle(ChatFormatting.AQUA));
+            dev.spud.shadowslave.trial.FirstNightmare.stirs(player);
         }
         return after - before;
     }
