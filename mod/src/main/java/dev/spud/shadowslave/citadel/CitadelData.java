@@ -68,6 +68,10 @@ public final class CitadelData extends SavedData {
         final Set<UUID> anchored = new LinkedHashSet<>();
         /** The raid under way, if a Seed has bloomed at its walls. */
         Raid raid;
+        /** Where its Link Anchor stands once its Gateway Links are built (Run I supply line). */
+        BlockPos linkAnchor;
+        /** Whether an enemy at war has cut the Link Anchor; the Gateway starves until it is mended. */
+        boolean linkCut;
 
         Citadel(UUID id, BlockPos gateway, String name, CreatureRank rank) {
             this.id = id;
@@ -129,6 +133,14 @@ public final class CitadelData extends SavedData {
             return Optional.ofNullable(raid);
         }
 
+        public Optional<BlockPos> linkAnchor() {
+            return Optional.ofNullable(linkAnchor);
+        }
+
+        public boolean linkCut() {
+            return linkCut;
+        }
+
         CompoundTag save() {
             CompoundTag tag = new CompoundTag();
             tag.putUUID("id", id);
@@ -165,6 +177,10 @@ public final class CitadelData extends SavedData {
             if (raid != null) {
                 tag.put("raid", raid.save());
             }
+            if (linkAnchor != null) {
+                tag.put("link_anchor", NbtUtils.writeBlockPos(linkAnchor));
+            }
+            tag.putBoolean("link_cut", linkCut);
             return tag;
         }
 
@@ -202,6 +218,8 @@ public final class CitadelData extends SavedData {
                 citadel.anchored.add(NbtUtils.loadUUID(id));
             }
             citadel.raid = tag.contains("raid", Tag.TAG_COMPOUND) ? Raid.load(tag.getCompound("raid")) : null;
+            citadel.linkAnchor = NbtUtils.readBlockPos(tag, "link_anchor").orElse(null);
+            citadel.linkCut = tag.getBoolean("link_cut");
             return citadel;
         }
     }

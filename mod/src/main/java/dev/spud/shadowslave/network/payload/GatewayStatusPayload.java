@@ -22,12 +22,15 @@ import java.util.List;
  * @param feedHint   what feeds the Gateway
  * @param raid       one line on the raid under way, or empty
  * @param travelCost essence per trip through the Gateway Links, or -1 while none are built
+ * @param seat       whether this Citadel is its clan's seat (Run I)
+ * @param war        a few lines on the clan's wars, truces and supply line, or none
  * @param message    the result of the player's last action here, or empty
  */
 public record GatewayStatusPayload(String citadel, String name, String clan, int members, String rank,
                                    float provisions, float capacity, float perDay, int stage, String stageLine,
                                    String feedHint, List<Upgrade> upgrades, int anchors, int anchorSlots,
-                                   String raid, int travelCost, List<Link> links, String message) implements CustomPacketPayload {
+                                   String raid, int travelCost, List<Link> links, boolean seat, List<String> war,
+                                   String message) implements CustomPacketPayload {
     public static final Type<GatewayStatusPayload> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "gateway_status"));
 
@@ -100,16 +103,19 @@ public record GatewayStatusPayload(String citadel, String name, String clan, int
             Codec.STRING.fieldOf("raid").forGetter(GatewayStatusPayload::raid),
             Codec.INT.fieldOf("travel_cost").forGetter(GatewayStatusPayload::travelCost),
             Link.CODEC.listOf().fieldOf("links").forGetter(GatewayStatusPayload::links),
+            Codec.BOOL.fieldOf("seat").forGetter(GatewayStatusPayload::seat),
+            Codec.STRING.listOf().fieldOf("war").forGetter(GatewayStatusPayload::war),
             Codec.STRING.fieldOf("message").forGetter(GatewayStatusPayload::message)
-    ).apply(instance, (head, upgrades, anchors, slots, raid, travel, links, message) -> new GatewayStatusPayload(head.citadel,
+    ).apply(instance, (head, upgrades, anchors, slots, raid, travel, links, seat, war, message) -> new GatewayStatusPayload(head.citadel,
             head.name, head.clan, head.members, head.rank, head.provisions, head.capacity, head.perDay, head.stage, head.stageLine,
-            head.feedHint, upgrades, anchors, slots, raid, travel, links, message)));
+            head.feedHint, upgrades, anchors, slots, raid, travel, links, seat, war, message)));
 
     public static final StreamCodec<ByteBuf, GatewayStatusPayload> STREAM_CODEC = ByteBufCodecs.fromCodec(CODEC);
 
     public GatewayStatusPayload {
         upgrades = List.copyOf(upgrades);
         links = List.copyOf(links);
+        war = List.copyOf(war);
     }
 
     @Override

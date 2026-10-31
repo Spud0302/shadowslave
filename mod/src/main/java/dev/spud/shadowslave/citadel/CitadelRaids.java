@@ -254,7 +254,7 @@ public final class CitadelRaids {
             return;
         }
         raid.lost = true;
-        List<String> damaged = damage(realm, citadel);
+        List<String> damaged = damage(realm, citadel, settings().damaged());
         citadel.provisions *= 1.0 - settings().provisionsLost();
         CitadelData.get(realm).setDirty();
         SpellRecorder.record(realm.getServer(), SpellEvent.Kind.CITADEL_RAIDED, Optional.empty(), citadel.name, "lost");
@@ -273,8 +273,8 @@ public final class CitadelRaids {
         citadel.raid = null;
     }
 
-    /** Damages up to the set number of built, whole upgrades, chosen at random. Returns their names. */
-    static List<String> damage(ServerLevel realm, CitadelData.Citadel citadel) {
+    /** Damages up to {@code count} built, whole upgrades, chosen at random. Returns their names. */
+    static List<String> damage(ServerLevel realm, CitadelData.Citadel citadel, int count) {
         List<String> whole = new ArrayList<>();
         citadel.tiers.forEach((id, tier) -> {
             if (tier > 0 && !citadel.damaged.contains(id) && CitadelContentLoader.content().upgrade(id).isPresent()) {
@@ -283,7 +283,7 @@ public final class CitadelRaids {
         });
         Collections.shuffle(whole, new java.util.Random(realm.getRandom().nextLong()));
         List<String> names = new ArrayList<>();
-        for (String id : whole.subList(0, Math.min(settings().damaged(), whole.size()))) {
+        for (String id : whole.subList(0, Math.min(count, whole.size()))) {
             citadel.damaged.add(id);
             names.add(CitadelContentLoader.content().upgrade(id).map(CitadelUpgrade::name).orElse(id));
         }
@@ -365,7 +365,7 @@ public final class CitadelRaids {
         };
     }
 
-    private static String join(List<String> names) {
+    static String join(List<String> names) {
         if (names.size() <= 1) {
             return String.join("", names);
         }

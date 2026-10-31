@@ -38,7 +38,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
-    public static final String NETWORK_VERSION = "24";
+    public static final String NETWORK_VERSION = "25";
 
     private ModPayloads() {
     }

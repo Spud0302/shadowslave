@@ -163,7 +163,7 @@ public final class CitadelLife {
 
     /** The Gateway eats {@code ticks}' worth of provisions; at none, neglect deepens, and the clan hears of each new stage. */
     static void eat(MinecraftServer server, CitadelData.Citadel citadel, long ticks) {
-        double meal = perDay(server, citadel) * ticks / CitadelUpkeep.DAY_TICKS;
+        double meal = perDay(server, citadel) * ticks / CitadelUpkeep.DAY_TICKS * CitadelWars.drain(citadel);
         if (citadel.provisions > meal) {
             citadel.provisions -= meal;
         } else {
@@ -203,6 +203,11 @@ public final class CitadelLife {
         Optional<Double> worth = content().upkeep().worth(hand);
         if (worth.isEmpty()) {
             return false;
+        }
+        if (citadel.linkCut) {
+            player.displayClientMessage(Component.literal("The supply line of " + citadel.name + " is cut. Mend its Link Anchor before"
+                    + " the Gateway can eat.").withStyle(ChatFormatting.DARK_RED), true);
+            return true;
         }
         double room = capacity(player.server, citadel) - citadel.provisions;
         if (room < worth.get() / 2) {
@@ -388,6 +393,7 @@ public final class CitadelLife {
         switch (id) {
             case WORKSHOPS -> raiseWorkshops(level, citadel);
             case LANTERNS -> raiseLanterns(level, citadel);
+            case LINKS -> CitadelWars.raiseAnchor(level, citadel);
             default -> {
             }
         }
@@ -652,6 +658,9 @@ public final class CitadelLife {
         if (target.isEmpty()) {
             return "That Citadel is not your clan's.";
         }
+        if (from.linkCut || target.get().linkCut) {
+            return "The supply line of " + (from.linkCut ? from.name : target.get().name) + " is cut. Its Links are dark until it is mended.";
+        }
         if (!player.getAbilities().instabuild && !EssenceService.covers(player, cost)) {
             return "A trip costs " + cost + " essence. You do not have it.";
         }
@@ -716,7 +725,7 @@ public final class CitadelLife {
                 clan.map(found -> found.members().size()).orElse(1), citadel.rank.displayName(),
                 (float) citadel.provisions, (float) capacity(server, citadel), (float) perDay, stage.ordinal(), stageLine, feedHint(),
                 upgrades, anchoredCount(server, citadel), anchorSlots(citadel), CitadelRaids.describe(player.serverLevel(), citadel),
-                travel, links, message);
+                travel, links, CitadelWars.isSeat(server, citadel), CitadelWars.lines(server, citadel), message);
     }
 
     private static List<GatewayStatusPayload.Need> needs(ServerPlayer player, List<Cost> cost) {

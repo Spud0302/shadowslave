@@ -38,6 +38,12 @@ public record SpellEvent(long time, Kind kind, Optional<UUID> player, String nam
         CITADEL_RAIDED,
         /** A player helped hold a Citadel against a raid. */
         CITADEL_DEFENDED,
+        /** A clan declared war on another. */
+        WAR_DECLARED,
+        /** A clan raided a Citadel's outskirts or cut its supply line in a war. */
+        WAR_STRIKE,
+        /** A clan took the enemy's seat and ended a war. */
+        SEAT_CAPTURED,
         /** A player's death in the waking world or the Dream Realm. */
         DEATH,
         /** A player's soul rose a rank. */

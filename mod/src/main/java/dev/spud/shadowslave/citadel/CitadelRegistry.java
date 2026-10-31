@@ -15,7 +15,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * Citadels' registrations: the Gateway block and its block entity, and the
+ * Citadels' registrations: the Gateway block and its block entity, the Link
+ * Anchor that holds a Citadel's supply line, and the
  * Citadel structure type and piece. Where Citadels generate, how they look
  * and what holds them all live in data.
  */
@@ -37,6 +38,16 @@ public final class CitadelRegistry {
                     .sound(SoundType.LODESTONE)
                     .pushReaction(PushReaction.BLOCK)
                     .lightLevel(state -> state.getValue(GatewayBlock.STATE).light()));
+
+    public static final DeferredBlock<LinkAnchorBlock> LINK_ANCHOR = BLOCKS.registerBlock("link_anchor", LinkAnchorBlock::new,
+            BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .strength(-1.0F, 3600000.0F)
+                    .noLootTable()
+                    .noOcclusion()
+                    .sound(SoundType.LODESTONE)
+                    .pushReaction(PushReaction.BLOCK)
+                    .lightLevel(state -> state.getValue(LinkAnchorBlock.CUT) ? 3 : 12));
 
     @SuppressWarnings("DataFlowIssue")
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GatewayBlockEntity>> GATEWAY_ENTITY =

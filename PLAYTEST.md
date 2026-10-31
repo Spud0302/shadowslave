@@ -1026,6 +1026,52 @@ Tuning is data: `data/shadowslave/citadel/upkeep.json`, `raid.json` and
 `/shadowslave citadel feed <days>`, `starve <days>`,
 `upgrade <id> <tier>`, `raid <category>`, `raid lose`.
 
+### Clan wars
+
+Added by claude-code, 2026-10-31 (Run I, design locked with Jack). Wars are
+fought between clans that hold Citadels. Quick start: two clans each claim a
+Citadel, then the leader of one stands at their own Gateway.
+
+1. **Seats.** A clan's seat is its first claimed Citadel (the Gateway screen
+   heading says "Seat of ..."). The leader can move it with `/clan seat` at
+   another of the clan's Gateways, only in peace and once every 7 days.
+2. **Declaring.** `/clan war declare <clan>` at your own Gateway, as leader,
+   costs 8 Awakened Soul Shards. The Spell calls both clans (a War Calling
+   and the particulars in chat). Nothing can be struck for 24 hours.
+3. **The war** has no time limit. `/clan war` shows how it stands; the
+   Gateway screen shows it in a strip at the foot. Either side may:
+   - *Skirmish*: fight anywhere (the server's own PvP setting applies).
+   - *Raid the outskirts*: stand on an enemy Citadel's land (48 blocks from
+     its Gateway) with none of them there. After 90 raider-seconds one built
+     upgrade is damaged; the Citadel is spared further raids for 12 hours.
+     A defender on the land drives the raid off.
+   - *Cut the supply line*: Gateway Links raise a **Link Anchor** 28 blocks
+     north of the Gateway, outside the walls. Stand within 3 blocks of an
+     enemy anchor for 20 seconds with none of them within 16, and it is cut:
+     its Gateway can't be fed, eats twice as fast, and its Links are dark. A
+     member mends it by using the anchor (8 Dormant Soul Shards, 2 Ender Pearls).
+   - *Assault the seat*: the leader announces it with
+     `/clan war assault <hours> <clan>`, at least 12 hours and at most 7 days
+     ahead. Both clans are called. In the hour that follows, attackers stand
+     within 6 blocks of the seat's Gateway to channel it (each one adds a
+     second; 120 needed). Defenders there alone break it down; both there
+     holds it. Nobody comes, and it is taken uncontested. If the hour runs
+     out, that clan waits 72 hours to announce another.
+4. **Abandoned and Forsaken seats.** If no member of a clan at war logs in
+   for 24 hours the Spell warns the enemy; at 72 hours the seat is
+   **Abandoned**. An Abandoned seat, or one whose Gateway is **Forsaken**
+   (the last stage of neglect), can be channelled at any time, no notice.
+5. **The end.** Taking the seat ends the war: the winners keep the Citadel
+   with everything built, the losers keep their other Citadels (the first
+   becomes their seat, and they may move it at once) and a 7-day truce holds.
+
+Every number is in `data/shadowslave/citadel/war.json`, including
+`"enabled"` (sieges are on by default) and `"war_hours"`, which swaps
+announced assaults for fixed daily hours (UTC) when seats may be channelled.
+Operators: `/shadowslave citadel war skip <hours>` moves the war clock ahead,
+`war tick` runs one second of war, `war cut` cuts the nearest claimed
+Citadel's anchor, `war end <clan>` ends a clan's wars.
+
 ### Citadel Natures: Herald and Keeper
 
 Added by claude-code, 2026-10-29. Quick start: `/shadowslave aspect set

@@ -1,0 +1,56 @@
+{
+  "enabled": true,
+  "declare": {
+    "cost": [
+      {
+        "item": "shadowslave:awakened_soul_shard",
+        "count": 8
+      }
+    ],
+    "notice_hours": 24
+  },
+  "assault": {
+    "notice_hours": 12,
+    "max_ahead_days": 7,
+    "window_minutes": 60,
+    "channel_seconds": 120,
+    "channel_radius": 6,
+    "cooldown_hours": 72
+  },
+  "outskirts": {
+    "raid_seconds": 90,
+    "damaged": 1,
+    "cooldown_hours": 12
+  },
+  "supply": {
+    "anchor_distance": 28,
+    "strike_seconds": 20,
+    "strike_radius": 3,
+    "guard_radius": 16,
+    "cut_drain": 2.0,
+    "repair_cost": [
+      {
+        "item": "shadowslave:dormant_soul_shard",
+        "count": 8
+      },
+      {
+        "item": "minecraft:ender_pearl",
+        "count": 2
+      }
+    ]
+  },
+  "seat": {
+    "move_cooldown_days": 7
+  },
+  "abandon": {
+    "warn_hours": 24,
+    "abandoned_hours": 72,
+    "forsaken_open": true
+  },
+  "truce_days": 7,
+  "war_hours": {
+    "enabled": false,
+    "start_hour": 18,
+    "end_hour": 22
+  }
+}

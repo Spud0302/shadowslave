@@ -3,48 +3,164 @@
     "core_nearly_full": [
       "Your soul core is nearly saturated. Change is close.",
       "The core strains against its limit. Soon it will hold no more.",
-      {"text": "Your core is nearly full. The candle waits for you.", "when": {"rank": "Dormant"}},
-      {"text": "{true_name}, your core is nearly saturated. The threads around you pull tighter.", "when": {"named": "yes"}}
+      {
+        "text": "Your core is nearly full. The candle waits for you.",
+        "when": {
+          "rank": "Dormant"
+        }
+      },
+      {
+        "text": "{true_name}, your core is nearly saturated. The threads around you pull tighter.",
+        "when": {
+          "named": "yes"
+        }
+      }
     ],
     "core_full": [
       "Your soul core is saturated. It can hold no more as it is.",
-      {"text": "Your core is saturated. Light the candle, and Awaken.", "when": {"rank": "Dormant"}},
-      {"text": "Your core is saturated. A Nightmare of the {next_category} Category is all that stands between you and Ascension.", "when": {"rank": "Awakened"}},
-      {"text": "{true_name}, your core is saturated. The Spell is waiting to see what you do with it.", "when": {"named": "yes"}}
+      {
+        "text": "Your core is saturated. Light the candle, and Awaken.",
+        "when": {
+          "rank": "Dormant"
+        }
+      },
+      {
+        "text": "Your core is saturated. A Nightmare of the {next_category} Category is all that stands between you and Ascension.",
+        "when": {
+          "rank": "Awakened"
+        }
+      },
+      {
+        "text": "{true_name}, your core is saturated. The Spell is waiting to see what you do with it.",
+        "when": {
+          "named": "yes"
+        }
+      }
     ],
     "seed_next_category": [
       "A Seed of the {category} Category grows nearby. It has been waiting for you.",
       "Something stirs in the dream near you: a Nightmare of the {category} Category.",
       "The Seed nearby calls to a soul of your rank. Answer it, or do not.",
-      {"text": "{true_name}. A Seed of the {category} Category grows nearby, and it has heard of you.", "when": {"named": "yes"}}
+      {
+        "text": "{true_name}. A Seed of the {category} Category grows nearby, and it has heard of you.",
+        "when": {
+          "named": "yes"
+        }
+      }
     ],
     "new_region": [
       "{region}. Few have come this far.",
       "You have entered {region}. The threads here are thinner.",
       "You have entered {region}. Things of the {danger} rank walk here.",
-      {"text": "{region}. The threads here know your name, {true_name}.", "when": {"named": "yes"}}
+      {
+        "text": "{region}. The threads here know your name, {true_name}.",
+        "when": {
+          "named": "yes"
+        }
+      }
     ],
     "unclaimed_citadel": [
       "A Citadel stands nearby with no master: {citadel}.",
       "{citadel} waits for someone to claim it.",
-      {"text": "{citadel} has lost its Guardian. Its Gateway lies open.", "when": {"hold": "conquered"}},
-      {"text": "{citadel} stands without a master. A bearer of a True Name could hold it.", "when": {"named": "yes"}}
+      {
+        "text": "{citadel} has lost its Guardian. Its Gateway lies open.",
+        "when": {
+          "hold": "conquered"
+        }
+      },
+      {
+        "text": "{citadel} stands without a master. A bearer of a True Name could hold it.",
+        "when": {
+          "named": "yes"
+        }
+      }
     ],
     "idle": [
       "The Spell is patient. It is also watching.",
       "Your soul is still. The Dream Realm is not.",
       "Your next step will not take itself.",
-      {"text": "{true_name}. Names fade when no one adds to them.", "when": {"named": "yes"}}
+      {
+        "text": "{true_name}. Names fade when no one adds to them.",
+        "when": {
+          "named": "yes"
+        }
+      }
     ],
     "name_spoken": [
       "Someone has spoken your True Name. They know where you stand.",
       "Your True Name was spoken. For a moment, someone felt where you are.",
-      {"text": "{true_name}. Someone has called on it, and it answered with your place in the world.", "when": {"named": "yes"}}
+      {
+        "text": "{true_name}. Someone has called on it, and it answered with your place in the world.",
+        "when": {
+          "named": "yes"
+        }
+      }
     ],
     "citadel_raid": [
       "{citadel} is under attack. A Seed of the {category} Category has bloomed at its walls.",
       "The dream comes for {citadel}. Its Gateway will not hold itself.",
-      {"text": "{true_name}. {citadel} is under attack, and the Spell wants to see who answers.", "when": {"named": "yes"}}
+      {
+        "text": "{true_name}. {citadel} is under attack, and the Spell wants to see who answers.",
+        "when": {
+          "named": "yes"
+        }
+      }
+    ],
+    "war_declared": [
+      "Your clan has gone to war with {enemy}. The Spell has told them too.",
+      "War with {enemy}. Nothing may be struck until the notice runs out.",
+      {
+        "text": "{true_name}. War with {enemy}. The Spell will be watching who keeps their name.",
+        "when": {
+          "named": "yes"
+        }
+      }
+    ],
+    "war_declared_on": [
+      "{enemy} has declared war on your clan. They will come for {citadel}.",
+      "The Spell brings word: {enemy} means to take {citadel}."
+    ],
+    "war_begins": [
+      "The notice is over. Your clan and {enemy} are at war.",
+      "War with {enemy} has begun. Their land is open to you, and yours to them."
+    ],
+    "war_assault_announced": [
+      "Your clan will assault {citadel}. The Spell has told its defenders.",
+      "An assault on {citadel} is set. Be at its Gateway when the hour comes."
+    ],
+    "war_assault_on_seat": [
+      "{enemy} will assault {citadel}. Be at its Gateway when they come.",
+      "{enemy} has named the hour they come for {citadel}."
+    ],
+    "war_assault_begins": [
+      "The assault on {citadel} begins. Channel its Gateway.",
+      "Now. {citadel} is yours if you can hold its Gateway."
+    ],
+    "war_assault_begins_defend": [
+      "{enemy} are at the walls of {citadel}. Stand at its Gateway.",
+      "The assault on {citadel} has begun. Break their channel."
+    ],
+    "war_abandon_countdown": [
+      "No one of {enemy} has come in a long while. If none comes soon, {citadel} will be Abandoned.",
+      "{enemy} has gone quiet. The Spell has started counting."
+    ],
+    "war_seat_abandoned": [
+      "{citadel} is Abandoned. It can be taken at any time.",
+      "No one of {enemy} came. {citadel} stands open to you."
+    ],
+    "war_won": [
+      "{citadel} is yours. The war with {enemy} is won.",
+      "The seat of {enemy} has fallen to your clan.",
+      {
+        "text": "{true_name}. {citadel} is yours, and the Spell will remember who took it.",
+        "when": {
+          "named": "yes"
+        }
+      }
+    ],
+    "war_lost": [
+      "{citadel} has fallen to {enemy}. The war is lost.",
+      "The seat is gone. Your clan stands, and a truce holds."
     ]
   }
 }
