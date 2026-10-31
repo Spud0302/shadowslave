@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.ability;
 
 import dev.spud.shadowslave.attachment.ModAttachments;
+import dev.spud.shadowslave.devtools.DevTools;
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.awakening.SoulSeaService;
 import dev.spud.shadowslave.soul.SoulRank;
@@ -104,11 +105,14 @@ public final class EssenceService {
     }
 
     public static boolean covers(ServerPlayer player, int cost) {
-        return new EssenceData(current(player)).covers(cost);
+        return DevTools.freeCasting(player) || new EssenceData(current(player)).covers(cost);
     }
 
-    /** Takes up to {@code amount} essence; the pool never goes below zero. */
+    /** Takes up to {@code amount} essence; the pool never goes below zero. Free casting (dev menu) takes nothing. */
     public static void spend(ServerPlayer player, int amount) {
+        if (DevTools.freeCasting(player)) {
+            return;
+        }
         player.setData(ModAttachments.ESSENCE, new EssenceData(current(player)).spend(amount));
     }
 

@@ -144,21 +144,26 @@ public final class AbilityService {
     /** Takes down anything an ability left in the world (walls, wards) when its owner leaves. */
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            AbilityRegistry.all().forEach(ability -> ability.clear(player));
+            clearLingering(player);
             EssenceService.forget(player.getUUID());
-            ForewarningService.forget(player.getUUID());
-            DreamKitPassives.forget(player.getUUID());
-            SignatureKitPassives.forget(player.getUUID());
-            FuryRage.forget(player.getUUID());
-            AnchorWeight.forget(player.getUUID());
-            Stasis.forget(player.getUUID());
-            HeraldCommand.forget(player.getUUID());
-            KeeperHold.forget(player.getUUID());
-            FortuneLuck.forget(player.getUUID());
-            CantorVoice.forget(player.getUUID());
-            MasqueFace.forget(player.getUUID());
-            UnbrokenWill.forget(player.getUUID());
         }
+    }
+
+    /** Takes down what abilities left in the world and forgets every kit's running state, as when the Aspect changes. */
+    public static void clearLingering(ServerPlayer player) {
+        AbilityRegistry.all().forEach(ability -> ability.clear(player));
+        ForewarningService.forget(player.getUUID());
+        DreamKitPassives.forget(player.getUUID());
+        SignatureKitPassives.forget(player.getUUID());
+        FuryRage.forget(player.getUUID());
+        AnchorWeight.forget(player.getUUID());
+        Stasis.forget(player.getUUID());
+        HeraldCommand.forget(player.getUUID());
+        KeeperHold.forget(player.getUUID());
+        FortuneLuck.forget(player.getUUID());
+        CantorVoice.forget(player.getUUID());
+        MasqueFace.forget(player.getUUID());
+        UnbrokenWill.forget(player.getUUID());
     }
 
     private static List<AspectAbility> held(ServerPlayer player) {
