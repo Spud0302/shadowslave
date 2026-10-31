@@ -36,7 +36,9 @@ public enum Longing {
     TEND("Tend", "shepherd", "Shepherd"),
     BECOME("Become", "vessel", "Vessel"),
     MASK("Mask", "masque", "Masque"),
-    WITHSTAND("Withstand", "unbroken", "Unbroken");
+    WITHSTAND("Withstand", "unbroken", "Unbroken"),
+    SUNDER("Sunder", "saboteur", "Saboteur"),
+    MUSTER("Muster", "standard", "Standard");
 
     private final String label;
     private final String evidenceTag;

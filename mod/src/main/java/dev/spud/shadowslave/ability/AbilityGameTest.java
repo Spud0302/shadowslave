@@ -149,7 +149,7 @@ public final class AbilityGameTest {
         return player;
     }
 
-    private static SoulIdentityData identityFor(AspectKit kit) {
+    public static SoulIdentityData identityFor(AspectKit kit) {
         PlaystyleEvidence.Totals none = new PlaystyleEvidence.Totals(0, 0, 0, 0);
         for (long seed = 0; ; seed++) {
             AspectRoller.Roll roll = AspectRoller.roll(seed, PlaystyleEvidence.fromTotals(none));

@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:tripwire_hook",
+    "minecraft:sticky_piston",
+    "minecraft:piston",
+    "minecraft:iron_shovel",
+    "minecraft:redstone_torch"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:purple_banner",
+    "minecraft:black_banner",
+    "minecraft:pink_banner",
+    "minecraft:loom",
+    "minecraft:globe_banner_pattern"
+  ]
+}

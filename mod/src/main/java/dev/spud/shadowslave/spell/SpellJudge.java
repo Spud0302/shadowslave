@@ -3,7 +3,9 @@ package dev.spud.shadowslave.spell;
 import dev.spud.shadowslave.creature.CreatureClass;
 import dev.spud.shadowslave.creature.CreatureRank;
 import dev.spud.shadowslave.soul.SoulRank;
+import dev.spud.shadowslave.trial.content.AppraisalSettings;
 import dev.spud.shadowslave.trial.content.NightmarePack;
+import dev.spud.shadowslave.trial.content.TrialContent;
 import dev.spud.shadowslave.trial.content.TrialSettings;
 
 import java.util.ArrayList;
@@ -17,13 +19,17 @@ import java.util.Optional;
  * Nightmare's grade from what the challenger did. It never asks a voice; the
  * voice only phrases what the Judge decided.
  *
- * <p>What counts (Spell Callings section): the ending reached and whether the
- * challenger fulfilled their role's fate, the roll of kills by rank and class
- * (unique creatures and creatures above your rank count extra), going in alone
- * or with a small cohort, cohort members lost, and striking your own. The grade
- * ladder runs Poor, Adequate, Good, Excellent, Glorious, and "the impossible"
- * as the rare top (only glorious and excellent are CANON words, ch. 15 and 743);
- * a challenger who dies inside is judged Failed.</p>
+ * <p>What counts (CANON: how far the challenger strayed from the predestined
+ * outcome, ch. 744; Jack, 2026-10-31): each hand-made Nightmare has a fated
+ * ending the Spell never reveals, and the score is how far the ending reached
+ * strays from it, more when a lowly role changed it, plus playing the part the
+ * ending asked of your role, going in alone or with a small cohort, cohort
+ * members lost, and striking your own. Kills are listed, but by default do not
+ * count ({@link AppraisalSettings#killWeight}). The grade ladder runs Poor,
+ * Adequate, Good, Excellent and Glorious (only glorious and excellent are CANON
+ * words, ch. 15 and 743); the best glorious runs also hear "You have achieved
+ * the impossible!" before the grade. A challenger who dies inside is judged
+ * Failed.</p>
  *
  * <p>The Judge also reads how the challenger played, so the Spell's commentary
  * can be keyed to it (ch. 15: "Your treachery truly knows no bounds").</p>
@@ -60,13 +66,14 @@ public final class SpellJudge {
      * @param uniqueKills   Tyrants or stronger, and named creatures, slain
      * @param aboveRank     kills of creatures above the challenger's own rank
      * @param roleId        the role the Spell gave them
+     * @param roleDeviation how far beneath the story's notice that role stands
      * @param cohortSize    how many went in together
      * @param falls         how many of the cohort died inside
      * @param alliesStruck  times they hurt one of their own
      * @param alliesSaved   creatures they slew that were hunting another of the cohort
      * @param closeCalls    times they fell to a quarter of their health or less
      */
-    public record Run(Map<String, Integer> kills, int killScore, int uniqueKills, int aboveRank, String roleId,
+    public record Run(Map<String, Integer> kills, int killScore, int uniqueKills, int aboveRank, String roleId, int roleDeviation,
                       int cohortSize, int falls, int alliesStruck, int alliesSaved, int closeCalls) {
         public Run {
             kills = Map.copyOf(kills);
@@ -74,7 +81,7 @@ public final class SpellJudge {
 
         /** A run with only kills, role and cohort, as older callers and tests give it. */
         public static Run simple(Map<String, Integer> kills, int killScore, String roleId, int cohortSize, int falls) {
-            return new Run(kills, killScore, 0, 0, roleId, cohortSize, falls, 0, 0, 0);
+            return new Run(kills, killScore, 0, 0, roleId, 0, cohortSize, falls, 0, 0, 0);
         }
 
         public int totalKills() {
@@ -82,10 +89,23 @@ public final class SpellJudge {
         }
     }
 
-    /** The Judge's verdict: the deeds it counted, the score, the grade and how they played. */
-    public record Judgement(List<String> deeds, int score, TrialSettings.Grade grade, Behaviour behaviour) {
+    /**
+     * The Judge's verdict: the deeds it counted, the score, the grade, how they
+     * played, whether it was the impossible, and the line said before the grade.
+     */
+    public record Judgement(List<String> deeds, int score, TrialSettings.Grade grade, Behaviour behaviour, boolean impossible,
+                            String acclaim) {
         public Judgement {
             deeds = List.copyOf(deeds);
+        }
+
+        /** Grades a score: the ladder's grade for it, and the impossible when it is the top grade and high enough. */
+        public static Judgement of(List<String> deeds, int score, Behaviour behaviour, TrialSettings settings, AppraisalSettings appraisal) {
+            TrialSettings.Grade grade = settings.gradeFor(score);
+            List<TrialSettings.Grade> ladder = settings.grades();
+            boolean impossible = grade.equals(ladder.get(ladder.size() - 1)) && score >= appraisal.impossibleMin();
+            String acclaim = impossible ? appraisal.impossibleLine() : appraisal.acclaim().getOrDefault(grade.name(), "");
+            return new Judgement(deeds, score, grade, behaviour, impossible, acclaim);
         }
 
         public String gradeKey() {
@@ -96,10 +116,19 @@ public final class SpellJudge {
     private SpellJudge() {
     }
 
-    /** Judges one run that ended with {@code ending}. Pure arithmetic, so it can be tested without a world. */
+    /** Judges one run with the loaded appraisal settings. */
     public static Judgement judge(NightmarePack.Ending ending, Run run, TrialSettings settings) {
+        return judge(ending, run, settings, TrialContent.get().appraisal());
+    }
+
+    /** Judges one run that ended with {@code ending}. Pure arithmetic, so it can be tested without a world. */
+    public static Judgement judge(NightmarePack.Ending ending, Run run, TrialSettings settings, AppraisalSettings appraisal) {
         List<String> deeds = new ArrayList<>();
-        int score = ending.score() + run.killScore();
+        int score = ending.deviation() + Math.round(run.killScore() * appraisal.killWeight());
+        if (!ending.fated()) {
+            // The fate was changed: the lower the role that changed it, the further it strayed.
+            score += run.roleDeviation();
+        }
         run.kills().forEach((what, count) -> deeds.add(killDeed(what, count)));
         if (run.aboveRank() > 0) {
             deeds.add(run.aboveRank() == 1 ? "You slew a creature above your own rank."
@@ -137,7 +166,7 @@ public final class SpellJudge {
             deeds.add("You struck one of your own.");
         }
         score = Math.max(0, score);
-        return new Judgement(deeds, score, settings.gradeFor(score), behaviour(run));
+        return Judgement.of(deeds, score, behaviour(run), settings, appraisal);
     }
 
     /** How the challenger played: the first behaviour that applies, in {@link Behaviour}'s order. */

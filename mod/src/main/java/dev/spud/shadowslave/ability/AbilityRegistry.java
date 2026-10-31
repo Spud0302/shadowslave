@@ -96,6 +96,9 @@ public final class AbilityRegistry {
         register(new LastStandAbility());
         register(new GritAbility());
         register(new DefianceAbility());
+        register(new UndermineAbility());
+        register(new FalseTrailAbility());
+        register(new PlantTheStandardAbility());
     }
 
     private AbilityRegistry() {

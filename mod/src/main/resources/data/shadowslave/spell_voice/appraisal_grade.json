@@ -25,10 +25,6 @@
       "Glorious. The Spell will remember this.",
       {"text": "Glorious. Your treachery truly knows no bounds.", "when": {"behaviour": "treachery"}},
       {"text": "Glorious. You walked it alone, and the dream could not hold you.", "when": {"behaviour": "alone"}}
-    ],
-    "impossible": [
-      "You have achieved the impossible.",
-      "You have achieved the impossible. Even the Spell did not foresee this."
     ]
   }
 }

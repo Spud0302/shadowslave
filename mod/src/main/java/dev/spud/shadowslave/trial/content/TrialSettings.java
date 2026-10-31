@@ -21,8 +21,10 @@ import java.util.TreeMap;
  *       wakes this many seconds later, and everyone this close is drawn in.</li>
  *   <li>{@code site_notice_range} and {@code site_seed_chance}: an echo site raises its
  *       ruin and may grow a Seed when a dreamer comes this close.</li>
- *   <li>{@code kill_points}, {@code solo_bonus} and {@code unbroken_bonus}: what deeds are
- *       worth in the appraisal, beside the ending's own score.</li>
+ *   <li>{@code kill_points}: what each kill is worth, which only counts toward the grade as
+ *       far as the {@code appraisal} object's {@code kill_weight} says (none by default).</li>
+ *   <li>{@code solo_bonus} and {@code unbroken_bonus}: what going alone and losing nobody are
+ *       worth in the appraisal, beside how far the ending strayed from fate.</li>
  *   <li>{@code unique_bonus}, {@code above_rank_bonus}: extra for each unique creature (a Tyrant
  *       or stronger, or a named one) and for each kill of a creature above your own rank.</li>
  *   <li>{@code small_cohort_size} and {@code small_cohort_bonus}: a cohort this small or smaller
@@ -30,8 +32,9 @@ import java.util.TreeMap;
  *   <li>{@code loss_penalty} and {@code treachery_penalty}: taken off for each of your cohort who
  *       fell, and for each time you struck one of your own.</li>
  *   <li>{@code grades}: the appraisal's grades for survivors, each from a minimum score; the
- *       Judge's ladder (Spell Callings section): Poor up to Glorious, with "the impossible" as
- *       the rare top. {@code failed_grade} is what a challenger who died inside is judged.</li>
+ *       Judge's ladder runs Poor up to Glorious, the top (ch. 15, 743). "You have achieved the
+ *       impossible!" is a comment on the best glorious runs, set in {@link AppraisalSettings}.
+ *       {@code failed_grade} is what a challenger who died inside is judged.</li>
  * </ul>
  *
  * <p>Each kill is worth its rank's {@code kill_points} times the creature's soul cores
@@ -53,7 +56,7 @@ public record TrialSettings(Map<Integer, Integer> categoryWeights, int gatherSec
             Map.of(CreatureRank.DORMANT, 2, CreatureRank.AWAKENED, 5, CreatureRank.FALLEN, 10, CreatureRank.CORRUPTED, 20),
             25, 10, 20, 10, 3, 10, 10, 30,
             List.of(new Grade("Poor", 0), new Grade("Adequate", 40), new Grade("Good", 80), new Grade("Excellent", 120),
-                    new Grade("Glorious", 170), new Grade("Impossible", 300)),
+                    new Grade("Glorious", 170)),
             "Failed");
 
     private static final Codec<Map<Integer, Integer>> CATEGORY_WEIGHTS = Codec.unboundedMap(Codec.STRING, Codec.intRange(0, 100))

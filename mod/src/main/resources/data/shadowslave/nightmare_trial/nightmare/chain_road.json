@@ -53,6 +53,7 @@
     {
       "id": "road_slave",
       "name": "Road Slave",
+      "deviation": 40,
       "weight": 3,
       "description": "One of a line of slaves marched across the ash to raise the Watch. Your chain has come loose. Nobody has noticed yet.",
       "kit": [
@@ -155,7 +156,7 @@
     {
       "id": "drover",
       "kind": "slay_tyrant",
-      "score": 110,
+      "deviation": 140,
       "deed": "You slew the Grey Drover on the Chain Road.",
       "comment": "The Drover fell, and the line was free. Nobody who built the Watch ever learned why.",
       "role": "road_slave",
@@ -166,11 +167,11 @@
       "id": "gate",
       "kind": "reach",
       "after": 120,
+      "deviation": 90,
       "points": [
         "watch_gate"
       ],
       "radius": 3,
-      "score": 70,
       "deed": "You reached the gate of the Ember Watch.",
       "comment": "You came through the pass alive. The Watch would stand for a thousand years; you saw its first night.",
       "role": "ash_pilgrim",
@@ -181,7 +182,8 @@
       "id": "dawn",
       "kind": "survive",
       "after": 420,
-      "score": 25,
+      "fated": true,
+      "deviation": 0,
       "deed": "You lived until the line moved on.",
       "comment": "The overseers came back at dawn and the line moved on. You only endured."
     }

@@ -54,7 +54,11 @@ public final class DreamCommands {
     private static int status(CommandSourceStack source) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
         DreamData data = DreamCrossing.data(player);
-        source.sendSuccess(() -> Component.literal(data.isDreaming() ? "You are dreaming." : "You are awake."), false);
+        source.sendSuccess(() -> Component.literal(!data.isDreaming() ? "You are awake."
+                : data.isLost() ? "You are Lost: your body is dead. Rise to Ascended to remake it."
+                : data.dreaming().map(dreaming -> DreamCrossing.waitLeft(player, dreaming)).filter(left -> left > 0)
+                        .map(left -> "You are dreaming. You can wake in " + DreamCrossing.duration(left) + ".")
+                        .orElse("You are dreaming. A lit Dream Candle or your clan's Gateway will wake you.")), false);
         source.sendSuccess(() -> Component.literal(data.anchor().map(anchor -> "Dream Anchor: " + anchor.toShortString())
                 .orElse("No Dream Anchor yet. Sleep beside a lit Dream Candle once you have Awakened.")), false);
         source.sendSuccess(() -> Component.literal("Ratio 1:" + DreamRealmRules.ratio(source.getServer())

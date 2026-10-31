@@ -28,6 +28,7 @@
     {
       "id": "cloister_novice",
       "name": "Cloister Novice",
+      "deviation": 30,
       "weight": 4,
       "description": "A novice of the Briar Cloister, sworn to the garden. The garden has stopped listening.",
       "kit": [{"id": "minecraft:bread", "count": 4}, {"id": "minecraft:iron_axe", "count": 1}]
@@ -51,6 +52,7 @@
     {
       "id": "penitent_captive",
       "name": "Penitent Captive",
+      "deviation": 50,
       "weight": 1,
       "description": "Brought here in chains to repent. You will have a long time to do it.",
       "kit": [{"id": "minecraft:golden_apple", "count": 1}]
@@ -113,8 +115,8 @@
       "id": "burn_root",
       "kind": "light",
       "after": 600,
+      "deviation": 140,
       "points": ["brazier_bell", "brazier_west", "brazier_east"],
-      "score": 110,
       "deed": "You lit the three braziers, and the briars burned back to the root.",
       "comment": "The Cloister burned its own garden to live. It was enough, that season.",
       "role": "brazier_keeper",
@@ -124,7 +126,7 @@
     {
       "id": "mother",
       "kind": "slay_tyrant",
-      "score": 90,
+      "deviation": 120,
       "deed": "You cut down the Thorn Mother in her own garden.",
       "comment": "Without their mother, the briars withered. The Cloister tended a quieter garden after.",
       "role": "thornwarden",
@@ -135,7 +137,8 @@
       "id": "outlast",
       "kind": "survive",
       "after": 1800,
-      "score": 35,
+      "fated": true,
+      "deviation": 0,
       "deed": "You lived through three days in the briars.",
       "comment": "The season turned and the briars slept. The Cloister did not wake with them.",
       "role": "penitent_captive",

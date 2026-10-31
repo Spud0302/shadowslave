@@ -256,7 +256,9 @@ public final class ExpandedIdentityContentCatalog {
                         nature("shepherd", "Shepherd", Set.of("shepherd", "flock", "companion"), 3),
                         nature("vessel", "Vessel", Set.of("vessel", "host", "merge"), 3),
                         nature("masque", "Masque", Set.of("masque", "disguise", "deceit"), 3),
-                        nature("unbroken", "Unbroken", Set.of("unbroken", "endurance", "defiance"), 3)
+                        nature("unbroken", "Unbroken", Set.of("unbroken", "endurance", "defiance"), 3),
+                        nature("saboteur", "Saboteur", Set.of("saboteur", "sabotage", "supply"), 3),
+                        nature("standard", "Standard", Set.of("standard", "banner", "muster"), 3)
                 )),
                 wave.archetypes(),
                 concat(wave.abilities(), List.of(
@@ -282,7 +284,9 @@ public final class ExpandedIdentityContentCatalog {
                         ability("rally", "Rally", Set.of("shepherd"), Set.of("mercy", "resolve"), 5),
                         ability("echo_merge", "Echo Merge", Set.of("vessel"), Set.of("adaptation", "sacrifice"), 5),
                         ability("borrowed_face", "Borrowed Face", Set.of("masque"), Set.of("deceit", "stealth"), 5),
-                        ability("last_stand", "Last Stand", Set.of("unbroken"), Set.of("resolve", "endurance"), 5)
+                        ability("last_stand", "Last Stand", Set.of("unbroken"), Set.of("resolve", "endurance"), 5),
+                        ability("undermine", "Undermine", Set.of("saboteur"), Set.of("stealth", "precision"), 5),
+                        ability("plant_the_standard", "Plant the Standard", Set.of("standard"), Set.of("resolve", "mercy"), 5)
                 )),
                 concat(wave.flaws(), List.of(
                         flaw("quarry_lock", "Quarry Lock", Set.of("hunt", "pursuit"),
@@ -332,7 +336,11 @@ public final class ExpandedIdentityContentCatalog {
                         flaw("hollow_reflection", "Hollow Reflection", Set.of("masque", "disguise"),
                                 Set.of("signal", "conditional"), Set.of(), 3),
                         flaw("no_retreat", "No Retreat", Set.of("unbroken", "defiance"),
-                                Set.of("resource", "conditional"), Set.of(), 3)
+                                Set.of("resource", "conditional"), Set.of(), 3),
+                        flaw("marked", "Marked", Set.of("saboteur", "sabotage"),
+                                Set.of("signal", "conditional"), Set.of(), 3),
+                        flaw("oathbound", "Oathbound", Set.of("standard", "banner"),
+                                Set.of("physical", "conditional"), Set.of(), 3)
                 ))
         );
     }

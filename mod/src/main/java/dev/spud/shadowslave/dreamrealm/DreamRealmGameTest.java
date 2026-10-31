@@ -4,7 +4,10 @@ import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.ability.AbilityGameTest;
 import dev.spud.shadowslave.awakening.AspectKitCatalog;
 import dev.spud.shadowslave.block.ModBlocks;
+import dev.spud.shadowslave.soul.SoulData;
+import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
+import dev.spud.shadowslave.soul.SpellState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -12,12 +15,16 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CandleBlock;
 import net.minecraft.world.level.block.state.properties.BedPart;
+import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+
+import java.util.Optional;
 
 @GameTestHolder(ShadowSlaveMod.MOD_ID)
 @PrefixGameTestTemplate(false)
@@ -55,17 +62,86 @@ public final class DreamRealmGameTest {
     }
 
     @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room", timeoutTicks = 200)
-    public static void aDeadBodyKillsTheDreamer(GameTestHelper helper) {
+    public static void withTheLostRuleOffADeadBodyKillsTheDreamer(GameTestHelper helper) {
         ServerPlayer player = dreamerInBed(helper, true);
+        var rule = player.server.getGameRules().getRule(DreamRealmRules.LOST);
+        rule.set(false, player.server);
         helper.assertTrue(DreamCrossing.tryCross(player), "crossed");
         player.hasChangedDimension(); // the client's teleport confirmation, which a mock player never sends
         SleepingBodyEntity body = body(helper, DreamCrossing.data(player));
         body.hurt(helper.getLevel().damageSources().generic(), 1000.0F);
         helper.runAfterDelay(3, () -> {
+            rule.set(true, player.server);
             helper.assertTrue(player.isDeadOrDying(), "the dreamer dies with their body");
             helper.assertFalse(DreamCrossing.data(player).isDreaming(), "the dream is over");
             helper.succeed();
         });
+    }
+
+    @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room", timeoutTicks = 200)
+    public static void aDeadBodyLeavesTheDreamerLostUntilTheyAscend(GameTestHelper helper) {
+        ServerPlayer player = dreamerInBed(helper, true);
+        helper.assertTrue(DreamCrossing.tryCross(player), "crossed");
+        player.hasChangedDimension();
+        SleepingBodyEntity body = body(helper, DreamCrossing.data(player));
+        body.hurt(helper.getLevel().damageSources().generic(), 1000.0F);
+        helper.runAfterDelay(3, () -> {
+            helper.assertFalse(player.isDeadOrDying(), "the Lost live on in the dream (ch. 360)");
+            helper.assertTrue(DreamCrossing.data(player).isLost(), "but they are Lost");
+            helper.assertTrue(DreamCrossing.tryWake(player, DreamCrossing.Reason.CANDLE), "the candle answers");
+            helper.assertTrue(DreamRealm.is(player.level()) && DreamCrossing.data(player).isLost(), "and cannot wake them");
+
+            // Ascension remakes the body (ch. 1230).
+            SoulData soul = SoulService.get(player);
+            SoulService.replace(player, new SoulData(soul.schemaVersion(), SpellState.MASTER, soul.awakeningPath(),
+                    Optional.of(SoulRank.ASCENDED), soul.aspectId(), soul.aspectRank(), soul.flawId(), soul.importedFromDatapack(),
+                    soul.migrationVersion()));
+            DreamCrossing.checkFound(player);
+            helper.assertFalse(DreamCrossing.data(player).isLost(), "an Ascended soul is no longer Lost");
+            var wait = player.server.getGameRules().getRule(DreamRealmRules.WAKE_WAIT);
+            int before = wait.get();
+            wait.set(0, player.server);
+            try {
+                helper.assertTrue(DreamCrossing.tryWake(player, DreamCrossing.Reason.CANDLE), "the candle wakes them now");
+                helper.assertTrue(player.level() == helper.getLevel(), "body and soul back in the waking world");
+            } finally {
+                wait.set(before, player.server);
+            }
+            helper.succeed();
+        });
+    }
+
+    @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room", timeoutTicks = 200)
+    public static void aCandleOnlyWakesAfterTheWait(GameTestHelper helper) {
+        ServerPlayer player = dreamerInBed(helper, true);
+        helper.assertTrue(DreamCrossing.tryCross(player), "crossed");
+        DreamData.Dreaming dreaming = DreamCrossing.data(player).dreaming().orElseThrow();
+        helper.assertTrue(DreamCrossing.waitLeft(player, dreaming) > 0, "a fresh arrival must wait (ch. 398)");
+        helper.assertTrue(DreamCrossing.tryWake(player, DreamCrossing.Reason.CANDLE), "the candle answers");
+        helper.assertTrue(DreamRealm.is(player.level()), "but the dream holds them");
+        DreamCrossing.setData(player, DreamCrossing.data(player).withDreaming(new DreamData.Dreaming(dreaming.bed(), dreaming.body(),
+                dreaming.since() - DreamRealmRules.wakeWaitTicks(player.server), false)));
+        helper.assertTrue(DreamCrossing.tryWake(player, DreamCrossing.Reason.CANDLE), "the wait is over");
+        helper.assertTrue(player.level() == helper.getLevel(), "awake in the waking world");
+        helper.succeed();
+    }
+
+    @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room")
+    public static void aDreamCandleLetsADreamerSleepByDay(GameTestHelper helper) {
+        ServerPlayer player = dreamerInBed(helper, true);
+        player.stopSleepInBed(true, true);
+        BlockPos bed = helper.absolutePos(HEAD);
+        CanPlayerSleepEvent day = new CanPlayerSleepEvent(player, bed, Player.BedSleepingProblem.NOT_POSSIBLE_NOW);
+        DreamCrossing.onCanSleep(day);
+        helper.assertTrue(day.getProblem() == null, "no night-only rule beside a lit Dream Candle");
+        CanPlayerSleepEvent monsters = new CanPlayerSleepEvent(player, bed, Player.BedSleepingProblem.NOT_SAFE);
+        DreamCrossing.onCanSleep(monsters);
+        helper.assertTrue(monsters.getProblem() == Player.BedSleepingProblem.NOT_SAFE, "monsters still keep them up");
+        ServerPlayer dormant = AbilityGameTest.playerWith(helper, AspectKitCatalog.EMBER);
+        CanPlayerSleepEvent plain = new CanPlayerSleepEvent(dormant, bed, Player.BedSleepingProblem.NOT_POSSIBLE_NOW);
+        DreamCrossing.onCanSleep(plain);
+        helper.assertTrue(plain.getProblem() == Player.BedSleepingProblem.NOT_POSSIBLE_NOW, "a Dormant with nothing to dream keeps vanilla rules");
+        helper.succeed();
     }
 
     @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room", timeoutTicks = 200)
