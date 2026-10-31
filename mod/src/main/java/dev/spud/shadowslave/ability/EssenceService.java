@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class EssenceService {
     public static final int DORMANT_CAPACITY = 100;
     public static final int AWAKENED_CAPACITY = 200;
+    public static final int ASCENDED_CAPACITY = 350;
+    public static final int TRANSCENDENT_CAPACITY = 550;
     /** An empty pool refills in this many ticks. */
     static final int FULL_REFILL_TICKS = 20 * 60;
     /** How often a quiet pool is resent to the client to correct drift in its prediction. */
@@ -52,8 +54,10 @@ public final class EssenceService {
         return switch (rank) {
             case DORMANT -> DORMANT_CAPACITY;
             case AWAKENED -> AWAKENED_CAPACITY;
+            case ASCENDED -> ASCENDED_CAPACITY;
+            case TRANSCENDENT -> TRANSCENDENT_CAPACITY;
             // Higher ranks are not playable yet; keep the curve going so admin tools do not break.
-            default -> AWAKENED_CAPACITY * (rank.ordinal());
+            default -> TRANSCENDENT_CAPACITY + AWAKENED_CAPACITY * (rank.ordinal() - SoulRank.TRANSCENDENT.ordinal());
         };
     }
 
@@ -75,6 +79,7 @@ public final class EssenceService {
         factor *= DreamKitPassives.wanderlust(player);
         factor *= SignatureKitPassives.regenFactor(player);
         factor *= Stasis.regenFactor(player);
+        factor *= RankPowers.regenFactor(player);
         return base * factor;
     }
 

@@ -96,6 +96,18 @@ public final class AbilityRegistry {
         register(new LastStandAbility());
         register(new GritAbility());
         register(new DefianceAbility());
+        register(new FirestormAbility());
+        register(new PhoenixRiteAbility());
+        register(new PhantomStepAbility());
+        register(new SmotherAbility());
+        register(new StoneSpikesAbility());
+        register(new StoneskinAbility());
+        register(new MaelstromAbility());
+        register(new HighTideAbility());
+        register(new LivingFlameForm());
+        register(new MistformForm());
+        register(new ColossusForm());
+        register(new TidebodyForm());
     }
 
     private AbilityRegistry() {

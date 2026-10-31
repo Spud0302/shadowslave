@@ -91,8 +91,10 @@ public final class SoulSeaService {
                     .withStyle(ChatFormatting.GRAY));
             return AwakeningService.Result.NOT_READY;
         }
-        ResourceLocation id = ResourceLocation.tryParse(abilityId);
-        AwakeningService.Result result = id == null ? AwakeningService.Result.NOT_A_CHOICE : AwakeningService.awaken(player, id);
+        // An empty choice rises a Nature whose abilities for the rank are not built yet.
+        Optional<ResourceLocation> id = abilityId.isEmpty() ? Optional.empty() : Optional.ofNullable(ResourceLocation.tryParse(abilityId));
+        AwakeningService.Result result = !abilityId.isEmpty() && id.isEmpty() ? AwakeningService.Result.NOT_A_CHOICE
+                : AwakeningService.rise(player, id);
         if (result == AwakeningService.Result.NOT_READY) {
             player.sendSystemMessage(Component.literal("Your soul is not ready to rise.").withStyle(ChatFormatting.GRAY));
         }
@@ -139,11 +141,13 @@ public final class SoulSeaService {
     }
 
     public static SoulSeaPayload status(ServerPlayer player, boolean open) {
-        String nextRank = AwakeningService.nextRank(player).map(SoulRank::serializedName).orElse("");
-        String requirement = AwakeningService.nextRank(player)
-                .flatMap(RankUpRequirements::forRank)
-                .map(value -> value.describe(player))
-                .orElse("");
+        Optional<SoulRank> owed = AwakeningService.owedRank(player);
+        String nextRank = owed.or(() -> AwakeningService.nextRank(player)).map(SoulRank::serializedName).orElse("");
+        String requirement = owed.map(rank -> "Your Aspect has grown since you rose. Choose what it becomes.")
+                .orElseGet(() -> AwakeningService.nextRank(player)
+                        .flatMap(RankUpRequirements::forRank)
+                        .map(value -> value.describe(player))
+                        .orElse(""));
         List<SoulSeaPayload.Choice> choices = AwakeningService.choices(player).stream()
                 .map(variant -> new SoulSeaPayload.Choice(variant.abilityId().toString(), variant.name(), variant.role(),
                         variant.description()))

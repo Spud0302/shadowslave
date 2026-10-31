@@ -75,11 +75,12 @@ public final class AbilityCastEffects {
     private AbilityCastEffects() {
     }
 
-    /** The Nature whose look an ability casts with, Dormant or Awakened; empty for anything else. */
+    /** The Nature whose look an ability casts with, at any rank of its ladder; empty for anything else. */
     static Optional<NatureGlow> glowFor(ResourceLocation abilityId) {
         for (AspectKit kit : AspectKitCatalog.all()) {
             boolean ownsAbility = kit.abilityId().equals(abilityId)
-                    || KitLadder.variants(kit.natureId(), SoulRank.AWAKENED).stream()
+                    || java.util.stream.Stream.of(SoulRank.AWAKENED, SoulRank.ASCENDED, SoulRank.TRANSCENDENT)
+                            .flatMap(rank -> KitLadder.variants(kit.natureId(), rank).stream())
                             .anyMatch(variant -> variant.abilityId().equals(abilityId));
             if (ownsAbility) {
                 return Optional.of(NatureGlow.valueOf(kit.natureName().toUpperCase(java.util.Locale.ROOT)));

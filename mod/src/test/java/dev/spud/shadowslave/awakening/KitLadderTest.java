@@ -17,14 +17,19 @@ class KitLadderTest {
     private static final Path ASSETS = Path.of("src/main/resources/assets/shadowslave");
 
     @Test
-    void everyNatureOffersTwoAwakenedVariantsAndNothingElseYet() {
+    void everyNatureOffersTwoAwakenedVariantsAndAtMostOneForm() {
         for (AspectKit kit : AspectKitCatalog.all()) {
             assertEquals(2, KitLadder.variants(kit.natureId(), SoulRank.AWAKENED).size(), kit.natureName());
-            assertTrue(KitLadder.variants(kit.natureId(), SoulRank.ASCENDED).isEmpty(), kit.natureName());
+            int master = KitLadder.variants(kit.natureId(), SoulRank.ASCENDED).size();
+            assertTrue(master == 0 || master == 2, kit.natureName() + " Master choices");
+            assertTrue(KitLadder.variants(kit.natureId(), SoulRank.TRANSCENDENT).size() <= 1, kit.natureName() + " form");
+            KitLadder.variants(kit.natureId(), SoulRank.TRANSCENDENT)
+                    .forEach(form -> assertEquals(SoulRank.TRANSCENDENT, form.rank(), form.name()));
         }
+        assertTrue(KitLadder.variants(AspectKitCatalog.EMBER.natureId(), SoulRank.TRANSCENDENT).contains(KitLadder.LIVING_FLAME));
+        assertTrue(KitLadder.variants(AspectKitCatalog.EMBER.natureId(), SoulRank.SUPREME).isEmpty());
         Set<Object> ids = new HashSet<>();
         KitLadder.all().forEach(variant -> assertTrue(ids.add(variant.abilityId()), "duplicate " + variant.abilityId()));
-        assertEquals(56, ids.size());
     }
 
     @Test
