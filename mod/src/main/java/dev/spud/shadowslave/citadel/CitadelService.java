@@ -343,8 +343,9 @@ public final class CitadelService {
             DreamCrossing.title(player, Component.literal("Citadel Conquered").withStyle(ChatFormatting.LIGHT_PURPLE),
                     Component.literal(citadel.name + " has lost its Guardian").withStyle(ChatFormatting.GRAY));
         }
-        by.ifPresent(player -> DreamCrossing.spell(player, Component.literal("The Gateway of " + citadel.name
-                + " lies open. Use it to claim the Citadel.").withStyle(ChatFormatting.LIGHT_PURPLE)));
+        by.ifPresent(player -> DreamCrossing.spell(player, Component.literal("The Gateway of " + citadel.name + " lies open. "
+                + (canBind(player) ? "Use it to claim the Citadel." : "Only a " + rankName(settings().claimRank())
+                + " can bind it, but anyone may anchor there.")).withStyle(ChatFormatting.LIGHT_PURPLE)));
     }
 
     // The Gateway
