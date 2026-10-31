@@ -18,8 +18,8 @@ import java.util.List;
 /**
  * The Spell appraises a conquered Nightmare (after ch. 15-16): over a glimpse of
  * its inner workings, a web of stars with runes drifting through it (after the
- * manhwa's look), it types out every deed, then the grade with its comment, then
- * the boons. Click, Space or Enter skips the typing, and again closes; long
+ * manhwa's look), it types out every deed, then the Spell's comment ("You have
+ * achieved the impossible!"), then the grade with its comment, then the boons. Click, Space or Enter skips the typing, and again closes; long
  * appraisals scroll to follow the typing, and the mouse wheel scrolls back up.
  */
 public class NightmareAppraisalScreen extends Screen {
@@ -93,6 +93,10 @@ public class NightmareAppraisalScreen extends Screen {
             lines.add(new Line(Kind.DETAIL, "[" + deed + "]", SpellStyle.TEXT, 140));
         }
         lines.add(new Line(Kind.GAP, "", 0, 0));
+        if (!appraisal.acclaim().isEmpty()) {
+            // The Spell's comment comes before the grade (ch. 15: "You have achieved the impossible!").
+            lines.add(new Line(Kind.VOICE, appraisal.acclaim(), GRADE_COLOR, 600));
+        }
         lines.add(new Line(Kind.LABEL, "Your performance has been appraised:", SpellStyle.TEXT, 300));
         lines.add(new Line(Kind.GRADE, appraisal.grade(), GRADE_COLOR, 300));
         for (String comment : appraisal.comments()) {

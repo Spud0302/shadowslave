@@ -721,6 +721,7 @@ public final class TrialService {
     /** What a challenger did in this run, as the Judge needs it. */
     static SpellJudge.Run run(TrialInstance instance, TrialInstance.Member member) {
         return new SpellJudge.Run(member.kills, member.killScore, member.uniqueKills, member.aboveRank, member.role.id(),
+                member.role.deviation(),
                 instance.members.size(), instance.falls, member.struck.size(), member.alliesSaved, member.closeCalls);
     }
 
@@ -764,7 +765,7 @@ public final class TrialService {
         Optional<TrueNames.Grant> trueName = TrueNames.considerAppraisal(player, appraisal);
         trueName.ifPresent(grant -> TrueNames.revealedByAppraisal(player));
         NightmareAppraisalPayload payload = new NightmareAppraisalPayload(instance.pack.displayName(), instance.pack.setting(),
-                ending.comment(), appraisal.deeds(), appraisal.grade().name(),
+                ending.comment(), appraisal.deeds(), appraisal.acclaim(), appraisal.grade().name(),
                 SpellAppraisal.comments(player, instance.pack, appraisal, before, settings), boons, instance.pack.lore(),
                 trueName.map(TrueNames.Grant::name).orElse(""), trueName.map(TrueNames.Grant::deedLine).orElse(""));
         if (player.connection != null && player.connection.hasChannel(NightmareAppraisalPayload.TYPE)) {
@@ -943,7 +944,7 @@ public final class TrialService {
         }
         if ((TrialRules.hardcore(server) || TrialRules.trueDeath(server)) && RankLoss.toDormant(player)) {
             spell(player, Component.literal("Your soul has fallen back to Dormant.").withStyle(ChatFormatting.DARK_RED));
-            if (DreamCrossing.data(player).isDreaming()) {
+            if (DreamCrossing.data(player).isDreaming() && !DreamCrossing.data(player).isLost()) {
                 DreamCrossing.wake(player, DreamCrossing.Reason.COMMAND);
             }
         }

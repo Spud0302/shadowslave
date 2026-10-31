@@ -10,7 +10,7 @@ import java.util.Optional;
  * replaces it on every reload.
  */
 public record TrialContent(TrialSettings settings, ScarSettings scar, LongNightmareSettings longNightmares,
-                           FirstNightmareSettings firstNightmare,
+                           FirstNightmareSettings firstNightmare, AppraisalSettings appraisal,
                            Map<ResourceLocation, NightmarePack> nightmares, Map<ResourceLocation, EchoSite> sites) {
     private static volatile TrialContent current = new TrialContent(TrialSettings.DEFAULT, Map.of(), Map.of());
 
@@ -20,7 +20,8 @@ public record TrialContent(TrialSettings settings, ScarSettings scar, LongNightm
     }
 
     public TrialContent(TrialSettings settings, Map<ResourceLocation, NightmarePack> nightmares, Map<ResourceLocation, EchoSite> sites) {
-        this(settings, ScarSettings.DEFAULT, LongNightmareSettings.DEFAULT, FirstNightmareSettings.DEFAULT, nightmares, sites);
+        this(settings, ScarSettings.DEFAULT, LongNightmareSettings.DEFAULT, FirstNightmareSettings.DEFAULT, AppraisalSettings.DEFAULT,
+                nightmares, sites);
     }
 
     public static TrialContent get() {

@@ -57,9 +57,11 @@ public final class TrialContentLoader extends SimplePreparableReloadListener<Tri
                 .orElse(LongNightmareSettings.DEFAULT);
         FirstNightmareSettings firstNightmare = settingsFile.flatMap(resource -> parse(SETTINGS, resource, FirstNightmareSettings.IN_SETTINGS))
                 .orElse(FirstNightmareSettings.DEFAULT);
+        AppraisalSettings appraisal = settingsFile.flatMap(resource -> parse(SETTINGS, resource, AppraisalSettings.IN_SETTINGS))
+                .orElse(AppraisalSettings.DEFAULT);
         firstNightmare.nightmares().stream().filter(id -> !nightmares.containsKey(id)).forEach(id ->
                 ShadowSlaveMod.LOGGER.error("The First Nightmare settings name a missing Nightmare {}", id));
-        return new TrialContent(settings, scar, longNightmares, firstNightmare, nightmares, sites);
+        return new TrialContent(settings, scar, longNightmares, firstNightmare, appraisal, nightmares, sites);
     }
 
     @Override

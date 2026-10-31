@@ -11,12 +11,13 @@ import java.util.List;
 
 /**
  * Server-to-client words of a Nightmare's appraisal (after ch. 15-16): the deeds
- * the Spell counted, the grade and the Spell's comment lines on it, the boons,
+ * the Spell counted, the line said before the grade ("You have achieved the
+ * impossible!", ch. 15), the grade and the Spell's comment lines on it, the boons,
  * and a True Name if the Spell granted one. Display text only; the grade, boons
  * and name are decided and granted on the server.
  */
 public record NightmareAppraisalPayload(String nightmare, String setting, String ending, List<String> deeds,
-                                        String grade, List<String> comments, List<String> boons, String lore,
+                                        String acclaim, String grade, List<String> comments, List<String> boons, String lore,
                                         String trueName, String trueNameLine)
         implements CustomPacketPayload {
     public static final Type<NightmareAppraisalPayload> TYPE = new Type<>(
@@ -29,7 +30,7 @@ public record NightmareAppraisalPayload(String nightmare, String setting, String
         @Override
         public NightmareAppraisalPayload decode(ByteBuf buffer) {
             return new NightmareAppraisalPayload(TEXT.decode(buffer), TEXT.decode(buffer), TEXT.decode(buffer), LINES.decode(buffer),
-                    TEXT.decode(buffer), LINES.decode(buffer), LINES.decode(buffer), TEXT.decode(buffer), TEXT.decode(buffer),
+                    TEXT.decode(buffer), TEXT.decode(buffer), LINES.decode(buffer), LINES.decode(buffer), TEXT.decode(buffer), TEXT.decode(buffer),
                     TEXT.decode(buffer));
         }
 
@@ -39,6 +40,7 @@ public record NightmareAppraisalPayload(String nightmare, String setting, String
             TEXT.encode(buffer, value.setting);
             TEXT.encode(buffer, value.ending);
             LINES.encode(buffer, value.deeds);
+            TEXT.encode(buffer, value.acclaim);
             TEXT.encode(buffer, value.grade);
             LINES.encode(buffer, value.comments);
             LINES.encode(buffer, value.boons);
