@@ -539,9 +539,15 @@ public final class CitadelWars {
         List<ServerPlayer> defenders = present(realm, enemy, seat.gateway, settings.channelRadius());
         int before = war.channel(side.id());
         int progress = before;
+        // Planted Standards lean on the channel: the attackers' speed it, the defenders' slow it.
+        int lift = WarNatures.standards(realm, side, seat.gateway);
+        int drag = WarNatures.standards(realm, enemy, seat.gateway);
+        if (lift + drag > 0) {
+            WarNatures.showStandards(realm, seat.gateway);
+        }
         String line;
         if (!attackers.isEmpty() && defenders.isEmpty()) {
-            progress += attackers.size();
+            progress += Math.max(0, attackers.size() + lift - drag);
             line = "Channelling the Gateway of " + seat.name + ": " + Math.min(progress, settings.channelSeconds()) + " / " + settings.channelSeconds();
             realm.sendParticles(ParticleTypes.REVERSE_PORTAL, seat.gateway.getX() + 0.5, seat.gateway.getY() + 1.0,
                     seat.gateway.getZ() + 0.5, 20 + attackers.size() * 10, 0.6, 1.0, 0.6, 0.15);
@@ -553,7 +559,7 @@ public final class CitadelWars {
             if (progress <= 0) {
                 return false;
             }
-            progress = Math.max(0, progress - defenders.size() * 2);
+            progress = Math.max(0, progress - (defenders.size() + drag) * 2);
             line = "The defenders break the channel: " + progress + " / " + settings.channelSeconds();
         } else if (!defenders.isEmpty()) {
             line = "The Gateway of " + seat.name + " is contested: " + progress + " / " + settings.channelSeconds();
@@ -656,6 +662,7 @@ public final class CitadelWars {
         data.setDirty();
         List<String> damaged = CitadelRaids.damage(realm, citadel, outskirts.damaged());
         CitadelData.get(realm).setDirty();
+        WarNatures.broke(raiders);
         SpellRecorder.record(server, SpellEvent.Kind.WAR_STRIKE, Optional.empty(), citadel.name, "raid by " + side.name());
         String harm = damaged.isEmpty() ? "found nothing built to break" : "damaged its " + CitadelRaids.join(damaged);
         ClanService.tell(server, side, "Your raid on " + citadel.name + " " + harm + ".");
@@ -683,7 +690,8 @@ public final class CitadelWars {
         List<ServerPlayer> strikers = present(realm, side, citadel.linkAnchor, supply.strikeRadius());
         List<ServerPlayer> guards = present(realm, enemy, citadel.linkAnchor, supply.guardRadius());
         int before = STRIKES.getOrDefault(key, 0);
-        int progress = !strikers.isEmpty() && guards.isEmpty() ? before + strikers.size() : !guards.isEmpty() ? 0 : Math.max(0, before - 1);
+        int progress = !strikers.isEmpty() && guards.isEmpty() ? before + WarNatures.strikeWeight(strikers)
+                : !guards.isEmpty() ? 0 : Math.max(0, before - 1);
         if (progress <= 0) {
             STRIKES.remove(key);
             return;
@@ -704,6 +712,7 @@ public final class CitadelWars {
         }
         STRIKES.remove(key);
         cut(realm, citadel);
+        WarNatures.broke(strikers);
         SpellRecorder.record(server, SpellEvent.Kind.WAR_STRIKE, Optional.empty(), citadel.name, "supply line cut by " + side.name());
         ClanService.tell(server, side, "You cut the supply line of " + citadel.name + ". Its Gateway starves until they mend it.");
         ClanService.tell(server, enemy, side.name() + " cut the supply line of " + citadel.name + ". Its Gateway starves and its Links are dark"

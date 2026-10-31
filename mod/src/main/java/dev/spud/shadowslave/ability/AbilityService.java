@@ -164,6 +164,8 @@ public final class AbilityService {
         CantorVoice.forget(player.getUUID());
         MasqueFace.forget(player.getUUID());
         UnbrokenWill.forget(player.getUUID());
+        SaboteurCraft.forget(player.getUUID());
+        StandardColours.lower(player.server, player.getUUID());
     }
 
     private static List<AspectAbility> held(ServerPlayer player) {

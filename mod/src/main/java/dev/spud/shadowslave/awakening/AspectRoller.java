@@ -29,7 +29,7 @@ import java.util.function.Function;
 public final class AspectRoller {
     /**
      * Every kit Nature starts from the same weight. The generator adds 8 per
-     * evidence point and evidence tops out at 2 per tag, so with twenty-eight Natures
+     * evidence point and evidence tops out at 2 per tag, so with thirty Natures
      * playstyle moves one from about 4% to at most about 7%: it tips the odds
      * but never decides.
      */

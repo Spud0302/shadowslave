@@ -392,7 +392,7 @@ public final class EchoService {
     }
 
     /** The owner themself, or one of their Echoes or its lesser copies. */
-    static boolean isAlly(ServerPlayer owner, Entity entity) {
+    public static boolean isAlly(ServerPlayer owner, Entity entity) {
         return entity == owner || bond(entity).filter(bond -> bond.owner().equals(owner.getUUID())).isPresent();
     }
 

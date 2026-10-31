@@ -278,9 +278,29 @@ public final class AspectKitCatalog {
             "Sprinting away from a hostile creature drains your essence."
     );
 
+    public static final AspectKit SABOTEUR = new AspectKit(
+            id("generation/nature/saboteur"), "Saboteur",
+            id("kit/innate/saboteur_line_sense"), "Line Sense",
+            "You feel where other clans' supply lines run: their Link Anchors and Gateways within 48 blocks show to you alone.",
+            id("generation/ability/undermine"), "Undermine",
+            "Set a slow charge on the block you look at. When it goes it cracks the stone around it, cuts an enemy Link Anchor, or damages an upgrade on an enemy Citadel's land.",
+            id("generation/flaw/marked"), id("generation/flaw_effect/marked"), "Marked",
+            "After you break an enemy's structure you glow for thirty seconds."
+    );
+    public static final AspectKit STANDARD = new AspectKit(
+            id("generation/nature/standard"), "Standard",
+            id("kit/innate/standard_colours"), "Under the Colours",
+            "Your allies within 8 blocks of you take a tenth less damage.",
+            id("generation/ability/plant_the_standard"), "Plant the Standard",
+            "Plant your banner for two minutes: your allies near it are warded as if you stood there, it speeds your clan's channel at a Gateway and slows the enemy's.",
+            id("generation/flaw/oathbound"), id("generation/flaw_effect/oathbound"), "Oathbound",
+            "Walking away from your planted banner while your allies fight near it weakens you."
+    );
+
     private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE, WARDEN, SEER, REAPER, WELLSPRING,
             FORGE, DELVE, MASON, VERDANT, WAYFARER, LULL, GLOAM, RIME, FURY, THRESHOLD, ANCHOR, HOURGLASS,
-            HERALD, KEEPER, FORTUNE, CANTOR, SHEPHERD, VESSEL, MASQUE, UNBROKEN);
+            HERALD, KEEPER, FORTUNE, CANTOR, SHEPHERD, VESSEL, MASQUE, UNBROKEN,
+            SABOTEUR, STANDARD);
 
     private AspectKitCatalog() {
     }
