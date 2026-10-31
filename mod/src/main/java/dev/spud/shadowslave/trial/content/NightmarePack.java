@@ -34,12 +34,29 @@ import java.util.Set;
  *   <li>{@code comments} and {@code boons}: the appraisal's comment and boon loot table per grade.</li>
  *   <li>{@code long}: makes it a Long Nightmare (Jack, 2026-10-29): the run survives logouts
  *       and restarts, its clock counts days, and later cohorts join the challengers still inside.</li>
+ *   <li>{@code breach}: for a First Nightmare, the creature that follows a fallen challenger out
+ *       into the waking world when the server allows it (ch. 1, 23).</li>
  * </ul>
  */
 public record NightmarePack(String displayName, String setting, ResourceLocation structure, String arrival,
                             Map<String, BlockPos> points, List<String> opening, List<Role> roles, List<Event> events,
                             Optional<Tyrant> tyrant, List<Ending> endings, Map<String, String> comments,
-                            Map<String, ResourceLocation> boons, String lore, Optional<LongRun> longRun) {
+                            Map<String, ResourceLocation> boons, String lore, Optional<LongRun> longRun,
+                            Optional<Breach> breach) {
+
+    /**
+     * What escapes a First Nightmare when its challenger dies in it (CANON: dying
+     * in the First Nightmare lets a Nightmare Creature into the real world, ch. 1
+     * and 23). Only used behind the {@code shadowslaveFirstNightmareBreach} game rule.
+     */
+    public record Breach(ResourceLocation entity, Optional<CreatureRank> rank, Optional<CreatureClass> creatureClass, String spell) {
+        public static final Codec<Breach> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                ResourceLocation.CODEC.fieldOf("entity").forGetter(Breach::entity),
+                CreatureRank.CODEC.optionalFieldOf("rank").forGetter(Breach::rank),
+                CreatureClass.CODEC.optionalFieldOf("class").forGetter(Breach::creatureClass),
+                Codec.STRING.optionalFieldOf("spell", "").forGetter(Breach::spell)
+        ).apply(instance, Breach::new));
+    }
 
     /**
      * A Long Nightmare's clock (DESIGN, after the novel's current arc, where a
@@ -127,7 +144,9 @@ public record NightmarePack(String displayName, String setting, ResourceLocation
         /** Every block at {@code points} is lit (a campfire, a candle, anything with a {@code lit} state). */
         LIGHT("light"),
         /** Someone is still alive {@code after} seconds in. */
-        SURVIVE("survive");
+        SURVIVE("survive"),
+        /** A challenger stands within {@code radius} blocks of one of {@code points}. */
+        REACH("reach");
 
         public static final Codec<EndingKind> CODEC = Codec.STRING.comapFlatMap(name -> {
             for (EndingKind kind : values()) {
@@ -150,13 +169,14 @@ public record NightmarePack(String displayName, String setting, ResourceLocation
      * can be met. {@code role} names the role whose fate it fulfils: a challenger
      * holding that role earns {@code role_score} more and the {@code role_deed}.
      */
-    public record Ending(String id, EndingKind kind, int after, List<String> points, int score, String deed,
+    public record Ending(String id, EndingKind kind, int after, List<String> points, int radius, int score, String deed,
                          String comment, Optional<String> role, int roleScore, String roleDeed) {
         public static final Codec<Ending> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.STRING.fieldOf("id").forGetter(Ending::id),
                 EndingKind.CODEC.fieldOf("kind").forGetter(Ending::kind),
                 Codec.intRange(0, 24 * 3600).optionalFieldOf("after", 0).forGetter(Ending::after),
                 Codec.STRING.listOf().optionalFieldOf("points", List.of()).forGetter(Ending::points),
+                Codec.intRange(1, 64).optionalFieldOf("radius", 3).forGetter(Ending::radius),
                 Codec.intRange(0, 10000).optionalFieldOf("score", 0).forGetter(Ending::score),
                 Codec.STRING.optionalFieldOf("deed", "").forGetter(Ending::deed),
                 Codec.STRING.optionalFieldOf("comment", "").forGetter(Ending::comment),
@@ -184,7 +204,8 @@ public record NightmarePack(String displayName, String setting, ResourceLocation
             Codec.unboundedMap(Codec.STRING, Codec.STRING).optionalFieldOf("comments", Map.of()).forGetter(NightmarePack::comments),
             Codec.unboundedMap(Codec.STRING, ResourceLocation.CODEC).optionalFieldOf("boons", Map.of()).forGetter(NightmarePack::boons),
             Codec.STRING.optionalFieldOf("lore", "").forGetter(NightmarePack::lore),
-            LongRun.CODEC.optionalFieldOf("long").forGetter(NightmarePack::longRun)
+            LongRun.CODEC.optionalFieldOf("long").forGetter(NightmarePack::longRun),
+            Breach.CODEC.optionalFieldOf("breach").forGetter(NightmarePack::breach)
     ).apply(instance, NightmarePack::new)).validate(NightmarePack::check);
 
     public NightmarePack {
@@ -221,6 +242,9 @@ public record NightmarePack(String displayName, String setting, ResourceLocation
             }
             if (ending.kind() == EndingKind.LIGHT && ending.points().isEmpty()) {
                 return DataResult.error(() -> "Ending " + ending.id() + " lights no points");
+            }
+            if (ending.kind() == EndingKind.REACH && ending.points().isEmpty()) {
+                return DataResult.error(() -> "Ending " + ending.id() + " names no point to reach");
             }
             if (ending.role().isPresent() && !roleIds.contains(ending.role().get())) {
                 return DataResult.error(() -> "Ending " + ending.id() + " names an unknown role");

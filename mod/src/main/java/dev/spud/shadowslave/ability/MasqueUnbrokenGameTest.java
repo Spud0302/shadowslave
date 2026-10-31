@@ -44,7 +44,7 @@ public final class MasqueUnbrokenGameTest {
         helper.assertTrue(worn.get(1).getCount() == 1, "a sword doesn't stack");
         helper.assertTrue(MasqueFace.roleKit(other, kit).get(0).getCount() == 3, "only for a Masque");
 
-        NightmarePack.Ending ending = new NightmarePack.Ending("vigil", NightmarePack.EndingKind.LIGHT, 0, List.of(), 90, "", "",
+        NightmarePack.Ending ending = new NightmarePack.Ending("vigil", NightmarePack.EndingKind.LIGHT, 0, List.of(), 3, 90, "", "",
                 Optional.of("lamplighter"), 40, "");
         TrialSettings settings = TrialContent.get().settings();
         SpellJudge.Run run = SpellJudge.Run.simple(Map.of(), 0, "lamplighter", 1, 0);

@@ -152,7 +152,12 @@ public final class SoulSeaScreen extends Screen {
         }
         graphics.drawCenteredString(this.font, "Rise to " + humanize(sea.nextRank()), centre, y, SpellStyle.TITLE);
         y += 12;
-        graphics.drawCenteredString(this.font, sea.requirement(), centre, y, sea.ready() ? SpellStyle.TEXT : SpellStyle.MUTED);
+        // Two lines fit above the cards; a requirement with several parts wraps onto the second.
+        List<FormattedCharSequence> requirement = this.font.split(Component.literal(sea.requirement()), right - left - 32);
+        for (int i = 0; i < Math.min(2, requirement.size()); i++) {
+            graphics.drawCenteredString(this.font, requirement.get(i), centre, y + i * 10,
+                    sea.ready() ? SpellStyle.TEXT : SpellStyle.MUTED);
+        }
 
         List<SoulSeaPayload.Choice> choices = sea.choices();
         int cardWidth = cardWidth(choices.size());

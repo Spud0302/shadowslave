@@ -8,6 +8,7 @@ import dev.spud.shadowslave.creature.CreatureRank;
 import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.spell.SpellJudge;
 import dev.spud.shadowslave.trial.content.EchoSite;
+import dev.spud.shadowslave.trial.content.FirstNightmareSettings;
 import dev.spud.shadowslave.trial.content.LongNightmareSettings;
 import dev.spud.shadowslave.trial.content.NightmarePack;
 import dev.spud.shadowslave.trial.content.ScarSettings;
@@ -51,6 +52,21 @@ class TrialContentTest {
     }
 
     @Test
+    void theFirstNightmareSettingsNameABundledPack() throws Exception {
+        FirstNightmareSettings first = FirstNightmareSettings.IN_SETTINGS.parse(JsonOps.INSTANCE, json("nightmare_trial/settings.json"))
+                .getOrThrow();
+        assertEquals(List.of("shadowslave:chain_road"), first.nightmares().stream().map(Object::toString).toList());
+        assertTrue(first.bloom().size() >= 1 && !first.stirs().isEmpty() && !first.withered().isEmpty());
+        for (var id : first.nightmares()) {
+            JsonElement pack = json("nightmare_trial/nightmare/" + id.getPath() + ".json");
+            assertTrue(pack.getAsJsonObject().has("breach"), "a First Nightmare says what follows a fallen carrier out");
+        }
+        assertEquals(FirstNightmareSettings.DEFAULT,
+                FirstNightmareSettings.IN_SETTINGS.parse(JsonOps.INSTANCE, JsonParser.parseString("{}")).getOrThrow(),
+                "a settings file without a first_nightmare block keeps the defaults");
+    }
+
+    @Test
     void aLongRunCountsItsDays() {
         NightmarePack.LongRun run = new NightmarePack.LongRun(600, "Day {day}.", 5, "");
         assertEquals(1, run.dayAt(0));
@@ -90,7 +106,7 @@ class TrialContentTest {
 
     @Test
     void theJudgeAddsEndingKillsRoleAndSolo() {
-        NightmarePack.Ending vigil = new NightmarePack.Ending("vigil", NightmarePack.EndingKind.LIGHT, 150, List.of("a"), 90,
+        NightmarePack.Ending vigil = new NightmarePack.Ending("vigil", NightmarePack.EndingKind.LIGHT, 150, List.of("a"), 3, 90,
                 "You lit the lamps.", "The Watch opened its eyes.", Optional.of("lamplighter"), 25, "A Lamplighter kept the lamps.");
         Map<String, Integer> kills = new LinkedHashMap<>();
         kills.put("Dormant Beast, Ash Burrower", 3);
@@ -111,7 +127,7 @@ class TrialContentTest {
 
     @Test
     void theJudgeReadsHowYouPlayed() {
-        NightmarePack.Ending dawn = new NightmarePack.Ending("dawn", NightmarePack.EndingKind.SURVIVE, 480, List.of(), 25,
+        NightmarePack.Ending dawn = new NightmarePack.Ending("dawn", NightmarePack.EndingKind.SURVIVE, 480, List.of(), 3, 25,
                 "", "", Optional.empty(), 0, "");
         Map<String, Integer> kills = Map.of("Awakened Monster, Chainback", 1);
         SpellJudge.Run traitor = new SpellJudge.Run(kills, 10, 0, 1, "watch_slave", 4, 0, 1, 3, 4);

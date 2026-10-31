@@ -29,7 +29,7 @@ import java.util.Set;
 /**
  * {@code /shadowslave trial}: anyone can read their Nightmare record with
  * {@code status}. Operators can list and visit echo sites, grow a Seed at one,
- * start a Nightmare directly, skip its clock, force an ending, end it, and
+ * start a Nightmare directly, bloom a player's First Nightmare, skip its clock, force an ending, end it, and
  * forget a player's record.
  */
 public final class TrialCommands {
@@ -70,6 +70,11 @@ public final class TrialCommands {
                                                         .executes(context -> start(context.getSource(), nightmare(context),
                                                                 IntegerArgumentType.getInteger(context, "category"),
                                                                 EntityArgument.getPlayers(context, "players")))))))
+                        .then(Commands.literal("first")
+                                .requires(source -> source.hasPermission(2))
+                                .executes(context -> first(context.getSource(), context.getSource().getPlayerOrException()))
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .executes(context -> first(context.getSource(), EntityArgument.getPlayer(context, "player")))))
                         .then(Commands.literal("skip")
                                 .requires(source -> source.hasPermission(2))
                                 .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 3600))
@@ -86,6 +91,18 @@ public final class TrialCommands {
                                 .requires(source -> source.hasPermission(2))
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .executes(context -> forget(context.getSource(), EntityArgument.getPlayer(context, "player")))))));
+    }
+
+    /** Blooms a player's First Nightmare now, whatever their rank or the rule says. */
+    private static int first(CommandSourceStack source, ServerPlayer player) {
+        Optional<TrialInstance> run = FirstNightmare.bloom(player);
+        if (run.isEmpty()) {
+            source.sendFailure(Component.literal("No First Nightmare could start for " + player.getScoreboardName() + "."));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.literal(player.getScoreboardName() + "'s First Nightmare bloomed: "
+                + run.get().pack().displayName() + "."), true);
+        return Command.SINGLE_SUCCESS;
     }
 
     private static ResourceLocation site(com.mojang.brigadier.context.CommandContext<CommandSourceStack> context) {

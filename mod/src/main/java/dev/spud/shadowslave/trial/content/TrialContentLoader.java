@@ -23,7 +23,8 @@ import java.util.Optional;
  * ({@code nightmare_trial/settings.json}) and echo sites
  * ({@code dream_realm/echo_site/*.json}). A data pack can add a Nightmare and
  * the place it grows from without code. The settings file also holds the
- * Nightmare Scar ({@code scar}) and Long Nightmare ({@code long_nightmares}) tuning.
+ * Nightmare Scar ({@code scar}), Long Nightmare ({@code long_nightmares}) and First
+ * Nightmare ({@code first_nightmare}) tuning.
  */
 public final class TrialContentLoader extends SimplePreparableReloadListener<TrialContent> {
     private static final FileToIdConverter NIGHTMARES = FileToIdConverter.json("nightmare_trial/nightmare");
@@ -54,7 +55,11 @@ public final class TrialContentLoader extends SimplePreparableReloadListener<Tri
                 .orElse(ScarSettings.DEFAULT);
         LongNightmareSettings longNightmares = settingsFile.flatMap(resource -> parse(SETTINGS, resource, LongNightmareSettings.IN_SETTINGS))
                 .orElse(LongNightmareSettings.DEFAULT);
-        return new TrialContent(settings, scar, longNightmares, nightmares, sites);
+        FirstNightmareSettings firstNightmare = settingsFile.flatMap(resource -> parse(SETTINGS, resource, FirstNightmareSettings.IN_SETTINGS))
+                .orElse(FirstNightmareSettings.DEFAULT);
+        firstNightmare.nightmares().stream().filter(id -> !nightmares.containsKey(id)).forEach(id ->
+                ShadowSlaveMod.LOGGER.error("The First Nightmare settings name a missing Nightmare {}", id));
+        return new TrialContent(settings, scar, longNightmares, firstNightmare, nightmares, sites);
     }
 
     @Override

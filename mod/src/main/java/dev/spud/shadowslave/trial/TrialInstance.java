@@ -43,6 +43,8 @@ public final class TrialInstance {
     boolean tyrantSlain;
     boolean over;
     int falls;
+    /** A First Nightmare: born from the Seed inside its challenger, and the way they Awaken. */
+    boolean first;
     ServerBossEvent tyrantBar;
     /** The last day of a Long Nightmare the Spell announced. */
     int dayAnnounced = 1;
@@ -192,6 +194,10 @@ public final class TrialInstance {
 
     public int category() {
         return category;
+    }
+
+    public boolean first() {
+        return first;
     }
 
     public Optional<UUID> seed() {

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:gift",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "shadowslave:awakened_soul_shard",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}

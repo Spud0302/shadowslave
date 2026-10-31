@@ -19,12 +19,21 @@ public final class TrialRules {
     public static final GameRules.Key<GameRules.BooleanValue> HARDCORE = GameRules.register(
             "shadowslaveNightmareHardcore", GameRules.Category.PLAYER, GameRules.BooleanValue.create(false));
     /**
-     * The First Nightmare: with this on, Awakening also needs a cleared
-     * Category 1 Nightmare, as in the novel (ch. 1-17). Off for now, so
-     * Awakening stays full-core-only while the rest is tested (Jack, 2026-10-29).
+     * The First Nightmare: with this on, Awakening also needs the First
+     * Nightmare conquered, as in the novel (ch. 1-17). Once a Dormant core is
+     * saturated, sleeping beside a lit Dream Candle makes the Seed inside the
+     * carrier bloom into a solo Nightmare ({@link FirstNightmare}). Off until
+     * Jack decides to switch it on, so Awakening stays full-core-only
+     * (Jack, 2026-10-29 and 2026-10-31).
      */
     public static final GameRules.Key<GameRules.BooleanValue> FIRST_NIGHTMARE = GameRules.register(
             "shadowslaveFirstNightmare", GameRules.Category.PLAYER, GameRules.BooleanValue.create(false));
+    /**
+     * Breach: a death in the First Nightmare lets one of its creatures out into
+     * the waking world beside the fallen carrier (CANON, ch. 1 and 23). Off by default.
+     */
+    public static final GameRules.Key<GameRules.BooleanValue> FIRST_NIGHTMARE_BREACH = GameRules.register(
+            "shadowslaveFirstNightmareBreach", GameRules.Category.PLAYER, GameRules.BooleanValue.create(false));
 
     private TrialRules() {
     }
@@ -47,5 +56,9 @@ public final class TrialRules {
 
     public static boolean firstNightmare(MinecraftServer server) {
         return server.getGameRules().getBoolean(FIRST_NIGHTMARE);
+    }
+
+    public static boolean firstNightmareBreach(MinecraftServer server) {
+        return server.getGameRules().getBoolean(FIRST_NIGHTMARE_BREACH);
     }
 }
