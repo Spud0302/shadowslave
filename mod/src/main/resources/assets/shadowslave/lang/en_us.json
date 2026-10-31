@@ -119,5 +119,8 @@
   "effect.shadowslave.nightmare_scar": "Nightmare Scar",
   "biome.shadowslave.thornwake_basin": "Thornwake Basin",
   "death.attack.shadowslave.black_briar": "%1$s was torn apart by black briars",
-  "death.attack.shadowslave.black_briar.player": "%1$s was torn apart by black briars while fighting %2$s"
+  "death.attack.shadowslave.black_briar.player": "%1$s was torn apart by black briars while fighting %2$s",
+  "block.shadowslave.field_board": "Field Guide Board",
+  "item.shadowslave.field_note.tooltip_author": "Copied by %s",
+  "item.shadowslave.field_note.tooltip_page": "Use to read it into your Field Guide"
 }

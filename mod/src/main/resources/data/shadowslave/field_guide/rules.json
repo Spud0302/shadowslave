@@ -9,5 +9,50 @@
   "place_range": 48,
   "seed_range": 24,
   "danger_cell": 64,
-  "death_step": 1
+  "death_step": 1,
+  "paths": {
+    "cell": 4,
+    "max_cells": 8192,
+    "walk_again_ticks": 1200,
+    "established_walks": 8,
+    "walks_per_player": 8,
+    "needs_guide": true
+  },
+  "notes": {
+    "cost": [
+      {
+        "item": "minecraft:paper",
+        "count": 1
+      },
+      {
+        "item": "minecraft:ink_sac",
+        "count": 1
+      }
+    ],
+    "chart_radius": 6,
+    "board_capacity": 12,
+    "lost": {
+      "creature_weight": 3,
+      "chart_weight": 2,
+      "max_sightings": 5,
+      "max_kills": 2,
+      "chart_radius": 3,
+      "author": "a Sleeper who did not make it",
+      "warnings": [
+        "Do not stay the night",
+        "Something under the ash",
+        "They came from here",
+        "Turn back",
+        "Not alone here",
+        "Do not follow the voices"
+      ],
+      "endings": [
+        "The last line trails off.",
+        "The ink is smeared, as if written running.",
+        "A corner is torn away.",
+        "The hand gets shakier near the end.",
+        "Someone has underlined the warning twice."
+      ]
+    }
+  }
 }

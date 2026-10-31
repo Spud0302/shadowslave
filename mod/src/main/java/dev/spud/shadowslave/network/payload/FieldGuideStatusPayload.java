@@ -15,13 +15,15 @@ import java.util.List;
  * Server-to-client reading of the player's Field Guide, apart from the map
  * itself (see {@link FieldGuideMapPayload}): creature pages with only their
  * revealed sections, pins and places, danger ratings and the Dream Realm's
- * rank regions. Text is worded on the server. {@code open} asks the client
- * to open the guide.
+ * rank regions, whether Trace is on, and what copying onto a Field Note
+ * costs and covers. Text is worded on the server. {@code open} asks the
+ * client to open the guide.
  */
 public record FieldGuideStatusPayload(List<Creature> creatures, List<Pin> pins, List<Danger> danger, List<Region> regions,
-                                      String realm, int ratio, int dangerCell, boolean open) implements CustomPacketPayload {
+                                      String realm, int ratio, int dangerCell, boolean open, boolean tracing, int chartRadius,
+                                      String copyCost) implements CustomPacketPayload {
     public static final FieldGuideStatusPayload NONE = new FieldGuideStatusPayload(List.of(), List.of(), List.of(), List.of(),
-            "", 8, 64, false);
+            "", 8, 64, false, false, 6, "");
 
     public record Section(String title, String text) {
         static final Codec<Section> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -101,7 +103,10 @@ public record FieldGuideStatusPayload(List<Creature> creatures, List<Pin> pins, 
             Codec.STRING.fieldOf("realm").forGetter(FieldGuideStatusPayload::realm),
             Codec.INT.fieldOf("ratio").forGetter(FieldGuideStatusPayload::ratio),
             Codec.INT.fieldOf("cell").forGetter(FieldGuideStatusPayload::dangerCell),
-            Codec.BOOL.fieldOf("open").forGetter(FieldGuideStatusPayload::open)
+            Codec.BOOL.fieldOf("open").forGetter(FieldGuideStatusPayload::open),
+            Codec.BOOL.fieldOf("tracing").forGetter(FieldGuideStatusPayload::tracing),
+            Codec.INT.fieldOf("chart_radius").forGetter(FieldGuideStatusPayload::chartRadius),
+            Codec.STRING.fieldOf("copy_cost").forGetter(FieldGuideStatusPayload::copyCost)
     ).apply(instance, FieldGuideStatusPayload::new));
 
     public static final Type<FieldGuideStatusPayload> TYPE = new Type<>(

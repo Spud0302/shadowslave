@@ -10,6 +10,7 @@ import dev.spud.shadowslave.network.payload.GatewayStatusPayload;
 import dev.spud.shadowslave.network.payload.TrueNamePayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
+import dev.spud.shadowslave.network.payload.FieldGuidePathPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
 import dev.spud.shadowslave.network.payload.SoulSeaPayload;
 import dev.spud.shadowslave.network.payload.SoulSnapshotPayload;
@@ -108,6 +109,10 @@ public final class ClientPayloadHandler {
 
     public static void handleFieldGuideMap(FieldGuideMapPayload payload, IPayloadContext context) {
         ClientFieldGuideState.applyMap(payload);
+    }
+
+    public static void handleFieldGuidePaths(FieldGuidePathPayload payload, IPayloadContext context) {
+        ClientFieldGuideState.applyPaths(payload);
     }
 
     public static void handleCoreStatus(CoreStatusPayload payload, IPayloadContext context) {
