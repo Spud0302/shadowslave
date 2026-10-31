@@ -11,6 +11,8 @@
   "key.shadowslave.toggle_echo": "Call / Dismiss Echoes",
   "key.shadowslave.toggle_echo_mode": "Echo Command Wheel (hold)",
   "key.shadowslave.toggle_memory": "Summon / Dismiss Ash Compass",
+  "key.shadowslave.open_dev_menu": "Open Dev Menu (operators)",
+  "screen.shadowslave.dev_menu": "Dev Menu",
   "screen.shadowslave.gateway": "Gateway",
   "screen.shadowslave.soul": "Soul Interface",
   "screen.shadowslave.soul.tabs_hint": "Click a tab or press 1-8  \u00b7  Esc to close",

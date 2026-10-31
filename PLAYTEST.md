@@ -54,6 +54,38 @@ its folder name.
 You play offline as `Dev`. Multiplayer servers that need a Microsoft account
 won't accept this client.
 
+## Dev menu (testing shortcuts)
+
+Added by claude-code, 2026-10-31.
+
+Press **F7** (rebindable under Controls, Shadow Slave) to open the dev menu. It
+needs operator rights: turn cheats on when you create a single-player world, or
+`/op` yourself on a server. Without them the key only shows a short message.
+Every button sends a `/shadowslave` command, so the server still checks
+permission, and you can type the same commands by hand.
+
+- **Nature**: click any of the 28 Natures to become it on the spot, without the
+  Dream Candle or the reveal. An Awakened soul stays Awakened and gets that
+  Nature's first Awakened ability (`/shadowslave dev nature <nature>`).
+- **First key**: put any Nature's Dormant ability on R
+  (`/shadowslave dev ability dormant <ability>`). Your Nature, innate rule and
+  Flaw stay the same, so you can try one ability against another kit.
+- **Second key**: put any of the 56 Awakened abilities on V, two pages of
+  Natures, or clear it (`/shadowslave dev ability awakened <ability|none>`). You
+  do not need to be Awakened.
+- **Progress**: set the soul to Dormant or Awakened (`/shadowslave dev rank`),
+  empty, half-fill or fill the core, restore health, food and essence
+  (`/shadowslave dev restore`), toggle free casting so abilities cost no essence
+  (`/shadowslave dev free_casting`), take 16 soul shards of any rank
+  (`/shadowslave dev shards <rank> [count]`), reroll a random Aspect, or reset the
+  soul.
+- **World**: enter or wake from the Dream Realm, open a Category 1 or 2 Gate or
+  close it, set day or night, clear the weather, switch creative or survival,
+  skip 60 seconds or abort inside a Nightmare, and start any Nightmare on your
+  own.
+
+Hover a button to read what it does. The footer shows what is on each key now.
+
 ## Rolling an Aspect (Dream Candle)
 
 Added by claude-code, 2026-10-22.

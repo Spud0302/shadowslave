@@ -1,6 +1,7 @@
 package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.ShadowSlaveMod;
+import dev.spud.shadowslave.devtools.DevTools;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.EchoActionPayload;
 import dev.spud.shadowslave.network.payload.OpenSoulScreenRequestPayload;
@@ -8,9 +9,11 @@ import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoModeRequestPayl
 import dev.spud.shadowslave.network.payload.ToggleAshBurrowerEchoRequestPayload;
 import dev.spud.shadowslave.network.payload.MemoryKeyPayload;
 import dev.spud.shadowslave.network.payload.UseAbilityRequestPayload;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.sounds.SoundEvents;
 import net.neoforged.api.distmarker.Dist;
@@ -50,6 +53,16 @@ public final class ClientGameEvents {
             }
         } else {
             consume(ClientKeyMappings.TOGGLE_ECHO_MODE, ToggleAshBurrowerEchoModeRequestPayload.INSTANCE, minecraft);
+        }
+        while (ClientKeyMappings.OPEN_DEV_MENU.consumeClick()) {
+            if (minecraft.player != null && minecraft.screen == null) {
+                if (minecraft.player.hasPermissions(DevTools.PERMISSION)) {
+                    minecraft.setScreen(new DevMenuScreen());
+                } else {
+                    minecraft.player.displayClientMessage(Component.literal("The dev menu needs operator rights (or cheats on).")
+                            .withStyle(ChatFormatting.GRAY), true);
+                }
+            }
         }
         if (minecraft.level != null && ClientAbilityState.consumeReadyCue(minecraft.level.getGameTime())) {
             minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_CHIME, 1.4F, 0.6F));

@@ -22,6 +22,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -69,7 +70,19 @@ public final class LongNightmareGameTest {
         ServerLevel nightmare = (ServerLevel) player.level();
         TrialService.skip(nightmare, instance, 5);
         TrialInstance.Member member = instance.member(player.getUUID()).orElseThrow();
+        // A mock player loads no chunks around itself, and a figure left in a chunk whose entities are not loaded
+        // cannot be found by its id. Hold the chunk loaded, as a real player standing there would, and wait for it.
+        ChunkPos chunk = new ChunkPos(player.blockPosition());
+        nightmare.setChunkForced(chunk.x, chunk.z, true);
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(nightmare.areEntitiesLoaded(chunk.toLong()), "the sleeper's chunk loads"))
+                .thenExecute(() -> sleepAndReturn(helper, player, nightmare, instance, member))
+                .thenExecute(() -> nightmare.setChunkForced(chunk.x, chunk.z, false))
+                .thenSucceed();
+    }
 
+    private static void sleepAndReturn(GameTestHelper helper, ServerPlayer player, ServerLevel nightmare, TrialInstance instance,
+                                       TrialInstance.Member member) {
         TrialService.onPlayerLoggedOut(new PlayerEvent.PlayerLoggedOutEvent(player));
         helper.assertTrue(member.away() && member.inside(), "logging out leaves them asleep inside");
         helper.assertFalse(instance.over(), "the Long Nightmare keeps running");
@@ -99,7 +112,6 @@ public final class LongNightmareGameTest {
         player.hasChangedDimension();
         helper.assertTrue(TrialData.get(player.server).record(player.getUUID()).clears(3) == 1, "a Category 3 clear is on the record");
         helper.assertTrue(LongNightmareData.get(player.server).runOf(player.getUUID()).isEmpty(), "the finished run is forgotten");
-        helper.succeed();
     }
 
     @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room", timeoutTicks = 400)

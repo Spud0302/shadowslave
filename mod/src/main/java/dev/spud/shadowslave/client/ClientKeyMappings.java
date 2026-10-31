@@ -25,6 +25,7 @@ public final class ClientKeyMappings {
     public static final KeyMapping TOGGLE_MEMORY = key("key.shadowslave.toggle_memory", GLFW.GLFW_KEY_G);
     public static final KeyMapping TOGGLE_ECHO = key("key.shadowslave.toggle_echo", GLFW.GLFW_KEY_H);
     public static final KeyMapping TOGGLE_ECHO_MODE = key("key.shadowslave.toggle_echo_mode", GLFW.GLFW_KEY_J);
+    public static final KeyMapping OPEN_DEV_MENU = key("key.shadowslave.open_dev_menu", GLFW.GLFW_KEY_F7);
 
     private ClientKeyMappings() {
     }
@@ -56,6 +57,7 @@ public final class ClientKeyMappings {
         event.register(TOGGLE_MEMORY);
         event.register(TOGGLE_ECHO);
         event.register(TOGGLE_ECHO_MODE);
+        event.register(OPEN_DEV_MENU);
     }
 
     private static KeyMapping key(String translationKey, int keyCode) {
