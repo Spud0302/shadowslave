@@ -24,7 +24,7 @@ class KitLadderTest {
         }
         Set<Object> ids = new HashSet<>();
         KitLadder.all().forEach(variant -> assertTrue(ids.add(variant.abilityId()), "duplicate " + variant.abilityId()));
-        assertEquals(60, ids.size());
+        assertEquals(64, ids.size());
     }
 
     @Test

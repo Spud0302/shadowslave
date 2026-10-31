@@ -1177,6 +1177,42 @@ Operators: `/shadowslave citadel war skip <hours>` moves the war clock ahead,
 `war tick` runs one second of war, `war cut` cuts the nearest claimed
 Citadel's anchor, `war end <clan>` ends a clan's wars.
 
+### Field Guide Natures: Scribe and Surveyor
+
+Added by claude-code, 2026-10-31. Quick start: `/shadowslave aspect set scribe`
+(or surveyor), then `/shadowslave core fill` and `/shadowslave awaken <name>`
+for the Awakened choices. Carry a Field Guide (it is handed out on first join).
+
+| Nature | Innate (always on) | Ability (R) | Flaw |
+| --- | --- | --- | --- |
+| Scribe | Quick Study: each sighting fills a creature page twice as fast, and copying a Field Note takes no ink sac (paper only) | Ward Script: a 4-block ring of runes where you stand for 10 s. Hostile creatures of your rank or lower are pushed out to its edge and cannot cross back in (30 essence) | Inkbound: every ability also spends a sheet of paper (or an ink sac) and fails without one |
+| Surveyor | Wide Eye: your guide's map fills in two chunks further around you | Survey Pulse: your guide maps everything within 48 blocks at once, and for 30 s you alone see the outlines of the structures there (end-rod light) and the cave hollows under it (soul flames) (30 essence) | Uncharted Dread: where your guide's map shows nothing yet, abilities cost double essence |
+
+Awakened choices: Scribe picks **Lorebind** (study the creature you look at,
+24 blocks: for a minute you and clanmates within 32 blocks of you deal a
+quarter more damage to its kind; 35 essence) or **Living Page** (always on:
+a Field Note you copy says "A Living Page", and whenever someone reads it
+while you are online it is rewritten from your guide as it stands, so they
+learn what you have learned since). Surveyor picks **Triangulate** (pins the
+exact spot of the nearest open Gate, or in the Dream Realm the nearest Seed
+if nearer, however far; 40 essence) or **Fault Line** (cracks the ground 12
+blocks ahead: creatures on the line take 4 damage and Slowness II for 5 s;
+no blocks break; 35 essence).
+
+Things to try:
+
+1. Scribe: look at a Nightmare Creature through the guide and count the
+   sightings; copy a page with paper but no ink. Write a Ward Script with
+   zombies walking at you at night, with and without paper in your pack.
+   Awakened: Lorebind a zombie and compare the kills with a friend in your
+   clan, or copy a Living Page, learn more about that creature, and have
+   someone read the note again.
+2. Surveyor: walk somewhere new and open the map (the patch is wider). Use
+   an ability off the map and watch the essence cost double. Pulse near a
+   village or a ravine and look for the outlines. Awakened: open a Gate with
+   `/shadowslave gate open 1`, walk a few hundred blocks off and Triangulate it, or run a Fault Line
+   through a row of husks.
+
 ### War Natures: Saboteur and Standard
 
 Added by claude-code, 2026-10-31. Quick start: `/shadowslave aspect set saboteur`

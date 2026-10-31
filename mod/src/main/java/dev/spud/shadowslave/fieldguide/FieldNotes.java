@@ -1,10 +1,14 @@
 package dev.spud.shadowslave.fieldguide;
 
+import dev.spud.shadowslave.ability.KitRules;
+import dev.spud.shadowslave.ability.ScribeLore;
 import dev.spud.shadowslave.creature.CreatureRank;
 import dev.spud.shadowslave.network.payload.FieldGuideCopyRequestPayload;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -55,11 +59,16 @@ public final class FieldNotes {
                     .withStyle(ChatFormatting.GRAY), true);
             return Optional.empty();
         }
-        ItemStack note = note(page.get());
+        FieldNotePage written = page.get();
+        if (ScribeLore.writesLivingPages(player)) {
+            written = living(written);
+            LivingPages.get(player.server).add(written.id(), player.getUUID(), request);
+        }
+        ItemStack note = note(written);
         if (!player.getInventory().add(note.copy())) {
             player.drop(note.copy(), false);
         }
-        player.displayClientMessage(Component.literal("Copied onto a Field Note: " + page.get().title()).withStyle(ChatFormatting.GOLD), true);
+        player.displayClientMessage(Component.literal("Copied onto a Field Note: " + written.title()).withStyle(ChatFormatting.GOLD), true);
         player.serverLevel().playSound(null, player.blockPosition(), SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 1.0F, 1.2F);
         return Optional.of(note);
     }
@@ -81,12 +90,27 @@ public final class FieldNotes {
         };
     }
 
-    /** Takes the copy's cost from the player's inventory, unless they are in creative. Returns false, taking nothing, if they cannot pay. */
+    /** A Living Page's face says so. */
+    static FieldNotePage living(FieldNotePage page) {
+        List<String> lines = new ArrayList<>(page.lines());
+        lines.add(LIVING_LINE);
+        return new FieldNotePage(page.kind(), page.title(), page.author(), lines, page.knowledge(), page.id());
+    }
+
+    static final String LIVING_LINE = "A Living Page: it keeps up with its writer.";
+
+    /**
+     * Takes the copy's cost from the player's inventory, unless they are in creative. Returns false, taking nothing, if they cannot pay.
+     * A Scribe's Quick Study writes without ink: they pay only the parts of the cost that are not ink.
+     */
     static boolean pay(ServerPlayer player) {
         if (player.getAbilities().instabuild) {
             return true;
         }
-        List<FieldGuideSettings.Cost> cost = settings().notes().cost();
+        boolean scribe = ScribeLore.isScribe(player);
+        List<FieldGuideSettings.Cost> cost = settings().notes().cost().stream()
+                .filter(each -> !scribe || !BuiltInRegistries.ITEM.getKey(each.item()).getPath().contains("ink"))
+                .toList();
         for (FieldGuideSettings.Cost each : cost) {
             if (player.getInventory().countItem(each.item()) < each.count()) {
                 return false;
@@ -253,6 +277,7 @@ public final class FieldNotes {
 
     /** Reads a note into the player's guide. Returns what they learned. */
     public static FieldGuideData.Learned read(ServerPlayer player, ItemStack stack, FieldNotePage page) {
+        page = refresh(player.server, stack, page);
         FieldGuideData.Learned learned = learn(player, page.knowledge());
         if (!learned.any()) {
             player.displayClientMessage(Component.literal("Your Field Guide already knows everything on this note.")
@@ -267,6 +292,30 @@ public final class FieldNotes {
             player.sendSystemMessage(Component.literal("The note crumbles as you finish reading it.").withStyle(ChatFormatting.DARK_GRAY));
         }
         return learned;
+    }
+
+    /**
+     * Living Page: a note whose writer is about is written again from their guide as it stands now,
+     * keeping its id, so the reader learns what the writer has learned since.
+     */
+    static FieldNotePage refresh(MinecraftServer server, ItemStack stack, FieldNotePage page) {
+        Optional<LivingPages.Living> living = LivingPages.get(server).living(page.id());
+        if (living.isEmpty()) {
+            return page;
+        }
+        ServerPlayer writer = KitRules.online(server, living.get().author());
+        if (writer == null) {
+            return page;
+        }
+        FieldNotePage.Kind kind = FieldNotePage.Kind.byName(living.get().request().kind());
+        Optional<FieldNotePage> again = kind == null ? Optional.empty() : page(writer, kind, living.get().request());
+        if (again.isEmpty()) {
+            return page;
+        }
+        FieldNotePage fresh = living(new FieldNotePage(again.get().kind(), again.get().title(), again.get().author(),
+                again.get().lines(), again.get().knowledge(), page.id()));
+        stack.set(FieldGuideRegistry.NOTE_PAGE.get(), fresh);
+        return fresh;
     }
 
     /** Adds a slice of a guide to the player's guide and sends them what changed. */

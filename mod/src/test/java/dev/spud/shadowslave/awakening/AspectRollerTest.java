@@ -49,8 +49,8 @@ class AspectRollerTest {
     @Test
     void everyNatureIsReachableWithoutEvidence() {
         Map<AspectKit, Integer> counts = distribution(NO_EVIDENCE, 6000);
-        assertEquals(30, counts.size());
-        counts.values().forEach(count -> assertTrue(count > 150 && count < 260, counts.toString()));
+        assertEquals(32, counts.size());
+        counts.values().forEach(count -> assertTrue(count > 140 && count < 245, counts.toString()));
     }
 
     @Test
@@ -69,9 +69,9 @@ class AspectRollerTest {
                 new PlaystyleEvidence.Totals(0, 0, 0, PlaystyleEvidence.TIDE_HIGH_CM));
         Map<AspectKit, Integer> counts = distribution(swimmer, 6000);
         int tide = counts.getOrDefault(AspectKitCatalog.TIDE, 0);
-        // 40 of 736 weight: about 5.5%, against about 3.3% for each of the other twenty-nine.
-        assertTrue(tide > 270 && tide < 430, counts.toString());
-        assertEquals(30, counts.size());
+        // 40 of 784 weight: about 5.1%, against about 3.1% for each of the other thirty-one.
+        assertTrue(tide > 250 && tide < 400, counts.toString());
+        assertEquals(32, counts.size());
     }
 
     private static Map<AspectKit, Integer> distribution(GenerationEvidence evidence, int rolls) {

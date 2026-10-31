@@ -38,7 +38,9 @@ public enum Longing {
     MASK("Mask", "masque", "Masque"),
     WITHSTAND("Withstand", "unbroken", "Unbroken"),
     SUNDER("Sunder", "saboteur", "Saboteur"),
-    MUSTER("Muster", "standard", "Standard");
+    MUSTER("Muster", "standard", "Standard"),
+    WRITE("Write", "scribe", "Scribe"),
+    CHART("Chart", "surveyor", "Surveyor");
 
     private final String label;
     private final String evidenceTag;
