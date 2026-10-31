@@ -466,16 +466,7 @@ public final class CitadelService {
         VISITING.put(player.getUUID(), citadel.id);
         FieldGuideData.Learned learned = ClanService.shareBoard(player, clan);
         if (learned.any()) {
-            List<String> parts = new ArrayList<>();
-            if (learned.pages() > 0) {
-                parts.add(learned.pages() + (learned.pages() == 1 ? " creature page" : " creature pages"));
-            }
-            if (learned.chunks() > 0) {
-                parts.add(learned.chunks() + " stretches of map");
-            }
-            if (learned.pins() > 0) {
-                parts.add(learned.pins() + (learned.pins() == 1 ? " marked place" : " marked places"));
-            }
+            List<String> parts = learned.describe();
             DreamCrossing.spell(player, Component.literal("The Field Guide board of " + citadel.name + " fills your guide: "
                     + String.join(", ", parts) + ".").withStyle(ChatFormatting.LIGHT_PURPLE));
             player.level().playSound(null, player.blockPosition(), SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 1.0F, 1.0F);

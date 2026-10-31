@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "shadowslave:lost_notes_enabled"
+        },
+        {
+          "condition": "minecraft:random_chance",
+          "chance": 0.3
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "shadowslave:field_note",
+          "functions": [
+            {
+              "function": "shadowslave:lost_field_note"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "random_sequence": "shadowslave:field_guide/lost_note"
+}

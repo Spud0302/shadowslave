@@ -58,7 +58,7 @@ class PlayerKeybindControlsIntegrationTest {
         String dedicatedRegistration = Files.readString(PAYLOADS);
         String clientRegistration = Files.readString(CLIENT_PAYLOADS);
 
-        assertTrue(dedicatedRegistration.contains("NETWORK_VERSION = \"24\""));
+        assertTrue(dedicatedRegistration.contains("NETWORK_VERSION = \"25\""));
         for (String handler : new String[] {
                 "ServerPayloadHandler::handleOpenSoulScreen",
                 "ServerPayloadHandler::handleUseAbility",
@@ -68,7 +68,8 @@ class PlayerKeybindControlsIntegrationTest {
                 "ServerPayloadHandler::handleToggleAshBurrowerEchoMode",
                 "ServerPayloadHandler::handleCallingFrequency",
                 "ServerPayloadHandler::handleTrueNameAction",
-                "ServerPayloadHandler::handleGatewayAction"
+                "ServerPayloadHandler::handleGatewayAction",
+                "ServerPayloadHandler::handleFieldGuideCopy"
         }) {
             assertTrue(dedicatedRegistration.contains(handler));
             assertTrue(clientRegistration.contains(handler));

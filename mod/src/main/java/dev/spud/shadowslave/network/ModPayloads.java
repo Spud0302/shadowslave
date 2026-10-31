@@ -9,7 +9,9 @@ import dev.spud.shadowslave.network.payload.CallingFrequencyPayload;
 import dev.spud.shadowslave.network.payload.SpellCallingsPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
 import dev.spud.shadowslave.network.payload.CoreStatusPayload;
+import dev.spud.shadowslave.network.payload.FieldGuideCopyRequestPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
+import dev.spud.shadowslave.network.payload.FieldGuidePathPayload;
 import dev.spud.shadowslave.network.payload.NightmareAppraisalPayload;
 import dev.spud.shadowslave.network.payload.FieldGuidePinRequestPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
@@ -38,7 +40,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 /** Common payload registration that is safe for a physical dedicated server. */
 public final class ModPayloads {
-    public static final String NETWORK_VERSION = "24";
+    public static final String NETWORK_VERSION = "25";
 
     private ModPayloads() {
     }
@@ -127,6 +129,12 @@ public final class ModPayloads {
                 }
         );
         registrar.playToClient(
+                FieldGuidePathPayload.TYPE,
+                FieldGuidePathPayload.STREAM_CODEC,
+                (payload, context) -> {
+                }
+        );
+        registrar.playToClient(
                 SpellCallingsPayload.TYPE,
                 SpellCallingsPayload.STREAM_CODEC,
                 (payload, context) -> {
@@ -194,6 +202,11 @@ public final class ModPayloads {
                 FieldGuidePinRequestPayload.TYPE,
                 FieldGuidePinRequestPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleFieldGuidePin
+        );
+        registrar.playToServer(
+                FieldGuideCopyRequestPayload.TYPE,
+                FieldGuideCopyRequestPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleFieldGuideCopy
         );
         registrar.playToServer(
                 AwakenRequestPayload.TYPE,

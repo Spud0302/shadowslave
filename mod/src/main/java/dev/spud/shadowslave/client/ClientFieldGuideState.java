@@ -2,6 +2,7 @@ package dev.spud.shadowslave.client;
 
 import dev.spud.shadowslave.fieldguide.FieldGuideData;
 import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
+import dev.spud.shadowslave.network.payload.FieldGuidePathPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
 import net.minecraft.world.level.ChunkPos;
 
@@ -10,10 +11,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/** Client-only cache of the Field Guide: the latest reading, the explored map of each dimension, and which layers are shown. */
+/** Client-only cache of the Field Guide: the latest reading, the explored map and traced paths of each dimension, and which layers are shown. */
 public final class ClientFieldGuideState {
     public enum Layer {
-        PINS("Pins"), GATES("Gates & Seeds"), DANGER("Danger"), CREATURES("Creatures"), THREATS("Seed threats");
+        PINS("Pins"), GATES("Gates"), PATHS("Paths"), DANGER("Danger"), CREATURES("Creatures"), THREATS("Threats");
 
         final String label;
 
@@ -27,6 +28,9 @@ public final class ClientFieldGuideState {
     /** Per dimension: the tiles (see {@link FieldGuideMapRenderer#TILE_CHUNKS}) that hold at least one explored chunk. */
     private static final Map<String, Set<Long>> TILES = new HashMap<>();
     private static final Set<Layer> HIDDEN = new HashSet<>();
+    /** Per dimension: path cell to how it shows ({@link FieldGuidePathPayload#FAINT} or {@link FieldGuidePathPayload#ESTABLISHED}). */
+    private static final Map<String, Map<Long, Byte>> PATHS = new HashMap<>();
+    private static int pathCell = 4;
 
     private ClientFieldGuideState() {
     }
@@ -59,6 +63,26 @@ public final class ClientFieldGuideState {
         }
     }
 
+    public static void applyPaths(FieldGuidePathPayload payload) {
+        if (payload.reset()) {
+            PATHS.remove(payload.dimension());
+        }
+        pathCell = Math.max(1, payload.cell());
+        Map<Long, Byte> cells = PATHS.computeIfAbsent(payload.dimension(), key -> new HashMap<>());
+        for (int i = 0; i < payload.cells().length; i++) {
+            cells.put(payload.cells()[i], payload.strength()[i]);
+        }
+    }
+
+    public static Map<Long, Byte> paths(String dimension) {
+        return PATHS.getOrDefault(dimension, Map.of());
+    }
+
+    /** Width in blocks of one path cell. */
+    public static int pathCell() {
+        return pathCell;
+    }
+
     public static Map<Long, byte[]> chunks(String dimension) {
         return MAPS.getOrDefault(dimension, Map.of());
     }
@@ -86,6 +110,7 @@ public final class ClientFieldGuideState {
         status = FieldGuideStatusPayload.NONE;
         MAPS.clear();
         TILES.clear();
+        PATHS.clear();
         FieldGuideMapRenderer.forgetAll();
     }
 }

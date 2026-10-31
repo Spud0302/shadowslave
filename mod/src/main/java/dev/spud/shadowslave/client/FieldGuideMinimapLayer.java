@@ -13,7 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 /**
  * Hold to peek (DESIGN, Jack 2026-10-23): with the Field Guide in the off
  * hand, a small north-up map of the explored ground around the player sits
- * in the top-left corner, with pins, Gates and Seeds on it.
+ * in the top-left corner, with paths, pins, Gates and Seeds on it.
  */
 public final class FieldGuideMinimapLayer implements LayeredDraw.Layer {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ShadowSlaveMod.MOD_ID, "field_guide_minimap");
@@ -37,6 +37,9 @@ public final class FieldGuideMinimapLayer implements LayeredDraw.Layer {
         FieldGuideMapRenderer.View view = new FieldGuideMapRenderer.View(left, top, SIZE, SIZE, player.getX(), player.getZ(), SCALE);
         graphics.enableScissor(left, top, left + SIZE, top + SIZE);
         FieldGuideMapRenderer.drawTerrain(graphics, dimension, view);
+        if (ClientFieldGuideState.shown(ClientFieldGuideState.Layer.PATHS)) {
+            FieldGuideMapRenderer.drawPaths(graphics, dimension, view);
+        }
         for (FieldGuideStatusPayload.Pin pin : ClientFieldGuideState.status().pins()) {
             boolean gateLayer = pin.kind().equals("gate") || pin.kind().equals("seed");
             if (pin.dimension().equals(dimension)

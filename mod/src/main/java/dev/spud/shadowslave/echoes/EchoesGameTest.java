@@ -67,7 +67,9 @@ public final class EchoesGameTest {
         ServerPlayer player = player(helper, true);
         WeavingMenu menu = new WeavingMenu(0, player.getInventory(), ContainerLevelAccess.NULL);
         player.containerMenu = menu;
-        EchoBody zombie = body(helper, player, "zombie");
+        // Pinned to Dormant: a zombie that spawns in armour grades higher, which made this test depend on luck.
+        EchoBody spawned = body(helper, player, "zombie");
+        EchoBody zombie = new EchoBody(spawned.entity(), spawned.name(), CreatureRank.DORMANT, "", spawned.tag(), spawned.maxHealth());
         menu.table().setItem(WeavingMenu.CENTRE_SLOT, EchoRemnants.remnant(zombie));
         helper.assertTrue(EchoBinding.bind(player, menu).isEmpty(), "no anchor, no binding");
         helper.assertTrue(EchoBinding.preview(player).map(binding -> binding.lock().contains("soul shard")).orElse(false),

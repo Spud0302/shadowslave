@@ -1,0 +1,79 @@
+{
+  "variants": {
+    "facing=north,notes=0": {
+      "model": "shadowslave:block/field_board_notes_0"
+    },
+    "facing=north,notes=1": {
+      "model": "shadowslave:block/field_board_notes_1"
+    },
+    "facing=north,notes=2": {
+      "model": "shadowslave:block/field_board_notes_2"
+    },
+    "facing=north,notes=3": {
+      "model": "shadowslave:block/field_board_notes_3"
+    },
+    "facing=north,notes=4": {
+      "model": "shadowslave:block/field_board_notes_4"
+    },
+    "facing=east,notes=0": {
+      "model": "shadowslave:block/field_board_notes_0",
+      "y": 90
+    },
+    "facing=east,notes=1": {
+      "model": "shadowslave:block/field_board_notes_1",
+      "y": 90
+    },
+    "facing=east,notes=2": {
+      "model": "shadowslave:block/field_board_notes_2",
+      "y": 90
+    },
+    "facing=east,notes=3": {
+      "model": "shadowslave:block/field_board_notes_3",
+      "y": 90
+    },
+    "facing=east,notes=4": {
+      "model": "shadowslave:block/field_board_notes_4",
+      "y": 90
+    },
+    "facing=south,notes=0": {
+      "model": "shadowslave:block/field_board_notes_0",
+      "y": 180
+    },
+    "facing=south,notes=1": {
+      "model": "shadowslave:block/field_board_notes_1",
+      "y": 180
+    },
+    "facing=south,notes=2": {
+      "model": "shadowslave:block/field_board_notes_2",
+      "y": 180
+    },
+    "facing=south,notes=3": {
+      "model": "shadowslave:block/field_board_notes_3",
+      "y": 180
+    },
+    "facing=south,notes=4": {
+      "model": "shadowslave:block/field_board_notes_4",
+      "y": 180
+    },
+    "facing=west,notes=0": {
+      "model": "shadowslave:block/field_board_notes_0",
+      "y": 270
+    },
+    "facing=west,notes=1": {
+      "model": "shadowslave:block/field_board_notes_1",
+      "y": 270
+    },
+    "facing=west,notes=2": {
+      "model": "shadowslave:block/field_board_notes_2",
+      "y": 270
+    },
+    "facing=west,notes=3": {
+      "model": "shadowslave:block/field_board_notes_3",
+      "y": 270
+    },
+    "facing=west,notes=4": {
+      "model": "shadowslave:block/field_board_notes_4",
+      "y": 270
+    }
+  }
+}

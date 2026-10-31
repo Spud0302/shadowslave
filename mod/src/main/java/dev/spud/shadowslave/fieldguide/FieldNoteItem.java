@@ -15,10 +15,11 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 
 /**
- * A Field Note: a loose page in the Field Guide's hand (DESIGN). For now it
- * carries one thing, a True Name someone wrote down (Run B); reading it
- * teaches the name to the reader, so a note is a secret anyone can pass on.
- * Copying guide pages onto notes comes with the Field Guide's next slice.
+ * A Field Note: a loose page in the Field Guide's hand (DESIGN). It carries a
+ * page copied out of someone's guide (a creature, a place, a chart, paths or
+ * danger marks), or a True Name someone wrote down (Run B). Reading it
+ * teaches what it carries to the reader, so a note is knowledge anyone can
+ * pass on, sell or pin to a board.
  */
 public final class FieldNoteItem extends Item {
     public FieldNoteItem(Properties properties) {
@@ -29,6 +30,11 @@ public final class FieldNoteItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (player instanceof ServerPlayer reader) {
+            FieldNotePage page = stack.get(FieldGuideRegistry.NOTE_PAGE.get());
+            if (page != null) {
+                FieldNotes.read(reader, stack, page);
+                return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+            }
             WrittenName written = stack.get(FieldGuideRegistry.WRITTEN_NAME.get());
             if (written == null) {
                 reader.displayClientMessage(Component.translatable("item.shadowslave.field_note.blank").withStyle(ChatFormatting.GRAY), true);
@@ -45,6 +51,16 @@ public final class FieldNoteItem extends Item {
     /** The note never shows the name on its face: it has to be read. */
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        FieldNotePage page = stack.get(FieldGuideRegistry.NOTE_PAGE.get());
+        if (page != null) {
+            tooltip.add(Component.literal(page.kind().label() + ": " + page.title()).withStyle(ChatFormatting.GOLD));
+            page.lines().forEach(line -> tooltip.add(Component.literal(line).withStyle(ChatFormatting.GRAY)));
+            if (!page.author().isEmpty()) {
+                tooltip.add(Component.translatable("item.shadowslave.field_note.tooltip_author", page.author()).withStyle(ChatFormatting.DARK_GRAY));
+            }
+            tooltip.add(Component.translatable("item.shadowslave.field_note.tooltip_page").withStyle(ChatFormatting.DARK_GRAY));
+            return;
+        }
         WrittenName written = stack.get(FieldGuideRegistry.WRITTEN_NAME.get());
         if (written == null) {
             tooltip.add(Component.translatable("item.shadowslave.field_note.tooltip_blank").withStyle(ChatFormatting.GRAY));
@@ -56,6 +72,6 @@ public final class FieldNoteItem extends Item {
 
     @Override
     public boolean isFoil(ItemStack stack) {
-        return stack.has(FieldGuideRegistry.WRITTEN_NAME.get());
+        return stack.has(FieldGuideRegistry.WRITTEN_NAME.get()) || stack.has(FieldGuideRegistry.NOTE_PAGE.get());
     }
 }

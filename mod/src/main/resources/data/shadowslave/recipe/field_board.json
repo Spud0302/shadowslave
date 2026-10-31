@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "PXP",
+    "S S"
+  ],
+  "key": {
+    "P": {
+      "tag": "minecraft:planks"
+    },
+    "X": {
+      "item": "minecraft:paper"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "id": "shadowslave:field_board",
+    "count": 1
+  }
+}
