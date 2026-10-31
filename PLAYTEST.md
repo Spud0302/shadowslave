@@ -892,8 +892,8 @@ Added by claude-code, 2026-10-29 (Run G).
 ## Field Guide and map
 
 Added by claude-code, 2026-10-23. First slice: creature pages, the map, places,
-danger ratings and the Dream Realm map. Paths and Field Notes trading come
-later.
+danger ratings and the Dream Realm map. Paths, Field Notes and the public
+board are the second slice, below.
 
 1. **Getting one.** Every player gets a Field Guide the first time they join.
    A lost guide can be crafted again from a book and a compass. What the
@@ -927,6 +927,59 @@ Tuning is data: `data/shadowslave/field_guide/rules.json` (ranges, cooldowns,
 explore radius, danger cell size, starting item on/off) and one page per
 creature in `data/shadowslave/field_guide/creature/*.json`. A Dream Realm
 region's baseline danger is its `danger` field.
+
+### Paths, Field Notes and the public board
+
+Added by claude-code, 2026-10-31. Second slice of the Field Guide.
+
+1. **Trace.** On the **Map** tab, click **Trace: off** (top left of the map)
+   to turn it on. While a Field Guide is anywhere in your inventory, the
+   guide marks the ground you walk, ride or swim through as a faint dotted
+   trail (4-block cells). Flying does not count. Toggle the **Paths** layer
+   to hide it; the corner map shows paths too.
+2. **Established paths.** Each stretch counts how often it has been walked
+   (walking the same stretch again counts after a minute). Once a stretch has
+   been walked 8 times it becomes an **established path**, drawn as a bright
+   amber road, for everyone who has that stretch in their guide. On a server
+   those 8 walks add up across everyone; one player alone can also wear a
+   road. The first time a stretch you walk turns into a road the guide says so.
+3. **Copying a page.** Each copy costs 1 Paper and 1 Ink Sac (free in
+   creative) and gives you a **Field Note**.
+   - Creatures tab: **Copy page** copies the selected creature page with its
+     counts, so a fuller page teaches more. The note's tooltip says how full
+     it is ("3 of 4 entries").
+   - Map tabs: click **Copy area**, then click the middle of the area (the
+     dashed square, 6 chunks each way). Choose **Chart** (the map there, with
+     its Gates, Seeds and Citadels), **Paths**, **Danger** (danger marks and
+     warnings), or **Place** if you clicked on a pin.
+4. **Reading a note.** Use the note. Your guide learns whatever on it you did
+   not already know, and the note stays, so you can pass it on or sell it.
+   Charts uncover ground you have never visited.
+5. **Field Guide Board.** Craft one (3 planks, planks + paper + planks, two
+   sticks) and place it. Use a Field Note on it to pin it up (up to 12).
+   Use the board with anything else to read every note on it: chat lists
+   each note and who pinned it, and your guide learns them all. Sneak-use to
+   take down the newest note you pinned.
+6. **Lost notes.** Chests in dungeons, mineshafts, temples, shipwrecks,
+   strongholds, mansions, outposts, ruined portals, igloos, ancient cities,
+   cartographer houses and Dream Realm Seed caches can hold a note "copied by
+   a Sleeper who did not make it": a part-filled creature page, or a chart of
+   the ground around the chest with a warning pinned and a death marked.
+
+Server options (game rules):
+
+| Rule | Default | What it does |
+|---|---|---|
+| `shadowslaveSharedPaths` | true | Established paths count everyone's walks; off, each player wears their own roads |
+| `shadowslavePublicBoards` | true | Field Guide Boards can be posted to and read |
+| `shadowslaveLostNotes` | true | Lost notes turn up in chests |
+| `shadowslaveFieldNotesWearOut` | false | Harsh: a note crumbles once read, so each copy teaches one reader |
+
+Tuning is data: `paths` and `notes` in `data/shadowslave/field_guide/rules.json`
+(cell size, walks to establish, one player's share, copy cost, chart size,
+board size, lost-note odds, warnings and last lines). Which chests hold lost
+notes is `data/shadowslave/loot_modifiers/lost_field_notes.json`, and how often
+is `data/shadowslave/loot_table/field_guide/lost_note.json`.
 
 ## Citadels and clans
 

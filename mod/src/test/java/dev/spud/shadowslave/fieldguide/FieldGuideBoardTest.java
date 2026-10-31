@@ -29,7 +29,7 @@ class FieldGuideBoardTest {
         scout.markSeen(REALM, 7L, 2);
 
         FieldGuideData.Learned learned = board.learnFrom(scout, 16384);
-        assertEquals(new FieldGuideData.Learned(1, 1, 1), learned, "one page, one chunk, one shared pin");
+        assertEquals(new FieldGuideData.Learned(1, 1, 1, 0, 1), learned, "one page, one chunk, one shared pin, one danger mark");
         assertEquals(3, board.creature(BURROWER).orElseThrow().sightings());
         assertEquals(1, board.creature(BURROWER).orElseThrow().kills());
         assertTrue(board.explored(REALM, 5L));

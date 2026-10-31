@@ -15,11 +15,13 @@ import dev.spud.shadowslave.echo.EchoManifestationService;
 import dev.spud.shadowslave.echo.EchoOwnershipService;
 import dev.spud.shadowslave.echo.content.EchoContentCatalog;
 import dev.spud.shadowslave.fieldguide.FieldGuideService;
+import dev.spud.shadowslave.fieldguide.FieldNotes;
 import dev.spud.shadowslave.memory.MemoryManifestationService;
 import dev.spud.shadowslave.network.payload.MemoryKeyPayload;
 import dev.spud.shadowslave.network.payload.MemorySummonPayload;
 import dev.spud.shadowslave.network.payload.StrandCreatePayload;
 import dev.spud.shadowslave.network.payload.WeaveTracePayload;
+import dev.spud.shadowslave.network.payload.FieldGuideCopyRequestPayload;
 import dev.spud.shadowslave.network.payload.FieldGuidePinRequestPayload;
 import dev.spud.shadowslave.network.payload.AwakenRequestPayload;
 import dev.spud.shadowslave.network.payload.ChannelRequestPayload;
@@ -99,6 +101,13 @@ public final class ServerPayloadHandler {
         ServerPlayer player = serverPlayer(context, "Field Guide pin");
         if (player != null) {
             FieldGuideService.requestPin(player, payload);
+        }
+    }
+
+    public static void handleFieldGuideCopy(FieldGuideCopyRequestPayload payload, IPayloadContext context) {
+        ServerPlayer player = serverPlayer(context, "Field Guide copy");
+        if (player != null) {
+            FieldNotes.copy(player, payload);
         }
     }
 

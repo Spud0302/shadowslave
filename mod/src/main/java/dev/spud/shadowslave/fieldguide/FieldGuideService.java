@@ -14,6 +14,7 @@ import dev.spud.shadowslave.dreamrealm.seed.SeedData;
 import dev.spud.shadowslave.gate.GateData;
 import dev.spud.shadowslave.gate.GateEvent;
 import dev.spud.shadowslave.network.payload.FieldGuideMapPayload;
+import dev.spud.shadowslave.network.payload.FieldGuidePathPayload;
 import dev.spud.shadowslave.network.payload.FieldGuidePinRequestPayload;
 import dev.spud.shadowslave.network.payload.FieldGuideStatusPayload;
 import net.minecraft.ChatFormatting;
@@ -51,13 +52,18 @@ import java.util.UUID;
  * The server side of the Field Guide: it hands out the first guide, uncovers
  * the map around each player, counts spyglass sightings and kills, logs the
  * Gates and Seeds a player comes near, keeps the danger marks behind the
- * ratings, and sends each player what their guide shows.
+ * ratings, traces the paths of players who asked it to, and sends each
+ * player what their guide shows.
  */
 public final class FieldGuideService {
     private static final int EXPLORE_INTERVAL = 10;
     private static final int SIGHT_INTERVAL = 2;
     private static final int PLACE_INTERVAL = 20;
     private static final int STATUS_INTERVAL = 10;
+    private static final int TRACE_INTERVAL = 4;
+    /** Furthest gap, in path cells, filled in between two traced steps; a longer jump is a teleport. */
+    private static final int TRACE_GAP = 8;
+    private static final int ESTABLISHED_MESSAGE_TICKS = 2400;
 
     /** Per-player bookkeeping that need not survive a restart. */
     private static final class Tracking {
@@ -66,6 +72,11 @@ public final class FieldGuideService {
         UUID target;
         int held;
         boolean dirty = true;
+        String pathDimension = "";
+        long pathCell = Long.MIN_VALUE;
+        /** Path cell to the game time it last counted as a walk. */
+        final Map<Long, Long> walked = new HashMap<>();
+        long establishedMessage = Long.MIN_VALUE;
     }
 
     private static final Map<UUID, Tracking> TRACKING = new HashMap<>();
@@ -90,6 +101,11 @@ public final class FieldGuideService {
         return settings().maxChunks();
     }
 
+    /** Path cells a guide remembers per dimension. */
+    public static int maxPathCells() {
+        return settings().paths().maxCells();
+    }
+
     public static String dimension(Level level) {
         return level.dimension().location().toString();
     }
@@ -101,6 +117,7 @@ public final class FieldGuideService {
             giveFirstGuide(player);
             TRACKING.remove(player.getUUID());
             sendWholeMap(player);
+            sendWholePaths(player);
             explore(player, true);
             sendStatus(player, false);
         }
@@ -123,6 +140,9 @@ public final class FieldGuideService {
         }
         if (tick % PLACE_INTERVAL == 0) {
             logPlaces(player);
+        }
+        if (tick % TRACE_INTERVAL == 0) {
+            trace(player);
         }
         Tracking tracking = tracking(player);
         if (tracking.dirty && tick % STATUS_INTERVAL == 0) {
@@ -237,6 +257,176 @@ public final class FieldGuideService {
             System.arraycopy(colours.get(i), 0, bytes, i * FieldGuideData.CHUNK_BYTES, FieldGuideData.CHUNK_BYTES);
         }
         return new FieldGuideMapPayload(dimension, reset, chunks, bytes);
+    }
+
+    // Paths
+
+    /** Whether the player carries a Field Guide anywhere in their inventory. */
+    static boolean carriesGuide(ServerPlayer player) {
+        return player.getInventory().contains(stack -> stack.is(FieldGuideRegistry.FIELD_GUIDE_ITEM.get()));
+    }
+
+    /** Turns Trace on or off and says so. */
+    public static void setTracing(ServerPlayer player, boolean on) {
+        FieldGuideData data = get(player);
+        data.setTracing(on);
+        Tracking tracking = tracking(player);
+        tracking.pathCell = Long.MIN_VALUE;
+        tracking.pathDimension = "";
+        player.displayClientMessage(Component.literal(on
+                ? "Trace on: your Field Guide marks the way you travel."
+                : "Trace off: your Field Guide stops marking your way.").withStyle(ChatFormatting.GOLD), true);
+        tracking.dirty = true;
+    }
+
+    /** Marks the path cells a tracing player has walked through since the last step. */
+    public static void trace(ServerPlayer player) {
+        FieldGuideData data = get(player);
+        FieldGuideSettings.PathSettings rules = settings().paths();
+        if (!data.tracing() || player.isFallFlying() || player.getAbilities().flying
+                || (rules.needsGuide() && !carriesGuide(player))) {
+            return;
+        }
+        String dimension = dimension(player.level());
+        int cellX = Math.floorDiv(player.getBlockX(), rules.cell());
+        int cellZ = Math.floorDiv(player.getBlockZ(), rules.cell());
+        long cell = DangerRating.key(cellX, cellZ);
+        Tracking tracking = tracking(player);
+        if (cell == tracking.pathCell && dimension.equals(tracking.pathDimension)) {
+            return;
+        }
+        List<Long> steps = new ArrayList<>();
+        if (dimension.equals(tracking.pathDimension) && tracking.pathCell != Long.MIN_VALUE) {
+            int fromX = DangerRating.keyX(tracking.pathCell);
+            int fromZ = DangerRating.keyZ(tracking.pathCell);
+            if (Math.max(Math.abs(cellX - fromX), Math.abs(cellZ - fromZ)) <= TRACE_GAP) {
+                steps.addAll(line(fromX, fromZ, cellX, cellZ));
+            }
+        }
+        if (steps.isEmpty()) {
+            steps.add(cell);
+        }
+        tracking.pathDimension = dimension;
+        tracking.pathCell = cell;
+        long now = player.level().getGameTime();
+        List<Long> changed = new ArrayList<>();
+        List<Byte> strength = new ArrayList<>();
+        for (long step : steps) {
+            walkCell(player, data, rules, dimension, step, now, changed, strength);
+        }
+        if (tracking.walked.size() > 4096) {
+            tracking.walked.values().removeIf(at -> now - at >= rules.walkAgainTicks());
+        }
+        if (!changed.isEmpty()) {
+            send(player, pathPayload(dimension, false, changed, strength));
+        }
+    }
+
+    /** The path cells on a line from one cell to the next, not counting the first (Bresenham). */
+    static List<Long> line(int x0, int z0, int x1, int z1) {
+        List<Long> cells = new ArrayList<>();
+        int dx = Math.abs(x1 - x0);
+        int dz = -Math.abs(z1 - z0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sz = z0 < z1 ? 1 : -1;
+        int error = dx + dz;
+        int x = x0;
+        int z = z0;
+        while (x != x1 || z != z1) {
+            int twice = 2 * error;
+            if (twice >= dz) {
+                error += dz;
+                x += sx;
+            }
+            if (twice <= dx) {
+                error += dx;
+                z += sz;
+            }
+            cells.add(DangerRating.key(x, z));
+        }
+        return cells;
+    }
+
+    private static void walkCell(ServerPlayer player, FieldGuideData data, FieldGuideSettings.PathSettings rules, String dimension,
+                                 long cell, long now, List<Long> changed, List<Byte> strength) {
+        Tracking tracking = tracking(player);
+        Long last = tracking.walked.get(cell);
+        boolean known = data.hasPath(dimension, cell);
+        if (last != null && now - last < rules.walkAgainTicks() && known) {
+            return;
+        }
+        tracking.walked.put(cell, now);
+        boolean wasEstablished = established(player.server, data, dimension, cell);
+        int walks = data.walk(dimension, cell, rules.maxCells());
+        if (walks <= rules.walksPerPlayer()) {
+            EstablishedPaths.get(player.server).add(dimension, cell);
+        }
+        boolean nowEstablished = established(player.server, data, dimension, cell);
+        if (!known || nowEstablished != wasEstablished) {
+            changed.add(cell);
+            strength.add(nowEstablished ? FieldGuidePathPayload.ESTABLISHED : FieldGuidePathPayload.FAINT);
+        }
+        if (nowEstablished && !wasEstablished) {
+            if (FieldGuideRules.sharedPaths(player.server)) {
+                // Everyone else who has this stretch in their guide sees it brighten too.
+                for (ServerPlayer other : player.server.getPlayerList().getPlayers()) {
+                    if (other != player && get(other).hasPath(dimension, cell)) {
+                        send(other, pathPayload(dimension, false, List.of(cell), List.of(FieldGuidePathPayload.ESTABLISHED)));
+                    }
+                }
+            }
+            if (now - tracking.establishedMessage >= ESTABLISHED_MESSAGE_TICKS) {
+                tracking.establishedMessage = now;
+                player.displayClientMessage(Component.literal("Field Guide: the way here is now an established path.")
+                        .withStyle(ChatFormatting.GOLD), true);
+            }
+        }
+    }
+
+    /**
+     * Whether a path cell shows as established for this guide: walked often
+     * enough by everyone on the server, or, with shared paths off, by this
+     * guide's owner alone.
+     */
+    public static boolean established(MinecraftServer server, FieldGuideData data, String dimension, long cell) {
+        int needed = settings().paths().establishedWalks();
+        if (FieldGuideRules.sharedPaths(server)) {
+            return EstablishedPaths.get(server).walks(dimension, cell) >= needed;
+        }
+        return data.pathCells(dimension).getOrDefault(cell, 0) >= needed;
+    }
+
+    /** Sends every dimension's traced paths, in as many packets as it takes. */
+    public static void sendWholePaths(ServerPlayer player) {
+        FieldGuideData data = get(player);
+        for (String dimension : data.pathDimensions()) {
+            List<Long> keys = new ArrayList<>();
+            List<Byte> strength = new ArrayList<>();
+            boolean first = true;
+            for (Long cell : data.pathCells(dimension).keySet()) {
+                keys.add(cell);
+                strength.add(established(player.server, data, dimension, cell) ? FieldGuidePathPayload.ESTABLISHED : FieldGuidePathPayload.FAINT);
+                if (keys.size() == FieldGuidePathPayload.MAX_CELLS_PER_PACKET) {
+                    send(player, pathPayload(dimension, first, keys, strength));
+                    first = false;
+                    keys.clear();
+                    strength.clear();
+                }
+            }
+            if (!keys.isEmpty() || first) {
+                send(player, pathPayload(dimension, first, keys, strength));
+            }
+        }
+    }
+
+    private static FieldGuidePathPayload pathPayload(String dimension, boolean reset, List<Long> keys, List<Byte> strength) {
+        long[] cells = new long[keys.size()];
+        byte[] bytes = new byte[keys.size()];
+        for (int i = 0; i < keys.size(); i++) {
+            cells[i] = keys.get(i);
+            bytes[i] = strength.get(i);
+        }
+        return new FieldGuidePathPayload(dimension, reset, settings().paths().cell(), cells, bytes);
     }
 
     // Creatures
@@ -443,6 +633,7 @@ public final class FieldGuideService {
                     player.displayClientMessage(Component.literal("Your Field Guide has no room for more pins.").withStyle(ChatFormatting.GRAY), true);
                 }
             }
+            case FieldGuidePinRequestPayload.TRACE -> setTracing(player, !data.tracing());
             case FieldGuidePinRequestPayload.REMOVE -> data.removePin(pin -> pin.kind().named()
                     && pin.dimension().equals(request.dimension())
                     && Math.abs(pin.x() - request.x()) <= 2 && Math.abs(pin.z() - request.z()) <= 2);
@@ -549,7 +740,8 @@ public final class FieldGuideService {
                 }
             });
         }
-        return new FieldGuideStatusPayload(creatures, pins, danger, regions, realm, ratio, settings.dangerCell(), open);
+        return new FieldGuideStatusPayload(creatures, pins, danger, regions, realm, ratio, settings.dangerCell(), open,
+                data.tracing(), settings.notes().chartRadius(), settings.notes().describeCost());
     }
 
     private static List<String> dangerDimensions(FieldGuideData data) {

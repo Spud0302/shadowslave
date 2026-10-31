@@ -211,7 +211,7 @@ public final class ClanService {
         if (clan.members.isEmpty()) {
             data.clans.remove(clan.id);
             if (into.isPresent()) {
-                into.get().board.learnFrom(clan.board, FieldGuideService.maxChunks());
+                into.get().board.learnFrom(clan.board, FieldGuideService.maxChunks(), FieldGuideService.maxPathCells(), false);
                 LISTENERS.forEach(listener -> listener.merged(server, clan.id, into.get().id));
             } else {
                 LISTENERS.forEach(listener -> listener.dissolved(server, clan.id));
@@ -248,11 +248,13 @@ public final class ClanService {
     public static FieldGuideData.Learned shareBoard(ServerPlayer player, ClanData.Clan clan) {
         int maxChunks = FieldGuideService.maxChunks();
         FieldGuideData mine = FieldGuideService.get(player);
-        clan.board.learnFrom(mine, maxChunks);
-        FieldGuideData.Learned learned = mine.learnFrom(clan.board, maxChunks);
+        int maxPaths = FieldGuideService.maxPathCells();
+        clan.board.learnFrom(mine, maxChunks, maxPaths, false);
+        FieldGuideData.Learned learned = mine.learnFrom(clan.board, maxChunks, maxPaths, false);
         ClanData.get(player.server).setDirty();
         if (learned.any()) {
             FieldGuideService.sendWholeMap(player);
+            FieldGuideService.sendWholePaths(player);
             FieldGuideService.sendStatus(player, false);
         }
         return learned;
