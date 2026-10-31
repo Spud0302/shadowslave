@@ -320,7 +320,11 @@ public class DevMenuScreen extends Screen {
         List<String> keys = ClientKeyMappings.abilityKeyNames();
         List<String> names = new ArrayList<>();
         AspectKitCatalog.all().stream().filter(kit -> holds(kit.abilityId())).forEach(kit -> names.add(keys.get(0) + ": " + kit.abilityName()));
-        KitLadder.all().stream().filter(variant -> holds(variant.abilityId())).forEach(variant -> names.add(keys.get(1) + ": " + variant.name()));
+        // One key per rank past Dormant: V for Awakened, C for Master, X for Saint.
+        KitLadder.all().stream().filter(variant -> holds(variant.abilityId())).forEach(variant -> {
+            int slot = Math.min(keys.size() - 1, variant.rank().ordinal());
+            names.add(keys.get(slot) + ": " + variant.name());
+        });
         return names.isEmpty() ? "" : String.join("  ·  ", names);
     }
 

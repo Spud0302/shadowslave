@@ -139,7 +139,7 @@ public final class KitLadder {
     public static final AbilityVariant FIRESTORM = master("firestorm", "Firestorm",
             "Fire rains on the spot you look at for four seconds, burning every hostile beneath it again and again.", "Force");
     public static final AbilityVariant PHOENIX_RITE = master("phoenix_rite", "Phoenix Rite",
-            "For a minute, the next blow that would kill you leaves you standing with four hearts, and you burst into flame that throws hostiles back.", "Shelter");
+            "For a minute, a blow that would kill you leaves you at four hearts instead, and you burst into flame.", "Shelter");
     public static final AbilityVariant PHANTOM_STEP = master("phantom_step", "Phantom Step",
             "Blink through mist where you look, then twice more for free within five seconds.", "Movement");
     public static final AbilityVariant SMOTHER = master("smother", "Smother",

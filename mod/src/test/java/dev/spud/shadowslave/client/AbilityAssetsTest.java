@@ -27,6 +27,13 @@ class AbilityAssetsTest {
     }
 
     @Test
+    void everyRankUpAbilityIsDrawnOnTheHud() {
+        for (var variant : dev.spud.shadowslave.awakening.KitLadder.all()) {
+            assertTrue(AbilityIcons.has(variant.abilityId().toString()), "no HUD icon for " + variant.name());
+        }
+    }
+
+    @Test
     void everyKitAbilityHasACastingPose() throws IOException {
         String casts = Files.readString(ASSETS.resolve("player_animations/ability_casts.json"));
         for (AspectKit kit : AspectKitCatalog.all()) {
