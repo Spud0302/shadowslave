@@ -16,8 +16,9 @@ import java.util.List;
  * hunger meter, any raid under way, its anchors and the Gateway Links; on the
  * right each upgrade with what it gives now, what the next tier gives and
  * costs (green for what you carry, red for what you lack), and a button to
- * build or repair it. Everything is decided on the server; the screen only
- * asks and shows the answer.
+ * build or repair it. Across the foot, the clan's wars, truces and whether its
+ * supply line is cut (Run I); the heading names the clan's seat. Everything is
+ * decided on the server; the screen only asks and shows the answer.
  */
 public class GatewayScreen extends Screen {
     private static final int ROW = 44;
@@ -58,7 +59,24 @@ public class GatewayScreen extends Screen {
     }
 
     private int panelHeight() {
-        return Math.min(this.height - 12, 34 + Math.max(6, status.upgrades().size()) * ROW + 26);
+        return Math.min(this.height - 12, 34 + Math.max(6, status.upgrades().size()) * ROW + 26 + warHeight());
+    }
+
+    /** Where the war strip begins, under the upgrades. */
+    private int warTop() {
+        return top() + 34 + Math.max(6, status.upgrades().size()) * ROW + 2;
+    }
+
+    private List<net.minecraft.util.FormattedCharSequence> warLines() {
+        List<net.minecraft.util.FormattedCharSequence> lines = new java.util.ArrayList<>();
+        for (String line : status.war()) {
+            lines.addAll(this.font.split(Component.literal(line), panelWidth() - 60));
+        }
+        return lines.size() > 4 ? lines.subList(0, 4) : lines;
+    }
+
+    private int warHeight() {
+        return status.war().isEmpty() ? 0 : 6 + warLines().size() * 10;
     }
 
     @Override
@@ -118,7 +136,10 @@ public class GatewayScreen extends Screen {
         int y = top();
         graphics.fill(x, y, x + panelWidth(), y + panelHeight(), SpellStyle.PANEL);
         graphics.renderOutline(x, y, panelWidth(), panelHeight(), SpellStyle.BORDER);
-        graphics.fill(x + LEFT, y + 30, x + LEFT + 1, y + panelHeight() - 6, SpellStyle.RULE);
+        graphics.fill(x + LEFT, y + 30, x + LEFT + 1, status.war().isEmpty() ? y + panelHeight() - 6 : warTop() - 4, SpellStyle.RULE);
+        if (!status.war().isEmpty()) {
+            graphics.fill(x + 6, warTop() - 3, x + panelWidth() - 6, warTop() - 2, SpellStyle.RULE);
+        }
         graphics.fill(x + 6, y + 28, x + panelWidth() - 6, y + 29, SpellStyle.RULE);
     }
 
@@ -135,12 +156,13 @@ public class GatewayScreen extends Screen {
         graphics.pose().scale(1.5F, 1.5F, 1.0F);
         graphics.drawString(this.font, status.name(), 0, 0, SpellStyle.TITLE, false);
         graphics.pose().popPose();
-        String held = "Held by " + status.clan() + " · " + status.members() + (status.members() == 1 ? " member" : " members")
+        String held = (status.seat() ? "Seat of " : "Held by ") + status.clan() + " · " + status.members() + (status.members() == 1 ? " member" : " members")
                 + " · " + status.rank() + " Citadel";
         graphics.drawString(this.font, held, x + width - 8 - this.font.width(held), y + 10, SpellStyle.MUTED, false);
 
         renderLeft(graphics, x + 8, y + 34);
         renderUpgrades(graphics, x + LEFT + 8, y + 34, x + width - 8);
+        renderWar(graphics, x + 8, warTop() + 1);
 
         if (!status.message().isEmpty()) {
             String message = this.font.plainSubstrByWidth(status.message(), width - 16);
@@ -191,6 +213,19 @@ public class GatewayScreen extends Screen {
         graphics.drawString(this.font, links, x + column - this.font.width(links), lineY, status.travelCost() < 0 ? SpellStyle.HINT : SpellStyle.ASPECT, false);
         if (status.travelCost() >= 0 && status.links().isEmpty()) {
             graphics.drawString(this.font, "Your clan holds no other Citadel.", x, lineY + 12, SpellStyle.HINT, false);
+        }
+    }
+
+    /** The clan's wars, truces and supply line, in a strip across the foot of the screen. */
+    private void renderWar(GuiGraphics graphics, int x, int y) {
+        if (status.war().isEmpty()) {
+            return;
+        }
+        graphics.drawString(this.font, "War", x, y, SpellStyle.FLAW, false);
+        int lineY = y;
+        for (var line : warLines()) {
+            graphics.drawString(this.font, line, x + 44, lineY, 0xFFE07A3A, false);
+            lineY += 10;
         }
     }
 

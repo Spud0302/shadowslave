@@ -347,8 +347,12 @@ public final class CitadelService {
             case CLAN -> {
                 Optional<ClanData.Clan> clan = Optional.ofNullable(citadel.clan).flatMap(id -> ClanService.byId(player.server, id));
                 if (clan.isEmpty() || !clan.get().has(player.getUUID())) {
+                    Optional<ClanData.Clan> mine = ClanService.clanOf(player.server, player.getUUID());
+                    boolean enemy = clan.isPresent() && mine.isPresent() && CitadelWars.atWar(player.server, mine.get().id(), clan.get().id());
                     player.displayClientMessage(Component.literal(citadel.name + " is held by the clan "
-                            + clan.map(ClanData.Clan::name).orElse("of another") + ".").withStyle(ChatFormatting.GRAY), true);
+                            + clan.map(ClanData.Clan::name).orElse("of another") + (enemy ? ", your enemy"
+                            + (CitadelWars.isSeat(player.server, citadel) ? ". It is their seat: take it in an assault" : "") : "") + ".")
+                            .withStyle(enemy ? ChatFormatting.DARK_RED : ChatFormatting.GRAY), true);
                     return;
                 }
                 if (CitadelLife.feedFromHand(player, citadel)) {
@@ -390,6 +394,7 @@ public final class CitadelService {
         citadel.hold = CitadelData.Hold.CLAN;
         citadel.clan = clan.id();
         CitadelLife.claimed(player.server, citadel);
+        CitadelWars.claimed(player.server, citadel);
         CitadelData.get(level).setDirty();
         showState(level, citadel);
         level.playSound(null, citadel.gateway, SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 0.8F, 1.2F);

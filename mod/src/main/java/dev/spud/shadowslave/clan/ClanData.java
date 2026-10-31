@@ -41,6 +41,12 @@ public final class ClanData extends SavedData {
         final LinkedHashMap<UUID, String> members = new LinkedHashMap<>();
         final Set<UUID> invites = new LinkedHashSet<>();
         FieldGuideData board = FieldGuideData.empty();
+        /** The clan's seat (Run I): the Citadel whose capture ends a war against it. */
+        UUID seat;
+        /** When the seat last moved, in real time; 0 lets it move freely. */
+        long seatMovedAt;
+        /** When a member was last seen logged in, in real time; 0 until first seen. */
+        long lastSeen;
 
         Clan(UUID id, String name, UUID leader) {
             this.id = id;
@@ -80,6 +86,28 @@ public final class ClanData extends SavedData {
             return board;
         }
 
+        public Optional<UUID> seat() {
+            return Optional.ofNullable(seat);
+        }
+
+        public long seatMovedAt() {
+            return seatMovedAt;
+        }
+
+        /** Names the clan's seat; {@code movedAt} 0 leaves it free to move again. */
+        public void setSeat(UUID seat, long movedAt) {
+            this.seat = seat;
+            this.seatMovedAt = movedAt;
+        }
+
+        public long lastSeen() {
+            return lastSeen;
+        }
+
+        public void seen(long now) {
+            lastSeen = now;
+        }
+
         CompoundTag save() {
             CompoundTag tag = new CompoundTag();
             tag.putUUID("id", id);
@@ -97,6 +125,11 @@ public final class ClanData extends SavedData {
             this.invites.forEach(uuid -> invites.add(UUIDUtil.CODEC.encodeStart(NbtOps.INSTANCE, uuid).getOrThrow()));
             tag.put("invites", invites);
             FieldGuideData.CODEC.encodeStart(NbtOps.INSTANCE, board).result().ifPresent(saved -> tag.put("board", saved));
+            if (seat != null) {
+                tag.putUUID("seat", seat);
+            }
+            tag.putLong("seat_moved_at", seatMovedAt);
+            tag.putLong("last_seen", lastSeen);
             return tag;
         }
 
@@ -114,6 +147,9 @@ public final class ClanData extends SavedData {
                         .resultOrPartial(error -> ShadowSlaveMod.LOGGER.warn("Bad Field Guide board for clan {}: {}", clan.name, error))
                         .orElseGet(FieldGuideData::empty);
             }
+            clan.seat = tag.hasUUID("seat") ? tag.getUUID("seat") : null;
+            clan.seatMovedAt = tag.getLong("seat_moved_at");
+            clan.lastSeen = tag.getLong("last_seen");
             return clan;
         }
     }

@@ -21,7 +21,9 @@ public enum Calling {
     /** Someone spoke the player's True Name and sensed where they stand. */
     NAME("Your Name"),
     /** A Seed bloomed at the walls of their clan's Citadel and raids it. */
-    CITADEL_RAID("A Raid");
+    CITADEL_RAID("A Raid"),
+    /** War between their clan and another: declared, begun, an assault, an Abandoned seat, or its end. */
+    WAR("War");
 
     private final String title;
 

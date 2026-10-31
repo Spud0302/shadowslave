@@ -1,9 +1,11 @@
 package dev.spud.shadowslave.clan;
 
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.authlib.GameProfile;
 import dev.spud.shadowslave.citadel.CitadelService;
+import dev.spud.shadowslave.citadel.CitadelWars;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -21,7 +23,9 @@ import java.util.UUID;
 /**
  * {@code /clan}: found, name and lead a clan, invite and remove members,
  * join a clan that invited you, or leave. With no arguments it shows your
- * clan, its members and the Citadels it holds.
+ * clan, its members and the Citadels it holds. {@code /clan seat} names the
+ * clan's seat at its Gateway, and {@code /clan war} reads, declares and
+ * announces assaults in clan wars (Run I).
  */
 public final class ClanCommands {
     private ClanCommands() {
@@ -52,6 +56,25 @@ public final class ClanCommands {
                                         context.getSource().getPlayerOrException(), StringArgumentType.getString(context, "name"))))))
                 .then(Commands.literal("leave")
                         .executes(context -> report(context.getSource(), ClanService.leave(context.getSource().getPlayerOrException()))))
+                .then(Commands.literal("seat")
+                        .executes(context -> said(context.getSource(), CitadelWars.moveSeat(context.getSource().getPlayerOrException()),
+                                "This Gateway's Citadel is now your clan's seat.")))
+                .then(Commands.literal("war")
+                        .executes(context -> war(context.getSource()))
+                        .then(Commands.literal("declare")
+                                .then(Commands.argument("clan", StringArgumentType.greedyString())
+                                        .suggests((context, builder) -> SharedSuggestionProvider.suggest(
+                                                ClanData.get(context.getSource().getServer()).clans().stream().map(ClanData.Clan::name), builder))
+                                        .executes(context -> said(context.getSource(), CitadelWars.declare(context.getSource().getPlayerOrException(),
+                                                StringArgumentType.getString(context, "clan")), "War is declared."))))
+                        .then(Commands.literal("assault")
+                                .then(Commands.argument("hours", DoubleArgumentType.doubleArg(0, 24 * 365))
+                                        .then(Commands.argument("clan", StringArgumentType.greedyString())
+                                                .suggests((context, builder) -> SharedSuggestionProvider.suggest(
+                                                        ClanData.get(context.getSource().getServer()).clans().stream().map(ClanData.Clan::name), builder))
+                                                .executes(context -> said(context.getSource(), CitadelWars.announce(
+                                                        context.getSource().getPlayerOrException(), StringArgumentType.getString(context, "clan"),
+                                                        DoubleArgumentType.getDouble(context, "hours")), "The assault is announced."))))))
                 .then(Commands.literal("kick")
                         .then(Commands.argument("player", GameProfileArgument.gameProfile())
                                 .executes(context -> kick(context.getSource(), GameProfileArgument.getGameProfiles(context, "player"))))));
@@ -64,6 +87,34 @@ public final class ClanCommands {
         }
         source.sendFailure(result.message());
         return 0;
+    }
+
+    /** Reports a war action: an empty answer means it went through. */
+    private static int said(CommandSourceStack source, String problem, String done) {
+        if (problem.isEmpty()) {
+            source.sendSuccess(() -> Component.literal(done).withStyle(ChatFormatting.LIGHT_PURPLE), false);
+            return 1;
+        }
+        source.sendFailure(Component.literal(problem));
+        return 0;
+    }
+
+    private static int war(CommandSourceStack source) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        Optional<ClanData.Clan> clan = ClanService.clanOf(source.getServer(), player.getUUID());
+        if (clan.isEmpty()) {
+            source.sendFailure(Component.literal("You belong to no clan."));
+            return 0;
+        }
+        String seat = CitadelWars.seat(source.getServer(), clan.get()).map(citadel -> citadel.name()).orElse("none");
+        source.sendSuccess(() -> Component.literal("Seat of " + clan.get().name() + ": " + seat).withStyle(ChatFormatting.LIGHT_PURPLE), false);
+        var lines = CitadelWars.report(source.getServer(), clan.get());
+        if (lines.isEmpty()) {
+            source.sendSuccess(() -> Component.literal("At peace. Declare war at your Gateway with /clan war declare <clan>.")
+                    .withStyle(ChatFormatting.GRAY), false);
+        }
+        lines.forEach(line -> source.sendSuccess(() -> Component.literal(line).withStyle(ChatFormatting.DARK_RED), false));
+        return 1;
     }
 
     private static int kick(CommandSourceStack source, Collection<GameProfile> profiles) throws CommandSyntaxException {

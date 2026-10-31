@@ -72,14 +72,16 @@ class SpellVoiceTest {
         }
         VoiceLines lines = VoiceLines.merge(files);
         Map<String, String> facts = Map.of("region", "the Ashen Expanse", "category", "Second", "citadel", "Greywatch",
-                "what", "a Fallen Demon", "danger", "Dormant", "nature", "Ember", "next_category", "Second");
+                "what", "a Fallen Demon", "danger", "Dormant", "nature", "Ember", "next_category", "Second", "enemy", "Ironveil");
         for (String grade : List.of("failed", "poor", "adequate", "good", "excellent", "glorious", "impossible")) {
             assertTrue(lines.pick(VoiceRequest.of("appraisal_grade", grade, facts, 7)).isPresent(), grade);
         }
         for (SpellJudge.Behaviour behaviour : SpellJudge.Behaviour.values()) {
             assertTrue(lines.pick(VoiceRequest.of("appraisal_behaviour", behaviour.id(), facts, 7)).isPresent(), behaviour.id());
         }
-        for (String key : List.of("core_nearly_full", "core_full", "seed_next_category", "new_region", "unclaimed_citadel", "idle")) {
+        for (String key : List.of("core_nearly_full", "core_full", "seed_next_category", "new_region", "unclaimed_citadel", "idle",
+                "war_declared", "war_declared_on", "war_begins", "war_assault_announced", "war_assault_on_seat", "war_assault_begins",
+                "war_assault_begins_defend", "war_abandon_countdown", "war_seat_abandoned", "war_won", "war_lost")) {
             assertTrue(lines.pick(VoiceRequest.of("calling", key, facts, 7)).isPresent(), key);
         }
         for (String key : List.of("first_conquest", "after_fleeing", "after_failing", "rose", "fell", "same_grade", "again_failed", "again_fled")) {

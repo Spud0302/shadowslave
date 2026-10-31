@@ -1,0 +1,10 @@
+{
+ "variants": {
+  "cut=false": {
+   "model": "shadowslave:block/link_anchor"
+  },
+  "cut=true": {
+   "model": "shadowslave:block/link_anchor_cut"
+  }
+ }
+}

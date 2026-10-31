@@ -26,7 +26,8 @@ import java.util.Optional;
  * Operators can raise one in front of them, list them all, or strike down
  * a Guardian to open its Gateway; at a claimed Citadel they can set its
  * provisions ({@code feed}, {@code starve}), set an upgrade's tier, and start
- * or lose a raid. To find generated Citadels, use
+ * or lose a raid. For clan wars they can skip the war clock ahead, tick the
+ * wars once, cut a Citadel's supply line, or end a clan's wars. To find generated Citadels, use
  * {@code /locate structure shadowslave:citadel} in the Dream Realm.
  */
 public final class CitadelCommands {
@@ -66,7 +67,17 @@ public final class CitadelCommands {
                                 .requires(source -> source.hasPermission(2))
                                 .then(Commands.argument("category", IntegerArgumentType.integer(1, 5))
                                         .executes(context -> raid(context.getSource(), IntegerArgumentType.getInteger(context, "category"))))
-                                .then(Commands.literal("lose").executes(context -> loseRaid(context.getSource()))))));
+                                .then(Commands.literal("lose").executes(context -> loseRaid(context.getSource()))))
+                        .then(Commands.literal("war")
+                                .requires(source -> source.hasPermission(2))
+                                .then(Commands.literal("skip")
+                                        .then(Commands.argument("hours", DoubleArgumentType.doubleArg(0, 24 * 365))
+                                                .executes(context -> skip(context.getSource(), DoubleArgumentType.getDouble(context, "hours")))))
+                                .then(Commands.literal("tick").executes(context -> warTick(context.getSource())))
+                                .then(Commands.literal("cut").executes(context -> cut(context.getSource())))
+                                .then(Commands.literal("end")
+                                        .then(Commands.argument("clan", StringArgumentType.greedyString())
+                                                .executes(context -> endWars(context.getSource(), StringArgumentType.getString(context, "clan"))))))));
     }
 
     private static int status(CommandSourceStack source) throws CommandSyntaxException {
@@ -222,6 +233,44 @@ public final class CitadelCommands {
         }
         CitadelRaids.lose(source.getPlayerOrException().serverLevel(), citadel.get(), "An operator called it.");
         return 1;
+    }
+
+    private static int skip(CommandSourceStack source, double hours) {
+        CitadelWars.skip(source.getServer(), hours);
+        CitadelWars.tick(source.getServer(), false);
+        source.sendSuccess(() -> Component.literal("The war clock moves " + hours + " hours ahead."), true);
+        return 1;
+    }
+
+    private static int warTick(CommandSourceStack source) {
+        CitadelWars.tick(source.getServer(), true);
+        source.sendSuccess(() -> Component.literal("The wars tick once, and missing Link Anchors rise."), false);
+        return 1;
+    }
+
+    private static int cut(CommandSourceStack source) throws CommandSyntaxException {
+        Optional<CitadelData.Citadel> citadel = claimedNear(source);
+        if (citadel.isEmpty()) {
+            return 0;
+        }
+        if (citadel.get().linkAnchor().isEmpty()) {
+            source.sendFailure(Component.literal(citadel.get().name() + " has no Link Anchor. Build its Gateway Links first."));
+            return 0;
+        }
+        CitadelWars.cut(source.getPlayerOrException().serverLevel(), citadel.get());
+        source.sendSuccess(() -> Component.literal("The supply line of " + citadel.get().name() + " is cut."), true);
+        return 1;
+    }
+
+    private static int endWars(CommandSourceStack source, String name) {
+        Optional<dev.spud.shadowslave.clan.ClanData.Clan> clan = dev.spud.shadowslave.clan.ClanData.get(source.getServer()).named(name);
+        if (clan.isEmpty()) {
+            source.sendFailure(Component.literal("No clan is called " + name.trim() + "."));
+            return 0;
+        }
+        int ended = CitadelWars.end(source.getServer(), clan.get().id());
+        source.sendSuccess(() -> Component.literal("Ended " + ended + (ended == 1 ? " war." : " wars.")), true);
+        return ended;
     }
 
     private static void describe(CommandSourceStack source, CitadelData.Citadel citadel) {
