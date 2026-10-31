@@ -60,7 +60,9 @@ public final class AbilityCastEffects {
         MASQUE(new Color(235, 225, 245), new Color(110, 60, 160)),
         UNBROKEN(new Color(230, 90, 60), new Color(90, 70, 60)),
         SABOTEUR(new Color(255, 170, 60), new Color(70, 50, 40)),
-        STANDARD(new Color(200, 120, 255), new Color(240, 200, 90));
+        STANDARD(new Color(200, 120, 255), new Color(240, 200, 90)),
+        SCRIBE(new Color(240, 230, 200), new Color(40, 40, 90)),
+        SURVEYOR(new Color(120, 220, 160), new Color(150, 110, 60));
 
         final Color start;
         final Color end;

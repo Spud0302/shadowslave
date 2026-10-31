@@ -144,6 +144,15 @@ public final class KitLadder {
     public static final AbilityVariant LAST_RALLY = variant("last_rally", "Last Rally",
             "Always on: when your banner falls or is furled, you and your allies near it are healed four hearts.", "Passive");
 
+    public static final AbilityVariant LOREBIND = variant("lorebind", "Lorebind",
+            "Study the creature you look at: for a minute you and your clan nearby deal a quarter more damage to its kind.", "Offense");
+    public static final AbilityVariant LIVING_PAGE = variant("living_page", "Living Page",
+            "Always on: a Field Note you write keeps up with your guide, and whoever reads it learns what you know now.", "Passive");
+    public static final AbilityVariant TRIANGULATE = variant("triangulate", "Triangulate",
+            "Pin the exact spot of the nearest Seed or Gate in your Field Guide.", "Utility");
+    public static final AbilityVariant FAULT_LINE = variant("fault_line", "Fault Line",
+            "Crack the ground in a line where you look: creatures on it are hurt and slowed.", "Offense");
+
     private static final Map<ResourceLocation, List<AbilityVariant>> AWAKENED = Map.ofEntries(
             Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(CARRY_THE_FLAME, EMBER_WARD)),
             Map.entry(AspectKitCatalog.MIST.natureId(), List.of(THROUGH_THE_HAZE, VEIL)),
@@ -174,7 +183,9 @@ public final class KitLadder {
             Map.entry(AspectKitCatalog.MASQUE.natureId(), List.of(MIRROR_SWAP, STOLEN_VOICE)),
             Map.entry(AspectKitCatalog.UNBROKEN.natureId(), List.of(GRIT, DEFIANCE)),
             Map.entry(AspectKitCatalog.SABOTEUR.natureId(), List.of(CUT_THE_LINES, FALSE_TRAIL)),
-            Map.entry(AspectKitCatalog.STANDARD.natureId(), List.of(HOLD_THE_LINE, LAST_RALLY))
+            Map.entry(AspectKitCatalog.STANDARD.natureId(), List.of(HOLD_THE_LINE, LAST_RALLY)),
+            Map.entry(AspectKitCatalog.SCRIBE.natureId(), List.of(LOREBIND, LIVING_PAGE)),
+            Map.entry(AspectKitCatalog.SURVEYOR.natureId(), List.of(TRIANGULATE, FAULT_LINE))
     );
 
     private KitLadder() {

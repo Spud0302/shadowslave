@@ -62,6 +62,10 @@ public final class AbilityService {
             return Outcome.FAILED;
         }
         AspectAbility ability = AbilityRegistry.get(held.get(slot)).orElseThrow();
+        if (!ability.primed(player) && !ScribeLore.inked(player)) {
+            ScribeLore.dry(player);
+            return Outcome.FAILED;
+        }
         int cost = costFor(player, ability);
         if (!ability.primed(player) && !EssenceService.covers(player, cost)) {
             feedback(player, ability.displayName() + " needs " + cost + " essence", ChatFormatting.GRAY);
@@ -88,13 +92,15 @@ public final class AbilityService {
     /** Spends an ability's essence and confirms it on the action bar; abilities that finish on their own call this. */
     public static void finish(ServerPlayer player, AspectAbility ability) {
         EssenceService.spend(player, costFor(player, ability));
+        ScribeLore.spendInk(player);
         feedback(player, ability.displayName(), ChatFormatting.LIGHT_PURPLE);
         syncStatus(player);
     }
 
     /** Essence this player pays for one use of the ability. */
     public static int costFor(ServerPlayer player, AspectAbility ability) {
-        return KeeperHold.costFor(player, MasonWorks.costFor(player, RefinementRules.cost(ability.essenceCost(), RefinementService.get(player))));
+        return SurveyorCraft.costFor(player,
+                KeeperHold.costFor(player, MasonWorks.costFor(player, RefinementRules.cost(ability.essenceCost(), RefinementService.get(player)))));
     }
 
     /** Everyone nearby, the caster included, plays the casting pose. */
@@ -165,6 +171,8 @@ public final class AbilityService {
         MasqueFace.forget(player.getUUID());
         UnbrokenWill.forget(player.getUUID());
         SaboteurCraft.forget(player.getUUID());
+        ScribeLore.forget(player.getUUID());
+        SurveyorCraft.forget(player.getUUID());
         StandardColours.lower(player.server, player.getUUID());
     }
 

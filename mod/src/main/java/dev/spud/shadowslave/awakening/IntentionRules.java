@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * How an intention nudges the roll (DESIGN): the offering and the longing each
  * add evidence to one Nature's tag, so offering and longing for the same Nature
- * roughly doubles its chance, from about 3% to 7% of the thirty. Per-tag evidence is
+ * roughly doubles its chance, from about 3% to 7% of the thirty-two. Per-tag evidence is
  * capped so playstyle plus intention never makes a Nature certain.
  */
 public final class IntentionRules {
