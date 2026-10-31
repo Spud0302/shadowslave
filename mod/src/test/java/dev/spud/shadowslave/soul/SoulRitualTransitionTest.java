@@ -55,4 +55,20 @@ class SoulRitualTransitionTest {
         SoulData awakened = SoulTransitions.awaken(dreamer);
         assertThrows(IllegalStateException.class, () -> SoulTransitions.awaken(awakened));
     }
+
+    @Test
+    void anAwakenedAscendsToMasterThenSaintKeepingTheIdentity() {
+        SoulData dreamer = SoulTransitions.awakenThroughRitual(SoulData.uninfected(), ASPECT, SoulRank.DORMANT, FLAW);
+        assertThrows(IllegalStateException.class, () -> SoulTransitions.ascend(dreamer), "a Dreamer Awakens first");
+        SoulData master = SoulTransitions.ascend(SoulTransitions.awaken(dreamer));
+        assertEquals(SpellState.MASTER, master.spellState());
+        assertEquals(Optional.of(SoulRank.ASCENDED), master.soulRank());
+        assertEquals(Optional.of(SoulRank.ASCENDED), master.aspectRank());
+        SoulData saint = SoulTransitions.ascend(master);
+        assertEquals(SpellState.SAINT, saint.spellState());
+        assertEquals(Optional.of(SoulRank.TRANSCENDENT), saint.soulRank());
+        assertEquals(Optional.of(ASPECT), saint.aspectId());
+        assertEquals(Optional.of(FLAW), saint.flawId());
+        assertThrows(IllegalStateException.class, () -> SoulTransitions.ascend(saint), "Sovereign is not built");
+    }
 }

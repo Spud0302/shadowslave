@@ -11,7 +11,9 @@ import dev.spud.shadowslave.soul.SoulRank;
 public final class CoreRules {
     public static final int DORMANT_LIMIT = 160;
     public static final int AWAKENED_LIMIT = 600;
-    /** Max health a saturated Dormant core adds; an Awakened core keeps it and adds the same again when full. */
+    public static final int ASCENDED_LIMIT = 2400;
+    public static final int TRANSCENDENT_LIMIT = 7200;
+    /** Max health a saturated core adds at each rank; a risen core keeps what the ranks below it gave. */
     static final double HEALTH_PER_RANK = 4.0;
 
     /** A faint shard (from an ordinary mob) carries this fraction of a creature shard's value. */
@@ -26,8 +28,10 @@ public final class CoreRules {
         return switch (rank) {
             case DORMANT -> DORMANT_LIMIT;
             case AWAKENED -> AWAKENED_LIMIT;
+            case ASCENDED -> ASCENDED_LIMIT;
+            case TRANSCENDENT -> TRANSCENDENT_LIMIT;
             // Higher ranks are not playable yet; keep the curve going for admin tools.
-            default -> AWAKENED_LIMIT * 4 * rank.ordinal();
+            default -> TRANSCENDENT_LIMIT * 3 * (rank.ordinal() - SoulRank.TRANSCENDENT.ordinal());
         };
     }
 
@@ -62,8 +66,8 @@ public final class CoreRules {
 
     /** Extra max health from the core: the full bonus of each rank already left behind, plus the current fill. */
     public static double healthBonus(int saturation, SoulRank rank) {
-        int passed = Math.min(rank.ordinal(), SoulRank.AWAKENED.ordinal());
-        double current = rank.ordinal() <= SoulRank.AWAKENED.ordinal() ? fraction(saturation, rank) : 1.0;
+        int passed = Math.min(rank.ordinal(), SoulRank.TRANSCENDENT.ordinal());
+        double current = rank.ordinal() <= SoulRank.TRANSCENDENT.ordinal() ? fraction(saturation, rank) : 1.0;
         return HEALTH_PER_RANK * (passed + current);
     }
 

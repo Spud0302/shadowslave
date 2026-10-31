@@ -148,6 +148,8 @@ public class DevMenuScreen extends Screen {
         int row = y + GRID_TOP + 10;
         action(x + 8, row, column, "Dormant", "shadowslave dev rank dormant", "Back to a Dreamer: the second key empties and the core starts over.");
         action(x + 8 + (column + 4), row, column, "Awakened", "shadowslave dev rank awakened", "Rise to Awakened without the Soul Sea; your Nature's first Awakened ability goes on the second key.");
+        action(x + 8 + 2 * (column + 4), row, column, "Master", "shadowslave dev rank master", "Rise to Master without a Nightmare; your Nature's first Master ability, if built, goes on the third key.");
+        action(x + 8 + 3 * (column + 4), row, column, "Saint", "shadowslave dev rank saint", "Rise to Saint without a Nightmare; your Nature's Transformation, if built, goes on the last key.");
         row += ROW;
         int limit = shownCore.limit();
         action(x + 8, row, column, "Empty", "shadowslave core set 0", "");
@@ -318,7 +320,11 @@ public class DevMenuScreen extends Screen {
         List<String> keys = ClientKeyMappings.abilityKeyNames();
         List<String> names = new ArrayList<>();
         AspectKitCatalog.all().stream().filter(kit -> holds(kit.abilityId())).forEach(kit -> names.add(keys.get(0) + ": " + kit.abilityName()));
-        KitLadder.all().stream().filter(variant -> holds(variant.abilityId())).forEach(variant -> names.add(keys.get(1) + ": " + variant.name()));
+        // One key per rank past Dormant: V for Awakened, C for Master, X for Saint.
+        KitLadder.all().stream().filter(variant -> holds(variant.abilityId())).forEach(variant -> {
+            int slot = Math.min(keys.size() - 1, variant.rank().ordinal());
+            names.add(keys.get(slot) + ": " + variant.name());
+        });
         return names.isEmpty() ? "" : String.join("  ·  ", names);
     }
 

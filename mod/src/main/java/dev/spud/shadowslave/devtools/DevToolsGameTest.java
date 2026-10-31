@@ -51,6 +51,10 @@ public final class DevToolsGameTest {
         helper.assertTrue(names(player).equals(List.of(AspectKitCatalog.TIDE.abilityName(), KitLadder.LOW_TIDE.name())),
                 "Tide's kit, Awakened");
 
+        helper.assertTrue(DevTools.setRank(player, SoulRank.TRANSCENDENT), "rise to Saint");
+        helper.assertTrue(SoulService.get(player).spellState() == SpellState.SAINT, "a Saint");
+        helper.assertTrue(names(player).equals(List.of(AspectKitCatalog.TIDE.abilityName(), KitLadder.LOW_TIDE.name(),
+                KitLadder.MAELSTROM.name(), KitLadder.TIDEBODY.name())), "all four keys: " + names(player));
         helper.assertTrue(DevTools.setRank(player, SoulRank.DORMANT), "back down");
         helper.assertTrue(SoulService.get(player).spellState() == SpellState.DREAMER, "a Dreamer again");
         helper.assertTrue(names(player).equals(List.of(AspectKitCatalog.TIDE.abilityName())), "the Awakened ability is gone");

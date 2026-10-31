@@ -158,8 +158,8 @@ public final class ShadowSlaveCommands {
         String problem = switch (result) {
             case AWAKENED -> "";
             case NO_ASPECT -> "You have no Aspect to Awaken.";
-            case ALREADY_AWAKENED -> "You have already Awakened.";
-            case NOT_A_CHOICE -> "That is not one of your Nature's Awakened abilities.";
+            case NOTHING_OPEN -> "No rank is open to you yet.";
+            case NOT_A_CHOICE -> "That is not one of the abilities your Nature can grow next.";
             case NOT_READY -> "Your core is not saturated yet (try /shadowslave core fill).";
         };
         if (!problem.isEmpty()) {

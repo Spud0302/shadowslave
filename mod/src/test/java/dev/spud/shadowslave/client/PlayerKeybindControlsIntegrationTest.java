@@ -28,6 +28,8 @@ class PlayerKeybindControlsIntegrationTest {
         assertTrue(mappings.contains("USE_ABILITY"));
         assertTrue(mappings.contains("USE_SECOND_ABILITY"));
         assertTrue(mappings.contains("GLFW.GLFW_KEY_V"));
+        assertTrue(mappings.contains("USE_THIRD_ABILITY") && mappings.contains("GLFW.GLFW_KEY_C"));
+        assertTrue(mappings.contains("USE_FOURTH_ABILITY") && mappings.contains("GLFW.GLFW_KEY_X"));
         assertTrue(mappings.contains("CHANNEL_ESSENCE"));
         assertTrue(mappings.contains("GLFW.GLFW_KEY_Z"));
         assertTrue(mappings.contains("TOGGLE_MEMORY"));
@@ -48,6 +50,8 @@ class PlayerKeybindControlsIntegrationTest {
         assertTrue(events.contains("minecraft.screen == null"));
         assertTrue(events.contains("new UseAbilityRequestPayload(0)"));
         assertTrue(events.contains("new UseAbilityRequestPayload(1)"));
+        assertTrue(events.contains("new UseAbilityRequestPayload(2)"));
+        assertTrue(events.contains("new UseAbilityRequestPayload(3)"));
         assertTrue(events.contains("new MemoryKeyPayload("));
         assertTrue(events.contains("ToggleAshBurrowerEchoRequestPayload.INSTANCE"));
         assertTrue(events.contains("ToggleAshBurrowerEchoModeRequestPayload.INSTANCE"));
