@@ -116,6 +116,7 @@
   "screen.shadowslave.echo_wheel": "Echo Orders",
   "screen.shadowslave.echo_wheel.hint": "Point at an order and let go, or click it",
   "entity.shadowslave.lingering_challenger": "Lingering Challenger",
+  "entity.shadowslave.citadel_resident": "Citadel Resident",
   "entity.shadowslave.thorn_matron": "Thorn Matron",
   "item.shadowslave.thorn_matron_spawn_egg": "Thorn Matron Spawn Egg",
   "block.shadowslave.black_briar": "Black Briar",

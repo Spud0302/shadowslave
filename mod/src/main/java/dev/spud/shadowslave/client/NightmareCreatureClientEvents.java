@@ -39,6 +39,8 @@ public final class NightmareCreatureClientEvents {
         event.registerEntityRenderer(NightmareCreatureEntities.GATE_RIFT.get(), GateRiftRenderer::new);
         event.registerEntityRenderer(DreamRealmRegistry.SLEEPING_BODY.get(), SleepingBodyRenderer::new);
         event.registerEntityRenderer(TrialRegistry.LINGERING_CHALLENGER.get(), LingeringChallengerRenderer::new);
+        event.registerEntityRenderer(dev.spud.shadowslave.citadel.CitadelRegistry.CITADEL_RESIDENT.get(),
+                dev.spud.shadowslave.client.renderer.CitadelResidentRenderer::new);
 
         // Remaining vanilla visual placeholder.
         event.registerEntityRenderer(NightmareCreatureEntities.DROWNED_LISTENER.get(), DrownedRenderer::new);

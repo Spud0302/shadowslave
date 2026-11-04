@@ -13,7 +13,10 @@ import dev.spud.shadowslave.dreamrealm.DreamRealm;
 import dev.spud.shadowslave.dreamrealm.DreamRealmGameTest;
 import dev.spud.shadowslave.fieldguide.FieldGuideData;
 import dev.spud.shadowslave.fieldguide.FieldGuideService;
+import dev.spud.shadowslave.soul.SoulData;
+import dev.spud.shadowslave.soul.SoulRank;
 import dev.spud.shadowslave.soul.SoulService;
+import dev.spud.shadowslave.soul.SpellState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -183,6 +186,7 @@ public final class CitadelGameTest {
         BlockPos centre = new BlockPos(5200, 100, 4000);
         CitadelData.Citadel citadel = raise(realm, centre);
         ready(helper, realm, centre, () -> {
+            saint(player);
             CitadelService.conquer(realm, citadel, Optional.of(player));
             helper.assertTrue(CitadelService.claim(player, citadel), "claimed");
             player.startSleeping(helper.absolutePos(new BlockPos(2, 1, 2)));
@@ -215,10 +219,14 @@ public final class CitadelGameTest {
 
     /** Raises a fresh Citadel, forgetting any an earlier run left at the same spot. */
     static CitadelData.Citadel raise(ServerLevel realm, BlockPos centre) {
+        return raise(realm, centre, NpcCitadels.Kind.WILD);
+    }
+
+    static CitadelData.Citadel raise(ServerLevel realm, BlockPos centre, NpcCitadels.Kind kind) {
         CitadelData data = CitadelData.get(realm);
         data.citadels.removeIf(old -> old.gateway.closerThan(centre, 64));
         CitadelService.build(realm, centre, 12, CitadelPalette.DEFAULT);
-        return CitadelService.wake(realm, CitadelLayout.gateway(centre));
+        return CitadelService.wake(realm, CitadelLayout.gateway(centre), kind);
     }
 
     /** Holds the Citadel's chunks loaded and runs the test once its Guardian has taken its post. */
@@ -249,6 +257,24 @@ public final class CitadelGameTest {
 
     /** An Awakened player standing in the Citadel's courtyard. */
     static ServerPlayer dreamer(GameTestHelper helper, ServerLevel realm, CitadelData.Citadel citadel) {
+        ServerPlayer player = AbilityGameTest.playerWith(helper, AspectKitCatalog.EMBER);
+        SoulService.awaken(player);
+        saint(player);
+        BlockPos stand = citadel.gateway().offset(3, 0, 3);
+        player.teleportTo(realm, stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5, Set.of(), 0, 0);
+        player.hasChangedDimension();
+        return player;
+    }
+
+    /** Raises the player to Saint: only a Saint binds a Citadel's Gateway. */
+    static void saint(ServerPlayer player) {
+        SoulData now = SoulService.get(player);
+        SoulService.replace(player, new SoulData(now.schemaVersion(), SpellState.SAINT, now.awakeningPath(), Optional.of(SoulRank.TRANSCENDENT),
+                now.aspectId(), now.aspectRank(), now.flawId(), now.importedFromDatapack(), now.migrationVersion()));
+    }
+
+    /** A dreamer who stays Awakened: they may conquer and anchor, never bind. */
+    static ServerPlayer awakened(GameTestHelper helper, ServerLevel realm, CitadelData.Citadel citadel) {
         ServerPlayer player = AbilityGameTest.playerWith(helper, AspectKitCatalog.EMBER);
         SoulService.awaken(player);
         BlockPos stand = citadel.gateway().offset(3, 0, 3);

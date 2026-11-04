@@ -37,8 +37,12 @@ public final class KeeperCitadelGameTest {
         CitadelData.Citadel citadel = CitadelGameTest.raise(realm, centre);
         CitadelGameTest.ready(helper, realm, centre, () -> {
             ServerPlayer keeper = AbilityGameTest.playerWith(helper, AspectKitCatalog.KEEPER);
+            var soul = dev.spud.shadowslave.soul.SoulService.get(keeper);
+            CitadelGameTest.saint(keeper);
             CitadelService.conquer(realm, citadel, Optional.of(keeper));
             helper.assertTrue(CitadelService.claim(keeper, citadel), "claimed");
+            // Only a Saint binds the Gateway; the Keeper goes back to the rank this test is about.
+            dev.spud.shadowslave.soul.SoulService.replace(keeper, soul);
             BlockPos stand = citadel.gateway().offset(3, 0, 3);
             keeper.teleportTo(realm, stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5, Set.of(), 0, 0);
             KeeperHold.recheck(keeper);
@@ -71,7 +75,11 @@ public final class KeeperCitadelGameTest {
             helper.assertTrue(AbilityGrants.grant(keeper, KitLadder.GATEWAY_STEP), "Gateway Step granted");
             EssenceService.fill(keeper);
             CitadelService.conquer(realm, citadel, Optional.of(keeper));
+            var soul = dev.spud.shadowslave.soul.SoulService.get(keeper);
+            CitadelGameTest.saint(keeper);
             helper.assertTrue(CitadelService.claim(keeper, citadel), "claimed");
+            // Only a Saint binds the Gateway; the Keeper goes back to the rank this test is about.
+            dev.spud.shadowslave.soul.SoulService.replace(keeper, soul);
             helper.setBlock(new BlockPos(3, 1, 2), ModBlocks.DREAM_CANDLE.get().defaultBlockState().setValue(CandleBlock.LIT, true));
             helper.assertTrue(AbilityService.useAbility(keeper, 1) == AbilityService.Outcome.USED, "the Keeper steps through");
             helper.assertTrue(keeper.level() == realm && keeper.blockPosition().closerThan(citadel.gateway(), 4),
