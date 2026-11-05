@@ -53,7 +53,9 @@ public final class DevCommands {
                                                 .executes(context -> awakened(context.getSource(), StringArgumentType.getString(context, "ability"))))))
                         .then(Commands.literal("rank")
                                 .then(Commands.literal("dormant").executes(context -> rank(context.getSource(), SoulRank.DORMANT)))
-                                .then(Commands.literal("awakened").executes(context -> rank(context.getSource(), SoulRank.AWAKENED))))
+                                .then(Commands.literal("awakened").executes(context -> rank(context.getSource(), SoulRank.AWAKENED)))
+                                .then(Commands.literal("master").executes(context -> rank(context.getSource(), SoulRank.ASCENDED)))
+                                .then(Commands.literal("saint").executes(context -> rank(context.getSource(), SoulRank.TRANSCENDENT))))
                         .then(Commands.literal("shards")
                                 .then(Commands.argument("rank", StringArgumentType.word())
                                         .suggests((context, builder) -> SharedSuggestionProvider.suggest(
@@ -112,7 +114,12 @@ public final class DevCommands {
             source.sendFailure(Component.literal("Needs a named Aspect first (pick a Nature)."));
             return 0;
         }
-        String name = rank == SoulRank.DORMANT ? "Dormant" : "Awakened";
+        String name = switch (rank) {
+            case DORMANT -> "Dormant";
+            case AWAKENED -> "Awakened";
+            case ASCENDED -> "Master";
+            default -> "Saint";
+        };
         source.sendSuccess(() -> Component.literal("Soul set to " + name + "."), true);
         return Command.SINGLE_SUCCESS;
     }

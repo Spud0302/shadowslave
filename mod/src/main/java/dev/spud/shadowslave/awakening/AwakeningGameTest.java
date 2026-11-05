@@ -4,6 +4,7 @@ import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.ability.AbilityGameTest;
 import dev.spud.shadowslave.ability.AbilityService;
 import dev.spud.shadowslave.ability.EssenceService;
+import dev.spud.shadowslave.ability.RankPowers;
 import dev.spud.shadowslave.block.ModBlocks;
 import dev.spud.shadowslave.network.payload.SoulSeaPayload;
 import dev.spud.shadowslave.soul.SoulRank;
@@ -16,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -25,6 +27,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import java.util.List;
 import java.util.Optional;
 
 @GameTestHolder(ShadowSlaveMod.MOD_ID)
@@ -53,8 +56,78 @@ public final class AwakeningGameTest {
                 "the core starts over at its Awakened size");
         helper.assertTrue(EssenceService.current(player) == EssenceService.AWAKENED_CAPACITY, "a larger, full essence pool");
         helper.assertTrue(AwakeningService.awaken(player, KitLadder.CARRY_THE_FLAME.abilityId())
-                == AwakeningService.Result.ALREADY_AWAKENED, "only once");
-        helper.assertTrue(AwakeningService.choices(player).isEmpty(), "no further choices yet");
+                == AwakeningService.Result.NOT_A_CHOICE, "only once: Carry the Flame is no longer on offer");
+        helper.assertTrue(AwakeningService.nextRank(player).equals(Optional.of(SoulRank.ASCENDED)), "Ascension is next");
+        helper.succeed();
+    }
+
+    @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room")
+    public static void anAwakenedAscendsToMasterThenTranscendsToSaint(GameTestHelper helper) {
+        ServerPlayer player = AbilityGameTest.playerWith(helper, AspectKitCatalog.EMBER);
+        CoreService.set(player, Integer.MAX_VALUE);
+        AwakeningService.awaken(player, KitLadder.EMBER_WARD.abilityId());
+        RankUpRequirement fullCore = RankUpRequirements.SATURATED_CORE;
+        RankUpRequirement ascension = RankUpRequirements.replace(SoulRank.ASCENDED, fullCore);
+        RankUpRequirement transcendence = RankUpRequirements.replace(SoulRank.TRANSCENDENT, fullCore);
+        try {
+            List<AbilityVariant> master = AwakeningService.choices(player);
+            helper.assertTrue(master.equals(List.of(KitLadder.FIRESTORM, KitLadder.PHOENIX_RITE)), "Ember's Master pair");
+            Optional<ResourceLocation> pick = Optional.of(KitLadder.PHOENIX_RITE.abilityId());
+            helper.assertTrue(AwakeningService.rise(player, Optional.empty()) == AwakeningService.Result.NOT_A_CHOICE,
+                    "a built rung needs a pick");
+            helper.assertTrue(AwakeningService.rise(player, pick) == AwakeningService.Result.NOT_READY,
+                    "an empty Awakened core cannot Ascend");
+            CoreService.set(player, Integer.MAX_VALUE);
+            helper.assertTrue(AwakeningService.rise(player, pick) == AwakeningService.Result.AWAKENED, "Ascension");
+            helper.assertTrue(SoulService.get(player).spellState() == SpellState.MASTER, "a Master");
+            helper.assertTrue(SoulService.get(player).soulRank().equals(Optional.of(SoulRank.ASCENDED)), "an Ascended soul");
+            helper.assertTrue(SoulIdentityService.get(player).aspect().orElseThrow().aspectRank() == SoulRank.ASCENDED, "aspect rank");
+            helper.assertTrue(CoreService.saturation(player) == 0 && CoreService.limit(player) == CoreRules.ASCENDED_LIMIT,
+                    "the core starts over at its Ascended size");
+            helper.assertTrue(EssenceService.current(player) == EssenceService.capacity(player)
+                    && EssenceService.capacity(player) >= EssenceService.ASCENDED_CAPACITY, "a larger, full essence pool");
+            helper.assertTrue(RankPowers.mastered(player, KitLadder.EMBER_WARD.abilityId()), "Ember Ward is Mastered");
+            helper.assertTrue(AbilityService.status(player).slots().get(2).abilityName().equals("Phoenix Rite"), "Phoenix Rite on C");
+
+            helper.assertTrue(AwakeningService.nextRank(player).equals(Optional.of(SoulRank.TRANSCENDENT)), "Transcendence is next");
+            helper.assertTrue(AwakeningService.choices(player).equals(List.of(KitLadder.LIVING_FLAME)), "one form, no choice");
+            CoreService.set(player, Integer.MAX_VALUE);
+            helper.assertTrue(AwakeningService.awaken(player, KitLadder.LIVING_FLAME.abilityId()) == AwakeningService.Result.AWAKENED,
+                    "Transcendence");
+            helper.assertTrue(SoulService.get(player).spellState() == SpellState.SAINT, "a Saint");
+            helper.assertTrue(CoreService.limit(player) == CoreRules.TRANSCENDENT_LIMIT, "the Transcendent core");
+            helper.assertTrue(AbilityService.status(player).slots().stream()
+                    .anyMatch(slot -> slot.abilityName().equals("Living Flame")), "Living Flame on a key");
+            helper.assertTrue(AwakeningService.nextRank(player).isEmpty(), "Sovereign is not open");
+        } finally {
+            RankUpRequirements.replace(SoulRank.ASCENDED, ascension);
+            RankUpRequirements.replace(SoulRank.TRANSCENDENT, transcendence);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room")
+    public static void ascensionWaitsForTheSecondNightmare(GameTestHelper helper) {
+        ServerPlayer player = AbilityGameTest.playerWith(helper, AspectKitCatalog.MIST);
+        CoreService.set(player, Integer.MAX_VALUE);
+        AwakeningService.awaken(player, KitLadder.VEIL.abilityId());
+        CoreService.set(player, Integer.MAX_VALUE);
+        helper.assertFalse(AwakeningService.ready(player), "a full core alone does not make a Master");
+        helper.assertTrue(SoulSeaService.status(player, false).requirement().contains("Category 2"), "the Soul Sea says why");
+        helper.succeed();
+    }
+
+    @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room")
+    public static void anAbilityBuiltAfterYouRoseIsOwed(GameTestHelper helper) {
+        ServerPlayer player = AbilityGameTest.playerWith(helper, AspectKitCatalog.TIDE);
+        // Rising without the rank's ability stands in for a rung that shipped later.
+        SoulService.awaken(player);
+        helper.assertTrue(AwakeningService.owedRank(player).equals(Optional.of(SoulRank.AWAKENED)), "Tide's Awakened pair is owed");
+        helper.assertTrue(AwakeningService.ready(player), "an owed ability is always ready");
+        helper.assertTrue(SoulSeaService.status(player, false).nextRank().equals("awakened"), "the Soul Sea offers it");
+        helper.assertTrue(AwakeningService.awaken(player, KitLadder.UNDERTOW.abilityId()) == AwakeningService.Result.AWAKENED, "taken");
+        helper.assertTrue(AwakeningService.owedRank(player).isEmpty(), "nothing more is owed");
+        helper.assertTrue(SoulService.get(player).spellState() == SpellState.AWAKENED, "no extra rank came with it");
         helper.succeed();
     }
 

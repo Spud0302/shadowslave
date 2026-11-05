@@ -65,15 +65,15 @@ Every button sends a `/shadowslave` command, so the server still checks
 permission, and you can type the same commands by hand.
 
 - **Nature**: click any of the 28 Natures to become it on the spot, without the
-  Dream Candle or the reveal. An Awakened soul stays Awakened and gets that
-  Nature's first Awakened ability (`/shadowslave dev nature <nature>`).
+  Dream Candle or the reveal. An Awakened, Master or Saint keeps their rank and
+  gets that Nature's first ability of each rank (`/shadowslave dev nature <nature>`).
 - **First key**: put any Nature's Dormant ability on R
   (`/shadowslave dev ability dormant <ability>`). Your Nature, innate rule and
   Flaw stay the same, so you can try one ability against another kit.
 - **Second key**: put any of the 56 Awakened abilities on V, two pages of
   Natures, or clear it (`/shadowslave dev ability awakened <ability|none>`). You
   do not need to be Awakened.
-- **Progress**: set the soul to Dormant or Awakened (`/shadowslave dev rank`),
+- **Progress**: set the soul to Dormant, Awakened, Master or Saint (`/shadowslave dev rank`),
   empty, half-fill or fill the core, restore health, food and essence
   (`/shadowslave dev restore`), toggle free casting so abilities cost no essence
   (`/shadowslave dev free_casting`), take 16 soul shards of any rank
@@ -171,6 +171,37 @@ ability on the V key, doubles the essence pool (200) and starts a larger core
 (600). Operators can skip the candle with `/shadowslave awaken <name>` (the core
 must still be saturated; `/shadowslave core fill` helps) or test any ability with
 `/shadowslave ability grant <name>`.
+
+**Ascension and Transcendence (Master and Saint).** After Awakening, the Soul
+Sea's Rise page offers **Ascension** once your Awakened core is saturated and you
+have conquered a Category 2 Nightmare, and **Transcendence** once your Master core
+is saturated and you have conquered a Category 3 Nightmare. Masters pick one of
+two Master abilities, which goes on the **C** key; Saints take their Nature's
+Transformation Ability, which goes on the **X** key (both rebindable). Each rise
+starts a larger core (Master 2,400, Saint 7,200), grows the essence pool (350,
+then 550) and adds four hearts of body once the core fills. From Master on, every
+ability you gained at a lower rank is **Mastered**: it costs a quarter less
+essence. Saints also refill essence half again as fast (twice as fast in the
+Dream Realm) and carry a **Presence**: hostile creatures of a lower rank within
+ten blocks are slowed and weakened while near you. A Nature whose Master
+abilities or Transformation are not built yet can still rise; the Soul Sea
+offers the new ability (a "Grow" button) as soon as it exists.
+
+**Transformation (Saint).** Press X to take your form and again to leave it.
+Taking it costs essence up front and holding it drains the pool each second; it
+falls away when the pool runs dry. The HUD slot glows while you hold it.
+
+| Nature | Master abilities (C) | Transformation (X) |
+| --- | --- | --- |
+| Ember | Firestorm (55): fire rains on the spot you look at for 4 s. Phoenix Rite (60): for a minute, the next killing blow leaves you at four hearts and throws hostiles back burning | Living Flame (60, then 6 a second): flight, immune to fire, blows and attackers catch alight |
+| Mist | Phantom Step (40): blink where you look, then twice more free within 5 s. Smother (45): the creature you look at is blinded, slowed, weakened and choked for 5 s | Mistform (50, then 5 a second): invisible, faster, melee blows and falls pass through you, hunters lose you; you cannot strike |
+| Stone | Stone Spikes (50): a 10-block line of spikes toward where you look. Stoneskin (50): for 15 s harm is halved and nothing knocks you back | Colossus (60, then 6 a second): half again your size, armour, no knockback, heavier blows that stagger, a little slower |
+| Tide | Maelstrom (60): a whirlpool where you look for 6 s spins hostiles inward and hurts them. High Tide (50): heals you and nearby players, washes off fire and poison, throws hostiles back | Tidebody (50, then 5 a second): water breathing and swimming, regeneration in water or rain, immune to fire, melee attackers are thrown back |
+
+The other 24 Natures can rise to Master and Saint today but have no Master
+abilities or Transformation yet; those come in later runs. To try it quickly,
+use the dev menu's Progress tab (Master and Saint buttons) or
+`/shadowslave dev rank master|saint`.
 
 **Refinement.** The Soul Sea has a second page, Refine (press 2 or click the
 tab). You get one refinement point when the Spell names your Aspect and three

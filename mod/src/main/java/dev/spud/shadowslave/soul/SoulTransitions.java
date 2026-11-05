@@ -64,6 +64,19 @@ public final class SoulTransitions {
         return current.asAwakened();
     }
 
+    /** An Awakened rises to Master, or a Master to Saint. Whether they have earned it is checked by the caller. */
+    public static SoulData ascend(SoulData current) {
+        SpellState next = switch (current.spellState()) {
+            case AWAKENED -> SpellState.MASTER;
+            case MASTER -> SpellState.SAINT;
+            default -> throw new IllegalStateException("Only an Awakened or a Master can rise further");
+        };
+        if (current.aspectId().isEmpty()) {
+            throw new IllegalStateException("Only a soul with a named Aspect can rise further");
+        }
+        return current.asRisen(next);
+    }
+
     public static SoulData reset() {
         return SoulData.uninfected();
     }

@@ -9,8 +9,9 @@ import java.util.Optional;
 
 /**
  * Each Nature's ladder past Dormant (DESIGN, from the lore-to-gameplay doc):
- * at Awakening the player chooses one of two abilities that deepen the same
- * nature, the way Sunny's Shadow Step grew out of Shadow Control.
+ * at Awakening and again at Ascension the player chooses one of two abilities
+ * that deepen the same nature, the way Sunny's Shadow Step grew out of Shadow
+ * Control. At Transcendence every Nature has one Transformation Ability.
  */
 public final class KitLadder {
     private static final String NAMESPACE = "shadowslave";
@@ -144,6 +145,32 @@ public final class KitLadder {
     public static final AbilityVariant LAST_RALLY = variant("last_rally", "Last Rally",
             "Always on: when your banner falls or is furled, you and your allies near it are healed four hearts.", "Passive");
 
+    public static final AbilityVariant FIRESTORM = master("firestorm", "Firestorm",
+            "Fire rains on the spot you look at for four seconds, burning every hostile beneath it again and again.", "Force");
+    public static final AbilityVariant PHOENIX_RITE = master("phoenix_rite", "Phoenix Rite",
+            "For a minute, a blow that would kill you leaves you at four hearts instead, and you burst into flame.", "Shelter");
+    public static final AbilityVariant PHANTOM_STEP = master("phantom_step", "Phantom Step",
+            "Blink through mist where you look, then twice more for free within five seconds.", "Movement");
+    public static final AbilityVariant SMOTHER = master("smother", "Smother",
+            "Mist pours into the creature you look at: for five seconds it is blinded, crawls, hits weakly and chokes.", "Force");
+    public static final AbilityVariant STONE_SPIKES = master("stone_spikes", "Stone Spikes",
+            "A line of stone spikes bursts from the ground toward where you look, hurting and throwing up every hostile in its path.", "Force");
+    public static final AbilityVariant STONESKIN = master("stoneskin", "Stoneskin",
+            "For fifteen seconds your skin is stone: harm is halved and nothing knocks you back, but you move a little slower.", "Defense");
+    public static final AbilityVariant MAELSTROM = master("maelstrom", "Maelstrom",
+            "A whirlpool opens where you look for six seconds, spinning hostiles in toward its heart and hurting them.", "Control");
+    public static final AbilityVariant HIGH_TIDE = master("high_tide", "High Tide",
+            "A wave rolls out from you: you and nearby players are healed and washed of fire and poison, and hostiles are thrown back.", "Support");
+
+    public static final AbilityVariant LIVING_FLAME = form("living_flame", "Living Flame",
+            "Become a burning shape: you can fly, fire cannot hurt you, and what you strike or what strikes you catches alight.");
+    public static final AbilityVariant MISTFORM = form("mistform", "Mistform",
+            "Become drifting mist: unseen, swift, untouched by blows and falls, and hunters lose you. You cannot strike while you drift.");
+    public static final AbilityVariant COLOSSUS = form("colossus", "Colossus",
+            "Grow half again in size: heavy, armoured and immovable, and your blows stagger what they hit.");
+    public static final AbilityVariant TIDEBODY = form("tidebody", "Tidebody",
+            "Become a body of water: you breathe and swim like the sea, heal while wet, fire cannot touch you, and what hits you is thrown back.");
+
     private static final Map<ResourceLocation, List<AbilityVariant>> AWAKENED = Map.ofEntries(
             Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(CARRY_THE_FLAME, EMBER_WARD)),
             Map.entry(AspectKitCatalog.MIST.natureId(), List.of(THROUGH_THE_HAZE, VEIL)),
@@ -177,19 +204,45 @@ public final class KitLadder {
             Map.entry(AspectKitCatalog.STANDARD.natureId(), List.of(HOLD_THE_LINE, LAST_RALLY))
     );
 
+    // Ascended (Master): a third ability, two to choose from, as at Awakening (ch. 744: Sunny's Shadow
+    // Manifestation). Natures not listed yet can still Ascend; the Soul Sea offers their pair once it ships.
+    private static final Map<ResourceLocation, List<AbilityVariant>> ASCENDED = Map.ofEntries(
+            Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(FIRESTORM, PHOENIX_RITE)),
+            Map.entry(AspectKitCatalog.MIST.natureId(), List.of(PHANTOM_STEP, SMOTHER)),
+            Map.entry(AspectKitCatalog.STONE.natureId(), List.of(STONE_SPIKES, STONESKIN)),
+            Map.entry(AspectKitCatalog.TIDE.natureId(), List.of(MAELSTROM, HIGH_TIDE))
+    );
+
+    // Transcendent (Saint): the one Transformation Ability (section B of the lore research). No choice.
+    private static final Map<ResourceLocation, List<AbilityVariant>> TRANSCENDENT = Map.ofEntries(
+            Map.entry(AspectKitCatalog.EMBER.natureId(), List.of(LIVING_FLAME)),
+            Map.entry(AspectKitCatalog.MIST.natureId(), List.of(MISTFORM)),
+            Map.entry(AspectKitCatalog.STONE.natureId(), List.of(COLOSSUS)),
+            Map.entry(AspectKitCatalog.TIDE.natureId(), List.of(TIDEBODY))
+    );
+
     private KitLadder() {
     }
 
-    /** The two abilities a Nature can grow on reaching {@code rank}; empty for ranks not built yet. */
+    /** The abilities a Nature can grow on reaching {@code rank}; empty for ranks not built yet. */
     public static List<AbilityVariant> variants(ResourceLocation natureId, SoulRank rank) {
-        if (rank != SoulRank.AWAKENED) {
-            return List.of();
-        }
-        return AWAKENED.getOrDefault(natureId, List.of());
+        return byRank(rank).getOrDefault(natureId, List.of());
     }
 
     public static List<AbilityVariant> all() {
-        return AWAKENED.values().stream().flatMap(List::stream).toList();
+        return java.util.stream.Stream.of(AWAKENED, ASCENDED, TRANSCENDENT)
+                .flatMap(map -> map.values().stream())
+                .flatMap(List::stream)
+                .toList();
+    }
+
+    private static Map<ResourceLocation, List<AbilityVariant>> byRank(SoulRank rank) {
+        return switch (rank) {
+            case AWAKENED -> AWAKENED;
+            case ASCENDED -> ASCENDED;
+            case TRANSCENDENT -> TRANSCENDENT;
+            default -> Map.of();
+        };
     }
 
     public static Optional<AbilityVariant> byAbility(ResourceLocation abilityId) {
@@ -197,7 +250,19 @@ public final class KitLadder {
     }
 
     private static AbilityVariant variant(String path, String name, String description, String role) {
+        return variant(path, name, description, role, SoulRank.AWAKENED);
+    }
+
+    private static AbilityVariant variant(String path, String name, String description, String role, SoulRank rank) {
         return new AbilityVariant(ResourceLocation.fromNamespaceAndPath(NAMESPACE, "generation/ability/" + path),
-                name, description, role, SoulRank.AWAKENED);
+                name, description, role, rank);
+    }
+
+    private static AbilityVariant master(String path, String name, String description, String role) {
+        return variant(path, name, description, role, SoulRank.ASCENDED);
+    }
+
+    private static AbilityVariant form(String path, String name, String description) {
+        return variant(path, name, description, "Transformation", SoulRank.TRANSCENDENT);
     }
 }

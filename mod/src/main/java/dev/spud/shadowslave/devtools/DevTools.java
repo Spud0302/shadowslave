@@ -66,17 +66,23 @@ public final class DevTools {
 
     /**
      * Gives the player a fresh Aspect of {@code kit}, keeping the stage they had:
-     * an Awakened soul stays Awakened and gets the new Nature's first Awakened ability.
+     * an Awakened, Master or Saint keeps their rank and gets the new Nature's first
+     * ability of each rank they have reached.
      */
     public static AspectRoller.Roll swapNature(ServerPlayer player, AspectKit kit) {
-        boolean awakened = SoulService.get(player).spellState() == SpellState.AWAKENED;
+        Optional<SoulRank> reached = SoulService.get(player).soulRank()
+                .filter(rank -> rank.compareTo(SoulRank.AWAKENED) >= 0);
         AbilityService.clearLingering(player);
         AspectRoller.Roll roll = AspectRollService.roll(player, Optional.of(kit));
-        if (awakened) {
-            raiseAspect(player, SoulRank.AWAKENED);
-            KitLadder.variants(kit.natureId(), SoulRank.AWAKENED).stream().findFirst()
-                    .ifPresent(variant -> putAwakened(player, variant.abilityId()));
-        }
+        reached.ifPresent(top -> {
+            raiseAspect(player, top);
+            for (SoulRank rank : List.of(SoulRank.AWAKENED, SoulRank.ASCENDED, SoulRank.TRANSCENDENT)) {
+                if (rank.compareTo(top) <= 0) {
+                    KitLadder.variants(kit.natureId(), rank).stream().findFirst()
+                            .ifPresent(variant -> replaceRankAbility(player, rank, Optional.of(variant.abilityId())));
+                }
+            }
+        });
         EssenceService.fill(player);
         refresh(player);
         return roll;
@@ -114,29 +120,28 @@ public final class DevTools {
     public static boolean setRank(ServerPlayer player, SoulRank rank) {
         SoulIdentityData identity = SoulIdentityService.get(player);
         SoulData soul = SoulService.get(player);
-        if (identity.aspect().isEmpty() || soul.aspectId().isEmpty() || soul.flawId().isEmpty()) {
+        if (identity.aspect().isEmpty() || soul.aspectId().isEmpty() || soul.flawId().isEmpty()
+                || !soul.spellState().isAtOrBeyondDreamer() || rank.compareTo(SoulRank.TRANSCENDENT) > 0) {
             return false;
         }
-        if (rank == SoulRank.AWAKENED) {
-            if (soul.spellState() == SpellState.DREAMER) {
-                SoulService.awaken(player);
-            } else if (soul.spellState() != SpellState.AWAKENED) {
-                return false;
+        // Abilities of ranks above the new one go; each rank up to it keeps or gets one.
+        for (SoulRank above : List.of(SoulRank.AWAKENED, SoulRank.ASCENDED, SoulRank.TRANSCENDENT)) {
+            if (above.compareTo(rank) > 0) {
+                replaceRankAbility(player, above, Optional.empty());
             }
-            raiseAspect(player, SoulRank.AWAKENED);
-            if (rankAbility(SoulIdentityService.get(player), SoulRank.AWAKENED).isEmpty()) {
-                KitLadder.variants(identity.aspect().get().natureId(), SoulRank.AWAKENED).stream().findFirst()
-                        .ifPresent(variant -> putAwakened(player, variant.abilityId()));
+        }
+        SoulService.replace(player, switch (rank) {
+            case DORMANT -> soul.asDreamer(soul.aspectId().get(), SoulRank.DORMANT, soul.flawId().get());
+            case AWAKENED -> soul.asAwakened();
+            case ASCENDED -> soul.asRisen(SpellState.MASTER);
+            default -> soul.asRisen(SpellState.SAINT);
+        });
+        raiseAspect(player, rank);
+        for (SoulRank reached : List.of(SoulRank.AWAKENED, SoulRank.ASCENDED, SoulRank.TRANSCENDENT)) {
+            if (reached.compareTo(rank) <= 0 && rankAbility(SoulIdentityService.get(player), reached).isEmpty()) {
+                KitLadder.variants(identity.aspect().get().natureId(), reached).stream().findFirst()
+                        .ifPresent(variant -> replaceRankAbility(player, reached, Optional.of(variant.abilityId())));
             }
-        } else if (rank == SoulRank.DORMANT) {
-            if (!soul.spellState().isAtOrBeyondDreamer()) {
-                return false;
-            }
-            replaceRankAbility(player, SoulRank.AWAKENED, Optional.empty());
-            SoulService.replace(player, soul.asDreamer(soul.aspectId().get(), SoulRank.DORMANT, soul.flawId().get()));
-            raiseAspect(player, SoulRank.DORMANT);
-        } else {
-            return false;
         }
         CoreService.set(player, 0);
         EssenceService.fill(player);

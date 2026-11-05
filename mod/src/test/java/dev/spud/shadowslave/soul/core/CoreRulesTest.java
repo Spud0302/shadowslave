@@ -54,4 +54,13 @@ class CoreRulesTest {
         assertEquals(true, CoreRules.faintShardsHelp(SoulRank.AWAKENED));
         assertEquals(false, CoreRules.faintShardsHelp(SoulRank.ASCENDED));
     }
+
+    @Test
+    void masterAndSaintCoresAreBiggerAndKeepTheBodyGrowing() {
+        assertEquals(CoreRules.ASCENDED_LIMIT, CoreRules.limit(SoulRank.ASCENDED));
+        assertEquals(CoreRules.TRANSCENDENT_LIMIT, CoreRules.limit(SoulRank.TRANSCENDENT));
+        assertEquals(8.0, CoreRules.healthBonus(0, SoulRank.ASCENDED));
+        assertEquals(12.0, CoreRules.healthBonus(CoreRules.ASCENDED_LIMIT, SoulRank.ASCENDED));
+        assertEquals(16.0, CoreRules.healthBonus(CoreRules.TRANSCENDENT_LIMIT, SoulRank.TRANSCENDENT));
+    }
 }

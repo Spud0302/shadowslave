@@ -210,6 +210,22 @@ public record SoulData(
         );
     }
 
+    /** An Awakened or Master rises one stage: Master (Ascended) or Saint (Transcendent), Aspect rank with it. */
+    public SoulData asRisen(SpellState next) {
+        SoulRank rank = next.requiredSoulRank().orElseThrow(() -> new IllegalArgumentException("No Soul Rank for " + next));
+        return new SoulData(
+                CURRENT_SCHEMA,
+                next,
+                awakeningPath,
+                Optional.of(rank),
+                aspectId,
+                Optional.of(rank),
+                flawId,
+                importedFromDatapack,
+                migrationVersion
+        );
+    }
+
     /** Replaces the Aspect and Flaw while keeping the reached stage; used by admin rerolls. */
     public SoulData withIdentity(ResourceLocation aspect, SoulRank revealedAspectRank, ResourceLocation flaw) {
         return new SoulData(

@@ -35,6 +35,8 @@ public final class ClientGameEvents {
         consume(ClientKeyMappings.OPEN_SOUL, OpenSoulScreenRequestPayload.INSTANCE, minecraft);
         consume(ClientKeyMappings.USE_ABILITY, new UseAbilityRequestPayload(0), minecraft);
         consume(ClientKeyMappings.USE_SECOND_ABILITY, new UseAbilityRequestPayload(1), minecraft);
+        consume(ClientKeyMappings.USE_THIRD_ABILITY, new UseAbilityRequestPayload(2), minecraft);
+        consume(ClientKeyMappings.USE_FOURTH_ABILITY, new UseAbilityRequestPayload(3), minecraft);
         // Sneak while channeling to gather the essence into the next blow instead of leaping.
         consume(ClientKeyMappings.CHANNEL_ESSENCE,
                 new ChannelRequestPayload(minecraft.player != null && minecraft.player.isShiftKeyDown()), minecraft);

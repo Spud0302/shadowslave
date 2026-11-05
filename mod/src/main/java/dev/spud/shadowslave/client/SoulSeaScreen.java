@@ -60,6 +60,14 @@ public final class SoulSeaScreen extends Screen {
         super(Component.translatable("screen.shadowslave.soul_sea"));
         this.sea = sea;
         this.longing = sea.intention().longing();
+        selectOnlyChoice();
+    }
+
+    /** A rung with a single ability (a Saint's Transformation) needs no pick. */
+    private void selectOnlyChoice() {
+        if (sea.choices().size() == 1) {
+            selected = sea.choices().get(0).abilityId();
+        }
     }
 
     /** Fresh state from the server while the screen is open. */
@@ -68,6 +76,7 @@ public final class SoulSeaScreen extends Screen {
         if (next.choices().stream().noneMatch(choice -> choice.abilityId().equals(selected))) {
             selected = "";
         }
+        selectOnlyChoice();
     }
 
     SoulSeaPayload sea() {
@@ -150,7 +159,8 @@ public final class SoulSeaScreen extends Screen {
             hint(graphics, "screen.shadowslave.soul_sea.hint");
             return;
         }
-        graphics.drawCenteredString(this.font, "Rise to " + humanize(sea.nextRank()), centre, y, SpellStyle.TITLE);
+        graphics.drawCenteredString(this.font, owed() ? "Your Aspect grows" : "Rise to " + title(sea.nextRank()), centre, y,
+                SpellStyle.TITLE);
         y += 12;
         // Two lines fit above the cards; a requirement with several parts wraps onto the second.
         List<FormattedCharSequence> requirement = this.font.split(Component.literal(sea.requirement()), right - left - 32);
@@ -168,7 +178,11 @@ public final class SoulSeaScreen extends Screen {
             renderCard(graphics, choices.get(i), x0, cardTop, x0 + cardWidth, cardBottom,
                     inside(mouseX, mouseY, x0, cardTop, x0 + cardWidth, cardBottom));
         }
-        renderButton(graphics, mouseX, mouseY, BUTTON_WIDTH, "Awaken", canAwaken());
+        if (choices.isEmpty()) {
+            body(graphics, "Your Nature has nothing new to grow at this rank yet. Rise now, and the Soul Sea will offer it once it can.",
+                    cardTop + 8, SpellStyle.MUTED);
+        }
+        renderButton(graphics, mouseX, mouseY, BUTTON_WIDTH, riseVerb(), canAwaken());
         hint(graphics, "screen.shadowslave.soul_sea.choose");
     }
 
@@ -319,7 +333,32 @@ public final class SoulSeaScreen extends Screen {
     }
 
     private boolean canAwaken() {
-        return sea.ready() && !selected.isEmpty();
+        return sea.ready() && (!selected.isEmpty() || sea.choices().isEmpty());
+    }
+
+    /** True when the offer is an ability owed from a rank already reached, not a rank-up. */
+    private boolean owed() {
+        return sea.nextRank().equals(sea.core().rank());
+    }
+
+    private String riseVerb() {
+        if (owed()) {
+            return "Grow";
+        }
+        return switch (sea.nextRank()) {
+            case "ascended" -> "Ascend";
+            case "transcendent" -> "Transcend";
+            default -> "Awaken";
+        };
+    }
+
+    /** The human title for a rank: Master for Ascended, Saint for Transcendent. */
+    static String title(String rank) {
+        return switch (rank) {
+            case "ascended" -> "Master";
+            case "transcendent" -> "Saint";
+            default -> humanize(rank);
+        };
     }
 
     @Override
