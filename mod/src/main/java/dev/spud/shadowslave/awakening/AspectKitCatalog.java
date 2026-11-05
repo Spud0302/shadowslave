@@ -297,10 +297,29 @@ public final class AspectKitCatalog {
             "Walking away from your planted banner while your allies fight near it weakens you."
     );
 
+    public static final AspectKit SCRIBE = new AspectKit(
+            id("generation/nature/scribe"), "Scribe",
+            id("kit/innate/scribe_quick_study"), "Quick Study",
+            "Each sighting fills a creature page twice as fast, and copying a Field Note needs no ink.",
+            id("generation/ability/ward_script"), "Ward Script",
+            "Write a rune on the ground around you: for ten seconds no creature of your rank or lower can cross into it.",
+            id("generation/flaw/inkbound"), id("generation/flaw_effect/inkbound"), "Inkbound",
+            "Every ability also spends a sheet of paper or an ink sac, and fails without one."
+    );
+    public static final AspectKit SURVEYOR = new AspectKit(
+            id("generation/nature/surveyor"), "Surveyor",
+            id("kit/innate/surveyor_wide_eye"), "Wide Eye",
+            "Your Field Guide's map fills in two chunks further around you.",
+            id("generation/ability/survey_pulse"), "Survey Pulse",
+            "Map everything within 48 blocks at once, caves included, and see the outlines of structures nearby for thirty seconds.",
+            id("generation/flaw/uncharted_dread"), id("generation/flaw_effect/uncharted_dread"), "Uncharted Dread",
+            "Your abilities cost double essence where your map shows nothing yet."
+    );
+
     private static final List<AspectKit> ALL = List.of(EMBER, MIST, STONE, TIDE, WARDEN, SEER, REAPER, WELLSPRING,
             FORGE, DELVE, MASON, VERDANT, WAYFARER, LULL, GLOAM, RIME, FURY, THRESHOLD, ANCHOR, HOURGLASS,
             HERALD, KEEPER, FORTUNE, CANTOR, SHEPHERD, VESSEL, MASQUE, UNBROKEN,
-            SABOTEUR, STANDARD);
+            SABOTEUR, STANDARD, SCRIBE, SURVEYOR);
 
     private AspectKitCatalog() {
     }

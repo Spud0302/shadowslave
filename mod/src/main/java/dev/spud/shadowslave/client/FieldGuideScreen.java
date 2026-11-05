@@ -86,6 +86,11 @@ public class FieldGuideScreen extends Screen {
         this.tab = tab;
     }
 
+    /** Opens on the map tab. */
+    public static FieldGuideScreen onMap() {
+        return new FieldGuideScreen(Tab.MAP);
+    }
+
     int left() {
         return (width - WIDTH) / 2;
     }

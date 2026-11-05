@@ -258,7 +258,9 @@ public final class ExpandedIdentityContentCatalog {
                         nature("masque", "Masque", Set.of("masque", "disguise", "deceit"), 3),
                         nature("unbroken", "Unbroken", Set.of("unbroken", "endurance", "defiance"), 3),
                         nature("saboteur", "Saboteur", Set.of("saboteur", "sabotage", "supply"), 3),
-                        nature("standard", "Standard", Set.of("standard", "banner", "muster"), 3)
+                        nature("standard", "Standard", Set.of("standard", "banner", "muster"), 3),
+                        nature("scribe", "Scribe", Set.of("scribe", "lore", "writing"), 3),
+                        nature("surveyor", "Surveyor", Set.of("surveyor", "chart", "terrain"), 3)
                 )),
                 wave.archetypes(),
                 concat(wave.abilities(), List.of(
@@ -286,7 +288,9 @@ public final class ExpandedIdentityContentCatalog {
                         ability("borrowed_face", "Borrowed Face", Set.of("masque"), Set.of("deceit", "stealth"), 5),
                         ability("last_stand", "Last Stand", Set.of("unbroken"), Set.of("resolve", "endurance"), 5),
                         ability("undermine", "Undermine", Set.of("saboteur"), Set.of("stealth", "precision"), 5),
-                        ability("plant_the_standard", "Plant the Standard", Set.of("standard"), Set.of("resolve", "mercy"), 5)
+                        ability("plant_the_standard", "Plant the Standard", Set.of("standard"), Set.of("resolve", "mercy"), 5),
+                        ability("ward_script", "Ward Script", Set.of("scribe"), Set.of("precision", "resolve"), 5),
+                        ability("survey_pulse", "Survey Pulse", Set.of("surveyor"), Set.of("precision", "adaptation"), 5)
                 )),
                 concat(wave.flaws(), List.of(
                         flaw("quarry_lock", "Quarry Lock", Set.of("hunt", "pursuit"),
@@ -340,7 +344,11 @@ public final class ExpandedIdentityContentCatalog {
                         flaw("marked", "Marked", Set.of("saboteur", "sabotage"),
                                 Set.of("signal", "conditional"), Set.of(), 3),
                         flaw("oathbound", "Oathbound", Set.of("standard", "banner"),
-                                Set.of("physical", "conditional"), Set.of(), 3)
+                                Set.of("physical", "conditional"), Set.of(), 3),
+                        flaw("inkbound", "Inkbound", Set.of("scribe", "writing"),
+                                Set.of("resource", "conditional"), Set.of(), 3),
+                        flaw("uncharted_dread", "Uncharted Dread", Set.of("surveyor", "chart"),
+                                Set.of("resource", "conditional"), Set.of(), 3)
                 ))
         );
     }

@@ -99,6 +99,11 @@ public final class AbilityRegistry {
         register(new UndermineAbility());
         register(new FalseTrailAbility());
         register(new PlantTheStandardAbility());
+        register(new WardScriptAbility());
+        register(new LorebindAbility());
+        register(new SurveyPulseAbility());
+        register(new TriangulateAbility());
+        register(new FaultLineAbility());
     }
 
     private AbilityRegistry() {

@@ -2,6 +2,8 @@ package dev.spud.shadowslave.fieldguide;
 
 import dev.spud.shadowslave.ability.CantorVoice;
 import dev.spud.shadowslave.ability.ForewarningService;
+import dev.spud.shadowslave.ability.ScribeLore;
+import dev.spud.shadowslave.ability.SurveyorCraft;
 import dev.spud.shadowslave.citadel.CitadelService;
 import dev.spud.shadowslave.creature.CreatureRank;
 import dev.spud.shadowslave.creature.NightmareCreature;
@@ -185,17 +187,26 @@ public final class FieldGuideService {
 
     /** Uncovers the chunks around the player; with {@code force}, even if they have not moved. */
     public static void explore(ServerPlayer player, boolean force) {
+        explore(player, force, exploreRadius(player));
+    }
+
+    /** How many chunks around the player their guide maps as they walk: wider for a Surveyor's Wide Eye. */
+    public static int exploreRadius(ServerPlayer player) {
+        return settings().exploreRadius() + (SurveyorCraft.isSurveyor(player) ? SurveyorCraft.WIDE_EYE : 0);
+    }
+
+    /** Uncovers the chunks within {@code radius} of the player. Returns how many were new or changed. */
+    public static int explore(ServerPlayer player, boolean force, int radius) {
         ServerLevel level = player.serverLevel();
         String dimension = dimension(level);
         ChunkPos centre = player.chunkPosition();
         Tracking tracking = tracking(player);
         if (!force && dimension.equals(tracking.dimension) && centre.toLong() == tracking.chunk) {
-            return;
+            return 0;
         }
         tracking.dimension = dimension;
         tracking.chunk = centre.toLong();
         FieldGuideData data = get(player);
-        int radius = settings().exploreRadius();
         List<Long> changed = new ArrayList<>();
         List<byte[]> colours = new ArrayList<>();
         for (int dx = -radius; dx <= radius; dx++) {
@@ -217,6 +228,7 @@ public final class FieldGuideService {
         if (!changed.isEmpty()) {
             send(player, mapPayload(dimension, false, changed, colours));
         }
+        return changed.size();
     }
 
     /** Sends every dimension's explored map, in as many packets as it takes. */
@@ -508,6 +520,9 @@ public final class FieldGuideService {
         int before = revealedCount(data, type);
         boolean firstPage = data.creature(type).map(entry -> entry.sightings() + entry.kills() == 0).orElse(true);
         int amount = 1 + (ForewarningService.isSeer(player) ? settings().seerBonus() : 0);
+        if (ScribeLore.isScribe(player)) {
+            amount *= 2; // Quick Study: a Scribe's pages fill twice as fast.
+        }
         BlockPos pos = creature.blockPosition();
         String dimension = dimension(creature.level());
         boolean counted = data.sight(type, creature.rank().ordinal(), dimension, pos.getX(), pos.getZ(),
@@ -591,6 +606,16 @@ public final class FieldGuideService {
     }
 
     // Places
+
+    /** Pins a place in the player's guide, unless it is already pinned. Returns whether the guide changed. */
+    public static boolean pin(ServerPlayer player, FieldGuideData.Pin pin) {
+        FieldGuideData data = get(player);
+        if (pin.ref().filter(data::hasPin).isPresent() || !data.addPin(pin)) {
+            return false;
+        }
+        tracking(player).dirty = true;
+        return true;
+    }
 
     /** Logs the Gates and Seeds a player has come near. */
     static void logPlaces(ServerPlayer player) {
