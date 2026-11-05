@@ -36,9 +36,10 @@ import java.util.Optional;
  * Candle is drawn into a solo Category 1 Nightmare picked from
  * {@code first_nightmare} in the settings. Conquering it is what lets them
  * Awaken. A death inside reverts them like any Nightmare, but no Seed judges
- * them: the one inside them grows back and blooms the next time they sleep by
- * the candle. With {@code shadowslaveFirstNightmareBreach} also on, a death lets
- * the pack's {@code breach} creature out beside them.
+ * them: the one inside them goes quiet for a few in-game days ({@code quiet_days},
+ * Jack 2026-10-31), then blooms the next time they sleep by the candle. With
+ * {@code shadowslaveFirstNightmareBreach} also on, a death lets the pack's
+ * {@code breach} creature out beside them.
  */
 public final class FirstNightmare {
     /** How long the carrier sleeps before the Seed blooms; the same wait as a dreamer's crossing. */
@@ -56,7 +57,16 @@ public final class FirstNightmare {
     /** Blooms the Seed of a sleeping carrier if a lit Dream Candle burns by their bed and it is due. */
     public static boolean tryBloom(ServerPlayer player) {
         Optional<BlockPos> bed = player.getSleepingPos();
-        if (bed.isEmpty() || DreamCandleRitual.findLitCandle(player.serverLevel(), bed.get()).isEmpty() || !due(player)) {
+        if (bed.isEmpty() || DreamCandleRitual.findLitCandle(player.serverLevel(), bed.get()).isEmpty()) {
+            return false;
+        }
+        long quiet = quietLeft(player);
+        if (quiet > 0 && TrialRules.firstNightmare(player.server) && !conquered(player)) {
+            player.displayClientMessage(Component.literal(settings().quiet().replace("{time}", time(quiet)))
+                    .withStyle(ChatFormatting.DARK_PURPLE), true);
+            return false;
+        }
+        if (!due(player)) {
             return false;
         }
         return bloom(player).isPresent();
@@ -72,7 +82,23 @@ public final class FirstNightmare {
                 && AwakeningService.nextRank(player).filter(SoulRank.AWAKENED::equals).isPresent()
                 && CoreService.saturated(player)
                 && !conquered(player)
+                && quietLeft(player) <= 0
                 && !TrialService.inside(player);
+    }
+
+    /** Ticks before the Seed inside a carrier who fell can bloom again; 0 when it is ready. */
+    public static long quietLeft(ServerPlayer player) {
+        long until = TrialData.get(player.server).seedQuietUntil(player.getUUID());
+        return Math.max(0, until - player.server.overworld().getGameTime());
+    }
+
+    /** "2 days", "1 day", or the minutes left on the last day. */
+    static String time(long ticks) {
+        long days = (ticks + 23999) / 24000;
+        if (days > 1) {
+            return days + " days";
+        }
+        return ticks > 12000 ? "a day" : DreamCrossing.duration(ticks);
     }
 
     /** Whether this player has conquered a First Nightmare (or any Nightmare, which counts as much). */
@@ -126,8 +152,12 @@ public final class FirstNightmare {
         return Optional.of(loaded.get(player.getRandom().nextInt(loaded.size())));
     }
 
-    /** A carrier died in their First Nightmare and is home again: the Seed grows back, and something may have followed them. */
+    /** A carrier died in their First Nightmare and is home again: the Seed goes quiet, and something may have followed them. */
     static void fell(ServerPlayer player, NightmarePack pack) {
+        long quiet = Math.round(settings().quietDays() * 24000);
+        if (quiet > 0) {
+            TrialData.get(player.server).quietSeed(player.getUUID(), player.server.overworld().getGameTime() + quiet);
+        }
         TrialService.spell(player, Component.literal(settings().withered()).withStyle(ChatFormatting.DARK_PURPLE));
         if (TrialRules.firstNightmareBreach(player.server)) {
             pack.breach().ifPresent(breach -> breach(player, breach));

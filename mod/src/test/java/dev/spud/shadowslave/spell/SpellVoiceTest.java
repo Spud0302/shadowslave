@@ -73,7 +73,7 @@ class SpellVoiceTest {
         VoiceLines lines = VoiceLines.merge(files);
         Map<String, String> facts = Map.of("region", "the Ashen Expanse", "category", "Second", "citadel", "Greywatch",
                 "what", "a Fallen Demon", "danger", "Dormant", "nature", "Ember", "next_category", "Second", "enemy", "Ironveil");
-        for (String grade : List.of("failed", "poor", "adequate", "good", "excellent", "glorious", "impossible")) {
+        for (String grade : List.of("failed", "poor", "adequate", "good", "excellent", "glorious")) {
             assertTrue(lines.pick(VoiceRequest.of("appraisal_grade", grade, facts, 7)).isPresent(), grade);
         }
         for (SpellJudge.Behaviour behaviour : SpellJudge.Behaviour.values()) {

@@ -30,7 +30,9 @@ import java.util.Set;
  *   <li>{@code events}: timed lines and spawns; {@code per_member} adds creatures for
  *       each challenger after the first, so the Nightmare scales to its cohort.</li>
  *   <li>{@code tyrant}: the Nightmare's ruler, with extra health per extra challenger.</li>
- *   <li>{@code endings}: the hidden ways out. The first one met ends the Nightmare.</li>
+ *   <li>{@code endings}: the hidden ways out. The first one met ends the Nightmare. One may be
+ *       {@code fated}: what happened in the true past, which the Spell never reveals. The
+ *       appraisal measures how far a run strayed from it (ch. 744; Jack, 2026-10-31).</li>
  *   <li>{@code comments} and {@code boons}: the appraisal's comment and boon loot table per grade.</li>
  *   <li>{@code long}: makes it a Long Nightmare (Jack, 2026-10-29): the run survives logouts
  *       and restarts, its clock counts days, and later cohorts join the challengers still inside.</li>
@@ -87,15 +89,26 @@ public record NightmarePack(String displayName, String setting, ResourceLocation
         return longRun.isPresent();
     }
 
-    public record Role(String id, String name, int weight, int min, String description, List<ItemStack> kit) {
+    /**
+     * A role the Spell hands out. {@code deviation} is how far beneath the
+     * story's notice the role stands: a slave who changes the ending strays
+     * further from fate than a guard who does (ch. 15). It counts only when
+     * the run ends on an ending that is not the fated one.
+     */
+    public record Role(String id, String name, int weight, int min, String description, List<ItemStack> kit, int deviation) {
         public static final Codec<Role> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.STRING.fieldOf("id").forGetter(Role::id),
                 Codec.STRING.fieldOf("name").forGetter(Role::name),
                 Codec.intRange(1, 1000).optionalFieldOf("weight", 1).forGetter(Role::weight),
                 Codec.intRange(0, 64).optionalFieldOf("min", 0).forGetter(Role::min),
                 Codec.STRING.optionalFieldOf("description", "").forGetter(Role::description),
-                ItemStack.CODEC.listOf().optionalFieldOf("kit", List.of()).forGetter(Role::kit)
+                ItemStack.CODEC.listOf().optionalFieldOf("kit", List.of()).forGetter(Role::kit),
+                Codec.intRange(0, 10000).optionalFieldOf("deviation", 0).forGetter(Role::deviation)
         ).apply(instance, Role::new));
+
+        public Role(String id, String name, int weight, int min, String description, List<ItemStack> kit) {
+            this(id, name, weight, min, description, kit, 0);
+        }
     }
 
     public record Spawn(ResourceLocation entity, Optional<CreatureRank> rank, Optional<CreatureClass> creatureClass,
@@ -166,11 +179,25 @@ public record NightmarePack(String displayName, String setting, ResourceLocation
 
     /**
      * A hidden way to end the Nightmare. {@code after} is the earliest second it
-     * can be met. {@code role} names the role whose fate it fulfils: a challenger
-     * holding that role earns {@code role_score} more and the {@code role_deed}.
+     * can be met. {@code fated} marks the ending of the true past, which the
+     * Spell never names; {@code deviation} is how far this ending strays from it
+     * (the fated one strays not at all; older packs give {@code score} instead).
+     * {@code role} names the role whose part it is: a challenger holding that
+     * role earns {@code role_score} more and the {@code role_deed}.
      */
     public record Ending(String id, EndingKind kind, int after, List<String> points, int radius, int score, String deed,
-                         String comment, Optional<String> role, int roleScore, String roleDeed) {
+                         String comment, Optional<String> role, int roleScore, String roleDeed, boolean fated,
+                         Optional<Integer> deviationField) {
+        public Ending(String id, EndingKind kind, int after, List<String> points, int radius, int score, String deed,
+                      String comment, Optional<String> role, int roleScore, String roleDeed) {
+            this(id, kind, after, points, radius, score, deed, comment, role, roleScore, roleDeed, false, Optional.empty());
+        }
+
+        /** How far this ending strays from the fated one: none for the fated ending itself. */
+        public int deviation() {
+            return fated ? 0 : deviationField.orElse(score);
+        }
+
         public static final Codec<Ending> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.STRING.fieldOf("id").forGetter(Ending::id),
                 EndingKind.CODEC.fieldOf("kind").forGetter(Ending::kind),
@@ -182,7 +209,9 @@ public record NightmarePack(String displayName, String setting, ResourceLocation
                 Codec.STRING.optionalFieldOf("comment", "").forGetter(Ending::comment),
                 Codec.STRING.optionalFieldOf("role").forGetter(Ending::role),
                 Codec.intRange(0, 10000).optionalFieldOf("role_score", 0).forGetter(Ending::roleScore),
-                Codec.STRING.optionalFieldOf("role_deed", "").forGetter(Ending::roleDeed)
+                Codec.STRING.optionalFieldOf("role_deed", "").forGetter(Ending::roleDeed),
+                Codec.BOOL.optionalFieldOf("fated", false).forGetter(Ending::fated),
+                Codec.intRange(0, 10000).optionalFieldOf("deviation").forGetter(Ending::deviationField)
         ).apply(instance, Ending::new));
     }
 
@@ -235,6 +264,9 @@ public record NightmarePack(String displayName, String setting, ResourceLocation
             if (!roleIds.add(role.id())) {
                 return DataResult.error(() -> "Duplicate role: " + role.id());
             }
+        }
+        if (pack.endings.stream().filter(Ending::fated).count() > 1) {
+            return DataResult.error(() -> "Only one ending can be fated");
         }
         for (Ending ending : pack.endings) {
             if (ending.kind() == EndingKind.SLAY_TYRANT && pack.tyrant.isEmpty()) {

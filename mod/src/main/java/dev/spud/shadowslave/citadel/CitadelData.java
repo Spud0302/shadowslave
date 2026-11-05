@@ -27,15 +27,15 @@ public final class CitadelData extends SavedData {
 
     final List<Citadel> citadels = new ArrayList<>();
 
-    /** Who holds a Citadel: its Guardian, nobody (conquered, the Gateway open), or a clan. */
+    /** Who holds a Citadel: its Guardian, nobody (conquered, the Gateway open), a player clan, or an NPC clan. */
     public enum Hold {
-        GUARDIAN, CONQUERED, CLAN;
+        GUARDIAN, CONQUERED, CLAN, NPC;
 
         GatewayBlock.State gateway() {
             return switch (this) {
                 case GUARDIAN -> GatewayBlock.State.SEALED;
                 case CONQUERED -> GatewayBlock.State.OPEN;
-                case CLAN -> GatewayBlock.State.CLAIMED;
+                case CLAN, NPC -> GatewayBlock.State.CLAIMED;
             };
         }
     }
@@ -72,6 +72,13 @@ public final class CitadelData extends SavedData {
         BlockPos linkAnchor;
         /** Whether an enemy at war has cut the Link Anchor; the Gateway starves until it is mended. */
         boolean linkCut;
+        /** The NPC clan holding it, while {@link Hold#NPC}. */
+        UUID npcClan;
+        /** Guards and residents it has, counted whether or not they stand in the world. */
+        int guards;
+        int residents;
+        /** When the last lost guard or resident was replaced (game time). */
+        long regrownAt;
 
         Citadel(UUID id, BlockPos gateway, String name, CreatureRank rank) {
             this.id = id;
@@ -141,6 +148,18 @@ public final class CitadelData extends SavedData {
             return linkCut;
         }
 
+        public Optional<UUID> npcClan() {
+            return Optional.ofNullable(npcClan);
+        }
+
+        public int guards() {
+            return guards;
+        }
+
+        public int residents() {
+            return residents;
+        }
+
         CompoundTag save() {
             CompoundTag tag = new CompoundTag();
             tag.putUUID("id", id);
@@ -181,6 +200,12 @@ public final class CitadelData extends SavedData {
                 tag.put("link_anchor", NbtUtils.writeBlockPos(linkAnchor));
             }
             tag.putBoolean("link_cut", linkCut);
+            if (npcClan != null) {
+                tag.putUUID("npc_clan", npcClan);
+            }
+            tag.putInt("guards", guards);
+            tag.putInt("residents", residents);
+            tag.putLong("regrown_at", regrownAt);
             return tag;
         }
 
@@ -220,6 +245,10 @@ public final class CitadelData extends SavedData {
             citadel.raid = tag.contains("raid", Tag.TAG_COMPOUND) ? Raid.load(tag.getCompound("raid")) : null;
             citadel.linkAnchor = NbtUtils.readBlockPos(tag, "link_anchor").orElse(null);
             citadel.linkCut = tag.getBoolean("link_cut");
+            citadel.npcClan = tag.hasUUID("npc_clan") ? tag.getUUID("npc_clan") : null;
+            citadel.guards = tag.getInt("guards");
+            citadel.residents = tag.getInt("residents");
+            citadel.regrownAt = tag.getLong("regrown_at");
             return citadel;
         }
     }

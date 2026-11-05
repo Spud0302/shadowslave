@@ -1,5 +1,6 @@
 package dev.spud.shadowslave.dreamrealm;
 
+import dev.spud.shadowslave.ShadowSlaveMod;
 import dev.spud.shadowslave.awakening.DreamCandleRitual;
 import dev.spud.shadowslave.block.ModBlocks;
 import dev.spud.shadowslave.citadel.CitadelRegistry;
@@ -30,6 +31,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.FireChargeItem;
 import net.minecraft.world.item.FlintAndSteelItem;
 import net.minecraft.world.item.ItemStack;
@@ -41,6 +43,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.CanContinueSleepingEvent;
+import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -57,7 +61,14 @@ import java.util.UUID;
  * instead of skipping the night and arrives at their Dream Anchor, the last
  * Dream Candle they lit there. Their body stays asleep in the bed (a server
  * option, until Master rank, when Ascension merges body and soul, ch. 560).
- * Using a lit Dream Candle in the Dream Realm with an empty hand wakes them.
+ * Using a lit Dream Candle in the Dream Realm with an empty hand wakes them,
+ * as does using their clan's Gateway while sneaking, but only once they have
+ * been there a while (ch. 398; Jack, 2026-10-31).
+ *
+ * <p>If the sleeping body is killed, its dreamer becomes one of the Lost
+ * (CANON, ch. 360 and 435): stranded in the Dream Realm, unable to wake, until
+ * they conquer their Second Nightmare and rise to Ascended, which remakes the
+ * body (ch. 1230). Each is a server option ({@link DreamRealmRules}).</p>
  */
 public final class DreamCrossing {
     /** Ticks in bed before the dream takes hold; under the 100 vanilla needs to skip the night. */
@@ -68,6 +79,7 @@ public final class DreamCrossing {
     /** Why a dreamer woke, for the line they read. */
     public enum Reason {
         CANDLE("The candlelight carries you back to your body."),
+        GATEWAY("The Gateway carries you back to your body."),
         BODY_HURT("Pain drags you out of the dream. Something is hurting your body."),
         BODY_KILLED("Your sleeping body is dying."),
         RETURNED("You wake in your bed."),
@@ -111,6 +123,33 @@ public final class DreamCrossing {
         }
     }
 
+    /**
+     * There is no night-only rule for the dream (CANON: the first Sleepers go
+     * on the winter solstice, not at night, ch. 310; Jack, 2026-10-31): beside a
+     * lit Dream Candle, a dreamer, or a carrier whose inner Seed is ready, can
+     * lie down at any hour. Monsters nearby still keep them up.
+     */
+    public static void onCanSleep(CanPlayerSleepEvent event) {
+        if (event.getProblem() == Player.BedSleepingProblem.NOT_POSSIBLE_NOW && sleepsAnyHour(event.getEntity(), event.getPos())) {
+            event.setProblem(null);
+        }
+    }
+
+    /** Daylight would wake them; the candle keeps them under until the dream takes hold. */
+    public static void onCanContinueSleeping(CanContinueSleepingEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player && event.getProblem() == Player.BedSleepingProblem.NOT_POSSIBLE_NOW
+                && player.getSleepingPos().filter(bed -> sleepsAnyHour(player, bed)).isPresent()) {
+            event.setContinueSleeping(true);
+        }
+    }
+
+    static boolean sleepsAnyHour(ServerPlayer player, BlockPos bed) {
+        if (DreamCandleRitual.findLitCandle(player.serverLevel(), bed).isEmpty() || DreamRealm.is(player.level())) {
+            return false;
+        }
+        return (canDream(player) && !data(player).isDreaming()) || dev.spud.shadowslave.trial.FirstNightmare.due(player);
+    }
+
     /** Crosses a sleeping player if a lit Dream Candle burns by their bed and they are Awakened. */
     public static boolean tryCross(ServerPlayer player) {
         Optional<BlockPos> bed = player.getSleepingPos();
@@ -139,7 +178,7 @@ public final class DreamCrossing {
             body = Optional.of(SleepingBodyEntity.layDown(bedLevel, player, bed.pos()).getUUID());
             bedLevel.getChunkSource().addRegionTicket(BODY_TICKET, new ChunkPos(bed.pos()), 2, new ChunkPos(bed.pos()));
         }
-        setData(player, data(player).dreamingFrom(bed, body));
+        setData(player, data(player).dreamingFrom(bed, body, now(server)));
 
         Vec3 arrival = arrival(player, realm, bed.pos());
         player.teleportTo(realm, arrival.x, arrival.y, arrival.z, Set.of(), player.getYRot(), 0.0F);
@@ -153,7 +192,11 @@ public final class DreamCrossing {
         region.filter(found -> !found.arrival().isEmpty()).ifPresent(found ->
                 spell(player, Component.literal(found.arrival())));
         if (body.isPresent()) {
-            spell(player, Component.literal("Your body sleeps on in the waking world. If it is hurt, you will wake."));
+            spell(player, Component.literal(DreamRealmRules.lost(server)
+                    ? "Your body sleeps on in the waking world. If it is hurt, you will wake. If it dies, you will be Lost."
+                    : "Your body sleeps on in the waking world. If it is hurt, you will wake."));
+        } else if (ascended(player)) {
+            spell(player, Component.literal("You cross whole. Body and soul are one, and nothing is left behind."));
         }
         return true;
     }
@@ -230,7 +273,56 @@ public final class DreamCrossing {
         return Vec3.atBottomCenterOf(pos.above());
     }
 
+    /** The clock dream arrivals are measured on: the Overworld's, so every dimension agrees. */
+    static long now(MinecraftServer server) {
+        return server.overworld().getGameTime();
+    }
+
+    static boolean ascended(ServerPlayer player) {
+        return SoulService.get(player).soulRank().filter(rank -> rank.compareTo(SoulRank.ASCENDED) >= 0).isPresent();
+    }
+
     // ---- waking --------------------------------------------------------------------------------------------------
+
+    /**
+     * A dreamer asks a Candle or a Gateway to wake them. The Lost cannot wake,
+     * and nobody wakes this way until the wait after arriving is over. Returns
+     * false only if they were not dreaming at all.
+     */
+    public static boolean tryWake(ServerPlayer player, Reason reason) {
+        Optional<DreamData.Dreaming> dreaming = data(player).dreaming();
+        if (dreaming.isEmpty()) {
+            return false;
+        }
+        if (dreaming.get().lost()) {
+            player.displayClientMessage(Component.literal("You are Lost. Your body is dead, and the waking world will not take you back.")
+                    .withStyle(ChatFormatting.DARK_RED), true);
+            return true;
+        }
+        long left = waitLeft(player, dreaming.get());
+        if (left > 0) {
+            player.displayClientMessage(Component.literal("The dream holds you a while longer. You can wake in " + duration(left) + ".")
+                    .withStyle(ChatFormatting.GRAY), true);
+            return true;
+        }
+        return wake(player, reason);
+    }
+
+    /** Ticks left before a Candle or Gateway lets this dreamer wake; 0 once the wait is over. */
+    public static long waitLeft(ServerPlayer player, DreamData.Dreaming dreaming) {
+        long since = now(player.server) - dreaming.since();
+        return since < 0 ? 0 : Math.max(0, DreamRealmRules.wakeWaitTicks(player.server) - since);
+    }
+
+    /** "3 minutes", "1 minute", "40 seconds", for a number of ticks. */
+    public static String duration(long ticks) {
+        long seconds = (ticks + 19) / 20;
+        if (seconds >= 60) {
+            long minutes = (seconds + 59) / 60;
+            return minutes == 1 ? "1 minute" : minutes + " minutes";
+        }
+        return seconds == 1 ? "1 second" : seconds + " seconds";
+    }
 
     /** Wakes a dreamer in their bed, taking up their body. Returns false if they were not dreaming. */
     public static boolean wake(ServerPlayer player, Reason reason) {
@@ -300,17 +392,40 @@ public final class DreamCrossing {
                 .filter(player -> data(player).dreaming().flatMap(DreamData.Dreaming::body).filter(body.getUUID()::equals).isPresent());
     }
 
+    /**
+     * The body is remade when a Lost dreamer rises to Ascended (ch. 1230): from
+     * then on they carry it, and a Candle or Gateway wakes them as usual.
+     * Checked once a second, so every road to the rank counts.
+     */
+    public static void checkFound(ServerPlayer player) {
+        if (data(player).isLost() && ascended(player)) {
+            setData(player, data(player).withDreaming(data(player).dreaming().orElseThrow().found()));
+            title(player, Component.literal("Found").withStyle(ChatFormatting.LIGHT_PURPLE),
+                    Component.literal("Your body is remade").withStyle(ChatFormatting.GRAY));
+            spell(player, Component.literal("You have Ascended, and your soul has made itself a body. You are no longer Lost.")
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
+            spell(player, Component.literal("From now on you cross whole. Use a lit Dream Candle or your clan's Gateway to wake.")
+                    .withStyle(ChatFormatting.GRAY));
+        }
+    }
+
     /** A wound to the body pulls its dreamer back awake, once the tick that hurt it is over. */
     static void bodyHurt(SleepingBodyEntity body, MinecraftServer server) {
         owner(body, server).ifPresent(player -> later(server, () -> wake(player, Reason.BODY_HURT)));
     }
 
     /**
-     * If the body dies, so does its dreamer, where they stand in the Dream
-     * Realm: what they carried stays there, by their anchor's road, and they
-     * respawn as usual. Dying ends the dream (see {@link #onLivingDeath}).
+     * If the body dies, its dreamer is Lost (ch. 360, 435): they live on in the
+     * Dream Realm, but cannot wake until they rise to Ascended. With the Lost
+     * rule off, they die where they stand in the Dream Realm instead: what they
+     * carried stays there, and they respawn as usual. Dying ends the dream (see
+     * {@link #onLivingDeath}).
      */
     static void bodyDied(SleepingBodyEntity body, DamageSource cause, MinecraftServer server) {
+        if (DreamRealmRules.lost(server)) {
+            owner(body, server).ifPresent(player -> later(server, () -> becomeLost(player)));
+            return;
+        }
         owner(body, server).ifPresent(player -> later(server, () -> {
             TrialService.interrupt(player);
             player.displayClientMessage(Component.literal(Reason.BODY_KILLED.line).withStyle(ChatFormatting.RED), true);
@@ -323,6 +438,26 @@ public final class DreamCrossing {
             player.hurt(severed, Float.MAX_VALUE);
             endWithoutWaking(player);
         }));
+    }
+
+    /** Makes a dreamer Lost: their body is gone, and nothing waits for them in the waking world. */
+    public static void becomeLost(ServerPlayer player) {
+        Optional<DreamData.Dreaming> dreaming = data(player).dreaming();
+        if (dreaming.isEmpty() || dreaming.get().lost()) {
+            return;
+        }
+        ServerLevel bedLevel = player.server.getLevel(dreaming.get().bed().dimension());
+        if (bedLevel != null) {
+            releaseBody(bedLevel, dreaming.get());
+        }
+        setData(player, data(player).withDreaming(dreaming.get().asLost()));
+        title(player, Component.literal("Lost").withStyle(ChatFormatting.DARK_RED),
+                Component.literal("Your sleeping body is dead").withStyle(ChatFormatting.GRAY));
+        spell(player, Component.literal("Your body has died in the waking world. You are Lost.").withStyle(ChatFormatting.DARK_RED));
+        spell(player, Component.literal("You cannot wake. Conquer your Second Nightmare and rise to Ascended, and your soul will make itself a new body.")
+                .withStyle(ChatFormatting.GRAY));
+        player.serverLevel().playSound(null, player.blockPosition(), SoundEvents.WITHER_SPAWN, SoundSource.PLAYERS, 0.6F, 0.5F);
+        ShadowSlaveMod.LOGGER.info("{} is Lost: their sleeping body died", player.getScoreboardName());
     }
 
     private static void later(MinecraftServer server, Runnable task) {
@@ -350,7 +485,7 @@ public final class DreamCrossing {
         if (held.isEmpty() && state.getValue(CandleBlock.LIT)) {
             event.setCanceled(true);
             event.setCancellationResult(InteractionResult.SUCCESS);
-            if (!wake(player, Reason.CANDLE)) {
+            if (!tryWake(player, Reason.CANDLE)) {
                 player.displayClientMessage(Component.literal("You are not dreaming; this candle cannot wake you.")
                         .withStyle(ChatFormatting.GRAY), true);
             }
@@ -395,16 +530,51 @@ public final class DreamCrossing {
 
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         // A challenger who comes back into a Long Nightmare stays in the dream: the Nightmare kept them.
+        // So do the Lost: there is no body to wake in.
         if (event.getEntity() instanceof ServerPlayer player && data(player).isDreaming() && !TrialService.inside(player)) {
-            wake(player, Reason.RETURNED);
+            if (data(player).isLost()) {
+                returnToDream(player);
+            } else {
+                wake(player, Reason.RETURNED);
+            }
         }
     }
 
-    /** Dying in the Dream Realm ends the dream; you respawn as usual and your body is gone from the bed. */
+    /**
+     * Dying in the Dream Realm ends the dream; you respawn as usual and your
+     * body is gone from the bed. The Lost have no bed to respawn in: they come
+     * back at their Dream Anchor, still Lost.
+     */
     public static void onLivingDeath(LivingDeathEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
+        if (event.getEntity() instanceof ServerPlayer player && !data(player).isLost()) {
             endWithoutWaking(player);
         }
+    }
+
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player && !event.isEndConquered() && data(player).isLost()) {
+            later(player.server, () -> returnToDream(player));
+        }
+    }
+
+    /** A second's check for each dreamer: whether a Lost one has Ascended, or has strayed out of the Dream Realm. */
+    public static void onPlayerTickLost(PlayerTickEvent.Post event) {
+        if (event.getEntity() instanceof ServerPlayer player && player.tickCount % 20 == 0 && data(player).isLost()) {
+            checkFound(player);
+        }
+    }
+
+    /** Puts a Lost dreamer back at their Dream Anchor, wherever the waking world tried to put them. */
+    static void returnToDream(ServerPlayer player) {
+        ServerLevel realm = DreamRealm.level(player.server);
+        if (realm == null || !data(player).isLost() || DreamRealm.is(player.level()) || TrialWorld.is(player.level())) {
+            return;
+        }
+        Vec3 arrival = arrival(player, realm, data(player).dreaming().orElseThrow().bed().pos());
+        player.teleportTo(realm, arrival.x, arrival.y, arrival.z, Set.of(), player.getYRot(), 0.0F);
+        player.resetFallDistance();
+        spell(player, Component.literal("The waking world has no place for you. You are Lost, and the dream takes you back.")
+                .withStyle(ChatFormatting.DARK_RED));
     }
 
     /**
@@ -415,7 +585,12 @@ public final class DreamCrossing {
     public static void onChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer player && event.getFrom().equals(DreamRealm.key(player.server))
                 && !event.getTo().equals(DreamRealm.key(player.server)) && !event.getTo().equals(TrialWorld.key(player.server))) {
-            endWithoutWaking(player);
+            if (data(player).isLost()) {
+                // The Lost cannot leave; an operator frees them with /shadowslave dream wake.
+                later(player.server, () -> returnToDream(player));
+            } else {
+                endWithoutWaking(player);
+            }
         }
     }
 

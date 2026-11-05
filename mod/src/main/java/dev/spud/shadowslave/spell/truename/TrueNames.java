@@ -96,15 +96,15 @@ public final class TrueNames {
 
     /**
      * After a conquered Nightmare's appraisal: a challenger without a name may
-     * receive one if the grade opens the chance (Glorious and above) and the
-     * roll falls their way. The appraisal screen shows it, so no screen of its own.
+     * receive one if the grade opens the chance (only Glorious) and the roll
+     * falls their way; the chance is higher when they achieved the impossible. The appraisal screen shows it, so no screen of its own.
      */
     public static Optional<Grant> considerAppraisal(ServerPlayer player, SpellJudge.Judgement judgement) {
         if (data(player).named()) {
             return Optional.empty();
         }
         TrueNameContent content = TrueNameContent.get();
-        float chance = content.settings().chanceFor(judgement.grade().name());
+        float chance = content.settings().chanceFor(judgement.grade().name(), judgement.impossible());
         if (chance <= 0.0F) {
             return Optional.empty();
         }

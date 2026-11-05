@@ -1,0 +1,35 @@
+{
+  "inner_radius": 1000,
+  "inner": { "held": 50, "wild": 35, "fallen": 15 },
+  "outer": { "held": 20, "wild": 60, "fallen": 20 },
+  "max_present": 40,
+  "presence_radius": 96,
+  "guards": 6,
+  "residents": 8,
+  "regrow_minutes": 20,
+  "clan_reach": 1500,
+  "clan_max_citadels": 3,
+  "fallen_creatures": 3,
+  "standing": {
+    "known": 10,
+    "trusted": 30,
+    "sworn": 60,
+    "trade": 1,
+    "hunt": 1,
+    "hurt": 5,
+    "kill": 25
+  },
+  "great_clans": ["The Pale Crown", "House of Embers", "The Iron Vigil"],
+  "clan_names": [
+    "Ashveil", "Greymantle", "Vesper", "Thornhall", "Cindermark", "Duskmoor", "Hollowell", "Ravensworn",
+    "Stillwater", "Grimward", "Lanternfall", "Mirewatch", "Saltmarrow", "Coldharrow", "Blackwick", "Embersong"
+  ],
+  "given_names": [
+    "Aren", "Brisa", "Corvin", "Dael", "Edda", "Fen", "Hale", "Ines", "Joren", "Kesh", "Lior", "Mara",
+    "Nils", "Orla", "Pell", "Quill", "Rhea", "Soren", "Tamsin", "Ulric", "Vela", "Wren", "Yara", "Zev"
+  ],
+  "natures": [
+    "Warden", "Seer", "Reaper", "Wellspring", "Forge", "Delve", "Mason", "Verdant", "Stone", "Tide", "Ember", "Mist",
+    "Gloam", "Rime", "Fury", "Anchor", "Herald", "Keeper", "Unbroken"
+  ]
+}

@@ -99,7 +99,7 @@ public final class FirstNightmareGameTest {
     }
 
     @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = "ritual_test_room", timeoutTicks = 400)
-    public static void aDeathRevertsAndTheSeedBloomsAgain(GameTestHelper helper) {
+    public static void aDeathRevertsAndTheSeedGoesQuiet(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         ServerPlayer player = AbilityGameTest.playerWith(helper, AspectKitCatalog.STONE);
         TrialData.get(server).forget(player.getUUID());
@@ -122,7 +122,10 @@ public final class FirstNightmareGameTest {
             helper.assertTrue(countOf(player, Items.DIAMOND) == 0 && countOf(player, Items.BREAD) == 4, "reverted to how they went in");
             helper.assertFalse(FirstNightmare.conquered(player), "a death conquers nothing");
             helper.assertFalse(AwakeningService.ready(player), "so they cannot Awaken yet");
-            helper.assertTrue(FirstNightmare.due(player), "but the Seed grows back and can bloom again");
+            helper.assertFalse(FirstNightmare.due(player), "the Seed goes quiet for a while");
+            helper.assertTrue(FirstNightmare.quietLeft(player) > 24000 * 2, "a few in-game days: " + FirstNightmare.quietLeft(player));
+            TrialData.get(server).quietSeed(player.getUUID(), 0);
+            helper.assertTrue(FirstNightmare.due(player), "then it can bloom again");
             AABB around = new AABB(player.blockPosition()).inflate(8);
             helper.assertTrue(!helper.getLevel().getEntitiesOfClass(NightmareCreature.class, around).isEmpty(),
                     "with the breach on, something followed them out");

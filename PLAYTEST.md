@@ -436,8 +436,9 @@ status` and `/shadowslave gate close`.
 
 Added by claude-code, 2026-10-23. First slice: one region, the Ashen Expanse.
 Quick start: `/shadowslave aspect set ember`, `/shadowslave core fill`,
-`/shadowslave awaken <name>`, then sleep at night in a bed with a lit Dream
-Candle beside it.
+`/shadowslave awaken <name>`, then sleep in a bed with a lit Dream Candle
+beside it, at any hour (2026-10-31: there is no night-only rule; monsters
+nearby still keep you up).
 
 1. **Crossing.** Once you have Awakened, sleeping beside a lit Dream Candle
    takes you to the Dream Realm after about three seconds instead of skipping
@@ -446,17 +447,30 @@ Candle beside it.
    you: that is your **Dream Anchor**, and every later crossing arrives there.
    Light another Dream Candle in the Dream Realm to move it.
 2. **Waking.** Use a lit Dream Candle in the Dream Realm with an empty hand
-   (sneaking still meditates). You wake in your bed. Dying there also ends the
-   dream; you respawn as usual. Logging out wakes you on the next login.
+   (sneaking still meditates), or sneak-use your clan's Citadel Gateway with an
+   empty hand. Either only lets you through after a wait from when you arrived
+   (5 minutes; `/gamerule shadowslaveDreamWakeWait <seconds>`, after ch. 398),
+   and says how long is left. `/shadowslave dream` shows it too. You wake in
+   your bed. Dying there also ends the dream; you respawn as usual. Logging
+   out wakes you on the next login.
 3. **Your sleeping body.** Your body stays asleep in the bed (Awakened only;
-   Masters cross whole later). Hostile mobs nearby walk over to it. If it is
-   hurt you are pulled back awake with its wounds; if it dies, you die where
-   you stand in the Dream Realm. Its chunk stays loaded while you dream.
-4. **Nightmare Seeds.** While an Awakened player walks the Dream Realm, Seeds
+   Ascended cross whole, body and all). Hostile mobs nearby walk over to it. If
+   it is hurt you are pulled back awake at once with its wounds. Its chunk stays
+   loaded while you dream.
+4. **Lost** (2026-10-31, `/gamerule shadowslaveLostDreamers`, on). If your
+   sleeping body is killed, you become one of the **Lost** (ch. 360, 435): a
+   red title says so and you stay in the Dream Realm. Candles and Gateways will
+   not wake you, logging out and in keeps you there, and dying brings you back
+   at your Dream Anchor. Conquer your Second Nightmare and rise to Ascended and
+   your body is remade ("Found"); from then on you cross whole and wake as
+   usual. Rising to Ascended is being built in its own thread; until then an
+   operator frees a Lost player with `/shadowslave dream wake <player>`. With
+   the rule off, the old rule holds: you die where you stand in the Dream Realm.
+5. **Nightmare Seeds.** While an Awakened player walks the Dream Realm, Seeds
    take root 24 to 64 blocks away now and then (the action bar says so). Use
    one to read it: region, Category forecast, growth stage (1 to 4) and time
    to bloom (3 in-game days at normal speed).
-5. **Cleansing.** Sneak-use a Seed to challenge it: a Gate opens at the Seed
+6. **Cleansing.** Sneak-use a Seed to challenge it: a Gate opens at the Seed
    in the Dream Realm. Kill its Guardian and the Seed is cleansed and drops
    its region's loot, rolled 3 times at stage 1, 2 times at stages 2 and 3,
    once at stage 4.
@@ -603,8 +617,9 @@ face what grows from it alone.
 4. **Conquered.** The Spell appraises you as for any Nightmare, then tells you
    to meditate at your Dream Candle, where you Awaken as before.
 5. **Fallen.** A death reverts you to how you went to bed, like any Nightmare.
-   No Seed judges you: the one inside you grows back, and blooms again the next
-   time you sleep beside the candle.
+   No Seed judges you, but the one inside you goes quiet for 3 in-game days
+   (`quiet_days` in the settings). Sleeping by the candle before then tells you
+   how long is left; after that it blooms again the next time you sleep there.
 6. **Breach** (`/gamerule shadowslaveFirstNightmareBreach true`, also off). As
    in the novel, dying in your First Nightmare lets something out: a Dormant
    Ash Burrower appears beside you when you wake.
@@ -666,12 +681,16 @@ interface a later optional module can sit in front of.
    Citadel, first to Awaken) gets a gold line from the Spell.
    `/shadowslave spell record` shows the Spell's record of you and
    `/shadowslave spell firsts` the server's firsts.
-2. **The Judge.** Appraisals now grade on a longer ladder: Poor, Adequate,
-   Good, Excellent, Glorious, and "You have achieved the impossible" at the
-   rare top. A death inside is judged Failed. What counts: the ending and your
-   role's fate, each kill (rank points times soul cores), unique kills and
-   kills above your own rank, going alone or in a small cohort, cohort
-   members lost, and striking your own (a heavy penalty).
+2. **The Judge.** Appraisals grade Poor, Adequate, Good, Excellent and
+   Glorious. A death inside is judged Failed. Since 2026-10-31 the grade
+   measures how far your run strayed from the Nightmare's **fated ending**,
+   which the Spell never tells you (ch. 744): reaching the fated ending is worth
+   nothing by itself, changing it is worth a lot, and more when a lowly role (a
+   slave) changed it. Your role's part in the ending, going alone or in a small
+   cohort, cohort members lost and striking your own still count. Kills are
+   listed but do not count. Before the grade the Spell may comment: "Your
+   achievements are remarkable!" on Excellent, and "You have achieved the
+   impossible!" on the best Glorious runs (ch. 15, 743).
 3. **Commentary.** Under the grade the Spell says how you played (treachery,
    protecting others, recklessness, fighting above your rank, mercy, going
    alone, or steadfast) and what it remembers of you ("Again, you flee.",
@@ -701,8 +720,9 @@ Added by claude-code, 2026-10-30 (Run B of the lore doc's run backlog). A
 True Name is a rare honorary name the Spell grants (ch. 9). Everything is
 decided by game code; the voice only picks the form a name takes.
 
-1. **Earning one.** A conquered Nightmare judged Glorious has a 35% chance to
-   grant a name, and "the impossible" always does. The name is built from
+1. **Earning one.** Only a conquered Nightmare judged Glorious can grant a
+   name: a 35% chance, or always when the Spell also said "You have achieved
+   the impossible!". The name is built from
    word lists for how you played (treachery, protecting others, recklessness,
    fighting above your rank, mercy, going alone, steadfast). Two deeds outside
    Nightmares also grant one: being the first under the Spell to slay a Great
@@ -1030,7 +1050,8 @@ raise one in front of you (operators).
 3. **Conquering.** Kill the Guardian: "Citadel Conquered" shows and the
    Gateway opens (violet). For the first 5 minutes only the slayer (or their
    clan) may claim it; after that anyone can.
-4. **Claiming.** Use the open Gateway. If you have no clan you become a clan
+4. **Claiming.** Only a Saint can claim (see "NPC Citadels and the Saint's
+   claim" below); anyone else anchors to the open Gateway instead. As a Saint, use the open Gateway. If you have no clan you become a clan
    of one ("<name>'s clan"). The Gateway turns pale blue and becomes your
    Dream Anchor, so the next time you dream you arrive beside it. Lit Dream
    Candles on the dais wake you as usual.
@@ -1192,6 +1213,57 @@ Things to try:
    village or a ravine and look for the outlines. Awakened: open a Gate with
    `/shadowslave gate open 1`, walk a few hundred blocks off and Triangulate it, or run a Fault Line
    through a row of husks.
+
+### NPC Citadels and the Saint's claim
+
+Added by claude-code, 2026-10-31 (slice one of NPC Citadels, Jack's picks).
+Quick start, operators: `/shadowslave citadel build held` (or `wild`,
+`fallen`) raises one in front of you.
+
+1. **Three kinds.** Each generated Citadel wakes as one of three, fixed by
+   the world seed and where it stands. *Held*: an NPC clan holds it, its
+   colours hang either side of the gate and its Gateway is bound (pale blue).
+   *Wild*: today's Citadel, sealed under its Guardian. *Fallen*: a ruin, its
+   Gateway open, a few of the region's creatures prowling the courtyard. In
+   the inner ring (the Ashen Expanse, within 1000 blocks) half are held; out
+   past it most are wild.
+2. **NPC clans.** Each is a Lesser Legacy Clan (a name such as "Clan
+   Ashveil"), sworn to one of three Great Clans (The Pale Crown, House of
+   Embers, The Iron Vigil), led by a Saint lord who holds an Aspect. One clan
+   holds up to 3 Citadels near each other.
+3. **Its people.** Come within 96 blocks and they stand at their posts: the
+   Saint lord on the dais behind the Gateway, guards on the four towers and
+   inside the gate (iron, a sword and shield, a tunic in the clan's colour),
+   a trader and residents about the courtyard. Walk away and they are only a
+   count again. At most 40 stand at once; the rest are counted.
+4. **Talking and trading.** Use anyone to hear them; the lord names their
+   Aspect and Great Clan. The trader deals in Dormant Soul Shards (food,
+   arrows, soul lanterns and shields for shards; iron, leather and coal for
+   shards).
+5. **Standing.** Stranger, Known (10), Trusted (30), Sworn (60). Trading
+   (+1) and slaying Nightmare Creatures on the clan's land (+1 per rank step)
+   raise it. Striking one of its people costs 5, killing one 25. Below zero
+   you are Hostile: guards attack on sight and its Gateway lets your anchor
+   go. A slain guard or resident is replaced every 20 minutes.
+6. **Anchoring.** Anyone the clan is not set against may anchor to a held
+   Gateway. Anyone may anchor to an open (conquered or fallen) Gateway too;
+   it belongs to nobody.
+7. **The Saint's claim.** Anyone may slay a Guardian, but only a Saint can
+   bind a Gateway and claim the Citadel (ch. 1074, 1802). Binding writes it
+   to the Saint's clan and lets go every other anchor. In a war, a seat taken
+   with no Saint of the winners within 48 blocks falls open instead, and the
+   winners keep first claim for 5 minutes so their Saint can bind it. Ranking
+   up past Awakened is not built yet (it is the next thread), so until then
+   no new Citadel can be claimed; Citadels claimed before this stay held.
+
+Not yet: NPC clans growing, expanding and making war by themselves (the
+world simulation), contracts and petitions, residents you manage, and
+visible town growth and outposts. Those are the next slices.
+
+Tuning is data: `data/shadowslave/citadel/npc.json` (the mix per ring, the
+40-at-once cap, presence radius, starting guards and residents, regrow time,
+standing steps, clan, people and Nature names) and `claim_rank` in
+`citadel/settings.json` (default `transcendent`, the Saint).
 
 ### War Natures: Saboteur and Standard
 

@@ -40,7 +40,10 @@ public final class CitadelCommands {
                         .then(Commands.literal("status").executes(context -> status(context.getSource())))
                         .then(Commands.literal("build")
                                 .requires(source -> source.hasPermission(2))
-                                .executes(context -> build(context.getSource())))
+                                .executes(context -> build(context.getSource(), NpcCitadels.Kind.WILD))
+                                .then(Commands.literal("wild").executes(context -> build(context.getSource(), NpcCitadels.Kind.WILD)))
+                                .then(Commands.literal("held").executes(context -> build(context.getSource(), NpcCitadels.Kind.HELD)))
+                                .then(Commands.literal("fallen").executes(context -> build(context.getSource(), NpcCitadels.Kind.FALLEN))))
                         .then(Commands.literal("list")
                                 .requires(source -> source.hasPermission(2))
                                 .executes(context -> list(context.getSource())))
@@ -95,7 +98,7 @@ public final class CitadelCommands {
         return 1;
     }
 
-    private static int build(CommandSourceStack source) throws CommandSyntaxException {
+    private static int build(CommandSourceStack source, NpcCitadels.Kind kind) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
         ServerLevel level = player.serverLevel();
         if (!DreamRealm.is(level)) {
@@ -106,9 +109,13 @@ public final class CitadelCommands {
         level.getChunk(ahead);
         BlockPos centre = new BlockPos(ahead.getX(), level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ahead.getX(), ahead.getZ()), ahead.getZ());
         CitadelService.build(level, centre, 12, CitadelPalette.DEFAULT);
-        CitadelData.Citadel citadel = CitadelService.wake(level, CitadelLayout.gateway(centre));
-        source.sendSuccess(() -> Component.literal("Raised " + citadel.name() + " at " + citadel.gateway().toShortString()
-                + ", held by a " + citadel.rank().displayName() + " Guardian."), true);
+        CitadelData.Citadel citadel = CitadelService.wake(level, CitadelLayout.gateway(centre), kind);
+        source.sendSuccess(() -> Component.literal("Raised " + citadel.name() + " at " + citadel.gateway().toShortString() + ", "
+                + switch (kind) {
+                    case WILD -> "held by a " + citadel.rank().displayName() + " Guardian.";
+                    case HELD -> "held by " + NpcCitadels.clanOf(source.getServer(), citadel).map(NpcClanData.NpcClan::name).orElse("an NPC clan") + ".";
+                    case FALLEN -> "fallen to ruin.";
+                }), true);
         return 1;
     }
 
@@ -277,6 +284,8 @@ public final class CitadelCommands {
         String holder = switch (citadel.hold()) {
             case GUARDIAN -> "held by its " + citadel.rank().displayName() + " Guardian";
             case CONQUERED -> "conquered, its Gateway open";
+            case NPC -> "held by " + NpcCitadels.clanOf(source.getServer(), citadel).map(clan -> clan.name() + " (" + citadel.guards()
+                    + " guards, " + citadel.residents() + " residents)").orElse("an NPC clan");
             case CLAN -> "held by " + citadel.clan().flatMap(clan -> ClanService.byId(source.getServer(), clan))
                     .map(clan -> clan.name()).orElse("a clan");
         };

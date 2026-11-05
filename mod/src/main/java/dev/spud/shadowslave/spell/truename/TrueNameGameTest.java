@@ -46,7 +46,7 @@ public final class TrueNameGameTest {
 
     private static SpellJudge.Judgement judged(int score, SpellJudge.Behaviour behaviour) {
         TrialSettings settings = TrialContent.get().settings();
-        return new SpellJudge.Judgement(List.of(), score, settings.gradeFor(score), behaviour);
+        return SpellJudge.Judgement.of(List.of(), score, behaviour, settings, TrialContent.get().appraisal());
     }
 
     @GameTest(templateNamespace = ShadowSlaveMod.MOD_ID, template = ROOM)
@@ -55,7 +55,7 @@ public final class TrueNameGameTest {
         helper.assertTrue(TrueNames.considerAppraisal(player, judged(130, SpellJudge.Behaviour.ALONE)).isEmpty(),
                 "Excellent never grants a name");
         Optional<TrueNames.Grant> grant = TrueNames.considerAppraisal(player, judged(10_000, SpellJudge.Behaviour.ALONE));
-        helper.assertTrue(grant.isPresent(), "the impossible always grants one");
+        helper.assertTrue(grant.isPresent(), "a glorious run that achieved the impossible always grants one");
         helper.assertTrue(TrueNames.nameOf(player).equals(Optional.of(grant.get().name())), "the player bears it");
         helper.assertTrue(TrueNames.data(player).deed().equals("alone"), "built from the deed the Judge read: " + TrueNames.data(player).deed());
         helper.assertTrue(SpellRecord.get(player.server).bearerOf(grant.get().name()).filter(player.getUUID()::equals).isPresent(),

@@ -111,7 +111,9 @@ class TrueNameTest {
         TrueNameSettings settings = TrueNameSettings.CODEC.parse(JsonOps.INSTANCE, json("true_name/settings.json")).getOrThrow();
         assertEquals(0.0F, settings.chanceFor("Excellent"), "below Glorious the chance never opens");
         assertTrue(settings.chanceFor("Glorious") > 0.0F);
-        assertEquals(1.0F, settings.chanceFor("Impossible"));
+        assertEquals(0.0F, settings.chanceFor("Impossible"), "the impossible is a comment, not a grade");
+        assertEquals(1.0F, settings.chanceFor("Glorious", true), "the impossible line raises a glorious chance");
+        assertEquals(0.0F, settings.chanceFor("Excellent", true), "but never opens one below Glorious");
         assertTrue(settings.drainResist() > 0.0F && settings.drainResist() < 1.0F);
         assertEquals(24000, settings.senseCooldown(), "once a day");
     }
